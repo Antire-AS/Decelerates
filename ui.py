@@ -12,131 +12,184 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* ── Global typography ── */
+/* ══════════════════════════════════════════
+   PALETTE
+   Navy    #0F2645
+   Gold    #B8972A
+   Parch   #F4EFE6   (main bg)
+   Linen   #E8DFD0   (secondary)
+   Stone   #C8BFAF   (borders)
+   Ink     #1C1C1C
+══════════════════════════════════════════ */
+
+/* ── Global ── */
 html, body, [class*="css"] {
     font-family: 'Georgia', 'Times New Roman', serif;
+    color: #1C1C1C;
 }
+.main > div { background: #F4EFE6; }
 
 /* ── Top banner ── */
 .broker-header {
-    background: #1B3A6B;
-    padding: 1.6rem 2rem 1.2rem 2rem;
-    border-bottom: 4px solid #C9A84C;
-    margin: -4rem -4rem 1.8rem -4rem;
+    background: linear-gradient(135deg, #0F2645 0%, #1B3A6B 100%);
+    padding: 1.8rem 2.4rem 1.4rem 2.4rem;
+    border-bottom: 3px solid #B8972A;
+    margin: -4rem -4rem 2rem -4rem;
+    box-shadow: 0 4px 18px rgba(15,38,69,0.25);
 }
 .broker-header h1 {
     color: #FFFFFF;
-    font-size: 2rem;
+    font-size: 2.1rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     margin: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 .broker-header p {
-    color: #C9A84C;
-    font-size: 0.85rem;
-    letter-spacing: 0.14em;
+    color: #D4AF5A;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    margin: 0.2rem 0 0 0;
+    margin: 0.35rem 0 0 0;
 }
 
 /* ── Tab bar ── */
 .stTabs [data-baseweb="tab-list"] {
     gap: 0;
-    border-bottom: 2px solid #1B3A6B;
+    background: #E8DFD0;
+    border-bottom: 2px solid #0F2645;
+    padding: 0 0.5rem;
 }
 .stTabs [data-baseweb="tab"] {
     font-family: Georgia, serif;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    padding: 0.6rem 1.6rem;
+    letter-spacing: 0.05em;
+    padding: 0.65rem 1.8rem;
     border-radius: 0;
-    color: #1B3A6B;
+    color: #0F2645;
+    border-bottom: 3px solid transparent;
 }
 .stTabs [aria-selected="true"] {
-    background: #1B3A6B !important;
-    color: #FFFFFF !important;
+    background: #0F2645 !important;
+    color: #D4AF5A !important;
+    border-bottom: 3px solid #B8972A !important;
 }
 
 /* ── Section headings ── */
 h2, h3 {
-    color: #1B3A6B;
-    border-bottom: 1px solid #C9A84C;
-    padding-bottom: 0.3rem;
+    color: #0F2645;
+    border-bottom: 2px solid #B8972A;
+    padding-bottom: 0.4rem;
+    margin-top: 1.6rem;
 }
+h4 { color: #0F2645; }
 
 /* ── Metric cards ── */
 [data-testid="metric-container"] {
-    background: #F5F2EC;
-    border: 1px solid #D6D0C4;
-    border-left: 4px solid #1B3A6B;
-    border-radius: 4px;
-    padding: 0.8rem 1rem;
+    background: linear-gradient(160deg, #FFFFFF 0%, #EDE5D8 100%);
+    border: 1px solid #C8BFAF;
+    border-left: 5px solid #0F2645;
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(15,38,69,0.08);
 }
 [data-testid="stMetricValue"] {
-    font-size: 1.5rem !important;
+    font-size: 1.55rem !important;
     font-weight: 700;
-    color: #1B3A6B;
+    color: #0F2645;
 }
 [data-testid="stMetricLabel"] {
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #555;
+    color: #6B5F4E;
 }
+[data-testid="stMetricDelta"] { font-size: 0.85rem !important; }
 
 /* ── Buttons ── */
 .stButton > button {
     font-family: Georgia, serif;
     font-size: 0.95rem;
-    letter-spacing: 0.04em;
-    border-radius: 3px;
-    border: 1px solid #1B3A6B;
-    background: #1B3A6B;
-    color: white;
-    padding: 0.45rem 1.2rem;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    border: 1.5px solid #0F2645;
+    background: #0F2645;
+    color: #F4EFE6;
+    padding: 0.5rem 1.4rem;
+    box-shadow: 0 2px 6px rgba(15,38,69,0.2);
+    transition: all 0.15s ease;
 }
 .stButton > button:hover {
-    background: #C9A84C;
-    border-color: #C9A84C;
-    color: white;
+    background: #B8972A;
+    border-color: #B8972A;
+    color: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(184,151,42,0.35);
 }
 button[kind="secondary"] {
-    background: white !important;
-    color: #1B3A6B !important;
+    background: #F4EFE6 !important;
+    color: #0F2645 !important;
+    border-color: #C8BFAF !important;
 }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #F5F2EC;
-    border-right: 1px solid #D6D0C4;
+    background: linear-gradient(180deg, #1B3A6B 0%, #0F2645 100%);
+    border-right: none;
 }
+[data-testid="stSidebar"] * { color: #EDE5D8 !important; }
 [data-testid="stSidebar"] h2 {
-    font-size: 1.1rem;
-    border-bottom: 2px solid #C9A84C;
+    font-size: 1.05rem;
+    border-bottom: 2px solid #B8972A;
+    padding-bottom: 0.4rem;
+    color: #D4AF5A !important;
+    letter-spacing: 0.06em;
+}
+[data-testid="stSidebar"] .stProgress > div > div {
+    background: #B8972A;
+}
+[data-testid="stSidebar"] hr {
+    border-top: 1px solid rgba(184,151,42,0.4);
 }
 
-/* ── Dataframes / tables ── */
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    background: #EDE5D8;
+    border: 1px solid #C8BFAF;
+    border-radius: 6px;
+}
+
+/* ── Dataframe / tables ── */
 [data-testid="stDataFrame"] {
-    border: 1px solid #D6D0C4;
+    border: 1px solid #C8BFAF;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 /* ── Input fields ── */
 input, textarea, select {
     font-family: Georgia, serif !important;
     font-size: 1rem !important;
+    background: #FDFAF6 !important;
+}
+
+/* ── Info / success / warning boxes ── */
+[data-testid="stAlert"] {
+    border-radius: 6px;
+    border-left-width: 5px;
 }
 
 /* ── Divider ── */
 hr {
     border: none;
-    border-top: 1px solid #C9A84C;
-    margin: 1.5rem 0;
+    border-top: 1px solid #B8972A;
+    margin: 1.6rem 0;
+    opacity: 0.5;
 }
 </style>
 
 <div class="broker-header">
-    <h1>Broker Accelerator</h1>
+    <h1>&#9878; Broker Accelerator</h1>
     <p>Forsikringsmegling &nbsp;&bull;&nbsp; Due Diligence &nbsp;&bull;&nbsp; Risikoprofil</p>
 </div>
 """, unsafe_allow_html=True)
@@ -166,6 +219,8 @@ with tab_search:
         st.session_state["offers_uploaded_names"] = []
     if "offers_comparison" not in st.session_state:
         st.session_state["offers_comparison"] = None
+    if "show_results" not in st.session_state:
+        st.session_state["show_results"] = True
 
     # ── Sidebar: broker process checklist ────────────────────────────────────
     orgnr_ctx = st.session_state.get("selected_orgnr")
@@ -227,6 +282,8 @@ with tab_search:
             params["kommunenummer"] = kommune
         st.session_state["narrative"] = None
         st.session_state["estimated_financials"] = None
+        st.session_state["show_results"] = True
+        st.session_state["selected_orgnr"] = None
         try:
             resp = requests.get(f"{API_BASE}/search", params=params, timeout=10)
             resp.raise_for_status()
@@ -235,20 +292,37 @@ with tab_search:
             st.error(f"Failed to call backend: {e}")
 
     results = st.session_state["search_results"]
-    st.write(f"Found {len(results)} results")
 
-    for r in results:
-        line = (
-            f"{r.get('orgnr', '?')} - {r.get('navn', 'N/A')} "
-            f"({r.get('organisasjonsform', 'N/A')}) "
-            f"[{r.get('kommune', '')}, {r.get('postnummer', '')}] "
-            f"– {r.get('naeringskode1', '')} {r.get('naeringskode1_beskrivelse', '')}"
+    if st.session_state.get("show_results", True):
+        st.write(f"Found {len(results)} results")
+        for r in results:
+            line = (
+                f"{r.get('orgnr', '?')} - {r.get('navn', 'N/A')} "
+                f"({r.get('organisasjonsform', 'N/A')}) "
+                f"[{r.get('kommune', '')}, {r.get('postnummer', '')}] "
+                f"– {r.get('naeringskode1', '')} {r.get('naeringskode1_beskrivelse', '')}"
+            )
+            st.write(line)
+            if st.button("View profile", key=f"view-{r['orgnr']}"):
+                st.session_state["selected_orgnr"] = r["orgnr"]
+                st.session_state["narrative"] = None
+                st.session_state["estimated_financials"] = None
+                st.session_state["show_results"] = False
+                st.rerun()
+    elif results:
+        selected = st.session_state.get("selected_orgnr")
+        selected_name = next(
+            (r.get("navn", selected) for r in results if r.get("orgnr") == selected),
+            selected,
         )
-        st.write(line)
-        if st.button("View profile", key=f"view-{r['orgnr']}"):
-            st.session_state["selected_orgnr"] = r["orgnr"]
-            st.session_state["narrative"] = None
-            st.session_state["estimated_financials"] = None
+        col_info, col_btn = st.columns([5, 1])
+        with col_info:
+            st.caption(f"Viser profil: **{selected_name}** ({selected}) — {len(results)} treff")
+        with col_btn:
+            if st.button("Ny søk", key="back_to_results"):
+                st.session_state["show_results"] = True
+                st.session_state["selected_orgnr"] = None
+                st.rerun()
 
     # ── Profile section ──────────────────────────────────────────
     selected_orgnr = st.session_state["selected_orgnr"]
