@@ -4,10 +4,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, Larg
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 
-# Bruk DATABASE_URL fra miljøvariabel, fall back til lokal Postgres
+# Bruk DATABASE_URL fra miljøvariabel, fall back til delt Neon-database
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://tharusan@localhost:5432/brokerdb",
+    "postgresql://neondb_owner:npg_5iLXbsqEGr0m@ep-raspy-dew-a9h9l9zo-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require",
 )
 
 engine = create_engine(DATABASE_URL, echo=True, future=True)
