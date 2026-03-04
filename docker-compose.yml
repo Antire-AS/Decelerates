@@ -1,20 +1,9 @@
 version: "3.9"
 
 services:
-  db:
-    image: pgvector/pgvector:pg14
-    container_name: broker-postgres
-    env_file: .env
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   app:
     build: .
     container_name: broker-api
-    depends_on:
-      - db
     env_file: .env
     ports:
       - "8000:8000"
@@ -22,6 +11,3 @@ services:
       - .:/app
     command: >
       uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-
-volumes:
-  postgres_data:
