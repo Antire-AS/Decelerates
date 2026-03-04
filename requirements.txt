@@ -6,4 +6,11 @@ requests==2.32.5
 pydantic==2.12.5
 streamlit==1.54.0
 pandas==2.3.3
+anthropic>=0.40.0
+pgvector>=0.3.0
+voyageai>=0.2.1
+google-genai>=1.0.0
+pdfplumber>=0.11.0
+fpdf2>=2.7.0
+python-multipart>=0.0.9
 
