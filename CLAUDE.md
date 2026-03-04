@@ -83,6 +83,18 @@ All business logic lives here. On startup it calls `init_db()` and `_seed_pdf_so
 | GET | `/org/{orgnr}/pdf-sources` | List known PDF annual report sources for an org |
 | GET | `/companies?limit=&kommune=` | List previously looked-up companies from DB |
 | GET | `/org-by-name?name=` | Convenience: search by name, return profile of first hit |
+| GET | `/broker/settings` | Retrieve broker firm settings (name, orgnr, contact details) |
+| POST | `/broker/settings` | Save broker firm settings |
+| POST | `/org/{orgnr}/offers` | Upload insurance offer PDF for an org |
+| GET | `/org/{orgnr}/offers` | List all uploaded insurance offers for an org |
+| DELETE | `/org/{orgnr}/offers/{offer_id}` | Delete an insurance offer |
+| GET | `/org/{orgnr}/offers/{offer_id}/pdf` | Download the raw offer PDF |
+| POST | `/org/{orgnr}/offers/compare` | Upload + compare up to 3 offer PDFs via LLM, return structured comparison |
+| POST | `/org/{orgnr}/offers/compare-stored` | Compare already-stored offers by ID via LLM |
+| POST | `/sla` | Create a new SLA agreement (generates PDF, stores in DB) |
+| GET | `/sla` | List all SLA agreements |
+| GET | `/sla/{sla_id}` | Get a single SLA agreement |
+| GET | `/sla/{sla_id}/pdf` | Download the generated SLA agreement PDF |
 
 ---
 
@@ -91,7 +103,9 @@ All business logic lives here. On startup it calls `init_db()` and `_seed_pdf_so
 Single-page app. Uses `st.session_state` to hold search results and the selected org number between rerenders.
 
 **Sections rendered:**
-1. Search bar → calls `/search` → lists results with "View profile" buttons
+
+*Company Search tab:*
+1. Search bar → calls `/search` → lists results with "View profile" buttons. When a result is selected, the results list collapses to a single compact line (company name + orgnr + result count) with a "Ny søk" button to expand again.
 2. Organisation info — two columns: left = company details (name, form, orgnr, address, industry, founded date); right = `st.map()` showing HQ pin from Kartverket geocoding
 3. Bankruptcy & liquidation status — `st.error()` if bankrupt, `st.warning()` if under liquidation, `st.success()` if clean
 4. Board members (styremedlemmer) from BRREG
@@ -99,10 +113,18 @@ Single-page app. Uses `st.session_state` to hold search results and the selected
 6. Key figures table for the most recent accounting year (P&L and balance sheet)
 7. Financial history — YoY comparison table (with Source badge: PDF/BRREG) + bar charts (revenue, net result, debt breakdown) + equity ratio trend + year drill-down (selectbox → full P&L + balance sheet for selected year)
 8. "Add Annual Report PDF" expander — paste any public PDF URL to manually enrich history
-9. PEP / sanctions screening results
-10. AI-generated narrative and financial estimates
-11. Finanstilsynet licences
-12. Raw JSON debug views
+9. Insurance offers — upload up to 3 offer PDFs, trigger LLM comparison, view structured comparison table; also compare stored offers by selecting from uploaded list
+10. PEP / sanctions screening results
+11. AI-generated narrative and financial estimates
+12. Finanstilsynet licences
+13. Raw JSON debug views
+
+*Agreements tab:*
+- SLA agreement generator: fill in client details, start date, account manager, insurance lines, and fee structure (provisjon/honorar per line); generates a Norwegian PDF agreement and stores it in DB
+- List all existing SLA agreements with download links
+
+*Settings tab (sidebar):*
+- Broker firm settings: firm name, orgnr, address, contact name/email/phone; saved to `broker_settings` DB table and embedded in generated SLA PDFs
 
 ---
 
@@ -115,7 +137,7 @@ Single-page app. Uses `st.session_state` to hold search results and the selected
 
 ### [db.py](db.py) — SQLAlchemy models
 
-Three tables: `companies`, `company_history`, `company_pdf_sources`.
+Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_notes`, `broker_settings`, `sla_agreements`, `insurance_offers`.
 
 `companies` table:
 
@@ -165,6 +187,59 @@ Three tables: `companies`, `company_history`, `company_pdf_sources`.
 | `pdf_url` | String | public PDF URL |
 | `label` | String | human-readable label |
 | `added_at` | String | ISO timestamp |
+
+`company_notes` table (Q&A pairs with embeddings for RAG/chat):
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `orgnr` | String(9) | indexed |
+| `question` | String | user question |
+| `answer` | String | LLM-generated answer |
+| `created_at` | String | ISO timestamp |
+| `embedding` | Vector | pgvector embedding for similarity search |
+
+`broker_settings` table (singleton row for the broker's own firm info):
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | Integer PK | always 1 (singleton) |
+| `firm_name` | String | broker firm name |
+| `orgnr` | String(9) | broker's own org number |
+| `address` | String | broker address |
+| `contact_name` | String | contact person |
+| `contact_email` | String | contact email |
+| `contact_phone` | String | contact phone |
+| `updated_at` | String | ISO timestamp |
+
+`sla_agreements` table (generated service-level agreements):
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | Integer PK | auto |
+| `created_at` | String | ISO timestamp |
+| `broker_snapshot` | JSON | copy of BrokerSettings at creation time |
+| `client_orgnr` | String(9) | client company org number |
+| `client_navn` | String | client company name |
+| `client_adresse` | String | client address |
+| `client_kontakt` | String | client contact person |
+| `start_date` | String | agreement start date |
+| `account_manager` | String | assigned account manager |
+| `insurance_lines` | JSON | list of covered insurance lines |
+| `fee_structure` | JSON | per-line fee type (provisjon/honorar) and rate |
+| `status` | String | `"draft"`, `"active"`, or `"terminated"` |
+| `form_data` | JSON | full snapshot for PDF regeneration |
+
+`insurance_offers` table (uploaded insurer offer PDFs per orgnr):
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | Integer PK | auto |
+| `orgnr` | String(9) | indexed |
+| `filename` | String | original filename |
+| `insurer_name` | String | insurer name (e.g. "If Skadeforsikring") |
+| `uploaded_at` | String | ISO timestamp |
+| `pdf_content` | LargeBinary | raw PDF bytes |
+| `extracted_text` | String | cached pdfplumber text extraction |
 
 `DATABASE_URL` is read from the environment; falls back to `postgresql://tharusan@localhost:5432/brokerdb`.
 
@@ -222,6 +297,8 @@ streamlit run ui.py
 | `google-genai` | Gemini API — native PDF understanding + text generation + embeddings |
 | `voyageai` | Voyage embeddings (preferred over Gemini for RAG if `VOYAGE_API_KEY` is set) |
 | `pdfplumber` | PDF text extraction — fallback only when Gemini native PDF fails |
+| `python-multipart` | Multipart form data parsing for FastAPI file uploads |
+| `fpdf2` | PDF generation for SLA agreements |
 
 ---
 
