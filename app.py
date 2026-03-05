@@ -2,7 +2,7 @@ import io
 import json
 import os
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional, List, Dict, Any
 
 import anthropic
@@ -1175,12 +1175,12 @@ def fetch_org_profile(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
                 "_source": "pdf_history",
             }
 
-    risk = derive_simple_risk(org, regn) if regn else None
-
     try:
         pep = pep_screen_name(org.get("navn", ""))
     except requests.HTTPError:
         pep = None
+
+    risk = derive_simple_risk(org, regn, pep) if regn else None
 
     _upsert_company(db, orgnr, org, regn, risk, pep)
 
@@ -2178,6 +2178,281 @@ def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(g
             }
 
     raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig")
+
+
+# ---------------------------------------------------------------------------
+# Risk-based insurance offer + PDF risk report
+# ---------------------------------------------------------------------------
+
+_RISK_OFFER_PROMPT = """Du er en erfaren norsk forsikringsmegler. Basert på selskapets risikoprofil skal du anbefale hvilke forsikringsdekninger selskapet bør ha og til hvilke forsikringssummer.
+
+Selskapsinformasjon:
+{company_info}
+
+Risikofaktorer (score: {score}):
+{factors}
+
+Bransjenorm:
+{benchmark}
+
+Returner KUN gyldig JSON i dette formatet (ingen markdown, ingen forklaring utenfor JSON):
+{{
+  "anbefalinger": [
+    {{
+      "type": "Ansvarsforsikring",
+      "prioritet": "Må ha",
+      "anbefalt_sum": "5 000 000 NOK",
+      "begrunnelse": "Begrunnelse basert på selskapets profil"
+    }}
+  ],
+  "total_premieanslag": "80 000–120 000 NOK/år",
+  "sammendrag": "Kort sammendrag av risikoprofilen og anbefalingene"
+}}
+
+Prioritet skal være én av: "Må ha", "Anbefalt", "Valgfri"
+Vanlige forsikringstyper for norske bedrifter: Ansvarsforsikring, Yrkesskade/yrkessykdom, Gruppeliv, Næringslivsforsikring, Kriminalitetsforsikring, Cyber/datasikkerhet, Styreansvar, Reiseforsikring, Eiendomsforsikring, Driftsavbrudd
+"""
+
+
+@app.post("/org/{orgnr}/risk-offer")
+def generate_risk_offer(orgnr: str, db: Session = Depends(get_db)):
+    """Generate LLM-based insurance recommendations from the company's risk profile."""
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
+
+    org = {
+        "orgnr": db_obj.orgnr,
+        "navn": db_obj.navn,
+        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
+        "kommune": db_obj.kommune,
+        "naeringskode1": db_obj.naeringskode1,
+        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
+        "stiftelsesdato": (db_obj.regnskap_raw or {}).get("stiftelsesdato"),
+        "konkurs": False,
+        "under_konkursbehandling": False,
+        "under_avvikling": False,
+    }
+    regn = db_obj.regnskap_raw or {}  # JSON column, always dict at runtime
+    pep = db_obj.pep_raw or {}        # JSON column, always dict at runtime
+
+    risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
+    benchmark = fetch_ssb_benchmark(db_obj.naeringskode1 or "")  # type: ignore[arg-type]
+
+    def fmt_mnok(v):
+        if v is None:
+            return "ukjent"
+        return f"{v/1e6:.1f} MNOK"
+
+    eq_ratio = risk.get("equity_ratio")
+    eq_str = f"{eq_ratio*100:.1f}%" if eq_ratio is not None else "ukjent"
+    company_info = (
+        f"Navn: {db_obj.navn}\n"
+        f"Orgnr: {db_obj.orgnr}\n"
+        f"Organisasjonsform: {db_obj.organisasjonsform_kode}\n"
+        f"Bransje: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})\n"
+        f"Kommune: {db_obj.kommune}\n"
+        f"Omsetning: {fmt_mnok(db_obj.sum_driftsinntekter)}\n"
+        f"Egenkapital: {fmt_mnok(db_obj.sum_egenkapital)}\n"
+        f"Sum eiendeler: {fmt_mnok(db_obj.sum_eiendeler)}\n"
+        f"Ansatte: {regn.get('antall_ansatte', 'ukjent')}\n"
+        f"Årsresultat: {fmt_mnok(regn.get('aarsresultat'))}\n"
+        f"Egenkapitalandel: {eq_str}"
+    )
+
+    factors_text = "\n".join(
+        f"- {f['label']} (+{f['points']}p, {f['category']}): {f.get('detail', '')}"
+        for f in risk["factors"]
+    ) or "Ingen spesifikke risikofaktorer identifisert"
+
+    benchmark_text = (
+        f"Typisk egenkapitalandel for bransjen: {benchmark.get('equity_ratio_low', 0)*100:.0f}%–{benchmark.get('equity_ratio_high', 0)*100:.0f}%\n"
+        f"Typisk fortjenestemargin: {benchmark.get('profit_margin_low', 0)*100:.0f}%–{benchmark.get('profit_margin_high', 0)*100:.0f}%"
+        if benchmark else "Ingen bransjebenchmark tilgjengelig"
+    )
+
+    prompt = _RISK_OFFER_PROMPT.format(
+        company_info=company_info,
+        score=risk["score"],
+        factors=factors_text,
+        benchmark=benchmark_text,
+    )
+
+    raw = _llm_answer_raw(prompt)
+    if not raw:
+        raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig")
+
+    # Parse JSON
+    try:
+        import re
+        json_match = re.search(r"\{.*\}", raw, re.DOTALL)
+        result = json.loads(json_match.group(0)) if json_match else json.loads(raw)
+    except Exception:
+        result = {"sammendrag": raw, "anbefalinger": [], "total_premieanslag": "ukjent"}
+
+    return {
+        "orgnr": orgnr,
+        "navn": db_obj.navn,
+        "risk_score": risk["score"],
+        "risk_factors": risk["factors"],
+        **result,
+    }
+
+
+@app.get("/org/{orgnr}/risk-report/pdf")
+def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
+    """Generate and return a PDF risk assessment report."""
+    from fpdf import FPDF
+
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Company not in database")
+
+    org = {
+        "orgnr": db_obj.orgnr,
+        "navn": db_obj.navn,
+        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
+        "kommune": db_obj.kommune,
+        "naeringskode1": db_obj.naeringskode1,
+        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
+        "stiftelsesdato": (db_obj.regnskap_raw or {}).get("stiftelsesdato"),
+        "konkurs": False,
+        "under_konkursbehandling": False,
+        "under_avvikling": False,
+    }
+    regn = db_obj.regnskap_raw or {}
+    pep = db_obj.pep_raw or {}
+    risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
+
+    def fmt_mnok(v):
+        if v is None:
+            return "–"
+        return f"{v/1e6:,.1f} MNOK"
+
+    def score_label(s):
+        if s <= 3:
+            return "Lav"
+        if s <= 7:
+            return "Moderat"
+        if s <= 11:
+            return "Høy"
+        return "Svært høy"
+
+    today = date.today().strftime("%d.%m.%Y")
+
+    class RiskPDF(FPDF):
+        def header(self):
+            self.set_font("Helvetica", "B", 9)
+            self.set_text_color(120, 120, 120)
+            self.cell(0, 8, f"Risikovurdering — {db_obj.navn}", align="L")
+            self.ln(0)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font("Helvetica", "", 8)
+            self.set_text_color(150, 150, 150)
+            self.cell(0, 10, f"Side {self.page_no()} | Generert {today}", align="C")
+
+    pdf = RiskPDF()
+    pdf.set_auto_page_break(auto=True, margin=20)
+    pdf.set_margins(20, 20, 20)
+    pdf.add_page()
+
+    def section_title(title):
+        pdf.set_font("Helvetica", "B", 13)
+        pdf.set_text_color(30, 60, 120)
+        pdf.cell(0, 8, title, ln=True)
+        pdf.set_draw_color(30, 60, 120)
+        pdf.line(20, pdf.get_y(), 190, pdf.get_y())
+        pdf.ln(4)
+        pdf.set_text_color(0, 0, 0)
+
+    def row(label, value, bold_value=False):
+        pdf.set_font("Helvetica", "", 10)
+        pdf.set_fill_color(245, 247, 252)
+        pdf.cell(70, 7, label, border=0)
+        pdf.set_font("Helvetica", "B" if bold_value else "", 10)
+        pdf.cell(0, 7, str(value), border=0, ln=True)
+        pdf.set_font("Helvetica", "", 10)
+
+    # ── Forside ──
+    pdf.set_font("Helvetica", "B", 22)
+    pdf.set_text_color(30, 60, 120)
+    pdf.ln(10)
+    pdf.cell(0, 12, "Risikovurdering", ln=True)
+    pdf.cell(0, 12, "og forsikringsanbefaling", ln=True)
+    pdf.set_font("Helvetica", "", 14)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(0, 8, db_obj.navn, ln=True)
+    pdf.set_font("Helvetica", "", 11)
+    pdf.cell(0, 7, f"Orgnr: {db_obj.orgnr}  |  Dato: {today}", ln=True)
+    pdf.ln(6)
+
+    # Score-boks
+    s = risk["score"]
+    lbl = score_label(s)
+    color = {
+        "Lav": (34, 139, 34),
+        "Moderat": (255, 140, 0),
+        "Høy": (220, 80, 0),
+        "Svært høy": (180, 0, 0),
+    }.get(lbl, (0, 0, 0))
+    pdf.set_fill_color(*color)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(60, 14, f"Risikoscore: {s}  ({lbl})", fill=True, ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(8)
+
+    # ── Selskapsprofil ──
+    section_title("Selskapsprofil")
+    row("Navn", db_obj.navn)
+    row("Orgnr", db_obj.orgnr)
+    row("Organisasjonsform", db_obj.organisasjonsform_kode or "–")
+    row("Bransje", f"{db_obj.naeringskode1_beskrivelse or '–'} ({db_obj.naeringskode1 or '–'})")
+    row("Kommune", db_obj.kommune or "–")
+    row("Stiftelsesdato", org.get("stiftelsesdato") or "–")
+    pdf.ln(6)
+
+    # ── Finansiell analyse ──
+    section_title("Finansielle nøkkeltall")
+    row("Omsetning", fmt_mnok(db_obj.sum_driftsinntekter))
+    row("Årsresultat", fmt_mnok(regn.get("aarsresultat")))
+    row("Egenkapital", fmt_mnok(db_obj.sum_egenkapital))
+    row("Sum eiendeler", fmt_mnok(db_obj.sum_eiendeler))
+    row("Sum gjeld", fmt_mnok(regn.get("sum_gjeld")))
+    eq = risk.get("equity_ratio")
+    row("Egenkapitalandel", f"{eq*100:.1f}%" if eq is not None else "–")
+    row("Antall ansatte", str(regn.get("antall_ansatte") or "–"))
+    pdf.ln(6)
+
+    # ── Risikofaktorer ──
+    section_title("Risikofaktorer")
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(220, 230, 250)
+    pdf.cell(75, 7, "Faktor", border=1, fill=True)
+    pdf.cell(40, 7, "Kategori", border=1, fill=True)
+    pdf.cell(20, 7, "Poeng", border=1, fill=True, ln=True)
+
+    pdf.set_font("Helvetica", "", 9)
+    for i, f in enumerate(risk["factors"]):
+        fill = i % 2 == 0
+        pdf.set_fill_color(245, 247, 252) if fill else pdf.set_fill_color(255, 255, 255)
+        pdf.cell(75, 6, f["label"][:50], border=1, fill=fill)
+        pdf.cell(40, 6, f["category"], border=1, fill=fill)
+        pdf.cell(20, 6, f"+{f['points']}", border=1, fill=fill, ln=True)
+
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(115, 7, f"Total risikoscore: {s} ({lbl})", border=1, ln=True)
+    pdf.ln(6)
+
+    pdf_bytes = bytes(pdf.output())
+    filename = f"risikorapport_{orgnr}_{date.today().isoformat()}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.post("/org/{orgnr}/narrative")

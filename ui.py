@@ -508,13 +508,71 @@ with tab_search:
             with col5:
                 st.metric(label="PEP hits", value=risk_summary.get("pep_hits", 0))
 
-            flags = risk_summary.get("risk_flags") or []
-            if flags:
-                st.write("Risk flags:")
-                for f in flags:
-                    st.write(f"- {f}")
+            # ── Risikofaktorer-tabell ──
+            factors = risk_summary.get("risk_factors") or []
+            if factors:
+                import pandas as pd
+                CATEGORY_COLORS = {
+                    "Selskapsstatus": "🔴",
+                    "Økonomi": "🟠",
+                    "Bransje": "🟡",
+                    "Historikk": "🔵",
+                    "Eksponering": "🟣",
+                }
+                rows = [
+                    {
+                        "Kategori": f"{CATEGORY_COLORS.get(f['category'], '⚪')} {f['category']}",
+                        "Faktor": f["label"],
+                        "Detalj": f.get("detail", ""),
+                        "Poeng": f"+{f['points']}",
+                    }
+                    for f in factors
+                ]
+                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
             else:
-                st.write("No specific risk flags identified.")
+                st.success("Ingen risikofaktorer identifisert.")
+
+            # ── Forsikringsanbefaling ──
+            st.markdown("### Forsikringsanbefaling")
+            if "risk_offer" not in st.session_state:
+                st.session_state["risk_offer"] = None
+
+            col_offer, col_pdf = st.columns([3, 1])
+            with col_offer:
+                if st.button("Generer forsikringstilbud", key="gen_risk_offer"):
+                    with st.spinner("Analyserer risikoprofil med AI..."):
+                        try:
+                            r = requests.post(
+                                f"{API_BASE}/org/{selected_orgnr}/risk-offer",
+                                timeout=90,
+                            )
+                            if r.ok:
+                                st.session_state["risk_offer"] = r.json()
+                            else:
+                                st.error(f"Feil: {r.text}")
+                        except Exception as e:
+                            st.error(str(e))
+            with col_pdf:
+                pdf_url = f"{API_BASE}/org/{selected_orgnr}/risk-report/pdf"
+                st.markdown(f"[Last ned risikorapport (PDF)]({pdf_url})", unsafe_allow_html=False)
+
+            offer = st.session_state.get("risk_offer")
+            if offer:
+                if offer.get("sammendrag"):
+                    st.info(offer["sammendrag"])
+                anbefalinger = offer.get("anbefalinger", [])
+                if anbefalinger:
+                    import pandas as pd
+                    df_offer = pd.DataFrame(anbefalinger)
+                    col_map = {"type": "Forsikringstype", "prioritet": "Prioritet",
+                               "anbefalt_sum": "Anbefalt dekningssum", "begrunnelse": "Begrunnelse"}
+                    df_offer = df_offer.rename(columns={k: v for k, v in col_map.items() if k in df_offer.columns})
+                    st.dataframe(df_offer, use_container_width=True, hide_index=True)
+                if offer.get("total_premieanslag"):
+                    st.caption(f"Estimert premieanslag: **{offer['total_premieanslag']}**")
+                if st.button("Nullstill anbefaling", key="clear_offer"):
+                    st.session_state["risk_offer"] = None
+                    st.rerun()
 
             # ── 3b) Industry benchmarks ────────────────────────
             bench = (benchmark_data or {}).get("benchmark")
