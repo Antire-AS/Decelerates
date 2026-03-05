@@ -194,7 +194,7 @@ hr {
 </div>
 """, unsafe_allow_html=True)
 
-tab_search, tab_portfolio, tab_sla = st.tabs(["Selskapsok", "Portefolje", "Avtaler"])
+tab_search, tab_portfolio, tab_docs, tab_sla = st.tabs(["Selskapsok", "Portefolje", "Dokumenter", "Avtaler"])
 
 # ──────────────────────────────────────────────
 # TAB 1 — Company Search
@@ -1170,6 +1170,177 @@ Megler har konsesjon til å drive forsikringsmeglingsvirksomhet fra Finanstilsyn
 **Forholdet til forsikringsavtaleloven**
 Med mindre forholdet er omtalt i denne avtalen, fravikes de bestemmelser i forsikringsavtaleloven som det er adgang til ved forsikringsmegling med andre enn forbrukere og ved avtale om store risikoer.
 """.strip()
+
+# ──────────────────────────────────────────────
+# TAB 3 — Dokumentbibliotek
+# ──────────────────────────────────────────────
+with tab_docs:
+    st.subheader("Forsikringsdokumenter")
+
+    # Session state
+    if "doc_chat_id" not in st.session_state:
+        st.session_state["doc_chat_id"] = None
+    if "doc_chat_title" not in st.session_state:
+        st.session_state["doc_chat_title"] = ""
+    if "doc_chat_history" not in st.session_state:
+        st.session_state["doc_chat_history"] = []
+    if "doc_comparison" not in st.session_state:
+        st.session_state["doc_comparison"] = None
+
+    # ── Last opp dokument ──
+    with st.expander("Last opp nytt forsikringsdokument", expanded=False):
+        up_file = st.file_uploader("Velg PDF", type=["pdf"], key="doc_upload")
+        col1, col2 = st.columns(2)
+        with col1:
+            up_title = st.text_input("Tittel", placeholder="Forsikringsavtale Næringsliv 2026")
+            up_category = st.selectbox(
+                "Kategori",
+                ["næringslivsforsikring", "personalforsikring", "reise", "annet"],
+            )
+        with col2:
+            up_insurer = st.text_input("Forsikringsselskap", placeholder="If, Gjensidige...")
+            up_year = st.number_input("År", min_value=2000, max_value=2100, value=2026, step=1)
+            up_period = st.radio("Periode", ["aktiv", "historisk"], horizontal=True)
+
+        if st.button("Last opp", disabled=up_file is None or not up_title) and up_file is not None:
+            try:
+                resp = requests.post(
+                    f"{API_BASE}/insurance-documents",
+                    files={"file": (up_file.name, up_file.getvalue(), "application/pdf")},
+                    data={
+                        "title": up_title,
+                        "category": up_category,
+                        "insurer": up_insurer,
+                        "year": str(up_year),
+                        "period": up_period,
+                    },
+                    timeout=30,
+                )
+                if resp.ok:
+                    st.success(f"Lastet opp: {resp.json().get('title')}")
+                    st.rerun()
+                else:
+                    st.error(f"Feil: {resp.text}")
+            except Exception as e:
+                st.error(str(e))
+
+    # ── Hent dokumentliste ──
+    try:
+        docs_resp = requests.get(f"{API_BASE}/insurance-documents", timeout=10)
+        all_docs = docs_resp.json() if docs_resp.ok else []
+    except Exception:
+        all_docs = []
+
+    # ── Dokumentbibliotek ──
+    st.markdown("### Dokumentbibliotek")
+    if not all_docs:
+        st.info("Ingen dokumenter lastet opp ennå.")
+    else:
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            filter_cat = st.selectbox("Kategori", ["Alle"] + list({d["category"] for d in all_docs if d.get("category")}), key="doc_filter_cat")
+        with col_f2:
+            filter_year = st.selectbox("År", ["Alle"] + sorted({str(d["year"]) for d in all_docs if d.get("year")}, reverse=True), key="doc_filter_year")
+        with col_f3:
+            filter_period = st.selectbox("Periode", ["Alle", "aktiv", "historisk"], key="doc_filter_period")
+
+        filtered_docs = [
+            d for d in all_docs
+            if (filter_cat == "Alle" or d.get("category") == filter_cat)
+            and (filter_year == "Alle" or str(d.get("year")) == filter_year)
+            and (filter_period == "Alle" or d.get("period") == filter_period)
+        ]
+
+        for d in filtered_docs:
+            c1, c2, c3, c4, c5 = st.columns([4, 2, 1, 1, 1])
+            with c1:
+                st.write(f"**{d['title']}**")
+            with c2:
+                st.caption(f"{d.get('insurer', '')} · {d.get('year', '')} · {d.get('period', '')}")
+            with c3:
+                st.caption(d.get("category", ""))
+            with c4:
+                if st.button("Chat", key=f"chat-{d['id']}"):
+                    st.session_state["doc_chat_id"] = d["id"]
+                    st.session_state["doc_chat_title"] = d["title"]
+                    st.session_state["doc_chat_history"] = []
+                    st.rerun()
+            with c5:
+                if st.button("Slett", key=f"del-doc-{d['id']}"):
+                    requests.delete(f"{API_BASE}/insurance-documents/{d['id']}", timeout=10)
+                    if st.session_state.get("doc_chat_id") == d["id"]:
+                        st.session_state["doc_chat_id"] = None
+                    st.rerun()
+
+    # ── Chat med dokument ──
+    if st.session_state["doc_chat_id"] is not None:
+        st.divider()
+        st.markdown(f"### Chat med: *{st.session_state['doc_chat_title']}*")
+
+        if st.session_state["doc_chat_history"]:
+            for qa in st.session_state["doc_chat_history"][-5:]:
+                st.markdown(f"**Du:** {qa['q']}")
+                st.info(qa["a"])
+
+        with st.form("doc_chat_form", clear_on_submit=True):
+            question = st.text_input("Still et spørsmål om dokumentet...")
+            submitted = st.form_submit_button("Spør")
+
+        if submitted and question:
+            with st.spinner("Leser dokumentet..."):
+                try:
+                    chat_resp = requests.post(
+                        f"{API_BASE}/insurance-documents/{st.session_state['doc_chat_id']}/chat",
+                        json={"question": question},
+                        timeout=60,
+                    )
+                    if chat_resp.ok:
+                        answer = chat_resp.json().get("answer", "")
+                        st.session_state["doc_chat_history"].append({"q": question, "a": answer})
+                        st.rerun()
+                    else:
+                        st.error(f"Feil: {chat_resp.text}")
+                except Exception as e:
+                    st.error(str(e))
+
+        if st.button("Lukk chat", key="close_doc_chat"):
+            st.session_state["doc_chat_id"] = None
+            st.session_state["doc_chat_history"] = []
+            st.rerun()
+
+    # ── Sammenlign dokumenter ──
+    if len(all_docs) >= 2:
+        st.divider()
+        st.markdown("### Sammenlign vilkår")
+        doc_options = {d["title"]: d["id"] for d in all_docs}
+        col_a, col_b = st.columns(2)
+        with col_a:
+            doc_a_title = st.selectbox("Dokument A", list(doc_options.keys()), key="compare_a")
+        with col_b:
+            remaining = [t for t in doc_options if t != doc_a_title]
+            doc_b_title = st.selectbox("Dokument B", remaining, key="compare_b")
+
+        if st.button("Sammenlign vilkår", key="do_compare"):
+            with st.spinner("Analyserer dokumenter med AI..."):
+                try:
+                    cmp_resp = requests.post(
+                        f"{API_BASE}/insurance-documents/compare",
+                        json={"doc_ids": [doc_options[doc_a_title], doc_options[doc_b_title]]},
+                        timeout=120,
+                    )
+                    if cmp_resp.ok:
+                        st.session_state["doc_comparison"] = cmp_resp.json().get("comparison")
+                    else:
+                        st.error(f"Feil: {cmp_resp.text}")
+                except Exception as e:
+                    st.error(str(e))
+
+        if st.session_state["doc_comparison"]:
+            st.markdown(st.session_state["doc_comparison"])
+            if st.button("Nullstill sammenligning"):
+                st.session_state["doc_comparison"] = None
+                st.rerun()
+
 
 with tab_sla:
     sla_sub_new, sla_sub_list, sla_sub_settings = st.tabs(

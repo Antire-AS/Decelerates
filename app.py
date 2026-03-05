@@ -11,12 +11,12 @@ import voyageai
 from google import genai as google_genai
 from google.genai import types as genai_types
 import requests
-from fastapi import FastAPI, Query, HTTPException, Depends, BackgroundTasks, File, UploadFile
+from fastapi import FastAPI, Query, HTTPException, Depends, BackgroundTasks, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from db import SessionLocal, Company, CompanyNote, CompanyHistory, CompanyPdfSource, BrokerSettings, SlaAgreement, InsuranceOffer, init_db
+from db import SessionLocal, Company, CompanyNote, CompanyHistory, CompanyPdfSource, BrokerSettings, SlaAgreement, InsuranceOffer, InsuranceDocument, init_db
 from risk import derive_simple_risk, build_risk_summary
 
 app = FastAPI(title="Broker Accelerator API")
@@ -1965,6 +1965,219 @@ Hvilket tilbud passer best for denne bedriften og hvorfor.
         "offers": [r.insurer_name for r in rows],
         "comparison": resp.text,
     }
+
+
+# ---------------------------------------------------------------------------
+# Insurance Document Library — upload, list, delete, chat, compare
+# ---------------------------------------------------------------------------
+
+class DocChatRequest(BaseModel):
+    question: str
+
+class DocCompareRequest(BaseModel):
+    doc_ids: List[int]
+
+
+@app.post("/insurance-documents")
+async def upload_insurance_document(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    category: str = Form("annet"),
+    insurer: str = Form(""),
+    year: Optional[int] = Form(None),
+    period: str = Form("aktiv"),
+    orgnr: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    """Upload and store an insurance document PDF."""
+    pdf_bytes = await file.read()
+    extracted = ""
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            pages = pdf.pages[:40]
+            extracted = "\n".join(p.extract_text() or "" for p in pages)
+    except Exception:
+        pass
+
+    doc = InsuranceDocument(
+        title=title,
+        category=category,
+        insurer=insurer,
+        year=year,
+        period=period,
+        orgnr=orgnr or None,
+        filename=file.filename,
+        pdf_content=pdf_bytes,
+        extracted_text=extracted or None,
+        uploaded_at=datetime.utcnow().isoformat(),
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+    return {
+        "id": doc.id,
+        "title": doc.title,
+        "filename": doc.filename,
+        "category": doc.category,
+        "insurer": doc.insurer,
+        "year": doc.year,
+        "period": doc.period,
+    }
+
+
+@app.get("/insurance-documents")
+def list_insurance_documents(
+    category: Optional[str] = None,
+    year: Optional[int] = None,
+    period: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """List all insurance documents (no PDF bytes)."""
+    q = db.query(InsuranceDocument)
+    if category:
+        q = q.filter(InsuranceDocument.category == category)
+    if year:
+        q = q.filter(InsuranceDocument.year == year)
+    if period:
+        q = q.filter(InsuranceDocument.period == period)
+    docs = q.order_by(InsuranceDocument.uploaded_at.desc()).all()
+    return [
+        {
+            "id": d.id,
+            "title": d.title,
+            "filename": d.filename,
+            "category": d.category,
+            "insurer": d.insurer,
+            "year": d.year,
+            "period": d.period,
+            "orgnr": d.orgnr,
+            "uploaded_at": d.uploaded_at,
+        }
+        for d in docs
+    ]
+
+
+@app.delete("/insurance-documents/{doc_id}")
+def delete_insurance_document(doc_id: int, db: Session = Depends(get_db)):
+    doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    db.delete(doc)
+    db.commit()
+    return {"deleted": doc_id}
+
+
+@app.post("/insurance-documents/{doc_id}/chat")
+def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(get_db)):
+    """Ask a question about an insurance document using Gemini native PDF understanding."""
+    doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    prompt = (
+        f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
+        f"Svar kun basert på innholdet i dette forsikringsdokumentet. "
+        f"Vær presis og konkret. Oppgi sidetall eller avsnitt hvis relevant.\n\n"
+        f"Spørsmål: {body.question}"
+    )
+
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            client = google_genai.Client(api_key=gemini_key)
+            pdf_part = genai_types.Part.from_bytes(data=doc.pdf_content, mime_type="application/pdf")
+            for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
+                try:
+                    resp = client.models.generate_content(
+                        model=model,
+                        contents=[pdf_part, prompt],
+                    )
+                    return {"doc_id": doc_id, "question": body.question, "answer": resp.text}
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+    # Fallback: use extracted text + LLM
+    if doc.extracted_text is not None:
+        fallback_prompt = (
+            f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
+            f"Svar kun basert på dette forsikringsdokumentets innhold:\n\n"
+            f"{doc.extracted_text[:12000]}\n\n"
+            f"Spørsmål: {body.question}"
+        )
+        answer = _llm_answer_raw(fallback_prompt)
+        if answer:
+            return {"doc_id": doc_id, "question": body.question, "answer": answer}
+
+    raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig")
+
+
+@app.post("/insurance-documents/compare")
+def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(get_db)):
+    """Compare two insurance documents using Gemini native PDF understanding."""
+    if len(body.doc_ids) != 2:
+        raise HTTPException(status_code=400, detail="Oppgi nøyaktig 2 dokument-IDer")
+
+    docs = db.query(InsuranceDocument).filter(InsuranceDocument.id.in_(body.doc_ids)).all()
+    if len(docs) != 2:
+        raise HTTPException(status_code=404, detail="Ett eller begge dokumenter ikke funnet")
+
+    # Sort to match input order
+    id_order = {v: i for i, v in enumerate(body.doc_ids)}
+    docs_sorted = sorted(docs, key=lambda d: id_order.get(d.id, 0))
+    a, b = docs_sorted[0], docs_sorted[1]
+
+    compare_prompt = (
+        f"Du er en norsk forsikringsrådgiver som sammenligner to forsikringsdokumenter. "
+        f"Svar alltid på norsk.\n\n"
+        f"Dokument A: {a.title} ({a.insurer}, {a.year})\n"
+        f"Dokument B: {b.title} ({b.insurer}, {b.year})\n\n"
+        f"Lag en strukturert sammenligning med:\n"
+        f"1. **Sammendrag** — hva er de viktigste forskjellene?\n"
+        f"2. **Sammenligningstabell** — markdown-tabell med kolonner: Område | Dokument A | Dokument B | Endring\n"
+        f"   Inkluder: dekningsomfang, selvsrisiko, forsikringssum, unntak/begrensninger, særlige vilkår\n"
+        f"3. **Konklusjon** — hvilke endringer er til fordel for forsikringstaker?"
+    )
+
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            client = google_genai.Client(api_key=gemini_key)
+            pdf_a = genai_types.Part.from_bytes(data=a.pdf_content, mime_type="application/pdf")
+            pdf_b = genai_types.Part.from_bytes(data=b.pdf_content, mime_type="application/pdf")
+            for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
+                try:
+                    resp = client.models.generate_content(
+                        model=model,
+                        contents=[pdf_a, pdf_b, compare_prompt],
+                    )
+                    return {
+                        "doc_a": {"id": a.id, "title": a.title},
+                        "doc_b": {"id": b.id, "title": b.title},
+                        "comparison": resp.text,
+                    }
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+    # Fallback: use extracted text
+    if a.extracted_text is not None and b.extracted_text is not None:
+        fallback_prompt = (
+            f"{compare_prompt}\n\n"
+            f"--- DOKUMENT A ---\n{a.extracted_text[:8000]}\n\n"
+            f"--- DOKUMENT B ---\n{b.extracted_text[:8000]}"
+        )
+        result = _llm_answer_raw(fallback_prompt)
+        if result:
+            return {
+                "doc_a": {"id": a.id, "title": a.title},
+                "doc_b": {"id": b.id, "title": b.title},
+                "comparison": result,
+            }
+
+    raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig")
 
 
 @app.post("/org/{orgnr}/narrative")

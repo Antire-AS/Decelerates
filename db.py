@@ -136,6 +136,22 @@ class InsuranceOffer(Base):
     extracted_text = Column(String)          # cached pdfplumber extraction
 
 
+class InsuranceDocument(Base):
+    __tablename__ = "insurance_documents"
+
+    id             = Column(Integer, primary_key=True)
+    title          = Column(String, nullable=False)
+    category       = Column(String)          # "næringslivsforsikring" | "personalforsikring" | "reise" | "annet"
+    insurer        = Column(String)          # "If", "Gjensidige", "Fremtind"
+    year           = Column(Integer)         # 2025, 2026
+    period         = Column(String)          # "aktiv" | "historisk"
+    orgnr          = Column(String(9))       # optional — klientens orgnr
+    filename       = Column(String, nullable=False)
+    pdf_content    = Column(LargeBinary, nullable=False)
+    extracted_text = Column(String)          # cached pdfplumber extraction
+    uploaded_at    = Column(String, nullable=False)
+
+
 def init_db():
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
