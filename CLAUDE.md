@@ -8,10 +8,33 @@ A Norwegian company due-diligence tool. Given a company name or org number it pu
 ui.py  (Streamlit)
   │  HTTP calls to localhost:8000
   ▼
-app.py  (FastAPI)
-  ├── fetches from external APIs
-  ├── derives risk score
-  └── upserts into PostgreSQL via db.py
+app.py  (FastAPI, 69 lines — thin router mount only)
+  │
+  ├── routers/          HTTP layer — validates input, calls services, returns HTTP responses
+  │     broker.py       broker settings + notes endpoints
+  │     company.py      /org/{orgnr}, /search, /companies
+  │     financials.py   /org/{orgnr}/pdf-history, /pdf-sources, /history
+  │     knowledge.py    /org/{orgnr}/ask (RAG/chat)
+  │     offers.py       insurance offer upload + comparison
+  │     risk_router.py  risk narrative + structure endpoints
+  │     sla.py          SLA agreement endpoints
+  │
+  ├── services/         Business logic — no FastAPI imports
+  │     llm.py          _embed, _llm_answer_raw, _llm_answer
+  │     external_apis.py  BRREG, SSB, Norges Bank, Kartverket, OpenSanctions, Finanstilsynet
+  │     pdf_extract.py  agentic IR discovery, Playwright fetch, Gemini PDF extraction
+  │     rag.py          chunk, embed, store, retrieve for chat
+  │     company.py      fetch_org_profile, _upsert_company, synthetic financials
+  │     broker.py       broker settings + notes CRUD
+  │     sla_service.py  SLA agreement creation
+  │     pdf_generate.py SLA PDF generation (fpdf2)
+  │     pdf_sources.py  CompanyPdfSource upsert/delete
+  │
+  ├── domain/           Pure Python — no framework dependencies
+  │     exceptions.py  NotFoundError, QuotaError, LlmUnavailableError,
+  │                    PdfExtractionError, ExternalApiError
+  │
+  └── db.py / risk.py / constants.py / prompts.py / schemas.py
 ```
 
 Two processes need to run:
@@ -20,11 +43,50 @@ Two processes need to run:
 
 ---
 
+## Clean Code Principles Followed
+
+- **No HTTPException in services** — services raise domain exceptions (`QuotaError`, `NotFoundError`, etc.); routers catch and convert to HTTP status codes
+- **DB writes only in services** — routers never touch `db.query()` directly
+- **Functions ≤ 40 lines** — long functions decomposed into named helpers (e.g. `_generate_sla_pdf` → 8 page-builder helpers)
+- **Parallel extraction** — `_extract_pending_sources` uses `ThreadPoolExecutor(max_workers=3)`; each thread gets its own DB session
+- **Testable background tasks** — `_auto_extract_pdf_sources(db_factory=SessionLocal)` accepts injected session factory
+- **Graceful degradation** — Playwright fails → requests fallback; agent fails → DuckDuckGo fallback; BRREG empty → PDF history fallback; no LLM key → silent skip
+
+---
+
 ## Files
 
-### [app.py](app.py) — FastAPI backend (main logic)
+### [app.py](app.py) — FastAPI entry point (69 lines)
 
-All business logic lives here. On startup it calls `init_db()` and `_seed_pdf_sources()`.
+Mounts all routers. On startup calls `init_db()` and `_seed_pdf_sources()`. Contains no business logic.
+
+### [routers/](routers/) — HTTP layer
+
+Each router file handles one domain area. Routers only: validate input → call service → return response. They catch domain exceptions and convert to HTTPException.
+
+### [services/pdf_extract.py](services/pdf_extract.py) — PDF discovery + extraction
+
+**Agentic IR discovery pipeline:**
+1. `_agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)` — LLM tool-use loop; tries Claude first, Gemini fallback
+2. `_agent_discover_pdfs_claude` / `_agent_discover_pdfs_gemini` — provider-specific agent loops (max 8 turns each)
+3. Tools available to the agent:
+   - `web_search(query)` → `_ddg_search_results()` — DuckDuckGo, returns `[{title, url, snippet}]`
+   - `fetch_url(url)` → `_fetch_url_content()` → `_fetch_html()` + `_parse_html_for_agent()`
+4. `_fetch_html(url)` — Playwright (headless Chromium, waits for JS) → requests fallback
+5. `_discover_ir_pdfs()` — fallback when no LLM key: DuckDuckGo PDF links + LLM validation
+
+**Extraction pipeline:**
+- `_parse_financials_from_pdf(pdf_url, orgnr, year)` — Gemini native PDF understanding (inline ≤18MB, Files API >18MB); pdfplumber fallback
+- `fetch_history_from_pdf(orgnr, pdf_url, year, label, db)` — orchestrates extraction → upsert into `company_history`
+- `_extract_pending_sources(orgnr, sources, db)` — parallel extraction (3 workers, own DB session per thread)
+- `_auto_extract_pdf_sources(orgnr, org, db_factory)` — background task; Phase 1 seeds → Phase 2 agent discovery (re-runs if ≥3 of last 5 years missing)
+
+**Key functions:**
+- `_parse_json_financials(raw)` — parses LLM JSON output, computes equity_ratio
+- `_get_full_history(orgnr, db)` — merges PDF + BRREG history, deduplicated by year, sorted descending
+- `_search_for_pdfs(navn, hjemmeside, year)` — DuckDuckGo HTML scrape for direct PDF links
+
+### [services/external_apis.py](services/external_apis.py)
 
 **External data sources:**
 
@@ -38,33 +100,17 @@ All business logic lives here. On startup it calls `init_db()` and `_seed_pdf_so
 | Løsøreregisteret | Asset encumbrances (pledges on movable assets) | Maskinporten (returns auth_required if missing) |
 
 **Key functions:**
-
-- `fetch_enhetsregisteret(name, kommunenummer, size)` — search companies by name (and optionally municipality code), returns a list of matches.
-- `fetch_enhet_by_orgnr(orgnr)` — look up a single company by its 9-digit org number. Also extracts: `adresse`, `kommunenummer`, `poststed`, `stiftelsesdato`, `konkurs`, `under_konkursbehandling`, `under_avvikling`, `hjemmeside`.
-- `fetch_regnskap_keyfigures(orgnr)` — fetch financial statements, pick the most recent year, and flatten ~35 accounting fields into a dict.
-- `fetch_regnskap_history(orgnr)` — fetch all available financial years from BRREG, returning full P&L and balance sheet fields for each year.
-- `_parse_json_financials(raw)` — shared helper: parses and validates the JSON financial dict returned by any LLM; computes equity_ratio.
-- `_extract_pdf_text(pdf_url)` — downloads a public annual report PDF and extracts text via `pdfplumber` (up to 60 pages). Used as fallback only.
-- `_parse_financials_from_text(text, orgnr, year)` — fallback: sends pdfplumber-extracted text to LLM; returns key financial figures as absolute currency values.
-- `_parse_financials_from_pdf(pdf_url, orgnr, year)` — primary PDF extraction path. Uses Gemini native PDF understanding (no text extraction needed, preserves table structure, no page cap). Automatically uses inline upload for PDFs ≤18 MB and Files API for larger PDFs. Falls back to pdfplumber + text LLM if Gemini is unavailable.
-- `fetch_history_from_pdf(orgnr, pdf_url, year, label, db)` — orchestrates PDF extraction via `_parse_financials_from_pdf` → upsert into `company_history` DB table.
-- `_get_full_history(orgnr, db)` — merges `company_history` (DB rows, including all raw fields) with BRREG history, deduplicated by year (DB row wins), sorted descending.
-- `_seed_pdf_sources(db)` — called at startup; upserts `PDF_SEED_DATA` entries into `company_pdf_sources` (true upsert — always syncs URL/label).
-- `_search_for_pdfs(navn, hjemmeside, year)` — searches DuckDuckGo HTML for annual report PDF URLs. Extracts: (1) direct `https://...pdf` links, (2) `uddg=`-encoded redirect URLs that end in `.pdf`, (3) `result__url` div text content (bare `domain/path.pdf` shown in DDG results). Tries site-specific query first if `hjemmeside` is set, then a broader fallback query.
-- `_discover_ir_pdfs(orgnr, navn, hjemmeside, target_years)` — Phase 2 IR discovery: collects PDF candidate URLs from `_search_for_pdfs` for each of the last 5 target years, then asks LLM to validate which are real annual reports. Returns confirmed list of `{year, pdf_url, label}` dicts.
-- `_auto_extract_pdf_sources(orgnr, org)` — background task triggered on every `/org/{orgnr}` load. Phase 1: processes seeded PDFs from `company_pdf_sources` (skips already-extracted years). Phase 2 (if no seeds exist): runs `_discover_ir_pdfs` using `org["navn"]` and `org["hjemmeside"]`, caches discovered URLs in `company_pdf_sources`, then extracts them. Extraction is one-time — already-stored years are never re-fetched.
-- `fetch_koordinater(org)` — geocodes company address via Kartverket Geonorge API. Returns `{lat, lon, adressetekst}` or `None`.
-- `fetch_losore(orgnr)` — queries Løsøreregisteret for asset encumbrances. Returns `{auth_required: True}` on 401/403, `{count: 0}` on 404, or pledge list on success.
-- `fetch_ssb_benchmark(nace_code)` — maps NACE code to section letter (A–S), returns SSB-informed typical equity ratio and profit margin ranges for the industry.
-- `derive_simple_risk(org, regn)` — rule-based risk scoring:
-  - +5 if bankrupt or under bankruptcy proceedings
-  - +3 if under liquidation
-  - +1 if AS/ASA (limited liability)
-  - +2 if turnover > 100 MNOK, +1 if > 10 MNOK
-  - +2 if negative equity, +1 if equity ratio < 20%
-- `build_risk_summary(org, regn, risk, pep)` — assembles a flat summary dict used by the UI metrics cards. Includes `konkurs`, `under_konkursbehandling`, `under_avvikling` flags.
-- `pep_screen_name(name)` — queries OpenSanctions for PEP/sanctions hits on a company name.
-- `fetch_finanstilsynet_licenses(orgnr)` — retrieves financial licences from Finanstilsynet.
+- `fetch_enhetsregisteret(name, kommunenummer, size)` — search by name
+- `fetch_enhet_by_orgnr(orgnr)` — full org record including flags
+- `fetch_regnskap_keyfigures(orgnr)` — most recent year, ~35 flattened fields
+- `fetch_regnskap_history(orgnr)` — all years, full P&L + balance sheet
+- `_pick_latest_regnskap`, `_extract_resultat`, `_extract_balanse`, `_extract_eiendeler` — pure transform helpers
+- `fetch_ssb_benchmark(nace_code)` — SSB industry equity ratio + margin ranges
+- `_nace_to_section(nace_code)` — NACE code → section letter A–S
+- `pep_screen_name(name)` — OpenSanctions query
+- `fetch_finanstilsynet_licenses(orgnr)`
+- `fetch_koordinater(org)` — Kartverket geocoding
+- `fetch_losore(orgnr)` — asset encumbrances
 
 **API endpoints:**
 
@@ -83,18 +129,21 @@ All business logic lives here. On startup it calls `init_db()` and `_seed_pdf_so
 | GET | `/org/{orgnr}/pdf-sources` | List known PDF annual report sources for an org |
 | GET | `/companies?limit=&kommune=` | List previously looked-up companies from DB |
 | GET | `/org-by-name?name=` | Convenience: search by name, return profile of first hit |
-| GET | `/broker/settings` | Retrieve broker firm settings (name, orgnr, contact details) |
+| GET | `/broker/settings` | Retrieve broker firm settings |
 | POST | `/broker/settings` | Save broker firm settings |
-| POST | `/org/{orgnr}/offers` | Upload insurance offer PDF for an org |
-| GET | `/org/{orgnr}/offers` | List all uploaded insurance offers for an org |
+| POST | `/org/{orgnr}/offers` | Upload insurance offer PDF |
+| GET | `/org/{orgnr}/offers` | List all uploaded insurance offers |
 | DELETE | `/org/{orgnr}/offers/{offer_id}` | Delete an insurance offer |
 | GET | `/org/{orgnr}/offers/{offer_id}/pdf` | Download the raw offer PDF |
-| POST | `/org/{orgnr}/offers/compare` | Upload + compare up to 3 offer PDFs via LLM, return structured comparison |
-| POST | `/org/{orgnr}/offers/compare-stored` | Compare already-stored offers by ID via LLM |
+| POST | `/org/{orgnr}/offers/compare` | Upload + compare up to 3 offer PDFs via LLM |
+| POST | `/org/{orgnr}/offers/compare-stored` | Compare already-stored offers by ID |
 | POST | `/sla` | Create a new SLA agreement (generates PDF, stores in DB) |
 | GET | `/sla` | List all SLA agreements |
 | GET | `/sla/{sla_id}` | Get a single SLA agreement |
 | GET | `/sla/{sla_id}/pdf` | Download the generated SLA agreement PDF |
+| GET | `/org/{orgnr}/broker-notes` | List broker notes for org |
+| POST | `/org/{orgnr}/broker-notes` | Create a broker note |
+| DELETE | `/org/{orgnr}/broker-notes/{note_id}` | Delete a broker note |
 
 ---
 
@@ -105,33 +154,30 @@ Single-page app. Uses `st.session_state` to hold search results and the selected
 **Sections rendered:**
 
 *Company Search tab:*
-1. Search bar → calls `/search` → lists results with "View profile" buttons. When a result is selected, the results list collapses to a single compact line (company name + orgnr + result count) with a "Ny søk" button to expand again.
-2. Organisation info — two columns: left = company details (name, form, orgnr, address, industry, founded date); right = `st.map()` showing HQ pin from Kartverket geocoding
-3. Bankruptcy & liquidation status — `st.error()` if bankrupt, `st.warning()` if under liquidation, `st.success()` if clean
+1. Search bar → calls `/search` → lists results with "View profile" buttons. Collapses to single line on selection.
+2. Organisation info — two columns: left = company details; right = `st.map()` from Kartverket geocoding
+3. Bankruptcy & liquidation status
 4. Board members (styremedlemmer) from BRREG
-5. Risk summary metrics (turnover, employees, equity ratio, risk score, PEP hits) + risk flags + industry benchmark comparison (equity ratio and profit margin vs SSB typical range)
-6. Key figures table for the most recent accounting year (P&L and balance sheet)
-7. Financial history — YoY comparison table (with Source badge: PDF/BRREG) + bar charts (revenue, net result, debt breakdown) + equity ratio trend + year drill-down (selectbox → full P&L + balance sheet for selected year)
+5. Risk summary metrics + risk flags + SSB industry benchmark
+6. Key figures table for most recent accounting year
+7. Financial history — YoY comparison table (Source badge: PDF/BRREG) + bar charts + equity ratio trend + year drill-down
 8. "Add Annual Report PDF" expander — paste any public PDF URL to manually enrich history
-9. Insurance offers — upload up to 3 offer PDFs, trigger LLM comparison, view structured comparison table; also compare stored offers by selecting from uploaded list
+9. Insurance offers — upload, compare, view structured comparison
 10. PEP / sanctions screening results
-11. AI-generated narrative and financial estimates
+11. AI-generated risk narrative and financial estimates
 12. Finanstilsynet licences
 13. Raw JSON debug views
 
-*Agreements tab:*
-- SLA agreement generator: fill in client details, start date, account manager, insurance lines, and fee structure (provisjon/honorar per line); generates a Norwegian PDF agreement and stores it in DB
-- List all existing SLA agreements with download links
+*Agreements tab:* SLA agreement generator + list existing agreements with download links
 
-*Settings tab (sidebar):*
-- Broker firm settings: firm name, orgnr, address, contact name/email/phone; saved to `broker_settings` DB table and embedded in generated SLA PDFs
+*Settings tab (sidebar):* Broker firm settings saved to DB, embedded in SLA PDFs
 
 ---
 
-### [risk.py](risk.py) — Risk scoring logic
+### [risk.py](risk.py) — Risk scoring
 
-- `derive_simple_risk(org, regn)` — computes score and reasons list from org + financial data. Bankruptcy/liquidation flags are checked first.
-- `build_risk_summary(org, regn, risk, pep)` — assembles flat summary dict including all org, financial, risk, and PEP fields.
+- `derive_simple_risk(org, regn, pep)` — rule-based score + reasons list
+- `build_risk_summary(org, regn, risk, pep)` — flat summary dict for UI metrics
 
 ---
 
@@ -175,7 +221,7 @@ Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_no
 | `short_term_debt` | Float | absolute NOK or null |
 | `long_term_debt` | Float | absolute NOK or null |
 | `antall_ansatte` | Integer | employees |
-| `currency` | String(10) | e.g. `"NOK"`, `"SEK"` |
+| `currency` | String(10) | e.g. `"NOK"`, `"USD"`, `"SEK"` |
 | `raw` | JSON | full Gemini-extracted dict (all P&L + balance sheet fields) |
 
 `company_pdf_sources` table (known annual report PDFs per orgnr):
@@ -198,7 +244,7 @@ Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_no
 | `created_at` | String | ISO timestamp |
 | `embedding` | Vector | pgvector embedding for similarity search |
 
-`broker_settings` table (singleton row for the broker's own firm info):
+`broker_settings` table (singleton row):
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -211,7 +257,7 @@ Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_no
 | `contact_phone` | String | contact phone |
 | `updated_at` | String | ISO timestamp |
 
-`sla_agreements` table (generated service-level agreements):
+`sla_agreements` table:
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -225,18 +271,18 @@ Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_no
 | `start_date` | String | agreement start date |
 | `account_manager` | String | assigned account manager |
 | `insurance_lines` | JSON | list of covered insurance lines |
-| `fee_structure` | JSON | per-line fee type (provisjon/honorar) and rate |
+| `fee_structure` | JSON | per-line fee type and rate |
 | `status` | String | `"draft"`, `"active"`, or `"terminated"` |
 | `form_data` | JSON | full snapshot for PDF regeneration |
 
-`insurance_offers` table (uploaded insurer offer PDFs per orgnr):
+`insurance_offers` table:
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | Integer PK | auto |
 | `orgnr` | String(9) | indexed |
 | `filename` | String | original filename |
-| `insurer_name` | String | insurer name (e.g. "If Skadeforsikring") |
+| `insurer_name` | String | insurer name |
 | `uploaded_at` | String | ISO timestamp |
 | `pdf_content` | LargeBinary | raw PDF bytes |
 | `extracted_text` | String | cached pdfplumber text extraction |
@@ -247,7 +293,7 @@ Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_no
 
 ## Running locally
 
-### With Docker (recommended)
+### With Docker (recommended for all platforms)
 
 ```bash
 docker compose up --build
@@ -257,27 +303,96 @@ This starts:
 - `broker-postgres` — Postgres 14 on port 5432
 - `broker-api` — FastAPI on port 8000 (with `--reload`)
 
-Then run the UI separately (Streamlit is not in Docker):
+Then run the UI separately:
 
 ```bash
 streamlit run ui.py
 ```
 
-### Without Docker
+### Without Docker — macOS / Linux
 
 1. Have a Postgres instance running and set `DATABASE_URL`.
-2. Install dependencies:
+2. Install dependencies and Playwright browser:
    ```bash
    pip install -r requirements.txt
+   playwright install chromium
    ```
-3. Start the API:
+3. Copy `.env.example` to `.env` and fill in your API keys.
+4. Start the API:
    ```bash
    uvicorn app:app --reload
    ```
-4. Start the UI:
+5. Start the UI:
    ```bash
    streamlit run ui.py
    ```
+
+### Without Docker — Windows
+
+Windows requires a few extra steps due to Playwright system dependencies and PostgreSQL.
+
+**Prerequisites:**
+- Python 3.11+ from [python.org](https://www.python.org/downloads/) — tick "Add Python to PATH" during install
+- PostgreSQL 14+ from [postgresql.org](https://www.postgresql.org/download/windows/) — note the password you set for `postgres`
+- Git from [git-scm.com](https://git-scm.com/)
+
+**Step 1 — Create a virtual environment:**
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Step 2 — Install dependencies:**
+```cmd
+pip install -r requirements.txt
+```
+
+**Step 3 — Install Playwright system dependencies and Chromium:**
+```cmd
+playwright install-deps
+playwright install chromium
+```
+> `install-deps` downloads the Visual C++ runtime and other Windows libs Chromium needs. This requires an internet connection and may take a few minutes.
+
+**Step 4 — Create the database:**
+
+Open pgAdmin (installed with PostgreSQL) or run in PowerShell:
+```powershell
+& "C:\Program Files\PostgreSQL\14\bin\psql.exe" -U postgres -c "CREATE DATABASE brokerdb;"
+```
+
+**Step 5 — Set environment variables:**
+
+Copy `.env.example` to `.env` and edit it. Then load it before starting the server:
+```cmd
+# In PowerShell
+$env:DATABASE_URL = "postgresql://postgres:yourpassword@localhost:5432/brokerdb"
+$env:GEMINI_API_KEY = "your_key_here"
+$env:ANTHROPIC_API_KEY = "your_key_here"   # optional but recommended
+```
+
+Or use a `.env` file — `uvicorn` and Streamlit both pick it up automatically via `python-dotenv` if installed, or set the variables in Windows System Properties → Environment Variables for persistence.
+
+**Step 6 — Start the API:**
+```cmd
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Step 7 — Start the UI (separate terminal):**
+```cmd
+.venv\Scripts\activate
+streamlit run ui.py
+```
+
+**Common Windows issues:**
+
+| Problem | Fix |
+|---------|-----|
+| `psycopg2` build fails | Use `psycopg2-binary` (already in requirements.txt) |
+| `playwright install-deps` fails | Run the terminal as Administrator |
+| `uvicorn` not found | Make sure the venv is activated: `.venv\Scripts\activate` |
+| Port 8000 blocked | Check Windows Firewall or change port with `--port 8001` |
+| `DATABASE_URL` not picked up | Set via System Properties → Environment Variables → restart terminal |
 
 ---
 
@@ -289,16 +404,19 @@ streamlit run ui.py
 | `uvicorn` | ASGI server for FastAPI |
 | `sqlalchemy` | ORM + DB connection |
 | `psycopg2-binary` | Postgres driver |
-| `requests` | HTTP calls to external APIs |
+| `requests` | HTTP calls to external APIs and DuckDuckGo |
 | `pydantic` | Data validation (via FastAPI) |
 | `streamlit` | UI framework |
 | `pandas` | DataFrame for P&L / balance sheet tables |
-| `anthropic` | Claude API (used if `ANTHROPIC_API_KEY` is set; preferred over Gemini for text generation) |
+| `anthropic` | Claude API — preferred LLM for text generation + agentic IR discovery |
 | `google-genai` | Gemini API — native PDF understanding + text generation + embeddings |
 | `voyageai` | Voyage embeddings (preferred over Gemini for RAG if `VOYAGE_API_KEY` is set) |
 | `pdfplumber` | PDF text extraction — fallback only when Gemini native PDF fails |
 | `python-multipart` | Multipart form data parsing for FastAPI file uploads |
 | `fpdf2` | PDF generation for SLA agreements |
+| `playwright` | Headless Chromium — fetches JS-rendered investor relations pages for PDF discovery |
+| `langchain-core` | Core dependency for langchain-text-splitters |
+| `langchain-text-splitters` | Text chunking for RAG embeddings |
 
 ---
 
@@ -306,16 +424,19 @@ streamlit run ui.py
 
 The app uses a priority-based fallback for all LLM calls:
 
+**Agentic IR discovery** (`_agent_discover_pdfs`):
+1. Claude tool-use loop (`ANTHROPIC_API_KEY`) — preferred; navigates IR pages with web_search + fetch_url tools
+2. Gemini tool-use loop (`GEMINI_API_KEY`) — fallback
+3. DuckDuckGo + LLM validation — last resort when no keys set
+
 **PDF extraction** (`_parse_financials_from_pdf`):
-1. `gemini-2.5-flash` (primary — multimodal, reads PDF natively, 20 RPD free tier)
+1. `gemini-2.5-flash` (primary — multimodal, reads PDF natively)
 2. `gemini-1.5-flash` (fallback)
 3. pdfplumber text extraction → text LLM (last resort)
 
-**Text generation** (`_llm_answer_raw` — narrative, IR discovery, synthetic financials):
+**Text generation** (`_llm_answer_raw` — narrative, synthetic financials):
 1. Claude (`ANTHROPIC_API_KEY`) if set
-2. `gemma-3-12b-it` (14,400 RPD free tier)
-3. `gemma-3-27b-it` (14,400 RPD free tier)
-4. `gemini-2.5-flash`, then older Gemini models
+2. `gemini-2.5-flash`, then older Gemini/Gemma models
 
 **Embeddings** (`_embed` — RAG/chat):
 1. Voyage AI (`VOYAGE_API_KEY`) if set
@@ -327,7 +448,7 @@ Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOY
 
 ## PDF Seed Data
 
-`PDF_SEED_DATA` in `app.py` contains confirmed direct PDF URLs for demo companies. Seeded on every startup (true upsert). Currently covers:
+`PDF_SEED_DATA` in `constants.py` contains confirmed direct PDF URLs for demo companies. Seeded on every startup (true upsert). Currently covers:
 
 | Company | Orgnr | Years |
 |---------|-------|-------|
@@ -337,6 +458,25 @@ Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOY
 
 PDF extraction is **one-time per year** — once stored in `company_history` it is never re-fetched. To force re-extraction, delete the row from `company_history` and visit the profile.
 
+Phase 2 IR discovery (agent) runs automatically for any company not in seed data when ≥3 of the last 5 years are missing from `company_pdf_sources`. Up to 3 PDFs are extracted in parallel.
+
+---
+
+## Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+78 tests covering:
+- `tests/test_risk.py` — risk scoring rules (54 tests)
+- `tests/test_pdf_extract.py` — `_parse_json_financials` (6 tests)
+- `tests/test_llm.py` — LLM embed + answer functions with mocked providers (6 tests)
+- `tests/test_company.py` — seed, upsert, financials fallback with mocked DB (5 tests)
+- `tests/test_external_apis.py` — pure data-transform functions (7 tests)
+
+`tests/conftest.py` stubs out heavy optional deps (`google.genai`, `voyageai`, `anthropic`, `pdfplumber`, `playwright`) so tests run without API keys or installed packages.
+
 ---
 
 ## Notes
@@ -344,13 +484,11 @@ PDF extraction is **one-time per year** — once stored in `company_history` it 
 - The risk model in `derive_simple_risk` is intentionally simple — it's a starting point, not a production credit model.
 - OpenSanctions screening searches on the company *name*, not individuals, so it's a rough proxy for direct sanctions exposure.
 - The `/org/{orgnr}` endpoint silently swallows errors from the financials and PEP APIs so a 404 or timeout on one source doesn't block the whole profile load.
-- BRREG Regnskapsregisteret only returns the most recent financial year per company via the public API. Banks (e.g. DNB) return a 500 error because the `BANK` accounting layout is not supported — PDF extraction is the only option for them.
-- When BRREG returns no financial data, `fetch_org_profile` falls back to the most recent `company_history` row so the Risk Summary metrics (turnover, equity ratio, risk score) are populated from PDF-extracted data instead of showing blank.
-- The `_FINANCIALS_PROMPT` includes insurance/bank-specific field alternatives (e.g. "net premiums earned", "profit for the year", "technical result") so Gjensidige-style reports are handled correctly alongside standard AS companies.
-- PDFs >18 MB (e.g. Gjensidige integrated reports ~40 MB) automatically use the Gemini Files API instead of inline upload — no size limit.
-- `_get_full_history` passes all fields from `company_history.raw` through to the UI, so Gemini-extracted detail fields (driftsresultat, sum_gjeld, etc.) appear in the year drill-down table.
-- Phase 2 IR discovery searches the last 5 full years for any company not in `PDF_SEED_DATA`.
+- BRREG Regnskapsregisteret only returns the most recent financial year per company. Banks (e.g. DNB) return a 500 error — PDF extraction is the only option for them.
+- When BRREG returns no financial data, `fetch_org_profile` falls back to the most recent `company_history` row so Risk Summary metrics are populated from PDF-extracted data.
+- PDFs >18 MB automatically use the Gemini Files API instead of inline upload — no size limit.
+- `_get_full_history` passes all fields from `company_history.raw` through to the UI, so Gemini-extracted detail fields appear in the year drill-down table.
 - SSB industry benchmarks are hardcoded typical ranges per NACE section (A–S). They are a rough guide, not live data.
 - Kartverket geocoding uses the first address line + postnummer to resolve lat/lon. If geocoding fails the map column shows "Location not found".
 - Løsøreregisteret always requires Maskinporten JWT auth in practice. The UI does not show an encumbrances section.
-- The Finanstilsynet API response shape isn't fully documented — the code tries both `entities` and `items` keys as a fallback.
+- Annual report PDF bytes are **not stored** in the database — only the URL (`company_pdf_sources`) and extracted financial figures (`company_history`) are persisted. Insurance offer PDFs are stored in full (`insurance_offers.pdf_content`).

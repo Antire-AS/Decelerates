@@ -152,6 +152,27 @@ class InsuranceDocument(Base):
     uploaded_at    = Column(String, nullable=False)
 
 
+class BrokerNote(Base):
+    __tablename__ = "broker_notes"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    orgnr      = Column(String(9), index=True, nullable=False)
+    text       = Column(String, nullable=False)
+    created_at = Column(String, nullable=False)
+
+
+class CompanyChunk(Base):
+    """Individual text chunks from company documents, stored with embeddings for LangChain RAG."""
+    __tablename__ = "company_chunks"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    orgnr      = Column(String(9), index=True, nullable=False)
+    source     = Column(String, nullable=False)   # e.g. "annual_report_2023", "offer_42", "custom_note"
+    chunk_text = Column(String, nullable=False)
+    embedding  = Column(Vector(EMBEDDING_DIM), nullable=True)
+    created_at = Column(String, nullable=False)
+
+
 def init_db():
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
