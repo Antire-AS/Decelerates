@@ -557,45 +557,54 @@ def _agent_discover_pdfs_gemini(
         ),
     ])
 
+    # gemini-2.0-flash has 1500 RPD vs gemini-2.5-flash's 20 RPD on the free tier.
+    _AGENT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
     client = google_genai.Client(api_key=api_key)
-    chat = client.chats.create(
-        model="gemini-2.5-flash",
-        config=genai_types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            tools=[tool],
-        ),
-    )
 
-    last_text = ""
-    response = chat.send_message(f"Find annual report PDFs for {navn} (orgnr {orgnr}).")
-    for _ in range(8):
-        # collect text from this response
-        for part in response.candidates[0].content.parts:
-            if hasattr(part, "text") and part.text:
-                last_text = part.text
+    def _is_quota_err(exc: Exception) -> bool:
+        msg = str(exc)
+        return any(x in msg for x in ["429", "RESOURCE_EXHAUSTED", "NOT_FOUND", "404"])
 
-        # look for function calls
-        fn_calls = [
-            p.function_call
-            for p in response.candidates[0].content.parts
-            if p.function_call
-        ]
-        if not fn_calls:
-            break
 
-        # execute each tool call and send results back as a batch
-        fn_responses = [
-            genai_types.Part(
-                function_response=genai_types.FunctionResponse(
-                    name=fc.name,
-                    response={"result": json.dumps(_run_tool(fc.name, dict(fc.args)))},
-                )
+    for _model in _AGENT_MODELS:
+        try:
+            chat = client.chats.create(
+                model=_model,
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    tools=[tool],
+                ),
             )
-            for fc in fn_calls
-        ]
-        response = chat.send_message(fn_responses)
+            last_text = ""
+            response = chat.send_message(f"Find annual report PDFs for {navn} (orgnr {orgnr}).")
+            for _ in range(8):
+                for part in response.candidates[0].content.parts:
+                    if hasattr(part, "text") and part.text:
+                        last_text = part.text
+                fn_calls = [
+                    p.function_call
+                    for p in response.candidates[0].content.parts
+                    if p.function_call
+                ]
+                if not fn_calls:
+                    break
+                fn_responses = [
+                    genai_types.Part(
+                        function_response=genai_types.FunctionResponse(
+                            name=fc.name,
+                            response={"result": json.dumps(_run_tool(fc.name, dict(fc.args)))},
+                        )
+                    )
+                    for fc in fn_calls
+                ]
+                response = chat.send_message(fn_responses)
+            return _parse_agent_pdf_list(last_text)
+        except Exception as _exc:
+            if _is_quota_err(_exc):
+                continue  # try next model
+            raise
 
-    return _parse_agent_pdf_list(last_text)
+    return []  # all models quota-exhausted
 
 
 def _agent_system_prompt(
