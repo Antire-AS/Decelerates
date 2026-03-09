@@ -183,7 +183,7 @@ Single-page app. Uses `st.session_state` to hold search results and the selected
 
 ### [db.py](db.py) — SQLAlchemy models
 
-Seven tables: `companies`, `company_history`, `company_pdf_sources`, `company_notes`, `broker_settings`, `sla_agreements`, `insurance_offers`.
+Nine tables: `companies`, `company_history`, `company_pdf_sources`, `company_notes`, `company_chunks`, `broker_settings`, `broker_notes`, `sla_agreements`, `insurance_offers`, `insurance_documents`.
 
 `companies` table:
 
@@ -403,7 +403,7 @@ streamlit run ui.py
 | `fastapi` | REST API framework |
 | `uvicorn` | ASGI server for FastAPI |
 | `sqlalchemy` | ORM + DB connection |
-| `psycopg2-binary` | Postgres driver |
+| `psycopg[binary]` | Postgres driver (psycopg3 — cross-platform: Mac Intel/ARM, Windows x64/ARM64, Linux) |
 | `requests` | HTTP calls to external APIs and DuckDuckGo |
 | `pydantic` | Data validation (via FastAPI) |
 | `streamlit` | UI framework |

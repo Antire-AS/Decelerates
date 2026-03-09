@@ -10,7 +10,12 @@ DATABASE_URL = os.getenv(
     "postgresql://neondb_owner:npg_5iLXbsqEGr0m@ep-raspy-dew-a9h9l9zo-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require",
 )
 
-engine = create_engine(DATABASE_URL, echo=True, future=True)
+# Normalise to psycopg3 driver (psycopg2-binary has no ARM64 Windows wheel)
+_db_url = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1).replace(
+    "postgresql+psycopg2://", "postgresql+psycopg://", 1
+)
+
+engine = create_engine(_db_url, echo=True, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
