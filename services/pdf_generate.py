@@ -3,10 +3,13 @@ import io
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from fpdf import FPDF
 from datetime import timedelta
 
+from fpdf import FPDF
+
+from constants import STANDARD_VILKAAR, BROKER_TASKS
 from db import SlaAgreement
+from services.llm import _llm_answer_raw, _parse_json_from_llm_response
 
 # ── Forsikringstilbud colour palette ─────────────────────────────────────────
 _DARK_BLUE  = (20,  50, 120)
@@ -24,8 +27,6 @@ def _priority_color(p: str) -> tuple:
     if "anbefalt" in p:
         return _REC_ORG
     return _OPT_GRY
-from constants import STANDARD_VILKAAR, BROKER_TASKS
-from services.llm import _llm_answer_raw, _parse_json_from_llm_response
 
 
 def _extract_offer_summary(insurer: str, extracted_text: str) -> dict:
