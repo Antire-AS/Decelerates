@@ -1,6 +1,6 @@
 import io
 import json
-from typing import List
+from typing import Any, List
 
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
@@ -16,41 +16,19 @@ from dependencies import get_db
 router = APIRouter()
 
 
-@router.post("/org/{orgnr}/offers/compare")
-async def compare_offers(
-    orgnr: str,
-    files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db),
-):
-    """Extract text from uploaded offer PDFs and return an AI comparison."""
-    company = db.query(Company).filter(Company.orgnr == orgnr).first()
-    company_ctx = ""
-    if company:
-        parts = [company.navn or orgnr]
-        if company.naeringskode1_beskrivelse:
-            parts.append(company.naeringskode1_beskrivelse)
-        if company.risk_score is not None:
-            parts.append(f"risikoscore {company.risk_score}")
-        company_ctx = ", ".join(parts)
-    else:
-        company_ctx = orgnr
+def _company_context_str(company: Any, orgnr: str) -> str:
+    if not company:
+        return orgnr
+    parts = [company.navn or orgnr]
+    if company.naeringskode1_beskrivelse:
+        parts.append(company.naeringskode1_beskrivelse)
+    if company.risk_score is not None:
+        parts.append(f"risikoscore {company.risk_score}")
+    return ", ".join(parts)
 
-    offer_texts = []
-    for f in files:
-        raw = await f.read()
-        try:
-            with pdfplumber.open(io.BytesIO(raw)) as pdf:
-                text = "\n".join(p.extract_text() or "" for p in pdf.pages[:40])
-        except Exception:
-            text = "(kunne ikke lese PDF)"
-        offer_texts.append({"name": f.filename or f"Tilbud {len(offer_texts)+1}", "text": text[:10000]})
 
-    offers_block = "\n\n".join(
-        f"=== TILBUD {i+1}: {o['name']} ===\n{o['text']}"
-        for i, o in enumerate(offer_texts)
-    )
-
-    prompt = f"""Du er en erfaren forsikringsmegler som analyserer {len(offer_texts)} forsikringstilbud for en norsk bedrift.
+def _compare_prompt(n_offers: int, company_ctx: str, offers_block: str) -> str:
+    return f"""Du er en erfaren forsikringsmegler som analyserer {n_offers} forsikringstilbud for en norsk bedrift.
 
 Bedrift: {company_ctx}
 
@@ -70,12 +48,33 @@ Hvilket tilbud passer best for denne bedriften og hvorfor.
 ## Forhandlingspunkter
 3-5 konkrete punkter megler bør ta opp med forsikringsselskapet."""
 
-    comparison = _compare_offers_with_llm(prompt)
-    return {
-        "orgnr": orgnr,
-        "offers": [o["name"] for o in offer_texts],
-        "comparison": comparison,
-    }
+
+@router.post("/org/{orgnr}/offers/compare")
+async def compare_offers(
+    orgnr: str,
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+):
+    """Extract text from uploaded offer PDFs and return an AI comparison."""
+    company = db.query(Company).filter(Company.orgnr == orgnr).first()
+    company_ctx = _company_context_str(company, orgnr)
+
+    offer_texts = []
+    for f in files:
+        raw = await f.read()
+        try:
+            with pdfplumber.open(io.BytesIO(raw)) as pdf:
+                text = "\n".join(p.extract_text() or "" for p in pdf.pages[:40])
+        except Exception:
+            text = "(kunne ikke lese PDF)"
+        offer_texts.append({"name": f.filename or f"Tilbud {len(offer_texts)+1}", "text": text[:10000]})
+
+    offers_block = "\n\n".join(
+        f"=== TILBUD {i+1}: {o['name']} ===\n{o['text']}"
+        for i, o in enumerate(offer_texts)
+    )
+    comparison = _compare_offers_with_llm(_compare_prompt(len(offer_texts), company_ctx, offers_block))
+    return {"orgnr": orgnr, "offers": [o["name"] for o in offer_texts], "comparison": comparison}
 
 
 @router.post("/org/{orgnr}/offers")
@@ -149,36 +148,10 @@ def compare_stored_offers(
         raise HTTPException(status_code=404, detail="No offers found")
 
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
-    company_ctx = company.navn if company else orgnr
-
+    company_ctx = _company_context_str(company, orgnr)
     offers_block = "\n\n".join(
         f"=== TILBUD {i+1}: {r.insurer_name} ({r.filename}) ===\n{(r.extracted_text or '')[:10000]}"
         for i, r in enumerate(rows)
     )
-
-    prompt = f"""Du er en erfaren forsikringsmegler som analyserer {len(rows)} forsikringstilbud for en norsk bedrift.
-
-Bedrift: {company_ctx}
-
-{offers_block}
-
-Svar på norsk med disse seksjonene:
-
-## Sammendrag
-For hvert tilbud: 2-3 setninger om dekningsomfang, pris og særlige vilkår.
-
-## Sammenligningstabell
-Markdown-tabell med kolonnene: Selskap | Dekningstype | Premie/pris | Egenandel | Særlige vilkår | Styrker | Svakheter
-
-## Anbefaling
-Hvilket tilbud passer best for denne bedriften og hvorfor.
-
-## Forhandlingspunkter
-3-5 konkrete punkter megler bør ta opp med forsikringsselskapet."""
-
-    comparison = _compare_offers_with_llm(prompt)
-    return {
-        "orgnr": orgnr,
-        "offers": [r.insurer_name for r in rows],
-        "comparison": comparison,
-    }
+    comparison = _compare_offers_with_llm(_compare_prompt(len(rows), company_ctx, offers_block))
+    return {"orgnr": orgnr, "offers": [r.insurer_name for r in rows], "comparison": comparison}

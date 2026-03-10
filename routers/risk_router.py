@@ -157,6 +157,16 @@ def _build_gap_prompt(db_obj: Company, factors_text: str, offers_text: str, lang
     )
 
 
+def _broker_info_from_db(db) -> tuple:
+    """Return (broker_name, broker_contact, broker_email, broker_phone) from DB."""
+    row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+    name    = row.firm_name      if row and row.firm_name      else "Forsikringsmegler AS"
+    contact = row.contact_name   if row and row.contact_name   else ""
+    email   = row.contact_email  if row and row.contact_email  else ""
+    phone   = row.contact_phone  if row and row.contact_phone  else ""
+    return name, contact, email, phone
+
+
 def _save_gap_to_rag(orgnr: str, result: dict, db) -> None:
     parts = []
     if result.get("dekket"):
@@ -240,6 +250,27 @@ def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
     )
 
 
+def _build_forsikringstilbud_pdf(db_obj: Company, body: ForsikringstilbudRequest,
+                                  offer_summaries: list, broker_name: str,
+                                  broker_contact: str, broker_email: str, broker_phone: str) -> bytes:
+    return generate_forsikringstilbud_pdf(
+        orgnr=db_obj.orgnr,
+        navn=db_obj.navn,
+        organisasjonsform_kode=db_obj.organisasjonsform_kode,
+        naeringskode1=db_obj.naeringskode1,
+        naeringskode1_beskrivelse=db_obj.naeringskode1_beskrivelse,
+        kommune=db_obj.kommune,
+        broker_name=broker_name,
+        broker_contact=broker_contact,
+        broker_email=broker_email,
+        broker_phone=broker_phone,
+        anbefalinger=body.anbefalinger or [],
+        total_premie=body.total_premieanslag or "–",
+        sammendrag=body.sammendrag or "",
+        offer_summaries=offer_summaries,
+    )
+
+
 @router.post("/org/{orgnr}/forsikringstilbud/pdf")
 def download_forsikringstilbud(
     orgnr: str,
@@ -257,38 +288,12 @@ def download_forsikringstilbud(
         _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text or "")
         for row in stored_offers
     ]
-
-    broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
-    broker_name = broker_row.firm_name if broker_row and broker_row.firm_name else "Forsikringsmegler AS"
-    broker_contact = broker_row.contact_name if broker_row and broker_row.contact_name else ""
-    broker_email = broker_row.contact_email if broker_row and broker_row.contact_email else ""
-    broker_phone = broker_row.contact_phone if broker_row and broker_row.contact_phone else ""
-
-    anbefalinger = body.anbefalinger or []
-    total_premie = body.total_premieanslag or "–"
-    sammendrag = body.sammendrag or ""
-
-    pdf_bytes = generate_forsikringstilbud_pdf(
-        orgnr=db_obj.orgnr,
-        navn=db_obj.navn,
-        organisasjonsform_kode=db_obj.organisasjonsform_kode,
-        naeringskode1=db_obj.naeringskode1,
-        naeringskode1_beskrivelse=db_obj.naeringskode1_beskrivelse,
-        kommune=db_obj.kommune,
-        broker_name=broker_name,
-        broker_contact=broker_contact,
-        broker_email=broker_email,
-        broker_phone=broker_phone,
-        anbefalinger=anbefalinger,
-        total_premie=total_premie,
-        sammendrag=sammendrag,
-        offer_summaries=offer_summaries,
-    )
+    broker_name, broker_contact, broker_email, broker_phone = _broker_info_from_db(db)
+    pdf_bytes = _build_forsikringstilbud_pdf(db_obj, body, offer_summaries,
+                                             broker_name, broker_contact, broker_email, broker_phone)
     filename = f"forsikringstilbud_{orgnr}_{date.today().isoformat()}.pdf"
-
     if save:
         save_insurance_document(orgnr, db_obj.navn, filename, pdf_bytes, db)
-
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",

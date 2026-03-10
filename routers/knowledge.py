@@ -24,6 +24,52 @@ router = APIRouter()
 SYSTEM_PROMPT = CHAT_SYSTEM_PROMPT  # backward-compat alias
 
 
+def _auto_ingest_company_data(orgnr: str, db: Session) -> None:
+    """Ingest history rows and offer texts into CompanyChunk if not already done."""
+    existing_sources = {
+        r.source for r in db.query(CompanyChunk).filter(CompanyChunk.orgnr == orgnr).all()
+    }
+    for h in db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all():
+        src = f"annual_report_{h.year}"
+        if src not in existing_sources and h.raw:
+            _chunk_and_store(orgnr, src, json.dumps(h.raw, ensure_ascii=False), db)
+    for offer in db.query(InsuranceOffer).filter(InsuranceOffer.orgnr == orgnr).all():
+        src = f"offer_{offer.id}"
+        if src not in existing_sources and offer.extracted_text:
+            _chunk_and_store(orgnr, src, str(offer.extracted_text), db)
+
+
+def _answer_with_rag_or_notes(orgnr: str, question: str, db_obj: Company, db: Session) -> str:
+    """Try chunk-based RAG; fall back to CompanyNote cosine search."""
+    chunk_texts = _retrieve_chunks(orgnr, question, db, limit=5)
+    if chunk_texts:
+        rag = build_rag_chain(
+            llm_fn=_llm_answer_raw,
+            retriever_fn=lambda q: _retrieve_chunks(orgnr, q, db, limit=5),
+            system_prompt=SYSTEM_PROMPT,
+        )
+        return rag(question) or ""
+
+    q_emb = _embed(question)
+    if q_emb:
+        relevant_notes = (
+            db.query(CompanyNote)
+            .filter(CompanyNote.orgnr == orgnr, CompanyNote.embedding.isnot(None))
+            .order_by(CompanyNote.embedding.cosine_distance(q_emb))
+            .limit(5)
+            .all()
+        )
+    else:
+        relevant_notes = (
+            db.query(CompanyNote)
+            .filter(CompanyNote.orgnr == orgnr)
+            .order_by(CompanyNote.id.desc())
+            .limit(5)
+            .all()
+        )[::-1]
+    return _llm_answer(_build_company_context(db_obj, relevant_notes), question)
+
+
 @router.post("/org/{orgnr}/chat")
 def chat_about_org(orgnr: str, body: ChatRequest, db: Session = Depends(get_db)):
     from rag_chain import build_rag_chain
@@ -33,70 +79,16 @@ def chat_about_org(orgnr: str, body: ChatRequest, db: Session = Depends(get_db))
             status_code=404,
             detail="Company not in database — call /org/{orgnr} first to load it",
         )
+    _auto_ingest_company_data(orgnr, db)
+    try:
+        answer = _answer_with_rag_or_notes(orgnr, body.question, db_obj, db)
+    except QuotaError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    except LlmUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
-    # Auto-ingest company history + offer texts into CompanyChunk if not already done
-    history_rows = db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all()
-    existing_sources = {
-        r.source for r in db.query(CompanyChunk).filter(CompanyChunk.orgnr == orgnr).all()
-    }
-    for h in history_rows:
-        src = f"annual_report_{h.year}"
-        if src not in existing_sources and h.raw:
-            text = json.dumps(h.raw, ensure_ascii=False)
-            _chunk_and_store(orgnr, src, text, db)
-
-    offers = db.query(InsuranceOffer).filter(InsuranceOffer.orgnr == orgnr).all()
-    for offer in offers:
-        src = f"offer_{offer.id}"
-        if src not in existing_sources and offer.extracted_text:
-            _chunk_and_store(orgnr, src, str(offer.extracted_text), db)
-
-    # Build LangChain RAG chain: retriever uses CompanyChunk, falls back to CompanyNote
-    chunk_texts = _retrieve_chunks(orgnr, body.question, db, limit=5)
-    if not chunk_texts:
-        # Fall back to CompanyNote-based context (legacy)
-        q_emb = _embed(body.question)
-        if q_emb:
-            relevant_notes = (
-                db.query(CompanyNote)
-                .filter(CompanyNote.orgnr == orgnr, CompanyNote.embedding.isnot(None))
-                .order_by(CompanyNote.embedding.cosine_distance(q_emb))
-                .limit(5)
-                .all()
-            )
-        else:
-            relevant_notes = (
-                db.query(CompanyNote)
-                .filter(CompanyNote.orgnr == orgnr)
-                .order_by(CompanyNote.id.desc())
-                .limit(5)
-                .all()
-            )[::-1]
-        context = _build_company_context(db_obj, relevant_notes)
-        try:
-            answer = _llm_answer(context, body.question)
-        except QuotaError as e:
-            raise HTTPException(status_code=429, detail=str(e))
-        except LlmUnavailableError as e:
-            raise HTTPException(status_code=503, detail=str(e))
-    else:
-        # Use LangChain RAG chain with chunk-based retrieval
-        rag = build_rag_chain(
-            llm_fn=_llm_answer_raw,
-            retriever_fn=lambda q: _retrieve_chunks(orgnr, q, db, limit=5),
-            system_prompt=SYSTEM_PROMPT,
-        )
-        try:
-            answer = rag(body.question) or ""
-        except QuotaError as e:
-            raise HTTPException(status_code=429, detail=str(e))
-        except LlmUnavailableError as e:
-            raise HTTPException(status_code=503, detail=str(e))
-
-    # Persist Q&A to CompanyNote (backward compat) + to CompanyChunk for future retrieval
     note_id = save_qa_note(orgnr, body.question, answer, db)
     _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
-
     return {"orgnr": orgnr, "question": body.question, "answer": answer}
 
 
