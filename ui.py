@@ -1041,11 +1041,7 @@ with tab_search:
             # ── 3b) Industry benchmarks ────────────────────────
             bench = (benchmark_data or {}).get("benchmark")
             if bench:
-                _live_badge = (
-                    " 🟢 Live SSB" if bench.get("live")
-                    else (" 🟡 Hardkodet" if _lang == "no" else " 🟡 Hardcoded")
-                )
-                st.markdown(f"#### {T('Industry benchmarks')}{_live_badge}")
+                st.markdown(f"#### {T('Industry benchmarks')}")
                 st.caption(f"{T('Section label')} {bench.get('section')} — {bench.get('industry')} · {bench.get('source')}")
                 eq_ratio_val = risk_summary.get("egenkapitalandel")
                 b_eq_min = bench.get("typical_equity_ratio_min", 0)
@@ -1381,12 +1377,12 @@ with tab_search:
                     curr_margin = (net / rev) if (net is not None and rev and rev > 0) else None
 
                     currency = row.get("currency", "NOK")
-                    ccy_suffix = f" ({currency})" if currency and currency != "NOK" else ""
+                    ccy_label = currency if currency else "NOK"
                     source_label = "PDF" if row.get("source") == "pdf" else "BRREG"
                     r = {
                         "Year": str(row["year"]),
-                        f"Revenue (MNOK){ccy_suffix}": f"{rev/1e6:.1f}" if rev is not None else "–",
-                        f"Net Result (MNOK){ccy_suffix}": f"{net/1e6:.1f}" if net is not None else "–",
+                        f"Revenue (M{ccy_label})": f"{rev/1e6:.1f}" if rev is not None else "–",
+                        f"Net Result (M{ccy_label})": f"{net/1e6:.1f}" if net is not None else "–",
                         "Margin %": f"{curr_margin*100:.1f}%" if curr_margin is not None else "–",
                         "Equity Ratio": f"{eq_ratio*100:.1f}%" if eq_ratio is not None else "–",
                         "Employees": str(row.get("antall_ansatte")) if row.get("antall_ansatte") else "–",

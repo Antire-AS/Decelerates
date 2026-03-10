@@ -87,6 +87,10 @@ def _fetch_financials_with_fallback(orgnr: str, db: Session) -> Dict[str, Any]:
         )
         if recent_hist:
             raw_fields = dict(recent_hist.raw) if recent_hist.raw else {}
+            # Derive sum_gjeld from short+long term debt if not already in raw
+            short_debt = recent_hist.short_term_debt or 0
+            long_debt = recent_hist.long_term_debt or 0
+            gjeld_fallback = (short_debt + long_debt) or raw_fields.get("sum_gjeld")
             regn = {
                 **raw_fields,
                 "regnskapsår": recent_hist.year,
@@ -94,6 +98,7 @@ def _fetch_financials_with_fallback(orgnr: str, db: Session) -> Dict[str, Any]:
                 "aarsresultat": recent_hist.net_result,
                 "sum_egenkapital": recent_hist.equity,
                 "sum_eiendeler": recent_hist.total_assets,
+                "sum_gjeld": gjeld_fallback,
                 "equity_ratio": recent_hist.equity_ratio,
                 "antall_ansatte": recent_hist.antall_ansatte,
                 "_source": "pdf_history",

@@ -138,6 +138,28 @@ def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
     return None
 
 
+def _sanity_check_financials(data: Dict[str, Any]) -> bool:
+    """Return True if extracted financials pass basic plausibility checks.
+
+    Catches the most common LLM error: picking up parent-company standalone
+    figures instead of consolidated group figures (net result > revenue).
+    """
+    rev = data.get("revenue")
+    net = data.get("net_result")
+    eq = data.get("equity")
+    assets = data.get("total_assets")
+
+    # Net result cannot exceed revenue for an operating company
+    if rev and net and rev > 0 and abs(net) > abs(rev):
+        logger.warning("[extract] Sanity fail: |net_result| > revenue — likely parent-only figures")
+        return False
+    # Equity cannot exceed total assets
+    if eq and assets and assets > 0 and eq > assets:
+        logger.warning("[extract] Sanity fail: equity > total_assets")
+        return False
+    return True
+
+
 def _parse_financials_from_pdf(
     pdf_url: str, orgnr: str, year: int
 ) -> Optional[Dict[str, Any]]:
@@ -145,19 +167,26 @@ def _parse_financials_from_pdf(
 
     Primary: Gemini native PDF understanding (table-aware, no page cap).
     Fallback: pdfplumber text extraction + text-based LLM.
+    Sanity-checks each attempt; retries once on failure before accepting.
     """
     try:
-        resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": "BrokerAccelerator/1.0"})
+        resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": _DDG_UA})
         resp.raise_for_status()
         pdf_bytes = resp.content
     except Exception:
         return None
 
-    raw = _try_gemini(pdf_bytes, orgnr, year)
-    if raw:
-        result = _parse_json_financials(raw)
-        if result:
-            return result
+    # Gemini — up to 2 attempts (sanity check may reject first result)
+    for attempt in range(2):
+        raw = _try_gemini(pdf_bytes, orgnr, year)
+        if raw:
+            result = _parse_json_financials(raw)
+            if result and _sanity_check_financials(result):
+                return result
+            if result and attempt == 0:
+                logger.warning("[extract] Attempt 1 failed sanity check for %s year %d — retrying", orgnr, year)
+                continue
+        break
 
     # Fallback: pdfplumber text → text LLM
     try:
@@ -165,9 +194,12 @@ def _parse_financials_from_pdf(
             p.extract_text() or ""
             for p in pdfplumber.open(io.BytesIO(pdf_bytes)).pages[:60]
         )
-        return _parse_financials_from_text(text, orgnr, year)
+        result = _parse_financials_from_text(text, orgnr, year)
+        if result and _sanity_check_financials(result):
+            return result
     except Exception:
-        return None
+        pass
+    return None
 
 
 def _upsert_history_row(existing: Any, parsed: Dict[str, Any], pdf_url: str) -> None:
@@ -262,27 +294,40 @@ def _get_full_history(orgnr: str, db: Session) -> List[Dict[str, Any]]:
     return sorted(by_year.values(), key=lambda r: r["year"], reverse=True)
 
 
+_DDG_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+
+
+def _extract_pdfs_from_html(html: str) -> List[str]:
+    """Extract PDF links from DuckDuckGo HTML (direct URLs + uddg= encoded links)."""
+    found = []
+    found += re.findall(r"https?://[^\s\"'<>]+\.pdf(?:[?#][^\s\"'<>]*)?", html)
+    encoded = re.findall(r"uddg=(https?%3A%2F%2F[^&\"]+)", html)
+    for u in encoded:
+        decoded = requests.utils.unquote(u)
+        if ".pdf" in decoded.lower():
+            found.append(decoded)
+    return list(dict.fromkeys(found))
+
+
+def _ddg_query(query: str) -> List[str]:
+    """Run a single DuckDuckGo HTML query and return PDF URLs found."""
+    try:
+        resp = requests.get(
+            "https://html.duckduckgo.com/html/",
+            params={"q": query},
+            headers={"User-Agent": _DDG_UA},
+            timeout=15,
+        )
+        return _extract_pdfs_from_html(resp.text)
+    except Exception:
+        return []
+
+
 def _search_for_pdfs(navn: str, hjemmeside: Optional[str], year: int) -> List[str]:
     """Search DuckDuckGo HTML for annual report PDF URLs for a given company + year."""
-
-    def _extract_pdfs_from_html(html: str) -> List[str]:
-        found = []
-        found += re.findall(r"https?://[^\s\"'<>]+\.pdf(?:[?#][^\s\"'<>]*)?", html)
-        encoded = re.findall(r"uddg=(https?%3A%2F%2F[^&\"]+)", html)
-        for u in encoded:
-            decoded = requests.utils.unquote(u)
-            if ".pdf" in decoded.lower():
-                found.append(decoded)
-        result_url_texts = re.findall(
-            r'class=["\']result__url["\'][^>]*>\s*([^\s<]+)', html
-        )
-        for u in result_url_texts:
-            u = u.strip()
-            if ".pdf" in u.lower():
-                full = u if u.startswith("http") else f"https://{u}"
-                found.append(full)
-        return list(dict.fromkeys(found))
-
     queries = []
     if hjemmeside:
         domain = re.sub(r"^https?://", "", hjemmeside).rstrip("/").split("/")[0]
@@ -293,19 +338,32 @@ def _search_for_pdfs(navn: str, hjemmeside: Optional[str], year: int) -> List[st
     for query in queries:
         if len(all_urls) >= 8:
             break
-        try:
-            resp = requests.get(
-                "https://html.duckduckgo.com/html/",
-                params={"q": query},
-                headers={"User-Agent": "Mozilla/5.0 (compatible; BrokerAccelerator/1.0)"},
-                timeout=15,
-            )
-            all_urls += _extract_pdfs_from_html(resp.text)
-            all_urls = list(dict.fromkeys(all_urls))
-        except Exception:
-            continue
+        all_urls += _ddg_query(query)
+        all_urls = list(dict.fromkeys(all_urls))
 
     return all_urls[:8]
+
+
+def _search_all_annual_pdfs(navn: str, hjemmeside: Optional[str]) -> List[str]:
+    """Search DuckDuckGo for all annual report PDFs for a company (no year filter).
+
+    Uses 2 queries max to avoid DDG rate limiting. Returns up to 20 PDF URLs.
+    The caller is responsible for year-matching via LLM.
+    """
+    queries = []
+    if hjemmeside:
+        domain = re.sub(r"^https?://", "", hjemmeside).rstrip("/").split("/")[0]
+        queries.append(f'site:{domain} "annual report" filetype:pdf')
+    queries.append(f'{navn} "annual report" filetype:pdf')
+
+    all_urls: List[str] = []
+    for query in queries:
+        all_urls += _ddg_query(query)
+        all_urls = list(dict.fromkeys(all_urls))
+        if len(all_urls) >= 20:
+            break
+
+    return all_urls[:20]
 
 
 # ── Agentic IR discovery (Claude tool-use loop) ───────────────────────────────
@@ -316,7 +374,7 @@ def _ddg_search_results(query: str) -> List[Dict[str, Any]]:
         resp = requests.get(
             "https://html.duckduckgo.com/html/",
             params={"q": query},
-            headers={"User-Agent": "Mozilla/5.0 (compatible; BrokerAccelerator/1.0)"},
+            headers={"User-Agent": _DDG_UA},
             timeout=15,
         )
         html = resp.text
@@ -716,6 +774,71 @@ def _agent_system_prompt(
     )
 
 
+def _search_pdf_url_for_year(
+    client: Any, navn: str, hjemmeside: Optional[str], year: int
+) -> Optional[str]:
+    """Ask Gemini + Google Search for a single year's annual report PDF URL.
+
+    Returns the first .pdf URL found in the response text or grounding metadata.
+    """
+    homepage_hint = f" Their website is {hjemmeside}." if hjemmeside else ""
+    prompt = (
+        f"Find the direct PDF download URL for the {year} annual report of '{navn}'.{homepage_hint} "
+        f"Return ONLY the complete PDF URL on a single line — it must end in .pdf or be a direct PDF download. "
+        f"Do not return web pages, only the actual PDF file URL."
+    )
+    for model in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
+                ),
+            )
+            text = (response.text or "").strip()
+            # Extract .pdf URLs from Gemini's text response
+            pdf_urls = re.findall(r'https?://\S+\.pdf(?:\?\S*)?', text)
+            if pdf_urls:
+                return pdf_urls[0]
+            # Also check grounding metadata chunks for direct .pdf URLs
+            if response.candidates:
+                meta = getattr(response.candidates[0], "grounding_metadata", None)
+                for chunk in (getattr(meta, "grounding_chunks", None) or []):
+                    uri = getattr(getattr(chunk, "web", None), "uri", "") or ""
+                    if ".pdf" in uri.lower():
+                        return uri
+        except Exception as exc:
+            if any(x in str(exc) for x in ["429", "RESOURCE_EXHAUSTED", "quota", "limit: 0"]):
+                logger.debug("[discovery] Gemini Google Search quota for %s year %d, trying DDG", navn, year)
+                continue
+            break
+    # DDG fallback when Gemini quota is exhausted
+    ddg_urls = _ddg_query(f'{navn} annual report {year} filetype:pdf')
+    if ddg_urls:
+        logger.info("[discovery] DDG fallback found %d candidates for %s year %d", len(ddg_urls), navn, year)
+        return ddg_urls[0]
+    return None
+
+
+def _discover_pdfs_per_year_search(
+    orgnr: str, navn: str, hjemmeside: Optional[str],
+    target_years: List[int], api_key: str,
+) -> List[Dict[str, Any]]:
+    """Fast path: one Google Search per year to find the direct PDF URL.
+
+    Much more reliable than navigating IR pages since Google already indexed the PDFs.
+    """
+    client = google_genai.Client(api_key=api_key)
+    results: List[Dict[str, Any]] = []
+    for year in target_years:
+        url = _search_pdf_url_for_year(client, navn, hjemmeside, year)
+        if url:
+            logger.info("[discovery] Per-year search found %d: %s", year, url[:80])
+            results.append({"year": year, "pdf_url": url, "label": f"{navn} Annual Report {year}"})
+    return results
+
+
 def _agent_discover_pdfs(
     orgnr: str,
     navn: str,
@@ -741,6 +864,13 @@ def _agent_discover_pdfs(
 
     for gemini_key in _gemini_api_keys():
         try:
+            # Fast path: direct per-year Google Search (more reliable than IR page navigation)
+            logger.info("[discovery] Trying per-year Google Search for %s (key ...%s)", orgnr, gemini_key[-4:])
+            result = _discover_pdfs_per_year_search(orgnr, navn, hjemmeside, target_years, gemini_key)
+            logger.info("[discovery] Per-year search returned %d results for %s", len(result), orgnr)
+            if result:
+                return result
+            # Fallback: full agent loop with IR page navigation
             logger.info("[discovery] Trying Gemini agent for %s (key ...%s)", orgnr, gemini_key[-4:])
             result = _agent_discover_pdfs_gemini(orgnr, navn, hjemmeside, target_years, gemini_key)
             logger.info("[discovery] Gemini agent returned %d results for %s", len(result), orgnr)
@@ -756,17 +886,16 @@ def _agent_discover_pdfs(
 def _discover_ir_pdfs(
     orgnr: str, navn: str, hjemmeside: Optional[str], target_years: List[int]
 ) -> List[Dict[str, Any]]:
-    """Phase 2: search for annual report PDFs for each target year, validate with LLM."""
-    candidates: List[tuple] = []
-    for year in target_years:
-        urls = _search_for_pdfs(navn, hjemmeside, year)
-        for url in urls:
-            candidates.append((year, url))
+    """DDG fallback: search for all annual report PDFs in 2 queries, validate with LLM.
 
-    if not candidates:
+    Uses _search_all_annual_pdfs (2 DDG calls max) to avoid DDG rate limiting that
+    occurs when searching per-year (5 × 2 = 10 calls). The LLM assigns years from URLs.
+    """
+    urls = _search_all_annual_pdfs(navn, hjemmeside)
+    if not urls:
         return []
 
-    candidates_text = "\n".join(f"Year {yr}: {url}" for yr, url in candidates)
+    candidates_text = "\n".join(urls)
     prompt = IR_DISCOVERY_PROMPT_TEMPLATE.format(
         navn=navn, orgnr=orgnr, candidates_text=candidates_text
     )
@@ -800,7 +929,7 @@ def _validate_pdf_urls(discovered: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         url = item.get("pdf_url", "")
         try:
             r = requests.head(url, timeout=10, allow_redirects=True,
-                              headers={"User-Agent": "BrokerAccelerator/1.0"})
+                              headers={"User-Agent": _DDG_UA})
             if r.status_code < 400:
                 valid.append(item)
                 logger.info("[discovery] URL OK (%s): %s", r.status_code, url)

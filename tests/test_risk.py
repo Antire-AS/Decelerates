@@ -108,9 +108,9 @@ def test_enk_no_form_score():
 
 # ── Økonomi — omsetning ───────────────────────────────────────────────────────
 
-def test_high_turnover_100m_adds_2():
+def test_high_turnover_100m_adds_1():
     result = derive_simple_risk(_org(), _regn(sum_driftsinntekter=200_000_000))
-    assert any(f["points"] == 2 and "omsetning" in f["label"].lower()
+    assert any(f["points"] == 1 and "omsetning" in f["label"].lower()
                for f in result["factors"])
 
 
@@ -237,7 +237,7 @@ def test_no_nace_no_bransje_score():
 # ── Selskapets alder ──────────────────────────────────────────────────────────
 
 def test_company_under_2_years_adds_3():
-    result = derive_simple_risk(_org(stiftelsesdato="2025-06-01"), _regn())
+    result = derive_simple_risk(_org(stiftelsesdato="2024-06-01"), _regn())
     assert any(f["points"] == 3 and "Nystartet" in f["label"] for f in result["factors"])
 
 

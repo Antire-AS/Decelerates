@@ -10,11 +10,12 @@ FINANCIALS_PROMPT = """You are extracting financial data from a corporate annual
 Company orgnr: {orgnr}, Report year: {year}
 
 CRITICAL RULES:
-1. Return ALL monetary values as ABSOLUTE numbers in the base currency unit (not millions).
+1. Always extract from the CONSOLIDATED (GROUP) financial statements — never from the parent company standalone statements. If both are present, use the consolidated figures.
+2. Return ALL monetary values as ABSOLUTE numbers in the base currency unit (not millions).
    Example: "66,115" with note "amounts in NOK millions" → return 66115000000
    Example: "32,861 TNOK" (thousands) → return 32861000. Plain NOK/USD → return as-is.
-2. Return null for any field genuinely not found — do NOT guess or leave as 0.
-3. This may be a BANK, insurance company, or standard company — adapt accordingly.
+3. Return null for any field genuinely not found — do NOT guess or leave as 0.
+4. This may be a BANK, insurance company, or standard company — adapt accordingly.
    - BANK income statements start with "Net interest income" + "Net fee and commission income".
      Sum these to get "revenue". Operating profit is often called "profit before loan impairment charges".
    - INSURANCE income statements start with "Net premiums earned" / "Gross written premiums".
@@ -141,14 +142,14 @@ IR_DISCOVERY_PROMPT_TEMPLATE = """You are helping identify official annual repor
 Company: {navn}
 Organisation number: {orgnr}
 
-Below are candidate PDF URLs found via search, each tagged with the year we want.
-Identify which URLs are the official annual report for that year.
-Exclude duplicates, marketing documents, sustainability reports, press releases, or interim reports.
+Below are candidate PDF URLs found via search. Identify which are official annual reports
+and extract the reporting year from the URL path or filename.
+Exclude duplicates, marketing materials, sustainability reports, press releases, interim/quarterly reports.
 
-Return a JSON array of objects — one per confirmed annual report:
-[{{"year": 2023, "pdf_url": "https://...", "label": "Company Annual Report 2023"}}]
+Return a JSON array — one object per confirmed annual report, with the year inferred from the URL:
+[{{"year": 2023, "pdf_url": "https://...", "label": "{navn} Annual Report 2023"}}]
 Return ONLY the JSON array (no markdown, no commentary). Return [] if none are valid.
 
-Candidates:
+Candidate URLs:
 {candidates_text}
 """
