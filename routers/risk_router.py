@@ -1,6 +1,4 @@
 import io
-import json
-import re
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -20,6 +18,7 @@ from services import (
     _fmt_nok,
     _extract_offer_summary,
 )
+from services.llm import _parse_json_from_llm_response
 from services.pdf_generate import generate_risk_report_pdf, generate_forsikringstilbud_pdf
 from services.pdf_sources import save_insurance_document
 from schemas import ForsikringstilbudRequest
@@ -50,6 +49,56 @@ def _org_dict_from_db(db_obj: Company) -> dict:
     }
 
 
+def _fmt_mnok(v) -> str:
+    return "ukjent" if v is None else f"{v/1e6:.1f} MNOK"
+
+
+def _build_company_info_text(db_obj: Company, risk: dict, regn: dict) -> str:
+    eq_ratio = risk.get("equity_ratio")
+    eq_str = f"{eq_ratio*100:.1f}%" if eq_ratio is not None else "ukjent"
+    return (
+        f"Navn: {db_obj.navn}\n"
+        f"Orgnr: {db_obj.orgnr}\n"
+        f"Organisasjonsform: {db_obj.organisasjonsform_kode}\n"
+        f"Bransje: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})\n"
+        f"Kommune: {db_obj.kommune}\n"
+        f"Omsetning: {_fmt_mnok(db_obj.sum_driftsinntekter)}\n"
+        f"Egenkapital: {_fmt_mnok(db_obj.sum_egenkapital)}\n"
+        f"Sum eiendeler: {_fmt_mnok(db_obj.sum_eiendeler)}\n"
+        f"Ansatte: {regn.get('antall_ansatte', 'ukjent')}\n"
+        f"Årsresultat: {_fmt_mnok(regn.get('aarsresultat'))}\n"
+        f"Egenkapitalandel: {eq_str}"
+    )
+
+
+def _build_factors_text(factors: list) -> str:
+    return "\n".join(
+        f"- {f['label']} (+{f['points']}p, {f['category']}): {f.get('detail', '')}"
+        for f in factors
+    ) or "Ingen spesifikke risikofaktorer identifisert"
+
+
+def _build_benchmark_text(benchmark) -> str:
+    if not benchmark:
+        return "Ingen bransjebenchmark tilgjengelig"
+    return (
+        f"Typisk egenkapitalandel for bransjen: {benchmark.get('equity_ratio_low', 0)*100:.0f}%–{benchmark.get('equity_ratio_high', 0)*100:.0f}%\n"
+        f"Typisk fortjenestemargin: {benchmark.get('profit_margin_low', 0)*100:.0f}%–{benchmark.get('profit_margin_high', 0)*100:.0f}%"
+    )
+
+
+def _save_offer_recommendation_to_rag(orgnr: str, result: dict, db) -> None:
+    rag_text = result.get("sammendrag", "")
+    if result.get("anbefalinger"):
+        recs = "\n".join(
+            f"- {a.get('type','')}: {a.get('anbefalt_sum','')} ({a.get('prioritet','')}) — {a.get('begrunnelse','')}"
+            for a in result["anbefalinger"]
+        )
+        rag_text = (rag_text + "\n\nAnbefalinger:\n" + recs).strip()
+    if rag_text:
+        _save_to_rag(orgnr, "Forsikringsanbefaling", rag_text, db)
+
+
 @router.post("/org/{orgnr}/risk-offer")
 def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
     """Generate LLM-based insurance recommendations from the company's risk profile."""
@@ -58,50 +107,15 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
         raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
 
     org = _org_dict_from_db(db_obj)
-    regn = db_obj.regnskap_raw or {}  # JSON column, always dict at runtime
-    pep = db_obj.pep_raw or {}        # JSON column, always dict at runtime
-
+    regn = db_obj.regnskap_raw or {}
+    pep = db_obj.pep_raw or {}
     risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
-    benchmark = fetch_ssb_benchmark(db_obj.naeringskode1 or "")  # type: ignore[arg-type]
 
-    def fmt_mnok(v):
-        if v is None:
-            return "ukjent"
-        return f"{v/1e6:.1f} MNOK"
-
-    eq_ratio = risk.get("equity_ratio")
-    eq_str = f"{eq_ratio*100:.1f}%" if eq_ratio is not None else "ukjent"
-    company_info = (
-        f"Navn: {db_obj.navn}\n"
-        f"Orgnr: {db_obj.orgnr}\n"
-        f"Organisasjonsform: {db_obj.organisasjonsform_kode}\n"
-        f"Bransje: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})\n"
-        f"Kommune: {db_obj.kommune}\n"
-        f"Omsetning: {fmt_mnok(db_obj.sum_driftsinntekter)}\n"
-        f"Egenkapital: {fmt_mnok(db_obj.sum_egenkapital)}\n"
-        f"Sum eiendeler: {fmt_mnok(db_obj.sum_eiendeler)}\n"
-        f"Ansatte: {regn.get('antall_ansatte', 'ukjent')}\n"
-        f"Årsresultat: {fmt_mnok(regn.get('aarsresultat'))}\n"
-        f"Egenkapitalandel: {eq_str}"
-    )
-
-    factors_text = "\n".join(
-        f"- {f['label']} (+{f['points']}p, {f['category']}): {f.get('detail', '')}"
-        for f in risk["factors"]
-    ) or "Ingen spesifikke risikofaktorer identifisert"
-
-    benchmark_text = (
-        f"Typisk egenkapitalandel for bransjen: {benchmark.get('equity_ratio_low', 0)*100:.0f}%–{benchmark.get('equity_ratio_high', 0)*100:.0f}%\n"
-        f"Typisk fortjenestemargin: {benchmark.get('profit_margin_low', 0)*100:.0f}%–{benchmark.get('profit_margin_high', 0)*100:.0f}%"
-        if benchmark else "Ingen bransjebenchmark tilgjengelig"
-    )
-
-    _prompt_tmpl = _RISK_OFFER_PROMPT_EN if lang == "en" else _RISK_OFFER_PROMPT
-    prompt = _prompt_tmpl.format(
-        company_info=company_info,
+    prompt = (_RISK_OFFER_PROMPT_EN if lang == "en" else _RISK_OFFER_PROMPT).format(
+        company_info=_build_company_info_text(db_obj, risk, regn),
         score=risk["score"],
-        factors=factors_text,
-        benchmark=benchmark_text,
+        factors=_build_factors_text(risk["factors"]),
+        benchmark=_build_benchmark_text(fetch_ssb_benchmark(db_obj.naeringskode1 or "")),  # type: ignore[arg-type]
     )
 
     try:
@@ -113,31 +127,46 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
     if not raw:
         raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig — legg til GEMINI_API_KEY eller ANTHROPIC_API_KEY i .env")
 
-    # Parse JSON
-    try:
-        json_match = re.search(r"\{.*\}", raw, re.DOTALL)
-        result = json.loads(json_match.group(0)) if json_match else json.loads(raw)
-    except Exception:
-        result = {"sammendrag": raw, "anbefalinger": [], "total_premieanslag": "ukjent"}
+    result = _parse_json_from_llm_response(raw) or {"sammendrag": raw, "anbefalinger": [], "total_premieanslag": "ukjent"}
+    _save_offer_recommendation_to_rag(orgnr, result, db)
+    return {"orgnr": orgnr, "navn": db_obj.navn, "risk_score": risk["score"], "risk_factors": risk["factors"], **result}
 
-    # Save to RAG so the analyst chat can reference this recommendation
-    _rag_text = result.get("sammendrag", "")
-    if result.get("anbefalinger"):
-        _recs = "\n".join(
-            f"- {a.get('type','')}: {a.get('anbefalt_sum','')} ({a.get('prioritet','')}) — {a.get('begrunnelse','')}"
-            for a in result["anbefalinger"]
+
+def _build_offers_text(offers: list) -> str:
+    return "".join(
+        f"\n=== Tilbud {i}: {o.insurer_name or o.filename} ===\n{(o.extracted_text or '')[:3000]}\n"
+        for i, o in enumerate(offers, 1)
+    )
+
+
+def _build_gap_prompt(db_obj: Company, factors_text: str, offers_text: str, lang: str) -> str:
+    if lang == "en":
+        return (
+            f"You are an expert insurance broker. Analyze the match between the company's risk profile and the uploaded insurance offers to identify coverage gaps.\n\n"
+            f"COMPANY: {db_obj.navn} (orgnr {db_obj.orgnr})\n"
+            f"INDUSTRY: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})\n\n"
+            f"RISK FACTORS:\n{factors_text}\n\nUPLOADED OFFERS:\n{offers_text}\n\n"
+            f'Return ONLY valid JSON:\n{{"dekket": [...], "mangler": [...], "anbefaling": "2-3 sentences"}}'
         )
-        _rag_text = (_rag_text + "\n\nAnbefalinger:\n" + _recs).strip()
-    if _rag_text:
-        _save_to_rag(orgnr, "Forsikringsanbefaling", _rag_text, db)
+    return (
+        f"Du er en norsk forsikringsekspert. Analyser samsvar mellom selskapets risikoprofil og de opplastede forsikringstilbudene.\n\n"
+        f"SELSKAP: {db_obj.navn} (orgnr {db_obj.orgnr})\n"
+        f"BRANSJE: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})\n\n"
+        f"RISIKOFAKTORER:\n{factors_text}\n\nOPPLASTEDE TILBUD:\n{offers_text}\n\n"
+        f'Returner KUN gyldig JSON:\n{{"dekket": [...], "mangler": [...], "anbefaling": "2-3 setninger"}}'
+    )
 
-    return {
-        "orgnr": orgnr,
-        "navn": db_obj.navn,
-        "risk_score": risk["score"],
-        "risk_factors": risk["factors"],
-        **result,
-    }
+
+def _save_gap_to_rag(orgnr: str, result: dict, db) -> None:
+    parts = []
+    if result.get("dekket"):
+        parts.append("Dekket: " + "; ".join(result["dekket"]))
+    if result.get("mangler"):
+        parts.append("Mangler: " + "; ".join(result["mangler"]))
+    if result.get("anbefaling"):
+        parts.append("Anbefaling: " + result["anbefaling"])
+    if parts:
+        _save_to_rag(orgnr, "Dekningstomme analyse", "\n".join(parts), db)
 
 
 @router.post("/org/{orgnr}/coverage-gap")
@@ -156,52 +185,12 @@ def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Dep
     pep = db_obj.pep_raw or {}
     risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
 
-    factors_text = "\n".join(
-        f"- {f['label']} (+{f['points']}p): {f.get('detail', '')}"
-        for f in risk["factors"]
-    ) or "Ingen spesifikke risikofaktorer identifisert"
-
-    offers_text = ""
-    for i, offer in enumerate(offers, 1):
-        text = (offer.extracted_text or "")[:3000]
-        offers_text += f"\n=== Tilbud {i}: {offer.insurer_name or offer.filename} ===\n{text}\n"
-
-    if lang == "en":
-        prompt = f"""You are an expert insurance broker. Analyze the match between the company's risk profile and the uploaded insurance offers to identify coverage gaps.
-
-COMPANY: {db_obj.navn} (orgnr {db_obj.orgnr})
-INDUSTRY: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})
-
-RISK FACTORS:
-{factors_text}
-
-UPLOADED OFFERS:
-{offers_text}
-
-Return ONLY valid JSON:
-{{
-  "dekket": ["coverage 1 included in the offers", "coverage 2", ...],
-  "mangler": ["risk/coverage missing from the offers", ...],
-  "anbefaling": "2-3 sentences with concrete recommendations for the broker"
-}}"""
-    else:
-        prompt = f"""Du er en norsk forsikringsekspert. Analyser samsvar mellom selskapets risikoprofil og de opplastede forsikringstilbudene.
-
-SELSKAP: {db_obj.navn} (orgnr {db_obj.orgnr})
-BRANSJE: {db_obj.naeringskode1_beskrivelse} (NACE {db_obj.naeringskode1})
-
-RISIKOFAKTORER:
-{factors_text}
-
-OPPLASTEDE TILBUD:
-{offers_text}
-
-Returner KUN gyldig JSON:
-{{
-  "dekket": ["dekning 1 som er inkludert i tilbudene", "dekning 2", ...],
-  "mangler": ["risiko/dekning som mangler i tilbudene", ...],
-  "anbefaling": "2-3 setninger med konkrete anbefalinger til megleren"
-}}"""
+    prompt = _build_gap_prompt(
+        db_obj,
+        factors_text=_build_factors_text(risk["factors"]),
+        offers_text=_build_offers_text(offers),
+        lang=lang,
+    )
 
     try:
         raw = _llm_answer_raw(prompt)
@@ -212,24 +201,8 @@ Returner KUN gyldig JSON:
     if not raw:
         return {"status": "error", "dekket": [], "mangler": [], "anbefaling": "Ingen LLM tilgjengelig."}
 
-    try:
-        import re as _re
-        m = _re.search(r"\{.*\}", raw, _re.DOTALL)
-        result = json.loads(m.group(0)) if m else json.loads(raw)
-    except Exception:
-        result = {"dekket": [], "mangler": [], "anbefaling": raw}
-
-    # Save to RAG
-    _gap_parts = []
-    if result.get("dekket"):
-        _gap_parts.append("Dekket: " + "; ".join(result["dekket"]))
-    if result.get("mangler"):
-        _gap_parts.append("Mangler: " + "; ".join(result["mangler"]))
-    if result.get("anbefaling"):
-        _gap_parts.append("Anbefaling: " + result["anbefaling"])
-    if _gap_parts:
-        _save_to_rag(orgnr, "Dekningstomme analyse", "\n".join(_gap_parts), db)
-
+    result = _parse_json_from_llm_response(raw) or {"dekket": [], "mangler": [], "anbefaling": raw}
+    _save_gap_to_rag(orgnr, result, db)
     return {"status": "ok", **result}
 
 

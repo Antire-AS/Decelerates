@@ -228,17 +228,8 @@ def fetch_regnskap_keyfigures(orgnr: str) -> Dict[str, Any]:
     }
 
 
-def fetch_regnskap_history(orgnr: str) -> List[Dict[str, Any]]:
-    url = f"https://data.brreg.no/regnskapsregisteret/regnskap/{orgnr}"
-    resp = requests.get(url, timeout=10)
-    if resp.status_code == 404:
-        return []
-    resp.raise_for_status()
-    data = resp.json()
-
-    regnskaper = data if isinstance(data, list) else [data]
-
-    # Deduplicate: prefer SELSKAP type, one entry per year
+def _deduplicate_by_year(regnskaper: list) -> Dict[int, Dict[str, Any]]:
+    """Deduplicate regnskaper list to one entry per year, preferring SELSKAP type."""
     by_year: Dict[int, Dict[str, Any]] = {}
     for r in regnskaper:
         periode = r.get("regnskapsperiode") or {}
@@ -249,54 +240,63 @@ def fetch_regnskap_history(orgnr: str) -> List[Dict[str, Any]]:
             year = int(til_dato[:4])
         except ValueError:
             continue
-        existing = by_year.get(year)
-        if existing is None or r.get("regnskapstype") == "SELSKAP":
+        if by_year.get(year) is None or r.get("regnskapstype") == "SELSKAP":
             by_year[year] = r
+    return by_year
 
-    rows: List[Dict[str, Any]] = []
-    for year, r in sorted(by_year.items()):
-        res = _extract_resultat(r)
-        bal = _extract_balanse(r)
-        eid = _extract_eiendeler(r)
-        vir = _extract_virksomhet(r)
-        equity = bal.get("sum_egenkapital")
-        assets = eid.get("sum_eiendeler")
-        equity_ratio = (equity / assets) if (equity is not None and assets) else None
-        rows.append(
-            {
-                "year": year,
-                "revenue": res.get("sum_driftsinntekter"),
-                "net_result": res.get("aarsresultat"),
-                "equity": equity,
-                "total_assets": assets,
-                "equity_ratio": equity_ratio,
-                "short_term_debt": bal.get("sum_kortsiktig_gjeld"),
-                "long_term_debt": bal.get("sum_langsiktig_gjeld"),
-                "antall_ansatte": vir.get("antall_ansatte"),
-                "salgsinntekter": res.get("salgsinntekter"),
-                "loennskostnad": res.get("loennskostnad"),
-                "sum_driftskostnad": res.get("sum_driftskostnad"),
-                "driftsresultat": res.get("driftsresultat"),
-                "sum_finansinntekt": res.get("sum_finansinntekt"),
-                "sum_finanskostnad": res.get("sum_finanskostnad"),
-                "netto_finans": res.get("netto_finans"),
-                "ordinaert_resultat_foer_skattekostnad": res.get("ordinaert_resultat_foer_skattekostnad"),
-                "ordinaert_resultat_skattekostnad": res.get("ordinaert_resultat_skattekostnad"),
-                "ekstraordinaere_poster": res.get("ekstraordinaere_poster"),
-                "totalresultat": res.get("totalresultat"),
-                "sum_innskutt_egenkapital": bal.get("sum_innskutt_egenkapital"),
-                "sum_opptjent_egenkapital": bal.get("sum_opptjent_egenkapital"),
-                "sum_gjeld": bal.get("sum_gjeld"),
-                "sum_omloepsmidler": eid.get("sum_omloepsmidler"),
-                "sum_anleggsmidler": eid.get("sum_anleggsmidler"),
-                "sum_varer": eid.get("sum_varer"),
-                "sum_fordringer": eid.get("sum_fordringer"),
-                "sum_investeringer": eid.get("sum_investeringer"),
-                "sum_bankinnskudd_og_kontanter": eid.get("sum_bankinnskudd_og_kontanter"),
-                "goodwill": eid.get("goodwill"),
-            }
-        )
-    return rows
+
+def _build_regnskap_row(year: int, r: Dict[str, Any]) -> Dict[str, Any]:
+    """Build a flat history dict from a single regnskap entry."""
+    res = _extract_resultat(r)
+    bal = _extract_balanse(r)
+    eid = _extract_eiendeler(r)
+    vir = _extract_virksomhet(r)
+    equity = bal.get("sum_egenkapital")
+    assets = eid.get("sum_eiendeler")
+    return {
+        "year": year,
+        "revenue": res.get("sum_driftsinntekter"),
+        "net_result": res.get("aarsresultat"),
+        "equity": equity,
+        "total_assets": assets,
+        "equity_ratio": (equity / assets) if (equity is not None and assets) else None,
+        "short_term_debt": bal.get("sum_kortsiktig_gjeld"),
+        "long_term_debt": bal.get("sum_langsiktig_gjeld"),
+        "antall_ansatte": vir.get("antall_ansatte"),
+        "salgsinntekter": res.get("salgsinntekter"),
+        "loennskostnad": res.get("loennskostnad"),
+        "sum_driftskostnad": res.get("sum_driftskostnad"),
+        "driftsresultat": res.get("driftsresultat"),
+        "sum_finansinntekt": res.get("sum_finansinntekt"),
+        "sum_finanskostnad": res.get("sum_finanskostnad"),
+        "netto_finans": res.get("netto_finans"),
+        "ordinaert_resultat_foer_skattekostnad": res.get("ordinaert_resultat_foer_skattekostnad"),
+        "ordinaert_resultat_skattekostnad": res.get("ordinaert_resultat_skattekostnad"),
+        "ekstraordinaere_poster": res.get("ekstraordinaere_poster"),
+        "totalresultat": res.get("totalresultat"),
+        "sum_innskutt_egenkapital": bal.get("sum_innskutt_egenkapital"),
+        "sum_opptjent_egenkapital": bal.get("sum_opptjent_egenkapital"),
+        "sum_gjeld": bal.get("sum_gjeld"),
+        "sum_omloepsmidler": eid.get("sum_omloepsmidler"),
+        "sum_anleggsmidler": eid.get("sum_anleggsmidler"),
+        "sum_varer": eid.get("sum_varer"),
+        "sum_fordringer": eid.get("sum_fordringer"),
+        "sum_investeringer": eid.get("sum_investeringer"),
+        "sum_bankinnskudd_og_kontanter": eid.get("sum_bankinnskudd_og_kontanter"),
+        "goodwill": eid.get("goodwill"),
+    }
+
+
+def fetch_regnskap_history(orgnr: str) -> List[Dict[str, Any]]:
+    url = f"https://data.brreg.no/regnskapsregisteret/regnskap/{orgnr}"
+    resp = requests.get(url, timeout=10)
+    if resp.status_code == 404:
+        return []
+    resp.raise_for_status()
+    data = resp.json()
+    regnskaper = data if isinstance(data, list) else [data]
+    by_year = _deduplicate_by_year(regnskaper)
+    return [_build_regnskap_row(year, r) for year, r in sorted(by_year.items())]
 
 
 # ── PEP / Sanctions ──────────────────────────────────────────────────────────

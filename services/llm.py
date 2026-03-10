@@ -1,5 +1,7 @@
 """LLM and embedding helpers — Claude, Gemini, Voyage AI."""
+import json
 import os
+import re
 from typing import Optional, List, Dict, Any
 
 import anthropic
@@ -10,6 +12,24 @@ from google.genai import types as genai_types
 from constants import CLAUDE_MODEL, GEMINI_MODEL, VOYAGE_MODEL
 from domain.exceptions import LlmUnavailableError, QuotaError
 from prompts import CHAT_SYSTEM_PROMPT
+
+
+def _parse_json_from_llm_response(raw: str) -> Optional[dict]:
+    """Extract and parse the first JSON object from an LLM response string."""
+    if not raw:
+        return None
+    try:
+        cleaned = raw.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```[a-z]*\n?", "", cleaned)
+            cleaned = re.sub(r"\n?```$", "", cleaned)
+        try:
+            return json.loads(cleaned)
+        except Exception:
+            m = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            return json.loads(m.group(0)) if m else None
+    except Exception:
+        return None
 
 
 def _is_key_set(key: Optional[str]) -> bool:

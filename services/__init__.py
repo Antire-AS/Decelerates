@@ -1,15 +1,16 @@
 """services package — re-exports all public functions for backward-compatible imports.
 
 Sub-modules:
-  llm.py           — _embed, _fmt_nok, _llm_answer_raw, _llm_answer
+  llm.py           — _embed, _fmt_nok, _llm_answer_raw, _llm_answer, _parse_json_from_llm_response
   external_apis.py — fetch_* BRREG/SSB/NB/Kartverket/PEP/Finanstilsynet functions
   pdf_extract.py   — PDF reading, Gemini extraction, IR discovery, _auto_extract_pdf_sources
-  rag.py           — _build_company_context, _chunk_and_store, _retrieve_chunks, _save_to_rag
+  rag.py           — _build_company_context, _chunk_and_store, _retrieve_chunks, _save_to_rag, save_qa_note
   company.py       — _seed_pdf_sources, _upsert_company, fetch_org_profile, narratives
   pdf_generate.py  — _safe, _extract_offer_summary, _generate_sla_pdf
   broker.py        — broker settings + notes CRUD
   sla_service.py   — SLA agreement creation
   pdf_sources.py   — CompanyPdfSource upsert/delete
+  documents.py     — InsuranceDocument + InsuranceOffer CRUD + LLM document analysis
 """
 
 from services.llm import (  # noqa: F401
@@ -17,6 +18,7 @@ from services.llm import (  # noqa: F401
     _fmt_nok,
     _llm_answer_raw,
     _llm_answer,
+    _parse_json_from_llm_response,
 )
 
 from services.external_apis import (  # noqa: F401
@@ -61,6 +63,7 @@ from services.rag import (  # noqa: F401
     _chunk_and_store,
     _retrieve_chunks,
     _save_to_rag,
+    save_qa_note,
 )
 
 from services.company import (  # noqa: F401

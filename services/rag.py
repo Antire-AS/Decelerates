@@ -98,6 +98,21 @@ def _retrieve_chunks(orgnr: str, question: str, db: Session, limit: int = 5) -> 
     return [r.chunk_text for r in rows]
 
 
+def save_qa_note(orgnr: str, question: str, answer: str, db: Session) -> int:
+    """Persist a Q&A pair as a CompanyNote with embedding. Returns the note ID."""
+    emb = _embed(f"{question} {answer}")
+    note = CompanyNote(
+        orgnr=orgnr,
+        question=question,
+        answer=answer,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        embedding=emb if emb else None,
+    )
+    db.add(note)
+    db.commit()
+    return note.id
+
+
 def _save_to_rag(orgnr: str, label: str, content: str, db: Session) -> None:
     """Embed and persist AI-generated content to company_notes for RAG retrieval."""
     try:

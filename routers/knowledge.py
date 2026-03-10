@@ -1,5 +1,4 @@
 import json
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -14,6 +13,7 @@ from services import (
     _embed,
     _llm_answer_raw,
 )
+from services.rag import save_qa_note
 from rag_chain import build_rag_chain
 from schemas import ChatRequest, IngestKnowledgeRequest
 from dependencies import get_db
@@ -94,18 +94,8 @@ def chat_about_org(orgnr: str, body: ChatRequest, db: Session = Depends(get_db))
             raise HTTPException(status_code=503, detail=str(e))
 
     # Persist Q&A to CompanyNote (backward compat) + to CompanyChunk for future retrieval
-    note_embedding = _embed(f"{body.question} {answer}")
-    note = CompanyNote(
-        orgnr=orgnr,
-        question=body.question,
-        answer=answer,
-        created_at=datetime.now(timezone.utc).isoformat(),
-        embedding=note_embedding if note_embedding else None,
-    )
-    db.add(note)
-    db.commit()
-    # Also save Q&A as a chunk
-    _chunk_and_store(orgnr, f"qa_{note.id}", f"Q: {body.question}\nA: {answer}", db)
+    note_id = save_qa_note(orgnr, body.question, answer, db)
+    _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
 
     return {"orgnr": orgnr, "question": body.question, "answer": answer}
 

@@ -1,7 +1,5 @@
 import io
 import json
-import os
-from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
@@ -12,6 +10,7 @@ import pdfplumber
 from db import Company, InsuranceOffer
 from services import _llm_answer_raw
 from services.llm import _compare_offers_with_llm
+from services.documents import save_insurance_offers, remove_insurance_offer, _pdf_bytes_to_text
 from dependencies import get_db
 
 router = APIRouter()
@@ -86,32 +85,15 @@ async def save_offers(
     db: Session = Depends(get_db),
 ):
     """Upload and persist offer PDFs for a company."""
-    now = datetime.now(timezone.utc).isoformat()
-    saved = []
+    offer_data = []
     for f in files:
         raw = await f.read()
-        try:
-            with pdfplumber.open(io.BytesIO(raw)) as pdf:
-                text_content = "\n".join(p.extract_text() or "" for p in pdf.pages[:40])
-        except Exception:
-            text_content = None
-
-        # Guess insurer name from filename (strip extension, replace underscores)
-        insurer_guess = (f.filename or "Ukjent").rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
-
-        row = InsuranceOffer(
-            orgnr=orgnr,
-            filename=f.filename or "offer.pdf",
-            insurer_name=insurer_guess,
-            uploaded_at=now,
-            pdf_content=raw,
-            extracted_text=text_content,
-        )
-        db.add(row)
-        db.flush()
-        saved.append({"id": row.id, "filename": row.filename, "insurer_name": row.insurer_name})
-
-    db.commit()
+        offer_data.append({
+            "filename": f.filename or "offer.pdf",
+            "raw_bytes": raw,
+            "extracted_text": _pdf_bytes_to_text(raw) or None,
+        })
+    saved = save_insurance_offers(orgnr, offer_data, db)
     return {"orgnr": orgnr, "saved": saved}
 
 
@@ -133,13 +115,8 @@ def list_offers(orgnr: str, db: Session = Depends(get_db)):
 
 @router.delete("/org/{orgnr}/offers/{offer_id}")
 def delete_offer(orgnr: str, offer_id: int, db: Session = Depends(get_db)):
-    row = db.query(InsuranceOffer).filter(
-        InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr
-    ).first()
-    if not row:
+    if not remove_insurance_offer(offer_id, orgnr, db):
         raise HTTPException(status_code=404, detail="Offer not found")
-    db.delete(row)
-    db.commit()
     return {"deleted": offer_id}
 
 
