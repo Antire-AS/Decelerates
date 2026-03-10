@@ -470,8 +470,9 @@ _GEMINI_FETCH_URL_TOOL = genai_types.Tool(function_declarations=[
 
 
 def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
-    """Use Gemini's native Google Search to return [{title, url, snippet}] results.
+    """Use Gemini's native Google Search grounding to return [{title, url, snippet}] results.
 
+    Results are extracted from grounding_metadata.grounding_chunks, not response.text.
     Rotates through all configured Gemini API keys on quota errors.
     """
     keys = _gemini_api_keys()
@@ -484,19 +485,24 @@ def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
             try:
                 response = client.models.generate_content(
                     model=model_name,
-                    contents=f'Search for: {query}\n\nReturn ONLY a JSON array of search results in this format: [{{"title": "...", "url": "...", "snippet": "..."}}]. Include up to 8 results.',
+                    contents=query,
                     config=genai_types.GenerateContentConfig(
                         tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
                     ),
                 )
-                text = response.text or ""
-                cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", text).strip()
-                match = re.search(r"\[.*\]", cleaned, re.DOTALL)
-                if match:
-                    results = json.loads(match.group())
-                    if isinstance(results, list):
-                        return results[:8]
-                # Model responded but no JSON array — try next model
+                results: List[Dict[str, Any]] = []
+                if response.candidates:
+                    meta = getattr(response.candidates[0], "grounding_metadata", None)
+                    chunks = getattr(meta, "grounding_chunks", None) or []
+                    for chunk in chunks:
+                        web = getattr(chunk, "web", None)
+                        if web:
+                            url = getattr(web, "uri", "") or ""
+                            title = getattr(web, "title", "") or ""
+                            if url:
+                                results.append({"title": title, "url": url, "snippet": ""})
+                if results:
+                    return results[:8]
             except Exception as exc:
                 msg = str(exc)
                 if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg or "limit: 0" in msg:
@@ -743,7 +749,7 @@ def _agent_discover_pdfs(
         except Exception as exc:
             logger.warning("[discovery] Gemini agent failed for %s (key ...%s): %s", orgnr, gemini_key[-4:], exc)
 
-    logger.warning("[discovery] No LLM keys available for agent discovery of %s", orgnr)
+    logger.warning("[discovery] All LLM agents returned no results for %s", orgnr)
     return []
 
 

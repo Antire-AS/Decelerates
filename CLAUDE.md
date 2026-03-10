@@ -47,13 +47,25 @@ Two processes need to run:
 ## Clean Code Principles Followed
 
 - **No HTTPException in services** — services raise domain exceptions (`QuotaError`, `NotFoundError`, etc.); routers catch and convert to HTTP status codes
-- **No DB queries in routers** — all `db.query()` calls live in services; routers only call service functions
+- **No DB writes in routers** — all `db.add()` / `db.commit()` calls live in services; routers never touch ORM objects directly
 - **No LLM calls in routers** — all Gemini/Claude API calls are in `services/llm.py`; routers call service helpers
-- **Functions ≤ 40 lines** — long functions decomposed into named helpers (e.g. PDF endpoints → `generate_risk_report_pdf`, `generate_forsikringstilbud_pdf` with page-builder helpers in `services/pdf_generate.py`)
+- **Functions ≤ 40 lines** — long functions decomposed into named helpers; the two agent loops (`_agent_discover_pdfs_claude`, `_agent_discover_pdfs_gemini`) are ~70 lines but justified by tool-use loop logic
+- **No duplication** — shared patterns extracted into helpers: `_org_dict_from_db` (risk_router), `_is_key_set` (llm), `_gemini_generate_with_fallback` (llm), `save_insurance_document` (pdf_sources)
 - **Parallel extraction** — `_extract_pending_sources` uses `ThreadPoolExecutor(max_workers=3)`; each thread gets its own DB session
 - **Testable background tasks** — `_auto_extract_pdf_sources(db_factory=SessionLocal)` accepts injected session factory
 - **Graceful degradation** — Playwright fails → requests fallback; agent fails → DuckDuckGo fallback; BRREG empty → PDF history fallback; no LLM key → silent skip
 - **Multi-key Gemini rotation** — `_gemini_api_keys()` reads `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`; all Gemini calls rotate through keys on 429/quota errors
+
+---
+
+## Key Private Helpers (non-obvious)
+
+| Helper | File | Purpose |
+|--------|------|---------|
+| `_is_key_set(key)` | `services/llm.py` | Returns True only if key is set and not `"your_key_here"` — used before every LLM call |
+| `_gemini_generate_with_fallback(parts, timeout)` | `services/llm.py` | Shared Gemini model loop: tries `gemini-2.5-flash` → `gemini-1.5-flash` → `GEMINI_MODEL`; used by `_analyze_document_with_gemini`, `_compare_documents_with_gemini`, `_compare_offers_with_llm` |
+| `_org_dict_from_db(db_obj)` | `routers/risk_router.py` | Builds the `org` dict from a `Company` ORM object — used by all three risk endpoints to avoid duplication |
+| `save_insurance_document(orgnr, navn, filename, pdf_bytes, db)` | `services/pdf_sources.py` | Persists a generated forsikringstilbud PDF as an `InsuranceDocument` row — keeps DB writes out of the router |
 
 ---
 

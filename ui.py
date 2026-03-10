@@ -826,7 +826,7 @@ with tab_search:
                             {
                                 T("Role"): m["role"],
                                 T("Name"): m["name"],
-                                T("Born"): m.get("birth_year") or "–",
+                                T("Born"): str(m["birth_year"]) if m.get("birth_year") else "–",
                             }
                             for m in active
                         ]),

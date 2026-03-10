@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from db import Company, CompanyHistory, InsuranceOffer, BrokerSettings, InsuranceDocument
+from db import Company, CompanyHistory, InsuranceOffer, BrokerSettings
 from domain.exceptions import LlmUnavailableError, QuotaError
 from services import (
     fetch_ssb_benchmark,
@@ -21,6 +21,7 @@ from services import (
     _extract_offer_summary,
 )
 from services.pdf_generate import generate_risk_report_pdf, generate_forsikringstilbud_pdf
+from services.pdf_sources import save_insurance_document
 from schemas import ForsikringstilbudRequest
 from dependencies import get_db
 from risk import derive_simple_risk
@@ -34,14 +35,8 @@ _RISK_OFFER_PROMPT_EN = RISK_OFFER_PROMPT_EN  # backward-compat alias
 _RISK_OFFER_PROMPT = RISK_OFFER_PROMPT        # backward-compat alias
 
 
-@router.post("/org/{orgnr}/risk-offer")
-def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
-    """Generate LLM-based insurance recommendations from the company's risk profile."""
-    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
-
-    org = {
+def _org_dict_from_db(db_obj: Company) -> dict:
+    return {
         "orgnr": db_obj.orgnr,
         "navn": db_obj.navn,
         "organisasjonsform_kode": db_obj.organisasjonsform_kode,
@@ -53,6 +48,16 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
         "under_konkursbehandling": False,
         "under_avvikling": False,
     }
+
+
+@router.post("/org/{orgnr}/risk-offer")
+def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
+    """Generate LLM-based insurance recommendations from the company's risk profile."""
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
+
+    org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}  # JSON column, always dict at runtime
     pep = db_obj.pep_raw or {}        # JSON column, always dict at runtime
 
@@ -146,15 +151,7 @@ def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Dep
     if not offers:
         return {"status": "no_offers", "message": "Ingen tilbud lastet opp for dette selskapet."}
 
-    org = {
-        "orgnr": db_obj.orgnr,
-        "navn": db_obj.navn,
-        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
-        "naeringskode1": db_obj.naeringskode1,
-        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
-        "stiftelsesdato": (db_obj.regnskap_raw or {}).get("stiftelsesdato"),
-        "konkurs": False, "under_konkursbehandling": False, "under_avvikling": False,
-    }
+    org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}
     pep = db_obj.pep_raw or {}
     risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
@@ -243,18 +240,7 @@ def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
     if not db_obj:
         raise HTTPException(status_code=404, detail="Company not in database")
 
-    org = {
-        "orgnr": db_obj.orgnr,
-        "navn": db_obj.navn,
-        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
-        "kommune": db_obj.kommune,
-        "naeringskode1": db_obj.naeringskode1,
-        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
-        "stiftelsesdato": (db_obj.regnskap_raw or {}).get("stiftelsesdato"),
-        "konkurs": False,
-        "under_konkursbehandling": False,
-        "under_avvikling": False,
-    }
+    org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}
     pep = db_obj.pep_raw or {}
     risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
@@ -328,20 +314,7 @@ def download_forsikringstilbud(
     filename = f"forsikringstilbud_{orgnr}_{date.today().isoformat()}.pdf"
 
     if save:
-        _doc = InsuranceDocument(
-            title=f"Forsikringstilbud — {db_obj.navn}",
-            category="anbefaling",
-            insurer="AI-generert",
-            year=date.today().year,
-            period="aktiv",
-            orgnr=orgnr,
-            filename=filename,
-            pdf_content=pdf_bytes,
-            extracted_text=None,
-            uploaded_at=datetime.now(timezone.utc).isoformat(),
-        )
-        db.add(_doc)
-        db.commit()
+        save_insurance_document(orgnr, db_obj.navn, filename, pdf_bytes, db)
 
     return Response(
         content=pdf_bytes,

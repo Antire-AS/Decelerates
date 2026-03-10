@@ -1,9 +1,9 @@
-"""CompanyPdfSource and CompanyHistory persistence helpers."""
-from datetime import datetime, timezone
+"""CompanyPdfSource, CompanyHistory, and InsuranceDocument persistence helpers."""
+from datetime import date, datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from db import CompanyPdfSource, CompanyHistory
+from db import CompanyPdfSource, CompanyHistory, InsuranceDocument
 
 
 def upsert_pdf_source(orgnr: str, year: int, url: str, label: str, db: Session) -> CompanyPdfSource:
@@ -21,6 +21,27 @@ def upsert_pdf_source(orgnr: str, year: int, url: str, label: str, db: Session) 
     existing.added_at = datetime.now(timezone.utc).isoformat()
     db.commit()
     return existing
+
+
+def save_insurance_document(
+    orgnr: str, navn: str, filename: str, pdf_bytes: bytes, db: Session
+) -> InsuranceDocument:
+    """Persist a generated insurance offer PDF as an InsuranceDocument row."""
+    doc = InsuranceDocument(
+        title=f"Forsikringstilbud — {navn}",
+        category="anbefaling",
+        insurer="AI-generert",
+        year=date.today().year,
+        period="aktiv",
+        orgnr=orgnr,
+        filename=filename,
+        pdf_content=pdf_bytes,
+        extracted_text=None,
+        uploaded_at=datetime.now(timezone.utc).isoformat(),
+    )
+    db.add(doc)
+    db.commit()
+    return doc
 
 
 def delete_history_year(orgnr: str, db: Session) -> int:

@@ -90,6 +90,31 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
             "pdf_url": "https://cdn.sanity.io/files/h61q9gi9/global/16ccbc5a098c3b971979118420c4f83ddee18fb4.pdf",
             "label": "Equinor Annual Report 2024",
         },
+        {
+            "year": 2023,
+            "pdf_url": "https://cdn.equinor.com/files/h61q9gi9/global/76629806e2cc50eefdd89d5b8daabda39247db63.pdf",
+            "label": "Equinor Annual Report 2023",
+        },
+        {
+            "year": 2022,
+            "pdf_url": "https://cdn.equinor.com/files/h61q9gi9/global/d3b41d2d0b98906de981ded0cd454636c1ba9088.pdf",
+            "label": "Equinor Annual Report 2022",
+        },
+        {
+            "year": 2021,
+            "pdf_url": "https://cdn.equinor.com/files/h61q9gi9/global/83ce4c64e602e203100e1ce2c5de9b2d42ff8192.pdf",
+            "label": "Equinor Annual Report 2021",
+        },
+        {
+            "year": 2020,
+            "pdf_url": "https://cdn.equinor.com/files/h61q9gi9/global/50088434118167232c3cd8dc335ca7d419eb272f.pdf",
+            "label": "Equinor Annual Report 2020",
+        },
+        {
+            "year": 2019,
+            "pdf_url": "https://cdn.equinor.com/files/h61q9gi9/global/285c51a7491a6dd19f981ee256f34b08ec83bb85.pdf",
+            "label": "Equinor Annual Report 2019",
+        },
     ],
 }
 

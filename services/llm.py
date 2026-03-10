@@ -12,9 +12,13 @@ from domain.exceptions import LlmUnavailableError, QuotaError
 from prompts import CHAT_SYSTEM_PROMPT
 
 
+def _is_key_set(key: Optional[str]) -> bool:
+    return bool(key) and key != "your_key_here"
+
+
 def _embed(text: str) -> List[float]:
     voyage_key = os.getenv("VOYAGE_API_KEY")
-    if voyage_key and voyage_key != "your_key_here":
+    if _is_key_set(voyage_key):
         try:
             vo = voyageai.Client(api_key=voyage_key)
             result = vo.embed([text], model=VOYAGE_MODEL)
@@ -23,7 +27,7 @@ def _embed(text: str) -> List[float]:
             pass
 
     gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your_key_here":
+    if _is_key_set(gemini_key):
         try:
             client = google_genai.Client(api_key=gemini_key)
             result = client.models.embed_content(
@@ -50,7 +54,7 @@ def _fmt_nok(value) -> str:
 def _llm_answer_raw(prompt: str) -> Optional[str]:
     """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    if anthropic_key and anthropic_key != "your_key_here":
+    if _is_key_set(anthropic_key):
         client = anthropic.Anthropic(api_key=anthropic_key)
         msg = client.messages.create(
             model=CLAUDE_MODEL,
@@ -60,7 +64,7 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
         return msg.content[0].text
 
     gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your_key_here":
+    if _is_key_set(gemini_key):
         client = google_genai.Client(api_key=gemini_key)
         models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
         seen: set = set()
@@ -85,58 +89,48 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
 
 def _compare_offers_with_llm(prompt: str) -> Optional[str]:
     """Run an insurance offer comparison prompt through Gemini and return the text response."""
-    gemini_key = os.getenv("GEMINI_API_KEY", "")
-    if not gemini_key:
-        return None
-    client = google_genai.Client(api_key=gemini_key)
-    resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
-    return resp.text
+    return _gemini_generate_with_fallback([prompt])
 
 
-def _analyze_document_with_gemini(pdf_bytes: bytes, prompt: str) -> Optional[str]:
-    """Send a PDF to Gemini for analysis. Tries multiple models; returns text or None."""
+def _gemini_generate_with_fallback(
+    parts: list, timeout: int = 120, system_instruction: Optional[str] = None
+) -> Optional[str]:
+    """Try each Gemini model in order with the given content parts. Returns first successful text."""
     gemini_key = os.getenv("GEMINI_API_KEY")
     if not gemini_key:
         return None
+    config = genai_types.GenerateContentConfig(system_instruction=system_instruction) if system_instruction else None
     try:
-        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 120})
-        pdf_part = genai_types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
         for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
             try:
-                resp = client.models.generate_content(model=model, contents=[pdf_part, prompt])
+                resp = client.models.generate_content(model=model, contents=parts, config=config)
                 return resp.text
             except Exception:
                 continue
     except Exception:
         pass
     return None
+
+
+def _analyze_document_with_gemini(pdf_bytes: bytes, prompt: str) -> Optional[str]:
+    """Send a PDF to Gemini for analysis. Tries multiple models; returns text or None."""
+    pdf_part = genai_types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+    return _gemini_generate_with_fallback([pdf_part, prompt], timeout=120)
 
 
 def _compare_documents_with_gemini(
     pdf_bytes_a: bytes, pdf_bytes_b: bytes, prompt: str
 ) -> Optional[str]:
     """Send two PDFs to Gemini for comparison. Tries multiple models; returns text or None."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        return None
-    try:
-        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 280})
-        pdf_a = genai_types.Part.from_bytes(data=pdf_bytes_a, mime_type="application/pdf")
-        pdf_b = genai_types.Part.from_bytes(data=pdf_bytes_b, mime_type="application/pdf")
-        for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
-            try:
-                resp = client.models.generate_content(model=model, contents=[pdf_a, pdf_b, prompt])
-                return resp.text
-            except Exception:
-                continue
-    except Exception:
-        pass
-    return None
+    pdf_a = genai_types.Part.from_bytes(data=pdf_bytes_a, mime_type="application/pdf")
+    pdf_b = genai_types.Part.from_bytes(data=pdf_bytes_b, mime_type="application/pdf")
+    return _gemini_generate_with_fallback([pdf_a, pdf_b, prompt], timeout=280)
 
 
 def _llm_answer(context: str, question: str) -> str:
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    if anthropic_key and anthropic_key != "your_key_here":
+    if _is_key_set(anthropic_key):
         client = anthropic.Anthropic(api_key=anthropic_key)
         message = client.messages.create(
             model=CLAUDE_MODEL,
@@ -146,14 +140,11 @@ def _llm_answer(context: str, question: str) -> str:
         )
         return message.content[0].text
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your_key_here":
-        client = google_genai.Client(api_key=gemini_key)
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=f"Company data:\n{context}\n\nQuestion: {question}",
-            config=genai_types.GenerateContentConfig(system_instruction=CHAT_SYSTEM_PROMPT),
-        )
-        return response.text
+    result = _gemini_generate_with_fallback(
+        [f"Company data:\n{context}\n\nQuestion: {question}"],
+        system_instruction=CHAT_SYSTEM_PROMPT,
+    )
+    if result is not None:
+        return result
 
     raise LlmUnavailableError("No LLM API key configured (ANTHROPIC_API_KEY or GEMINI_API_KEY)")
