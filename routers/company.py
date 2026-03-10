@@ -4,8 +4,7 @@ import requests
 from fastapi import APIRouter, Query, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
-from db import Company
-from services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, _auto_extract_pdf_sources
+from services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, _auto_extract_pdf_sources, list_companies as _list_companies
 from dependencies import get_db
 
 router = APIRouter()
@@ -66,37 +65,14 @@ def list_companies(
     kommune: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-    q = db.query(Company)
-    if kommune:
-        q = q.filter(Company.kommune == kommune)
-
-    rows = q.order_by(Company.id.desc()).limit(limit).all()
-
-    return [
-        {
-            "id": c.id,
-            "orgnr": c.orgnr,
-            "navn": c.navn,
-            "organisasjonsform_kode": c.organisasjonsform_kode,
-            "kommune": c.kommune,
-            "land": c.land,
-            "naeringskode1": c.naeringskode1,
-            "naeringskode1_beskrivelse": c.naeringskode1_beskrivelse,
-            "regnskapsår": c.regnskapsår,
-            "omsetning": c.sum_driftsinntekter,
-            "sum_eiendeler": c.sum_eiendeler,
-            "sum_egenkapital": c.sum_egenkapital,
-            "egenkapitalandel": c.equity_ratio,
-            "risk_score": c.risk_score,
-        }
-        for c in rows
-    ]
+    return _list_companies(limit, kommune, db)
 
 
 @router.get("/org-by-name")
 def get_org_by_name(
     name: str = Query(..., min_length=2),
     kommunenummer: Optional[str] = None,
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
 ):
     """
@@ -108,4 +84,4 @@ def get_org_by_name(
         raise HTTPException(status_code=404, detail="No organisation found for name")
 
     orgnr = candidates[0]["orgnr"]
-    return get_org_profile(orgnr=orgnr, db=db)
+    return get_org_profile(orgnr=orgnr, background_tasks=background_tasks, db=db)

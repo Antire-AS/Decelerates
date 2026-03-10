@@ -125,14 +125,15 @@ def fetch_org_profile(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
     }
 
 
-def _generate_risk_narrative(
+def _build_narrative_prompt(
     org: Dict[str, Any],
     regn: Dict[str, Any],
     risk: Optional[Dict[str, Any]],
     pep: Optional[Dict[str, Any]],
     members: List[Dict[str, Any]],
     lang: str = "no",
-) -> Optional[str]:
+) -> str:
+    """Build the LLM prompt for a risk narrative."""
     eq_pct = (
         f"{risk['equity_ratio']*100:.1f}%"
         if risk and risk.get("equity_ratio") is not None
@@ -143,9 +144,8 @@ def _generate_risk_narrative(
     ) or "Not available"
     flags_str = ", ".join(risk.get("reasons") or []) if risk else "none"
     synthetic_note = " (NOTE: financials are AI-estimated, no public data available)" if regn.get("synthetic") else ""
-
     lang_instruction = "Write in English." if lang == "en" else "Svar på norsk."
-    prompt = f"""Write a concise 3-paragraph risk assessment for an insurance underwriter considering this Norwegian company as a client.{synthetic_note} {lang_instruction}
+    return f"""Write a concise 3-paragraph risk assessment for an insurance underwriter considering this Norwegian company as a client.{synthetic_note} {lang_instruction}
 
 Company: {org.get('navn')} ({org.get('organisasjonsform')}, {org.get('organisasjonsform_kode')})
 Industry: {org.get('naeringskode1')} – {org.get('naeringskode1_beskrivelse')}
@@ -169,7 +169,43 @@ Paragraph 3 – Recommendation: Overall risk stance and 2–3 specific questions
 
 Be specific, professional, and concise. Do not make up data beyond what is provided."""
 
+
+def _generate_risk_narrative(
+    org: Dict[str, Any],
+    regn: Dict[str, Any],
+    risk: Optional[Dict[str, Any]],
+    pep: Optional[Dict[str, Any]],
+    members: List[Dict[str, Any]],
+    lang: str = "no",
+) -> Optional[str]:
+    prompt = _build_narrative_prompt(org, regn, risk, pep, members, lang)
     return _llm_answer_raw(prompt)
+
+
+def list_companies(limit: int, kommune: Optional[str], db: Session) -> List[Dict[str, Any]]:
+    q = db.query(Company)
+    if kommune:
+        q = q.filter(Company.kommune == kommune)
+    rows = q.order_by(Company.id.desc()).limit(limit).all()
+    return [
+        {
+            "id": c.id,
+            "orgnr": c.orgnr,
+            "navn": c.navn,
+            "organisasjonsform_kode": c.organisasjonsform_kode,
+            "kommune": c.kommune,
+            "land": c.land,
+            "naeringskode1": c.naeringskode1,
+            "naeringskode1_beskrivelse": c.naeringskode1_beskrivelse,
+            "regnskapsår": c.regnskapsår,
+            "omsetning": c.sum_driftsinntekter,
+            "sum_eiendeler": c.sum_eiendeler,
+            "sum_egenkapital": c.sum_egenkapital,
+            "egenkapitalandel": c.equity_ratio,
+            "risk_score": c.risk_score,
+        }
+        for c in rows
+    ]
 
 
 def _generate_synthetic_financials(org: Dict[str, Any]) -> Dict[str, Any]:

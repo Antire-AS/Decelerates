@@ -26,9 +26,16 @@ Module map:
                       /norgesbank/rate/{ccy}, /org/{orgnr}/roles, /org/{orgnr}/estimate
 """
 
+import logging
+
 from fastapi import FastAPI
 
 from db import init_db
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
 from services import _seed_pdf_sources
 from dependencies import get_db  # noqa: F401 — re-exported for backward compat
 

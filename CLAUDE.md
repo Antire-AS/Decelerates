@@ -20,14 +20,15 @@ app.py  (FastAPI, 69 lines — thin router mount only)
   │     sla.py          SLA agreement endpoints
   │
   ├── services/         Business logic — no FastAPI imports
-  │     llm.py          _embed, _llm_answer_raw, _llm_answer
+  │     llm.py          _embed, _llm_answer_raw, _llm_answer, _compare_offers_with_llm,
+  │                    _analyze_document_with_gemini, _compare_documents_with_gemini
   │     external_apis.py  BRREG, SSB, Norges Bank, Kartverket, OpenSanctions, Finanstilsynet
   │     pdf_extract.py  agentic IR discovery, Playwright fetch, Gemini PDF extraction
   │     rag.py          chunk, embed, store, retrieve for chat
   │     company.py      fetch_org_profile, _upsert_company, synthetic financials
   │     broker.py       broker settings + notes CRUD
   │     sla_service.py  SLA agreement creation
-  │     pdf_generate.py SLA PDF generation (fpdf2)
+  │     pdf_generate.py SLA, risk report, and forsikringstilbud PDF generation (fpdf2)
   │     pdf_sources.py  CompanyPdfSource upsert/delete
   │
   ├── domain/           Pure Python — no framework dependencies
@@ -46,11 +47,13 @@ Two processes need to run:
 ## Clean Code Principles Followed
 
 - **No HTTPException in services** — services raise domain exceptions (`QuotaError`, `NotFoundError`, etc.); routers catch and convert to HTTP status codes
-- **DB writes only in services** — routers never touch `db.query()` directly
-- **Functions ≤ 40 lines** — long functions decomposed into named helpers (e.g. `_generate_sla_pdf` → 8 page-builder helpers)
+- **No DB queries in routers** — all `db.query()` calls live in services; routers only call service functions
+- **No LLM calls in routers** — all Gemini/Claude API calls are in `services/llm.py`; routers call service helpers
+- **Functions ≤ 40 lines** — long functions decomposed into named helpers (e.g. PDF endpoints → `generate_risk_report_pdf`, `generate_forsikringstilbud_pdf` with page-builder helpers in `services/pdf_generate.py`)
 - **Parallel extraction** — `_extract_pending_sources` uses `ThreadPoolExecutor(max_workers=3)`; each thread gets its own DB session
 - **Testable background tasks** — `_auto_extract_pdf_sources(db_factory=SessionLocal)` accepts injected session factory
 - **Graceful degradation** — Playwright fails → requests fallback; agent fails → DuckDuckGo fallback; BRREG empty → PDF history fallback; no LLM key → silent skip
+- **Multi-key Gemini rotation** — `_gemini_api_keys()` reads `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`; all Gemini calls rotate through keys on 429/quota errors
 
 ---
 
@@ -67,24 +70,32 @@ Each router file handles one domain area. Routers only: validate input → call 
 ### [services/pdf_extract.py](services/pdf_extract.py) — PDF discovery + extraction
 
 **Agentic IR discovery pipeline:**
-1. `_agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)` — LLM tool-use loop; tries Claude first, Gemini fallback
-2. `_agent_discover_pdfs_claude` / `_agent_discover_pdfs_gemini` — provider-specific agent loops (max 8 turns each)
-3. Tools available to the agent:
-   - `web_search(query)` → `_ddg_search_results()` — DuckDuckGo, returns `[{title, url, snippet}]`
-   - `fetch_url(url)` → `_fetch_url_content()` → `_fetch_html()` + `_parse_html_for_agent()`
-4. `_fetch_html(url)` — Playwright (headless Chromium, waits for JS) → requests fallback
-5. `_discover_ir_pdfs()` — fallback when no LLM key: DuckDuckGo PDF links + LLM validation
+1. `_agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)` — tries Claude first (`ANTHROPIC_API_KEY`), then all Gemini keys in order
+2. `_agent_discover_pdfs_claude` — Claude tool-use loop using native `web_search_20250305` + custom `fetch_url` (Playwright-backed)
+3. `_agent_discover_pdfs_gemini` — two-phase Gemini loop:
+   - Phase 1: `gemini-2.5-flash` Google Search grounding → finds IR page URL (plain text)
+   - Phase 2: `_run_gemini_phase2(chat, navn, phase1_text)` — up to 4 `fetch_url` turns to extract real `pdf_links` from the IR page
+4. `_GEMINI_FETCH_URL_TOOL` — module-level `genai_types.Tool` constant shared by the Gemini agent
+5. `_validate_pdf_urls(discovered)` — HTTP HEAD check; filters out 404/unreachable URLs before storing
+6. `_fetch_html(url)` — Playwright (headless Chromium) → requests fallback
+7. `_discover_ir_pdfs()` — last resort: DuckDuckGo PDF links + LLM validation
+
+**Gemini key rotation:**
+- `_gemini_api_keys()` returns all configured keys (`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, ...)
+- `_try_gemini`, `_gemini_web_search`, `_agent_discover_pdfs` all iterate through keys on quota errors
+- `gemini-2.5-flash` tried first for Google Search grounding (free tier supports it); `gemini-2.0-flash` has `limit: 0` for grounding
 
 **Extraction pipeline:**
-- `_parse_financials_from_pdf(pdf_url, orgnr, year)` — Gemini native PDF understanding (inline ≤18MB, Files API >18MB); pdfplumber fallback
+- `_parse_financials_from_pdf(pdf_url, orgnr, year)` — Gemini native PDF (inline ≤18MB, Files API >18MB); pdfplumber fallback
+- `_upsert_history_row(existing, parsed, pdf_url)` — copies parsed fields onto ORM object (caller commits)
 - `fetch_history_from_pdf(orgnr, pdf_url, year, label, db)` — orchestrates extraction → upsert into `company_history`
 - `_extract_pending_sources(orgnr, sources, db)` — parallel extraction (3 workers, own DB session per thread)
-- `_auto_extract_pdf_sources(orgnr, org, db_factory)` — background task; Phase 1 seeds → Phase 2 agent discovery (re-runs if ≥3 of last 5 years missing)
+- `_auto_extract_pdf_sources(orgnr, org, db_factory)` — background task; re-runs discovery if ≥3 of last 5 years missing
 
 **Key functions:**
 - `_parse_json_financials(raw)` — parses LLM JSON output, computes equity_ratio
 - `_get_full_history(orgnr, db)` — merges PDF + BRREG history, deduplicated by year, sorted descending
-- `_search_for_pdfs(navn, hjemmeside, year)` — DuckDuckGo HTML scrape for direct PDF links
+- `_validate_pdf_urls(discovered)` — HEAD-validates each URL; drops unreachable ones before DB insert
 
 ### [services/external_apis.py](services/external_apis.py)
 
@@ -455,6 +466,7 @@ Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOY
 | DNB Bank ASA | 984851006 | 2019–2024 |
 | Gjensidige Forsikring ASA | 995568217 | 2019–2024 |
 | Søderberg & Partners Norge AS | 979981344 | 2023 (SEK, group report) |
+| Equinor ASA | 923609016 | 2024 (Sanity CDN; 46 MB → Files API) |
 
 PDF extraction is **one-time per year** — once stored in `company_history` it is never re-fetched. To force re-extraction, delete the row from `company_history` and visit the profile.
 

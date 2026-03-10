@@ -8,12 +8,11 @@ from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
-from google import genai as google_genai
 
 from db import Company, InsuranceOffer
 from services import _llm_answer_raw
+from services.llm import _compare_offers_with_llm
 from dependencies import get_db
-from constants import GEMINI_MODEL
 
 router = APIRouter()
 
@@ -72,16 +71,11 @@ Hvilket tilbud passer best for denne bedriften og hvorfor.
 ## Forhandlingspunkter
 3-5 konkrete punkter megler bør ta opp med forsikringsselskapet."""
 
-    gemini_key = os.getenv("GEMINI_API_KEY", "")
-    gemini_client = google_genai.Client(api_key=gemini_key)
-    resp = gemini_client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-    )
+    comparison = _compare_offers_with_llm(prompt)
     return {
         "orgnr": orgnr,
         "offers": [o["name"] for o in offer_texts],
-        "comparison": resp.text,
+        "comparison": comparison,
     }
 
 
@@ -205,14 +199,9 @@ Hvilket tilbud passer best for denne bedriften og hvorfor.
 ## Forhandlingspunkter
 3-5 konkrete punkter megler bør ta opp med forsikringsselskapet."""
 
-    gemini_key = os.getenv("GEMINI_API_KEY", "")
-    gemini_client = google_genai.Client(api_key=gemini_key)
-    resp = gemini_client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-    )
+    comparison = _compare_offers_with_llm(prompt)
     return {
         "orgnr": orgnr,
         "offers": [r.insurer_name for r in rows],
-        "comparison": resp.text,
+        "comparison": comparison,
     }

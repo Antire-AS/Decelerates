@@ -84,6 +84,13 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
             "label": "Söderberg & Partners Group Annual Report 2023 (SEK)",
         },
     ],
+    "923609016": [   # Equinor ASA
+        {
+            "year": 2024,
+            "pdf_url": "https://cdn.sanity.io/files/h61q9gi9/global/16ccbc5a098c3b971979118420c4f83ddee18fb4.pdf",
+            "label": "Equinor Annual Report 2024",
+        },
+    ],
 }
 
 # ======================

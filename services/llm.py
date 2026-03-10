@@ -83,6 +83,57 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
     return None
 
 
+def _compare_offers_with_llm(prompt: str) -> Optional[str]:
+    """Run an insurance offer comparison prompt through Gemini and return the text response."""
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    if not gemini_key:
+        return None
+    client = google_genai.Client(api_key=gemini_key)
+    resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+    return resp.text
+
+
+def _analyze_document_with_gemini(pdf_bytes: bytes, prompt: str) -> Optional[str]:
+    """Send a PDF to Gemini for analysis. Tries multiple models; returns text or None."""
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        return None
+    try:
+        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 120})
+        pdf_part = genai_types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+        for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
+            try:
+                resp = client.models.generate_content(model=model, contents=[pdf_part, prompt])
+                return resp.text
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return None
+
+
+def _compare_documents_with_gemini(
+    pdf_bytes_a: bytes, pdf_bytes_b: bytes, prompt: str
+) -> Optional[str]:
+    """Send two PDFs to Gemini for comparison. Tries multiple models; returns text or None."""
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        return None
+    try:
+        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 280})
+        pdf_a = genai_types.Part.from_bytes(data=pdf_bytes_a, mime_type="application/pdf")
+        pdf_b = genai_types.Part.from_bytes(data=pdf_bytes_b, mime_type="application/pdf")
+        for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
+            try:
+                resp = client.models.generate_content(model=model, contents=[pdf_a, pdf_b, prompt])
+                return resp.text
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return None
+
+
 def _llm_answer(context: str, question: str) -> str:
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if anthropic_key and anthropic_key != "your_key_here":

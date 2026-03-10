@@ -70,6 +70,7 @@ from services.company import (  # noqa: F401
     fetch_org_profile,
     _generate_risk_narrative,
     _generate_synthetic_financials,
+    list_companies,
 )
 
 from services.pdf_generate import (  # noqa: F401

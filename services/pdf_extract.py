@@ -1,11 +1,14 @@
 """PDF extraction helpers — Gemini native PDF, pdfplumber fallback, IR discovery."""
 import io
 import json
+import logging
 import os
 import re
 import tempfile
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Callable
+
+logger = logging.getLogger(__name__)
 
 import pdfplumber
 import requests
@@ -102,29 +105,36 @@ def _gemini_files_api(
         os.unlink(tmp_path)
 
 
-def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
-    """Try all Gemini PDF models; return raw text or None on quota/failure."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key or gemini_key == "your_key_here":
-        return None
+def _gemini_api_keys() -> List[str]:
+    """Return all configured Gemini API keys (primary + fallbacks), deduped."""
+    keys = []
+    for var in ("GEMINI_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"):
+        k = os.getenv(var)
+        if k and k != "your_key_here" and k not in keys:
+            keys.append(k)
+    return keys
 
-    client = google_genai.Client(api_key=gemini_key)
+
+def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
+    """Try all Gemini API keys × all PDF models; return raw text or None on quota/failure."""
     prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
     use_files_api = len(pdf_bytes) > 18 * 1024 * 1024
 
-    for model_name in GEMINI_PDF_MODELS:
-        try:
-            if use_files_api:
-                raw = _gemini_files_api(client, model_name, pdf_bytes, orgnr, year)
-            else:
-                raw = _gemini_inline(client, model_name, pdf_bytes, prompt)
-            if raw:
-                return raw
-        except Exception as exc:
-            msg = str(exc)
-            if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                continue
-            break
+    for api_key in _gemini_api_keys():
+        client = google_genai.Client(api_key=api_key)
+        for model_name in GEMINI_PDF_MODELS:
+            try:
+                if use_files_api:
+                    raw = _gemini_files_api(client, model_name, pdf_bytes, orgnr, year)
+                else:
+                    raw = _gemini_inline(client, model_name, pdf_bytes, prompt)
+                if raw:
+                    return raw
+            except Exception as exc:
+                msg = str(exc)
+                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    continue  # try next model or key
+                break  # non-quota error on this key, skip remaining models
     return None
 
 
@@ -160,6 +170,22 @@ def _parse_financials_from_pdf(
         return None
 
 
+def _upsert_history_row(existing: Any, parsed: Dict[str, Any], pdf_url: str) -> None:
+    """Copy parsed financial fields onto an existing CompanyHistory ORM object."""
+    existing.source = "pdf"
+    existing.pdf_url = pdf_url
+    existing.revenue = parsed.get("revenue")
+    existing.net_result = parsed.get("net_result")
+    existing.equity = parsed.get("equity")
+    existing.total_assets = parsed.get("total_assets")
+    existing.equity_ratio = parsed.get("equity_ratio")
+    existing.short_term_debt = parsed.get("short_term_debt")
+    existing.long_term_debt = parsed.get("long_term_debt")
+    existing.antall_ansatte = parsed.get("antall_ansatte")
+    existing.currency = parsed.get("currency", "NOK")
+    existing.raw = parsed
+
+
 def fetch_history_from_pdf(
     orgnr: str, pdf_url: str, year: int, label: str, db: Session
 ) -> Dict[str, Any]:
@@ -177,18 +203,7 @@ def fetch_history_from_pdf(
         existing = CompanyHistory(orgnr=orgnr, year=year)
         db.add(existing)
 
-    existing.source = "pdf"
-    existing.pdf_url = pdf_url
-    existing.revenue = parsed.get("revenue")
-    existing.net_result = parsed.get("net_result")
-    existing.equity = parsed.get("equity")
-    existing.total_assets = parsed.get("total_assets")
-    existing.equity_ratio = parsed.get("equity_ratio")
-    existing.short_term_debt = parsed.get("short_term_debt")
-    existing.long_term_debt = parsed.get("long_term_debt")
-    existing.antall_ansatte = parsed.get("antall_ansatte")
-    existing.currency = parsed.get("currency", "NOK")
-    existing.raw = parsed
+    _upsert_history_row(existing, parsed, pdf_url)
     db.commit()
 
     return {
@@ -434,39 +449,71 @@ def _parse_agent_pdf_list(raw: str) -> List[Dict[str, Any]]:
     return []
 
 
-_AGENT_TOOLS = [
-    {
-        "name": "web_search",
-        "description": (
-            "Search the web. Returns a list of {title, url, snippet} results. "
-            "Use this to find investor relations pages, annual report listings, or PDF links."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {"query": {"type": "string", "description": "The search query"}},
-            "required": ["query"],
-        },
-    },
-    {
-        "name": "fetch_url",
-        "description": (
+
+_GEMINI_FETCH_URL_TOOL = genai_types.Tool(function_declarations=[
+    genai_types.FunctionDeclaration(
+        name="fetch_url",
+        description=(
             "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
             "pdf_links are direct .pdf URLs found on the page. "
-            "page_links are other links that may lead to annual reports."
+            "Use this to navigate to investor relations pages and find PDF download links."
         ),
-        "input_schema": {
-            "type": "object",
-            "properties": {"url": {"type": "string", "description": "The URL to fetch"}},
-            "required": ["url"],
-        },
-    },
-]
+        parameters=genai_types.Schema(
+            type=genai_types.Type.OBJECT,
+            properties={"url": genai_types.Schema(
+                type=genai_types.Type.STRING, description="The URL to fetch"
+            )},
+            required=["url"],
+        ),
+    ),
+])
+
+
+def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
+    """Use Gemini's native Google Search to return [{title, url, snippet}] results.
+
+    Rotates through all configured Gemini API keys on quota errors.
+    """
+    keys = _gemini_api_keys()
+    if not keys:
+        return []
+    _search_models = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    for api_key in keys:
+        client = google_genai.Client(api_key=api_key)
+        for model_name in _search_models:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=f'Search for: {query}\n\nReturn ONLY a JSON array of search results in this format: [{{"title": "...", "url": "...", "snippet": "..."}}]. Include up to 8 results.',
+                    config=genai_types.GenerateContentConfig(
+                        tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
+                    ),
+                )
+                text = response.text or ""
+                cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", text).strip()
+                match = re.search(r"\[.*\]", cleaned, re.DOTALL)
+                if match:
+                    results = json.loads(match.group())
+                    if isinstance(results, list):
+                        return results[:8]
+                # Model responded but no JSON array — try next model
+            except Exception as exc:
+                msg = str(exc)
+                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg or "limit: 0" in msg:
+                    logger.warning("[web_search] Quota on %s key ...%s for %r", model_name, api_key[-4:], query)
+                    continue
+                logger.warning("[web_search] Gemini search failed (%s) for %r: %s", model_name, query, exc)
+                break
+    return []
 
 
 def _run_tool(name: str, args: Dict[str, Any]) -> Any:
     """Dispatch a tool call by name. Shared between Claude and Gemini agent loops."""
     if name == "web_search":
-        return _ddg_search_results(args.get("query", ""))
+        results = _gemini_web_search(args.get("query", ""))
+        if not results:
+            results = _ddg_search_results(args.get("query", ""))  # fallback
+        return results
     if name == "fetch_url":
         return _fetch_url_content(args.get("url", ""))
     return {"error": f"unknown tool: {name}"}
@@ -476,12 +523,35 @@ def _agent_discover_pdfs_claude(
     orgnr: str, navn: str, hjemmeside: Optional[str],
     target_years: List[int], api_key: str,
 ) -> List[Dict[str, Any]]:
-    """Claude tool-use agent loop for annual report PDF discovery."""
+    """Claude tool-use agent loop for annual report PDF discovery.
+
+    Uses Claude's native web_search tool (Anthropic's built-in, no external dependency)
+    plus a custom fetch_url tool for navigating IR pages with Playwright.
+    """
     import anthropic as _anthropic
     from constants import CLAUDE_MODEL
 
     system_prompt = _agent_system_prompt(navn, orgnr, hjemmeside, target_years)
     client = _anthropic.Anthropic(api_key=api_key)
+
+    # Claude's built-in web search + our custom fetch_url (Playwright-backed)
+    tools = [
+        {"type": "web_search_20250305"},
+        {
+            "name": "fetch_url",
+            "description": (
+                "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
+                "pdf_links are direct .pdf URLs found on the page. "
+                "Use this to navigate to investor relations pages and find PDF download links."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {"url": {"type": "string", "description": "The URL to fetch"}},
+                "required": ["url"],
+            },
+        },
+    ]
+
     messages: List[Dict[str, Any]] = [
         {"role": "user", "content": f"Find annual report PDFs for {navn} (orgnr {orgnr})."}
     ]
@@ -492,7 +562,7 @@ def _agent_discover_pdfs_claude(
             model=CLAUDE_MODEL,
             max_tokens=2048,
             system=system_prompt,
-            tools=_AGENT_TOOLS,
+            tools=tools,
             messages=messages,
         )
         for block in response.content:
@@ -503,105 +573,120 @@ def _agent_discover_pdfs_claude(
         if response.stop_reason == "end_turn":
             break
 
+        # Handle tool calls — web_search results come back automatically from Anthropic;
+        # fetch_url we execute ourselves with Playwright
         tool_results = []
         for block in response.content:
             if block.type != "tool_use":
                 continue
-            output = _run_tool(block.name, block.input)
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": block.id,
-                "content": json.dumps(output),
-            })
+            if block.name == "fetch_url":
+                output = _fetch_url_content(block.input.get("url", ""))
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(output),
+                })
+            # web_search_20250305 results are returned by Anthropic automatically — no action needed
         if tool_results:
             messages.append({"role": "user", "content": tool_results})
 
     return _parse_agent_pdf_list(last_text)
 
 
+def _run_gemini_phase2(chat: Any, navn: str, phase1_text: str) -> str:
+    """Run the fetch_url tool loop (max 4 turns). Returns last text response."""
+    last_text = ""
+    response = chat.send_message(
+        f"The investor relations page for {navn} is here:\n\n{phase1_text}\n\n"
+        "Use fetch_url to navigate to the IR/annual-reports page. "
+        "The pdf_links field in the response contains direct PDF URLs — use those. "
+        "Do NOT guess or construct PDF URLs. Output the final JSON array."
+    )
+    for _ in range(4):
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, "text") and part.text:
+                last_text = part.text
+        fn_calls = [
+            p.function_call
+            for p in response.candidates[0].content.parts
+            if p.function_call
+        ]
+        if not fn_calls:
+            break
+        fn_responses = [
+            genai_types.Part(
+                function_response=genai_types.FunctionResponse(
+                    name=fc.name,
+                    response={"result": json.dumps(_run_tool(fc.name, dict(fc.args)))},
+                )
+            )
+            for fc in fn_calls
+        ]
+        response = chat.send_message(fn_responses)
+    return last_text
+
+
 def _agent_discover_pdfs_gemini(
     orgnr: str, navn: str, hjemmeside: Optional[str],
     target_years: List[int], api_key: str,
 ) -> List[Dict[str, Any]]:
-    """Gemini tool-use agent loop for annual report PDF discovery."""
+    """Gemini agent for annual report PDF discovery using native Google Search + fetch_url.
+
+    Phase 1: Google Search grounding to find direct PDF URLs or IR page URLs.
+    Phase 2: If IR pages found but no PDFs, fetch them with fetch_url tool.
+    """
     system_prompt = _agent_system_prompt(navn, orgnr, hjemmeside, target_years)
-
-    tool = genai_types.Tool(function_declarations=[
-        genai_types.FunctionDeclaration(
-            name="web_search",
-            description=(
-                "Search the web. Returns a list of {title, url, snippet} results. "
-                "Use this to find investor relations pages, annual report listings, or PDF links."
-            ),
-            parameters=genai_types.Schema(
-                type=genai_types.Type.OBJECT,
-                properties={"query": genai_types.Schema(
-                    type=genai_types.Type.STRING, description="The search query"
-                )},
-                required=["query"],
-            ),
-        ),
-        genai_types.FunctionDeclaration(
-            name="fetch_url",
-            description=(
-                "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
-                "pdf_links are direct .pdf URLs found on the page."
-            ),
-            parameters=genai_types.Schema(
-                type=genai_types.Type.OBJECT,
-                properties={"url": genai_types.Schema(
-                    type=genai_types.Type.STRING, description="The URL to fetch"
-                )},
-                required=["url"],
-            ),
-        ),
-    ])
-
-    # gemini-2.0-flash has 1500 RPD vs gemini-2.5-flash's 20 RPD on the free tier.
-    _AGENT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
     client = google_genai.Client(api_key=api_key)
+
+    # gemini-2.5-flash has Google Search grounding on free tier; 2.0-flash limit: 0 for grounding.
+    _AGENT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+
+    fetch_url_tool = _GEMINI_FETCH_URL_TOOL
 
     def _is_quota_err(exc: Exception) -> bool:
         msg = str(exc)
         return any(x in msg for x in ["429", "RESOURCE_EXHAUSTED", "NOT_FOUND", "404"])
 
-
     for _model in _AGENT_MODELS:
         try:
+            # Phase 1: native Google Search — ask only for the IR page URL, not PDF URLs
+            search_response = client.models.generate_content(
+                model=_model,
+                contents=(
+                    f"Find the official investor relations or annual reports page URL for {navn} "
+                    f"(orgnr {orgnr}, homepage: {hjemmeside or 'unknown'}). "
+                    "Return only the IR/annual-reports page URL as plain text, not PDF links."
+                ),
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
+                ),
+            )
+            phase1_text = (search_response.text or "").strip()
+            # If Phase 1 returned nothing useful, fall back to the company homepage
+            if not phase1_text or phase1_text in ("[]", ""):
+                phase1_text = (
+                    f"Homepage: {hjemmeside or 'unknown'}. "
+                    f"Try fetching {hjemmeside}/investors/annual-reports or similar IR pages."
+                )
+            logger.info("[gemini] Phase 1 IR page response for %s: %s", orgnr, phase1_text[:300])
+
+            # Phase 2: fetch the IR page to get real pdf_links (max 4 turns to conserve quota)
             chat = client.chats.create(
                 model=_model,
                 config=genai_types.GenerateContentConfig(
                     system_instruction=system_prompt,
-                    tools=[tool],
+                    tools=[fetch_url_tool],
                 ),
             )
-            last_text = ""
-            response = chat.send_message(f"Find annual report PDFs for {navn} (orgnr {orgnr}).")
-            for _ in range(8):
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, "text") and part.text:
-                        last_text = part.text
-                fn_calls = [
-                    p.function_call
-                    for p in response.candidates[0].content.parts
-                    if p.function_call
-                ]
-                if not fn_calls:
-                    break
-                fn_responses = [
-                    genai_types.Part(
-                        function_response=genai_types.FunctionResponse(
-                            name=fc.name,
-                            response={"result": json.dumps(_run_tool(fc.name, dict(fc.args)))},
-                        )
-                    )
-                    for fc in fn_calls
-                ]
-                response = chat.send_message(fn_responses)
+            last_text = _run_gemini_phase2(chat, navn, phase1_text)
             return _parse_agent_pdf_list(last_text)
+
         except Exception as _exc:
             if _is_quota_err(_exc):
-                continue  # try next model
+                logger.warning("[gemini] Quota error on %s for %s, trying next model", _model, orgnr)
+                continue
+            logger.error("[gemini] Unexpected error for %s: %s", orgnr, _exc)
             raise
 
     return []  # all models quota-exhausted
@@ -616,8 +701,9 @@ def _agent_system_prompt(
         f"Target years: {target_years}\n\n"
         "Strategy:\n"
         "1. Use web_search to find the company's investor relations (IR) page\n"
-        "2. Use fetch_url on the IR page to find PDF download links\n"
-        "3. Match each PDF to the correct year — prioritise 'Annual Report' over sustainability/interim\n\n"
+        "2. Use fetch_url on the IR page to find PDF download links — look in pdf_links returned\n"
+        "3. Match each PDF to the correct year — prioritise 'Annual Report' over sustainability/interim\n"
+        "4. Only return URLs from the pdf_links field of fetch_url results — never guess or construct PDF URLs.\n\n"
         "When finished, respond with ONLY a JSON array — no markdown, no explanation:\n"
         '[{"year": 2023, "pdf_url": "https://...", "label": "Navn Annual Report 2023"}]\n'
         "Return [] if no official annual reports are found."
@@ -635,20 +721,29 @@ def _agent_discover_pdfs(
     Tries Claude first (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY).
     Returns [] if neither key is set — caller falls back to _discover_ir_pdfs.
     """
+    logger.info("[discovery] Starting agent PDF discovery for %s (%s), years=%s", navn, orgnr, target_years)
+
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if anthropic_key and anthropic_key != "your_key_here":
         try:
-            return _agent_discover_pdfs_claude(orgnr, navn, hjemmeside, target_years, anthropic_key)
-        except Exception:
-            pass
+            logger.info("[discovery] Trying Claude agent for %s", orgnr)
+            result = _agent_discover_pdfs_claude(orgnr, navn, hjemmeside, target_years, anthropic_key)
+            logger.info("[discovery] Claude agent returned %d results for %s", len(result), orgnr)
+            return result
+        except Exception as exc:
+            logger.warning("[discovery] Claude agent failed for %s: %s", orgnr, exc)
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your_key_here":
+    for gemini_key in _gemini_api_keys():
         try:
-            return _agent_discover_pdfs_gemini(orgnr, navn, hjemmeside, target_years, gemini_key)
-        except Exception:
-            pass
+            logger.info("[discovery] Trying Gemini agent for %s (key ...%s)", orgnr, gemini_key[-4:])
+            result = _agent_discover_pdfs_gemini(orgnr, navn, hjemmeside, target_years, gemini_key)
+            logger.info("[discovery] Gemini agent returned %d results for %s", len(result), orgnr)
+            if result:
+                return result
+        except Exception as exc:
+            logger.warning("[discovery] Gemini agent failed for %s (key ...%s): %s", orgnr, gemini_key[-4:], exc)
 
+    logger.warning("[discovery] No LLM keys available for agent discovery of %s", orgnr)
     return []
 
 
@@ -692,6 +787,24 @@ def _discover_ir_pdfs(
 
 # ── Background task helpers (decomposed) ─────────────────────────────────────
 
+def _validate_pdf_urls(discovered: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter discovered PDF items to those reachable via HTTP HEAD (status < 400)."""
+    valid = []
+    for item in discovered:
+        url = item.get("pdf_url", "")
+        try:
+            r = requests.head(url, timeout=10, allow_redirects=True,
+                              headers={"User-Agent": "BrokerAccelerator/1.0"})
+            if r.status_code < 400:
+                valid.append(item)
+                logger.info("[discovery] URL OK (%s): %s", r.status_code, url)
+            else:
+                logger.warning("[discovery] URL %s returned %s — skipping", url, r.status_code)
+        except Exception as exc:
+            logger.warning("[discovery] URL check failed for %s: %s — skipping", url, exc)
+    return valid
+
+
 def _run_phase2_discovery(orgnr: str, org: Dict[str, Any], db: Session) -> List[Any]:
     """Discover and cache IR PDFs for *orgnr* via DuckDuckGo + LLM validation."""
     navn = org.get("navn", "")
@@ -699,9 +812,15 @@ def _run_phase2_discovery(orgnr: str, org: Dict[str, Any], db: Session) -> List[
     current_year = datetime.now().year
     target_years = [current_year - i for i in range(1, 6)]
 
+    logger.info("[discovery] Phase 2 starting for %s (%s), homepage=%s", navn, orgnr, hjemmeside)
     discovered = _agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)
     if not discovered:
+        logger.info("[discovery] Agent found nothing — falling back to DuckDuckGo for %s", orgnr)
         discovered = _discover_ir_pdfs(orgnr, navn, hjemmeside, target_years)
+
+    # Validate each discovered URL is actually a reachable PDF (HEAD request)
+    discovered = _validate_pdf_urls(discovered)
+    logger.info("[discovery] Phase 2 validated %d PDF sources for %s", len(discovered), orgnr)
     for item in discovered:
         existing = (
             db.query(CompanyPdfSource)
@@ -751,9 +870,11 @@ def _extract_pending_sources(orgnr: str, sources: List[Any], db: Session) -> Non
     def _extract_one(src: Any) -> None:
         thread_db = SessionLocal()
         try:
+            logger.info("[extract] Extracting financials from %s (year=%s)", src.pdf_url, src.year)
             fetch_history_from_pdf(orgnr, src.pdf_url, src.year, src.label or "", thread_db)
-        except Exception:
-            pass
+            logger.info("[extract] Done: %s year=%s", orgnr, src.year)
+        except Exception as exc:
+            logger.error("[extract] Failed for %s year=%s: %s", orgnr, src.year, exc)
         finally:
             thread_db.close()
 
@@ -772,6 +893,7 @@ def _auto_extract_pdf_sources(
 
     Accepts *db_factory* so tests can inject a mock session factory.
     """
+    logger.info("[bg] _auto_extract_pdf_sources started for %s", orgnr)
     db = db_factory()
     try:
         sources = (
@@ -783,11 +905,18 @@ def _auto_extract_pdf_sources(
         current_year = datetime.now().year
         target_years = set(range(current_year - 5, current_year))
         covered_years = {s.year for s in sources}
-        needs_discovery = len(target_years - covered_years) >= 3
+        missing = target_years - covered_years
+        needs_discovery = len(missing) >= 3
+        logger.info("[bg] %s: covered=%s, missing=%s, needs_discovery=%s", orgnr, sorted(covered_years), sorted(missing), needs_discovery)
 
         if needs_discovery and org:
             sources = _run_phase2_discovery(orgnr, org, db)
+        elif needs_discovery and not org:
+            logger.warning("[bg] %s needs discovery but org dict not provided — skipping", orgnr)
 
         _extract_pending_sources(orgnr, sources, db)
+        logger.info("[bg] _auto_extract_pdf_sources done for %s", orgnr)
+    except Exception as exc:
+        logger.error("[bg] _auto_extract_pdf_sources error for %s: %s", orgnr, exc, exc_info=True)
     finally:
         db.close()

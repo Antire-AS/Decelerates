@@ -1,6 +1,5 @@
 import io
 import json
-import os
 import re
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -9,14 +8,12 @@ from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Q
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
-from google import genai as google_genai
-from google.genai import types as genai_types
 
 from db import InsuranceDocument
 from services import _llm_answer_raw
+from services.llm import _analyze_document_with_gemini, _compare_documents_with_gemini
 from schemas import DocChatRequest, DocCompareRequest
 from dependencies import get_db
-from constants import GEMINI_MODEL
 
 router = APIRouter()
 
@@ -137,37 +134,23 @@ def get_document_keypoints(doc_id: int, db: Session = Depends(get_db)):
         '}'
     )
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key:
+    raw_gemini = _analyze_document_with_gemini(doc.pdf_content, keypoints_prompt)
+    if raw_gemini:
         try:
-            client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 120})
-            pdf_part = genai_types.Part.from_bytes(data=doc.pdf_content, mime_type="application/pdf")
-            for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
-                try:
-                    resp = client.models.generate_content(
-                        model=model,
-                        contents=[pdf_part, keypoints_prompt],
-                    )
-                    import re as _re
-                    m = _re.search(r"\{.*\}", resp.text, _re.DOTALL)
-                    data = json.loads(m.group(0)) if m else json.loads(resp.text)
-                    return {"doc_id": doc_id, "title": doc.title, **data}
-                except Exception:
-                    continue
+            m = re.search(r"\{.*\}", raw_gemini, re.DOTALL)
+            data = json.loads(m.group(0)) if m else json.loads(raw_gemini)
+            return {"doc_id": doc_id, "title": doc.title, **data}
         except Exception:
             pass
 
     # Fallback: heuristic extraction from extracted_text
     text = doc.extracted_text or ""
     if text:
-        fallback = (
-            f"{keypoints_prompt}\n\nDokument:\n{text[:8000]}"
-        )
+        fallback = f"{keypoints_prompt}\n\nDokument:\n{text[:8000]}"
         raw = _llm_answer_raw(fallback)
         if raw:
             try:
-                import re as _re
-                m = _re.search(r"\{.*\}", raw, _re.DOTALL)
+                m = re.search(r"\{.*\}", raw, re.DOTALL)
                 data = json.loads(m.group(0)) if m else json.loads(raw)
                 return {"doc_id": doc_id, "title": doc.title, **data}
             except Exception:
@@ -206,22 +189,9 @@ def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(
         f"Spørsmål: {body.question}"
     )
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key:
-        try:
-            client = google_genai.Client(api_key=gemini_key)
-            pdf_part = genai_types.Part.from_bytes(data=doc.pdf_content, mime_type="application/pdf")
-            for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
-                try:
-                    resp = client.models.generate_content(
-                        model=model,
-                        contents=[pdf_part, prompt],
-                    )
-                    return {"doc_id": doc_id, "question": body.question, "answer": resp.text}
-                except Exception:
-                    continue
-        except Exception:
-            pass
+    answer = _analyze_document_with_gemini(doc.pdf_content, prompt)
+    if answer:
+        return {"doc_id": doc_id, "question": body.question, "answer": answer}
 
     # Fallback: use extracted text + LLM
     if doc.extracted_text is not None:
@@ -278,7 +248,6 @@ def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(g
 
     text_a = str(a.extracted_text) if a.extracted_text is not None else ""
     text_b = str(b.extracted_text) if b.extracted_text is not None else ""
-    gemini_key = os.getenv("GEMINI_API_KEY")
 
     def _parse_compare_result(raw: str) -> dict:
         """Try to parse structured JSON from LLM response. Falls back to raw text."""
@@ -311,22 +280,9 @@ def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(g
             return _build_response(result)
 
     # Slow path: Gemini native PDF understanding
-    if gemini_key:
-        try:
-            client = google_genai.Client(api_key=gemini_key, http_options={"timeout": 280})
-            pdf_a = genai_types.Part.from_bytes(data=a.pdf_content, mime_type="application/pdf")
-            pdf_b = genai_types.Part.from_bytes(data=b.pdf_content, mime_type="application/pdf")
-            for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
-                try:
-                    resp = client.models.generate_content(
-                        model=model,
-                        contents=[pdf_a, pdf_b, compare_prompt],
-                    )
-                    return _build_response(resp.text)
-                except Exception:
-                    continue
-        except Exception:
-            pass
+    gemini_result = _compare_documents_with_gemini(a.pdf_content, b.pdf_content, compare_prompt)
+    if gemini_result:
+        return _build_response(gemini_result)
 
     # Last resort: partial text fallback
     if text_a or text_b:
