@@ -35,15 +35,12 @@ cd Decelerates
 cp .env.example .env
 # Edit .env — at minimum add GEMINI_API_KEY
 
-# 3. Start the API
+# 3. Start everything (API + UI + Postgres)
 docker compose up --build
-
-# 4. Start the UI (separate terminal)
-pip install streamlit
-streamlit run ui.py
 ```
 
 Open [http://localhost:8501](http://localhost:8501) in your browser.
+API is at [http://localhost:8000](http://localhost:8000).
 
 ### Without Docker
 
@@ -151,6 +148,114 @@ python -m pytest tests/ -v
 | Embeddings | Voyage AI or Gemini text-embedding-004 |
 | Web scraping | Playwright (headless Chromium) + requests fallback |
 | Chunking | LangChain text splitters |
+
+---
+
+## Deploying to Azure
+
+### Services needed
+
+| Component | Azure service |
+|-----------|--------------|
+| FastAPI backend | Azure Container Apps |
+| Streamlit UI | Azure Container Apps (second app) |
+| PostgreSQL + pgvector | Azure Database for PostgreSQL – Flexible Server |
+| Docker images | Azure Container Registry |
+| Secrets / API keys | Azure Container Apps environment secrets |
+
+### Step-by-step
+
+**1. Create a resource group**
+```bash
+az group create --name broker-rg --location norwayeast
+```
+
+**2. Create a container registry**
+```bash
+az acr create --resource-group broker-rg --name brokeracr --sku Basic
+az acr login --name brokeracr
+```
+
+**3. Build and push images**
+```bash
+docker build -t brokeracr.azurecr.io/broker-api:latest .
+docker build -f Dockerfile.ui -t brokeracr.azurecr.io/broker-ui:latest .
+docker push brokeracr.azurecr.io/broker-api:latest
+docker push brokeracr.azurecr.io/broker-ui:latest
+```
+
+**4. Create PostgreSQL Flexible Server**
+```bash
+az postgres flexible-server create \
+  --resource-group broker-rg \
+  --name broker-postgres \
+  --location norwayeast \
+  --admin-user brokeruser \
+  --admin-password <your-password> \
+  --sku-name Standard_B1ms \
+  --tier Burstable \
+  --version 16
+
+# Enable pgvector extension
+az postgres flexible-server parameter set \
+  --resource-group broker-rg \
+  --server-name broker-postgres \
+  --name azure.extensions \
+  --value vector
+
+# Create database
+az postgres flexible-server db create \
+  --resource-group broker-rg \
+  --server-name broker-postgres \
+  --database-name brokerdb
+```
+
+**5. Create a Container Apps environment**
+```bash
+az containerapp env create \
+  --name broker-env \
+  --resource-group broker-rg \
+  --location norwayeast
+```
+
+**6. Deploy the API**
+```bash
+az containerapp create \
+  --name broker-api \
+  --resource-group broker-rg \
+  --environment broker-env \
+  --image brokeracr.azurecr.io/broker-api:latest \
+  --registry-server brokeracr.azurecr.io \
+  --target-port 8000 \
+  --ingress external \
+  --min-replicas 1 \
+  --env-vars \
+    DATABASE_URL="postgresql://brokeruser:<password>@broker-postgres.postgres.database.azure.com:5432/brokerdb?sslmode=require" \
+    GEMINI_API_KEY=secretref:gemini-key \
+    ANTHROPIC_API_KEY=secretref:anthropic-key
+```
+
+**7. Deploy the UI** (point it at the API container app URL)
+```bash
+az containerapp create \
+  --name broker-ui \
+  --resource-group broker-rg \
+  --environment broker-env \
+  --image brokeracr.azurecr.io/broker-ui:latest \
+  --registry-server brokeracr.azurecr.io \
+  --target-port 8501 \
+  --ingress external \
+  --min-replicas 1 \
+  --env-vars \
+    API_BASE_URL="https://<broker-api-fqdn>"
+```
+
+### Key gotchas
+
+- **pgvector** — must run `CREATE EXTENSION IF NOT EXISTS vector;` once on the database after provisioning. The `azure.extensions=vector` parameter above enables it at the server level, but you still need to activate it per database.
+- **Playwright cold starts** — set `--min-replicas 1` on the API container to avoid 30-second cold starts during agentic PDF discovery.
+- **Firewall** — Azure Postgres Flexible Server blocks all IPs by default. Add a firewall rule to allow the Container Apps outbound IPs, or use VNet integration.
+- **SSL** — Container Apps handles TLS termination. The `--server.headless=true` flag in Dockerfile.ui tells Streamlit not to open a browser.
 
 ---
 
