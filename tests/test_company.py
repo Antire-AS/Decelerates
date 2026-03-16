@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
-from services.company import (
+from api.services.company import (
     _seed_pdf_sources,
     _upsert_company,
     _fetch_financials_with_fallback,
@@ -21,7 +21,7 @@ def test_seed_pdf_sources_inserts_new():
     seed = {"123456789": [{"year": 2023, "pdf_url": "https://example.com/ar.pdf", "label": "AR 2023"}]}
     db = _make_db()
 
-    with patch("services.company.PDF_SEED_DATA", seed):
+    with patch("api.services.company.PDF_SEED_DATA", seed):
         _seed_pdf_sources(db)
 
     db.add.assert_called_once()
@@ -34,7 +34,7 @@ def test_seed_pdf_sources_updates_url():
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = existing
 
-    with patch("services.company.PDF_SEED_DATA", seed):
+    with patch("api.services.company.PDF_SEED_DATA", seed):
         _seed_pdf_sources(db)
 
     # Should NOT add a new row — just update URL on existing
@@ -97,7 +97,7 @@ def test_fetch_financials_fallback_to_history():
     db = MagicMock()
     db.query.return_value.filter.return_value.order_by.return_value.first.return_value = hist
 
-    with patch("services.company.fetch_regnskap_keyfigures", return_value={}):
+    with patch("api.services.company.fetch_regnskap_keyfigures", return_value={}):
         result = _fetch_financials_with_fallback("123456789", db)
 
     assert result["_source"] == "pdf_history"

@@ -21,13 +21,18 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libpango-1.0-0 \
     libcairo2 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 
-# Install Playwright Chromium browser (no extra system deps needed — installed above)
-RUN playwright install chromium
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+# Install Playwright Chromium browser
+RUN uv run playwright install chromium
 
 COPY . .
 
@@ -35,4 +40,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

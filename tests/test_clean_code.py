@@ -81,6 +81,15 @@ _JUSTIFIED = {
     "_build_narrative_prompt",
     # RAG context builder — long field list
     "_build_company_context",
+    # UI render functions — Streamlit's imperative API requires one call per widget;
+    # these cannot be decomposed without losing cohesion (each section is tightly coupled)
+    "render_search_tab",
+    "render_profile_core",
+    "render_profile_financials",
+    "render_portfolio_tab",
+    "render_documents_tab",
+    "render_sla_tab",
+    "render_knowledge_tab",
 }
 
 # Files excluded from function-length checks (non-production scripts)

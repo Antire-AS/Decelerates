@@ -1,7 +1,7 @@
 """Unit tests for services/pdf_extract.py — pure parsing functions, no HTTP."""
 import pytest
 
-from services.pdf_extract import _parse_json_financials
+from api.services.pdf_extract import _parse_json_financials
 
 
 def test_parse_json_valid():

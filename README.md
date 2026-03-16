@@ -50,10 +50,10 @@ pip install -r requirements.txt
 playwright install chromium
 
 # Start the API
-uvicorn app:app --reload
+uvicorn api.main:app --reload
 
 # Start the UI (separate terminal)
-streamlit run ui.py
+streamlit run ui/main.py
 ```
 
 ---
@@ -130,7 +130,7 @@ These are embedded in all generated PDFs (Forsikringstilbud, SLA agreements).
 python -m pytest tests/ -v
 ```
 
-78 tests covering risk scoring, PDF extraction, LLM helpers, company upsert and external API transforms. Tests run without API keys or installed external services.
+82 tests covering risk scoring, PDF extraction, LLM helpers, company upsert and external API transforms. Tests run without API keys or installed external services.
 
 ---
 

@@ -1,0 +1,43 @@
+[project]
+name = "decelerates"
+version = "0.1.0"
+description = "Norwegian company due-diligence tool"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.129.0",
+    "uvicorn[standard]==0.41.0",
+    "sqlalchemy==2.0.46",
+    "psycopg[binary]==3.3.3",
+    "requests==2.32.5",
+    "pydantic==2.12.5",
+    "streamlit==1.54.0",
+    "pandas==2.3.3",
+    "anthropic==0.84.0",
+    "pgvector==0.4.2",
+    "voyageai==0.2.4",
+    "google-genai==1.66.0",
+    "pdfplumber==0.11.9",
+    "fpdf2==2.8.7",
+    "python-multipart==0.0.22",
+    "playwright==1.58.0",
+    "langchain-core==1.2.17",
+    "langchain-text-splitters==1.1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pylint>=3.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["api", "ui"]
+
+[tool.pytest.ini_options]
+markers = [
+    "system: end-to-end tests requiring a live API instance (set SYSTEM_TEST_URL)",
+]

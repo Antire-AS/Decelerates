@@ -1,0 +1,68 @@
+@startuml PDF Extraction Flow
+title Agentic IR Discovery + PDF Extraction Pipeline
+
+actor Caller
+
+participant "_auto_extract_pdf_sources\n(background task)" as Auto
+participant "_agent_discover_pdfs" as Agent
+participant "_agent_discover_pdfs_claude\n(Claude tool-use loop)" as Claude
+participant "_agent_discover_pdfs_gemini\n(Gemini two-phase loop)" as Gemini
+participant "_validate_pdf_urls\n(HTTP HEAD checks)" as Validator
+participant "_extract_pending_sources\n(ThreadPoolExecutor ×3)" as Extractor
+participant "_parse_financials_from_pdf\n(Gemini multimodal)" as Parser
+
+database "company_pdf_sources" as PdfSources
+database "company_history" as History
+
+Caller -> Auto : triggered after /org/{orgnr} response\n(FastAPI background task)
+Auto -> PdfSources : load existing sources
+Auto -> Auto : compute missing years\n(target_years minus stored years)
+
+alt ≥ 3 of last 5 years missing
+    Auto -> Agent : _agent_discover_pdfs(orgnr, navn, target_years)
+
+    Agent -> Claude : attempt with ANTHROPIC_API_KEY
+    alt Claude available
+        loop tool-use loop (up to N turns)
+            Claude -> Claude : web_search tool
+            Claude -> Claude : fetch_url tool (Playwright → requests)
+        end
+        Claude --> Agent : pdf_links[]
+    else Claude unavailable / quota
+        Agent -> Gemini : rotate through GEMINI_API_KEY 1→2→3
+        Gemini -> Gemini : Phase 1 — Google Search grounding\n(find IR page URL)
+        loop up to 4 fetch_url turns
+            Gemini -> Gemini : Phase 2 — fetch_url\n(extract real PDF links)
+        end
+        Gemini --> Agent : pdf_links[]
+    end
+
+    Agent -> Validator : validate URLs (HTTP HEAD)
+    Validator --> Agent : reachable links[]
+
+    Agent --> Auto : discovered_sources
+    Auto -> PdfSources : upsert new sources
+end
+
+Auto -> Extractor : extract pending sources (parallel, 3 workers)
+
+loop per source — each worker gets its own DB session
+    Extractor -> Parser : _parse_financials_from_pdf(pdf_url, orgnr, year)
+
+    alt PDF ≤ 18 MB
+        Parser -> Parser : Gemini inline upload (base64)
+    else PDF > 18 MB
+        Parser -> Parser : Gemini Files API upload
+    end
+
+    alt Gemini succeeds
+        Parser --> Extractor : financial figures (JSON)
+    else Gemini fails
+        Parser -> Parser : pdfplumber text extraction\n→ text LLM fallback
+        Parser --> Extractor : financial figures (JSON)
+    end
+
+    Extractor -> History : upsert company_history row
+end
+
+@enduml

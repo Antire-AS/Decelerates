@@ -1,6 +1,6 @@
 """Tests for risk.py — derive_simple_risk and build_risk_summary."""
 import pytest
-from risk import derive_simple_risk, build_risk_summary
+from api.risk import derive_simple_risk, build_risk_summary
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

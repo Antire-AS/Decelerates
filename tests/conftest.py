@@ -7,8 +7,11 @@ The google.genai stub is set up so that both:
   patch("google.genai.Client")               (used in test_llm.py)
 refer to the SAME mock object, making patches work correctly.
 """
+import os
 import sys
 from unittest.mock import MagicMock
+
+import pytest
 
 # google / google.genai — services/llm.py and services/pdf_extract.py
 _google_genai = MagicMock()
@@ -38,6 +41,60 @@ sys.modules.setdefault("pdfplumber", MagicMock())
 # fpdf2 / fpdf — services/pdf_generate.py
 sys.modules.setdefault("fpdf", MagicMock())
 
-# pgvector / sqlalchemy extras — DB layer
-sys.modules.setdefault("pgvector", MagicMock())
-sys.modules.setdefault("pgvector.sqlalchemy", MagicMock())
+# pgvector — use the real installed package (required for integration tests that
+# create Vector columns in PostgreSQL). Fall back to stub only if not installed.
+try:
+    import pgvector  # noqa: F401
+except ImportError:
+    sys.modules.setdefault("pgvector", MagicMock())
+    sys.modules.setdefault("pgvector.sqlalchemy", MagicMock())
+
+
+# ── Integration test fixtures ──────────────────────────────────────────────────
+# Require TEST_DATABASE_URL — never runs against the production DB.
+# All tests in test_integration.py are skipped when this is not set,
+# so these fixtures are never called in that case.
+
+_TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "")
+
+
+@pytest.fixture(scope="session")
+def test_engine():
+    """Session-scoped engine: enables pgvector extension and creates all tables once."""
+    from sqlalchemy import create_engine, text
+    from api.db import Base
+
+    url = _TEST_DB_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
+    Base.metadata.create_all(engine)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def test_db(test_engine):
+    """Function-scoped session. Rolls back after each test to keep the DB clean."""
+    from sqlalchemy.orm import sessionmaker
+
+    Session = sessionmaker(bind=test_engine)
+    db = Session()
+    yield db
+    db.rollback()
+    db.close()
+
+
+@pytest.fixture
+def client(test_db):
+    """TestClient with get_db overridden to use the test session.
+    Uses TestClient without a context manager to skip the on_startup event
+    (which would otherwise connect to the production DB fallback URL)."""
+    from fastapi.testclient import TestClient
+    from api.main import app
+    from api.dependencies import get_db
+
+    app.dependency_overrides[get_db] = lambda: test_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()

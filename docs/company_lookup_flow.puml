@@ -1,0 +1,81 @@
+@startuml Company Lookup Flow
+title GET /org/{orgnr} — Request Sequence
+
+actor Browser as Client
+
+participant "routers/company.py" as Router
+participant "CompanyService\n.fetch_org_profile()" as CS
+participant "ExternalApiService" as EAS
+participant "risk.py\nderive_simple_risk()" as Risk
+participant "build_risk_summary()" as Summary
+
+database "companies\ncompany_history\ncompany_pdf_sources" as DB
+
+collections "BRREG\nEnhetsregisteret" as BRREG
+collections "BRREG\nRegnskapsregisteret" as Regnskap
+collections "OpenSanctions\n(PEP screening)" as PEP
+collections "Finanstilsynet\n(licences)" as Fin
+collections "Kartverket\n(geocoding)" as Kart
+collections "SSB benchmark\n(hardcoded ranges)" as SSB
+
+Client -> Router : GET /org/{orgnr}
+
+Router -> CS : fetch_org_profile(orgnr, db)
+
+CS -> BRREG : GET /enheter/{orgnr}
+BRREG --> CS : name, org form, address, NACE, bankruptcy flags
+
+CS -> Regnskap : GET /regnskap/{orgnr}
+alt Financial data available
+    Regnskap --> CS : latest P&L + balance sheet
+else Bank or no data (500 / empty)
+    CS -> DB : fallback — latest company_history row
+    DB --> CS : PDF-extracted financials
+end
+
+CS -> EAS : fetch_board_members(orgnr)
+EAS -> BRREG : GET /roller/{orgnr}
+BRREG --> EAS : board roles
+EAS --> CS : roles[]
+
+CS -> EAS : pep_screen(navn)
+EAS -> PEP : search by company name
+PEP --> EAS : sanctions / PEP hits
+EAS --> CS : pep_results[]
+
+CS -> EAS : fetch_koordinater(adresse)
+EAS -> Kart : geocode address
+Kart --> EAS : lat / lon
+EAS --> CS : koordinater
+
+CS -> EAS : fetch_ssb_benchmark(nace_code)
+EAS -> SSB : lookup hardcoded NACE section ranges
+SSB --> EAS : benchmark ranges
+EAS --> CS : benchmark
+
+CS -> EAS : fetch_licences(orgnr)
+EAS -> Fin : GET licences
+Fin --> EAS : licence list
+EAS --> CS : licences[]
+
+CS -> DB : upsert company row
+
+CS -> Risk : derive_simple_risk(org, regn, pep)
+Risk --> CS : score + reasons[]
+
+CS -> Summary : build_risk_summary(org, regn, risk, pep)
+Summary --> CS : summary dict
+
+CS --> Router : CompanyProfile dict
+
+Router --> Client : 200 JSON
+
+note right of Router
+  Background task fires after response
+  (does NOT block the HTTP response):
+  _auto_extract_pdf_sources(orgnr, org)
+  Discovers + extracts missing PDF years
+  for up to 5 most recent annual reports
+end note
+
+@enduml
