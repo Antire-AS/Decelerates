@@ -1,5 +1,4 @@
 import io
-import json
 from typing import Any, List
 
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile

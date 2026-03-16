@@ -1,5 +1,4 @@
-import io
-from datetime import date, datetime, timezone
+from datetime import date
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Query, HTTPException, Depends

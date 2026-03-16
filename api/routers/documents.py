@@ -1,6 +1,6 @@
 import io
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Query
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
