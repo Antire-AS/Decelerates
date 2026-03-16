@@ -38,7 +38,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile
+          file: docker/Dockerfile
           push: true
           tags: |
             ${{ secrets.ACR_NAME }}.azurecr.io/broker-api:${{ github.sha }}
@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.ui
+          file: docker/Dockerfile.ui
           push: true
           tags: |
             ${{ secrets.ACR_NAME }}.azurecr.io/broker-ui:${{ github.sha }}

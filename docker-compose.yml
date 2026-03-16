@@ -19,7 +19,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: broker-api
     env_file: .env
     environment:
@@ -36,7 +36,7 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile.ui
+      dockerfile: docker/Dockerfile.ui
     container_name: broker-ui
     env_file: .env
     environment:
