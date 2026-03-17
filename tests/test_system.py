@@ -26,7 +26,7 @@ pytestmark = pytest.mark.skipif(
 
 # DNB Bank ASA — seeded by _seed_pdf_sources() on every API startup
 _SEED_ORGNR = "984851006"
-_SEED_NAVN = "DNB Bank ASA"
+_SEED_NAVN = "DNB BANK ASA"
 
 
 @pytest.mark.system
@@ -57,7 +57,7 @@ class TestSearch:
     """Search hits BRREG and returns structured results."""
 
     def test_search_dnb_returns_results(self):
-        resp = http.get(f"{_SYSTEM_URL}/search", params={"q": "dnb"}, timeout=15)
+        resp = http.get(f"{_SYSTEM_URL}/search", params={"name": "dnb"}, timeout=15)
         assert resp.status_code == 200
         results = resp.json()
         assert isinstance(results, list)
@@ -84,7 +84,7 @@ class TestSeedData:
     def test_seed_company_has_risk_summary(self):
         data = http.get(f"{_SYSTEM_URL}/org/{_SEED_ORGNR}", timeout=30).json()
         assert "risk_summary" in data
-        assert "score" in data["risk_summary"]
+        assert "risk_score" in data["risk_summary"]
 
     def test_broker_settings_crud(self):
         payload = {"firm_name": "Systemtest Megling AS", "contact_email": "sys@test.no"}
