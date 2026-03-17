@@ -22,6 +22,9 @@ fi
 echo "    Postgres ready on localhost:5432"
 echo ""
 
+# ── Clear stale processes on API/UI ports ─────────────────────────────────────
+lsof -ti:8000,8501 | xargs kill -9 2>/dev/null || true
+
 cleanup() {
     echo ""
     echo "Stopping API and UI..."
