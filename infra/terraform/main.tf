@@ -11,13 +11,13 @@ terraform {
     }
   }
 
-  # Uncomment to store state in Azure Blob Storage (recommended for teams):
-  # backend "azurerm" {
-  #   resource_group_name  = "rg-tfstate"
-  #   storage_account_name = "stbrokeracc tfstate"
-  #   container_name       = "tfstate"
-  #   key                  = "broker-accelerator.tfstate"
-  # }
+  backend "azurerm" {
+    resource_group_name  = "rg-prod-brokeraccelerator"
+    storage_account_name = "stprodbrokeracc"
+    container_name       = "tfstate"
+    blob_name            = "terraform.tfstate"
+    use_oidc             = true
+  }
 }
 
 provider "azurerm" {

@@ -247,3 +247,92 @@ hr {
     border-top: 1px solid #D0CBC3;
     margin: 1.4rem 0;
 }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — tablet (≤ 1100px)
+   5-col metric rows wrap to 3, 4-col rows
+   wrap to 2, cards constrained to viewport.
+══════════════════════════════════════════ */
+@media (max-width: 1100px) {
+    .broker-header {
+        padding: 0.9rem 1.2rem;
+        margin: -4rem -2rem 1.2rem -2rem;
+    }
+    .broker-header h1 { font-size: 1.35rem; }
+
+    /* Force metric columns to wrap at ~3 per row */
+    [data-testid="column"] {
+        min-width: 30% !important;
+        flex: 1 1 30% !important;
+    }
+
+    /* Prevent inline card divs from overflowing */
+    [data-testid="stMarkdownContainer"] > div {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — mobile (≤ 768px)
+   Single-column layout, touch-friendly
+   targets, reduced chrome.
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* Full-width columns */
+    [data-testid="column"] {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* Compact header */
+    .broker-header {
+        padding: 0.75rem 1rem;
+        margin: -4rem -1rem 1rem -1rem;
+        gap: 0.6rem;
+    }
+    .broker-header h1 { font-size: 1.1rem; }
+    .broker-header p  { display: none; }
+    .broker-header-icon { font-size: 1.5rem; }
+
+    /* Tabs — shrink labels to fit */
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.7rem;
+        letter-spacing: 0;
+    }
+
+    /* Touch-friendly buttons (min 44px height) */
+    [data-testid="baseButton-primary"],
+    [data-testid="baseButton-primaryFormSubmit"],
+    [data-testid="baseButton-secondary"] {
+        min-height: 44px !important;
+        font-size: 0.9rem !important;
+        width: 100% !important;
+    }
+
+    /* Scale down metric values */
+    [data-testid="stMetricValue"] { font-size: 1.1rem !important; }
+    [data-testid="stMetricLabel"] { font-size: 0.68rem; }
+
+    /* Hide map — unusable at narrow widths */
+    [data-testid="stMapboxMap"],
+    .element-container:has([data-testid="stMapboxMap"]) {
+        display: none !important;
+    }
+
+    /* Section headings */
+    h2 { font-size: 1.1rem; }
+    h3 { font-size: 0.95rem; }
+
+    /* Tables scroll horizontally instead of overflowing */
+    [data-testid="stTable"] {
+        overflow-x: auto;
+        display: block;
+    }
+
+    /* Reduce inline card padding */
+    [data-testid="stMarkdownContainer"] > div[style*="padding"] {
+        padding: 8px 10px !important;
+    }
+}

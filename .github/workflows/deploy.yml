@@ -9,11 +9,6 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  RESOURCE_GROUP: rg-prod-brokeraccelerator
-  API_APP_NAME: ca-prod-api
-  UI_APP_NAME: ca-prod-ui
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -58,24 +53,44 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy API to Container Apps
-        run: |
-          az containerapp update \
-            --name ${{ env.API_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_NAME }}.azurecr.io/broker-api:${{ github.sha }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
-      - name: Deploy UI to Container Apps
+      - name: Terraform init
+        run: terraform -chdir=infra/terraform init
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_USE_OIDC: "true"
+
+      - name: Terraform apply
         run: |
-          az containerapp update \
-            --name ${{ env.UI_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_NAME }}.azurecr.io/broker-ui:${{ github.sha }}
+          terraform -chdir=infra/terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -var="github_repo=${{ github.repository }}" \
+            -var="api_image_tag=${{ github.sha }}" \
+            -var="ui_image_tag=${{ github.sha }}" \
+            -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
+            -var="anthropic_api_key=${{ secrets.ANTHROPIC_API_KEY }}" \
+            -var="gemini_api_key=${{ secrets.GEMINI_API_KEY }}" \
+            -var="gemini_api_key_2=${{ secrets.GEMINI_API_KEY_2 }}" \
+            -var="gemini_api_key_3=${{ secrets.GEMINI_API_KEY_3 }}" \
+            -var="voyage_api_key=${{ secrets.VOYAGE_API_KEY }}"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_USE_OIDC: "true"
 
       - name: Smoke test — API /ping
         run: |
-          API_FQDN=$(az containerapp show \
-            --name ${{ env.API_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --query "properties.latestRevisionFqdn" -o tsv)
-          curl --fail --retry 5 --retry-delay 5 "https://${API_FQDN}/ping"
+          API_URL=$(terraform -chdir=infra/terraform output -raw api_url)
+          curl --fail --retry 5 --retry-delay 5 "${API_URL}/ping"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_USE_OIDC: "true"

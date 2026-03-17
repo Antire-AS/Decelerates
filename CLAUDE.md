@@ -6,6 +6,17 @@
 
 ---
 
+## Developer Setup
+
+1. Install the Antire Claude plugin (once per machine):
+   ```bash
+   bash scripts/install-antire-plugin.sh
+   ```
+2. Restart Claude Code.
+3. At the start of each Claude Code session, run `/antire-python-init` to load Antire coding standards.
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -76,6 +87,19 @@ ui/
 - **Testable background tasks** — `_auto_extract_pdf_sources(db_factory=SessionLocal)` accepts injected session factory
 - **Graceful degradation** — Playwright fails → requests fallback; agent fails → DuckDuckGo fallback; BRREG empty → PDF history fallback; no LLM key → silent skip
 - **Multi-key Gemini rotation** — `_gemini_api_keys()` reads `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`; all Gemini calls rotate through keys on 429/quota errors
+
+---
+
+## Architecture Deviations (intentional)
+
+The following are intentional deviations from Antire Python standards — documented here so future contributors understand the reasoning:
+
+| Deviation | Antire Standard | Why we deviate |
+|-----------|----------------|----------------|
+| **Routers/services pattern** | Hexagonal architecture (ports, adapters, use cases) | FastAPI's `Depends()` injection covers DI needs without punq; hexagonal adds ceremony without benefit at this scale |
+| **Env vars read in services** | All `os.getenv` in `main.py` only | LLM keys are optional and read lazily — services check `_is_key_set()` at call time and gracefully skip missing keys; centralising them in `main.py` would require plumbing optional config through every service constructor |
+| **UI render functions F/E complexity** | All functions ≤ cyclomatic C (10) | Streamlit's imperative widget API means each section branch is one mandatory call; splitting render functions breaks cohesion and increases navigation overhead |
+| **High-complexity agent loops** | All functions ≤ cyclomatic C (10) | `_agent_discover_pdfs_*` are tool-use state machines; branching reflects the multi-turn protocol, not accidental complexity |
 
 ---
 

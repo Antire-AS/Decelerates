@@ -18,6 +18,18 @@ Azure infrastructure for Broker Accelerator, managed with Terraform.
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 - An Azure subscription
 
+## Bootstrap Terraform state backend
+
+Run this **once** before the first `terraform init`. It creates the Azure Storage Account that holds the Terraform state file and grants the GitHub OIDC principal access to it.
+
+```bash
+bash scripts/bootstrap-tf-backend.sh <subscription-id> <github-client-id>
+```
+
+Get `<github-client-id>` from `terraform output -raw github_client_id` after a local first apply, or from the Azure portal (App Registration → Client ID).
+
+---
+
 ## First-time setup
 
 ```bash
@@ -64,8 +76,14 @@ Set these in your repository → Settings → Secrets → Actions:
 | `AZURE_TENANT_ID` | `terraform output -raw tenant_id` |
 | `AZURE_SUBSCRIPTION_ID` | Your Azure subscription ID |
 | `ACR_NAME` | Registry name only, e.g. `acrprodbrokeraccelerator` (no `.azurecr.io`) |
+| `DB_ADMIN_PASSWORD` | PostgreSQL admin password (same as `db_admin_password` in tfvars) |
+| `ANTHROPIC_API_KEY` | Claude API key |
+| `GEMINI_API_KEY` | Primary Gemini key |
+| `GEMINI_API_KEY_2` | Optional — Gemini rotation slot 2 |
+| `GEMINI_API_KEY_3` | Optional — Gemini rotation slot 3 |
+| `VOYAGE_API_KEY` | Optional — Voyage AI embeddings key |
 
-Once these are set, every push to `main` will automatically build and deploy both containers.
+Once these are set, every push to `main` will build both container images and run `terraform apply` to deploy them — Terraform is the single source of truth for all infrastructure and image versions.
 
 ## Day-to-day operations
 
@@ -84,5 +102,5 @@ terraform destroy
 
 - **pgvector**: enabled via `azure.extensions = vector` server configuration — no manual SQL needed on first run.
 - **Firewall**: `0.0.0.0–0.0.0.0` allows all Azure-hosted IPs to reach PostgreSQL. Container Apps use dynamic egress IPs so a tighter rule is not practical without VNet integration.
-- **Remote state**: the backend is set to `local` by default. For team use, uncomment the `backend "azurerm"` block in `main.tf` and create the storage account manually before running `terraform init`.
+- **Remote state**: stored in Azure Blob Storage (`stprodbrokeracc/tfstate`). Run `scripts/bootstrap-tf-backend.sh` once before the first `terraform init`. CI uses OIDC to access the state file — no storage account keys are stored in GitHub.
 - **SKUs**: `B_Standard_B1ms` for PostgreSQL and `Basic` ACR are sized for development/staging. Upgrade `sku_name` and ACR SKU for production traffic.
