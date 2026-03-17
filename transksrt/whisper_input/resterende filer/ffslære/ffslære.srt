@@ -1,0 +1,2676 @@
+1
+00:00:11,599 --> 00:00:15,320
+Hei, og velkommen til denne delen av autorisasjonskurset.
+
+2
+00:00:15,679 --> 00:00:19,039
+Vi skal prate om forsikringsmeglerollen og hva vi kan lære av rettspraksis.
+
+3
+00:00:19,820 --> 00:00:21,280
+Jeg heter Morten Helgeby Slettevål.
+
+4
+00:00:21,699 --> 00:00:24,760
+Jeg er Chief Compliance and Risk Officer i Sødeberg & Partners Norge.
+
+5
+00:00:25,699 --> 00:00:27,420
+Og jeg er Helene Venvold.
+
+6
+00:00:27,760 --> 00:00:31,480
+Jeg er Legal Counsel og Compliance Officer i Sødeberg & Partners Norge.
+
+7
+00:00:35,840 --> 00:00:37,520
+Litt om gjennomgangen vi skal ha.
+
+8
+00:00:37,880 --> 00:00:42,420
+Vi starter med en introduksjon av forsikringsmeglers juridisk og etiske ansvar
+
+9
+00:00:42,420 --> 00:00:45,079
+for å sette litt rammen på det vi skal snakke om senere.
+
+10
+00:00:45,700 --> 00:00:48,240
+Da skal vi se litt på hva loven sier.
+
+11
+00:00:48,840 --> 00:00:51,479
+Litt om forarbeidene rundt god forretningsskykk.
+
+12
+00:00:52,060 --> 00:00:55,600
+Og de etiske retningslinjene som er utarbeidet på bransjenivå.
+
+13
+00:00:56,619 --> 00:00:59,140
+Dette skal vi bruke litt tid på bare for å sette rammen.
+
+14
+00:00:59,259 --> 00:01:02,840
+Og så går vi da videre til det som egentlig er hovedbolken i vår presentasjon,
+
+15
+00:01:02,939 --> 00:01:05,280
+som går på profesjonsansvaret.
+
+16
+00:01:05,799 --> 00:01:08,359
+Og da skal vi gjennomgå relevant rettspraksis.
+
+17
+00:01:08,519 --> 00:01:09,879
+Vi skal se på tre dommer.
+
+18
+00:01:10,379 --> 00:01:14,799
+Jeg skal bruke spesielt min tid på den siste dommen, sak tre.
+
+19
+00:01:15,340 --> 00:01:19,299
+Som er en sak som kom ganske nylig avsakt i lagmannsretten.
+
+20
+00:01:19,819 --> 00:01:21,319
+Og delvis i høyesteretten min.
+
+21
+00:01:21,659 --> 00:01:26,879
+De to andre dommen er også veldig relevante i vurderingen av meglers rolle og ansvar.
+
+22
+00:01:28,180 --> 00:01:30,640
+Etter det så tar vi en oppsummering av rettspraksisen.
+
+23
+00:01:30,780 --> 00:01:33,659
+Skal vi se, finnes det på en måte en rød tråd i domstolens vurdering?
+
+24
+00:01:33,799 --> 00:01:35,620
+Hva skal vi ta med oss videre av dette her?
+
+25
+00:01:35,620 --> 00:01:39,760
+Når vi skal opptråd aktsomt og etisk som meglere.
+
+26
+00:01:40,939 --> 00:01:43,200
+Så har vi et par caseoppgaver vi skal gjennom.
+
+27
+00:01:43,200 --> 00:01:51,200
+De skal understøtte det vi allerede har gått gjennom i disse dommene og se om vi kan ha lært noe av det.
+
+28
+00:01:51,200 --> 00:02:04,200
+Før vi til slutt tar en oppsummering og avslutning der vi ser på krav til aktsomhet for forsikringsmeglere og hva er virkelig sånn grunntingene vi bør ta med oss for å opptrå i tråd med god meglerskikk og god forretningsskikk.
+
+29
+00:02:04,200 --> 00:02:11,199
+Så det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+30
+00:02:11,199 --> 00:02:12,199
+Og det er jo det vi skal ta med oss for å opptrå i tråd med god meglerskikk og god forretningsskikk.
+
+31
+00:02:12,199 --> 00:02:13,199
+Så det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+32
+00:02:13,199 --> 00:02:14,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+33
+00:02:14,199 --> 00:02:15,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+34
+00:02:15,199 --> 00:02:16,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+35
+00:02:16,199 --> 00:02:17,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+36
+00:02:17,199 --> 00:02:18,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+37
+00:02:18,199 --> 00:02:19,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+38
+00:02:19,199 --> 00:02:20,199
+Og det første vi starter med da, det er jo forsikringsmeglernes juridiske og etiske ansvar.
+
+39
+00:02:20,199 --> 00:02:26,139
+dette. Det naturlige utgangspunktet da er jo selvfølgelig både lovverk, men vi har også
+
+40
+00:02:26,139 --> 00:02:30,960
+bransjestandarder. Og det vi også kommer til å se etter hvert i løpet av dette kurset er jo
+
+41
+00:02:30,960 --> 00:02:40,240
+hvordan rettspraksis spiller inn på rammene for forsikringsmeglerollen. Det er jo da i
+
+42
+00:02:40,240 --> 00:02:47,860
+lov og forskrift om forsikringsformidling hvor vi finner de sentrale pliktene til en
+
+43
+00:02:47,860 --> 00:02:52,319
+forsikringsmegler når de utøver virksomheten som forsikringsmegler. Og så har man da
+
+44
+00:02:52,319 --> 00:02:56,860
+supplerende bransjestandarder gjennom etiske retningslinjer fra forsikringsmeglerne.
+
+45
+00:02:58,439 --> 00:03:05,900
+Og der vi starter da, det er jo i Forsikringsformidlingslovens paragraf 9.1 som fastsetter
+
+46
+00:03:05,900 --> 00:03:11,539
+at man skal utøve virksomheten i et forsikringsformidlingsforetak med god forretningsskikk.
+
+47
+00:03:12,740 --> 00:03:17,840
+Og hva ligger i god forretningsskikk? Det er ikke lett å si. Det er jo at du skal ha
+
+48
+00:03:17,840 --> 00:03:26,240
+et veldig lite konkret begrep, et skjønnsmessig begrep, og som man på lang vei kan nok si at
+
+49
+00:03:26,240 --> 00:03:33,939
+må vurderes konkret i det enkelte kundeforhold, sett i lys av den alminnelige bransjeoppfatningen.
+
+50
+00:03:34,620 --> 00:03:40,500
+Begrepet god forretningsskikk, det kom inn i lovverket gjennom implementeringen av IDD i
+
+51
+00:03:40,500 --> 00:03:45,939
+Norsk Rett, da vi fikk en ny forsikringsformidlingslov. Så vi kjenner jo dette begrepet egentlig som
+
+52
+00:03:45,939 --> 00:03:47,740
+god mengleskikk fra tidligere av.
+
+53
+00:03:47,840 --> 00:03:57,740
+Og der gjorde lovgiver et bevisst valg, og endret begrepet for å få en harmonisering mellom finansbransjene,
+
+54
+00:03:57,740 --> 00:04:06,340
+slik at man kan sikre kundenes interesser og verden, og at man har en alminnelig tillit til bransjen.
+
+55
+00:04:06,340 --> 00:04:17,620
+Ja, så god forretningsskikk, da snakker vi jo om en rettslig standard, hvor man kan hente inspirasjon fra også andre deler av finansmarkedet.
+
+56
+00:04:17,839 --> 00:04:21,660
+for å trekke opp rammene for pliktene til en megler.
+
+57
+00:04:21,660 --> 00:04:28,220
+Men forarbeidene har også gitt noen konkrete hentydninger på hva som ligger i god forretningsskikk.
+
+58
+00:04:28,220 --> 00:04:36,439
+Og det er at foretak skal utøve virksomheten i samsvar med ansvarlighet, integritet overfor kunder, andre aktører og omverden.
+
+59
+00:04:36,439 --> 00:04:46,959
+I tillegg til lov, forskrift og forarbeidende til Forsikringsformidlingsloven så kan vi også se hen til de etiske retningslinjene,
+
+60
+00:04:46,959 --> 00:04:55,779
+Når vi skal sette opp rammene for hva som er det juridiske og etiske ansvaret for forsikringsmeglere, og hva som ligger i god forretningsskikk.
+
+61
+00:04:57,939 --> 00:05:08,300
+Formålet med retningslinjene er å styrke tilliten til forsikringsmeglebransjen, og det gjelder for alle medlemsforetak, samt ledelse og ansatte i foretakene.
+
+62
+00:05:08,300 --> 00:05:14,800
+Nå skal ikke vi gå inn i detalj på de etiske retningslinjene, men vi kan si noe om grunnprinsippene.
+
+63
+00:05:15,500 --> 00:05:20,339
+Det handler om at man skal opptre redelig, lojalt og korrekt i tråd med kundens beste interesse.
+
+64
+00:05:21,300 --> 00:05:25,379
+Man skal innhente nødvendige opplysninger fra kunden for å utføre oppdraget.
+
+65
+00:05:26,519 --> 00:05:34,579
+Man skal unngå interessekonflikter, ivareta bransjens omdømme og integritet, og man skal overholde tausetsplikten.
+
+66
+00:05:35,720 --> 00:05:38,279
+Det er klart at disse etiske retningslinjene er også innspannende.
+
+67
+00:05:38,300 --> 00:05:49,300
+Det er en inspirasjon for foretakenes egne retningslinjer innenfor etikk og interessekonflikt, som vi også kommer til å se etter hvert blir vektlagt ganske tungt i rettspraksis.
+
+68
+00:05:50,079 --> 00:06:01,620
+Så en ting er disse kildene som kommer, altså lovverket, forskrifter, bransjepraksis, men de spinner også videre ut i konkrete operative rutiner hos foretakene,
+
+69
+00:06:02,220 --> 00:06:07,420
+som ofte er kanskje veldig så relevante i den konkrete vurderingen som domstolen gjennomfører.
+
+70
+00:06:08,300 --> 00:06:09,079
+Veldig sant.
+
+71
+00:06:10,079 --> 00:06:17,800
+Nå har vi sett på både hvordan lov, forskrift og de etiske retningslinjene trekker rammene for forsikringsmeglermandatet.
+
+72
+00:06:19,300 --> 00:06:28,540
+Men det er jo ikke sånn at jeg alene klarer å gi svar på spørsmålet om en forsikringsmegler har gitt god nok rådgivning overfor en kunde.
+
+73
+00:06:29,399 --> 00:06:32,699
+Og det er her vi kommer til å bruke en del tid på rettspraksis.
+
+74
+00:06:33,139 --> 00:06:38,139
+For det er sånn at hvis en tvist ikke lar seg løse mellom forsikringsmegler og kundekunst,
+
+75
+00:06:38,300 --> 00:06:41,980
+så ender den ofte opp i en rettsak.
+
+76
+00:06:43,060 --> 00:06:45,800
+Og det er selvfølgelig veldig kjedelig for de involverte parter.
+
+77
+00:06:47,579 --> 00:06:53,759
+Og det er jo domstolenes vurdering av det strenge profesjonsansvaret for forsikringsmeglere,
+
+78
+00:06:53,920 --> 00:06:56,920
+som da er sentralt for rollen til en forsikringsmegler.
+
+79
+00:06:57,339 --> 00:06:59,959
+Også som vil være av stor interesse for oss.
+
+80
+00:07:00,699 --> 00:07:04,680
+Så derfor skal vi bruke resten av tiden, mye av tiden i hvert fall,
+
+81
+00:07:04,680 --> 00:07:07,680
+på å gå igjennom en del sentral rettspraksis.
+
+82
+00:07:10,740 --> 00:07:13,819
+Den første saken vi skal prate om har vi kalt skipsforlis.
+
+83
+00:07:14,040 --> 00:07:19,319
+Og den har sin bakgrunn i en sak som startet på tidlig 2000-tall.
+
+84
+00:07:19,620 --> 00:07:26,839
+Det var da et redderi som hadde et lite skip, som de hadde inne på et verft i Polen for å gjøre noen oppgraderinger av.
+
+85
+00:07:27,360 --> 00:07:31,279
+De skulle sette inn en ny motor, og de skulle konvertere det til et såkalt fryseskip.
+
+86
+00:07:31,959 --> 00:07:34,680
+Og det var en oppgradering som gjorde at skipet var verdt mer.
+
+87
+00:07:35,000 --> 00:07:39,759
+Og på bakgrunn av det så ønsket da redderiet å øke forsikringssummen,
+
+88
+00:07:40,060 --> 00:07:42,519
+fra 10 millioner kroner til 15 millioner kroner.
+
+89
+00:07:42,980 --> 00:07:47,459
+Og da hadde de da sin megler, som de sendte denne forespørselen til,
+
+90
+00:07:47,459 --> 00:07:51,579
+om å gjennomføre denne økningen hos det forsikringsselskapet de hadde på den tiden.
+
+91
+00:07:52,319 --> 00:07:55,620
+Etter at redderiet kommuniserte det de ønsket,
+
+92
+00:07:55,620 --> 00:08:00,920
+så forholdt de seg i praksis som om den økningen allerede var, eller kom til å skje.
+
+93
+00:08:01,819 --> 00:08:06,120
+Og megler sendte da en forespørsel til forsikringsselskapet.
+
+94
+00:08:06,540 --> 00:08:09,519
+Og så er det litt sånn dårlig kommunikasjon over tid,
+
+95
+00:08:09,519 --> 00:08:10,019
+Og så er det litt sånn dårlig kommunikasjon over tid,
+
+96
+00:08:10,019 --> 00:08:10,040
+Og så er det litt sånn dårlig kommunikasjon over tid,
+
+97
+00:08:10,040 --> 00:08:11,939
+mellom megler og forsikringsselskapet.
+
+98
+00:08:11,939 --> 00:08:13,939
+Litt ting som glipper, grunnet ferieavvikling,
+
+99
+00:08:13,939 --> 00:08:15,439
+litt språkforskjeller.
+
+100
+00:08:15,439 --> 00:08:17,439
+Dette var et russisk forsikringsselskap.
+
+101
+00:08:17,439 --> 00:08:21,439
+Men etter hvert så får da megler en klar og skriftlig tilbakemelding på,
+
+102
+00:08:21,439 --> 00:08:25,439
+at selskapet ikke ønsker å innvilge den økningen til 15 millioner.
+
+103
+00:08:27,509 --> 00:08:32,509
+Og så, noen måneder etter denne prosessen ble igangsatt,
+
+104
+00:08:32,509 --> 00:08:34,509
+så totalforlyser skipet.
+
+105
+00:08:34,509 --> 00:08:38,509
+Og da nekter jo forsikringsselskapet å utbetale mer enn 10 millioner.
+
+106
+00:08:38,509 --> 00:08:40,509
+Det er jo det som stod i forsikringsbeviset,
+
+107
+00:08:40,509 --> 00:08:41,570
+og det var det som de hadde gjort.
+
+108
+00:08:41,570 --> 00:08:43,570
+Det var det som de hadde tegnet inn.
+
+109
+00:08:43,570 --> 00:08:47,570
+Det var da på det rene og ubestritt i retten,
+
+110
+00:08:47,570 --> 00:08:51,570
+at megler hadde ikke skriftlig kommunisert at de hadde fått avslag
+
+111
+00:08:51,570 --> 00:08:53,570
+på økt forsikringssum til redderiet.
+
+112
+00:08:53,570 --> 00:08:56,570
+Men megler mente at dette var formidelt muntlig.
+
+113
+00:08:56,570 --> 00:08:58,570
+Det bestred da kunden.
+
+114
+00:08:58,570 --> 00:09:02,570
+Og dette kommer vi til å se som en sånn rød tråd i noen av sakene vi har,
+
+115
+00:09:02,570 --> 00:09:05,570
+er at ting som kommuniseres muntlig,
+
+116
+00:09:05,570 --> 00:09:07,570
+eller påstås kommunisert muntlig,
+
+117
+00:09:07,570 --> 00:09:10,570
+er gjerne en kilde til tvister da.
+
+118
+00:09:10,570 --> 00:09:14,879
+Redderiet mottok aldri noen cover note
+
+119
+00:09:14,879 --> 00:09:16,879
+eller bekreftelse på at summen var økt,
+
+120
+00:09:16,879 --> 00:09:19,879
+og det ble på en måte forsøkt brukt av meglersiden
+
+121
+00:09:19,879 --> 00:09:21,879
+for å argumentere for at de ikke hadde noen grunn til å tro
+
+122
+00:09:21,879 --> 00:09:23,879
+at det faktisk var økt til 15 millioner.
+
+123
+00:09:23,879 --> 00:09:26,879
+Men de hadde da vittneforklaringer
+
+124
+00:09:26,879 --> 00:09:29,879
+fra diverse forsikringsrådgiver i retten,
+
+125
+00:09:29,879 --> 00:09:34,879
+som sa at det var ikke noe uvanlig at det kunne gå opp til flere måneder
+
+126
+00:09:34,879 --> 00:09:37,879
+fra man tegnet inn en ny dekning eller økt en dekning,
+
+127
+00:09:37,879 --> 00:09:39,879
+til den bekreftelsen faktisk kom.
+
+128
+00:09:39,879 --> 00:09:41,879
+Så det kunne på en måte ikke tas til inntekt
+
+129
+00:09:41,879 --> 00:09:44,879
+for at de ikke hadde fått økningen da, ifølge retten.
+
+130
+00:09:44,879 --> 00:09:49,639
+Og her var det jo en rent faktisk uenighet om
+
+131
+00:09:49,639 --> 00:09:51,639
+hva som var kommunisert eller ikke kommunisert,
+
+132
+00:09:51,639 --> 00:09:54,639
+og da må retten ta stilling til hva de mener er mest sannsynlig
+
+133
+00:09:54,639 --> 00:09:57,639
+av de forklaringene som retten har fått.
+
+134
+00:09:57,639 --> 00:09:59,639
+Og retten velger da ikke å feste...
+
+135
+00:09:59,639 --> 00:10:03,779
+litt til meglers forklaring om at dette avslaget på økt forsikringssum
+
+136
+00:10:03,779 --> 00:10:06,879
+ble formidlet i en telefonsamtale til redderiet.
+
+137
+00:10:08,120 --> 00:10:09,679
+De legger da vekt på flere ting.
+
+138
+00:10:09,939 --> 00:10:12,779
+Det ene er at ansvarlige forsikringsmegler ikke sørger for at dette ble
+
+139
+00:10:12,779 --> 00:10:17,080
+loggført på noen måte. Det var ikke notoritet på, altså det var ikke
+
+140
+00:10:17,080 --> 00:10:20,620
+noe telefonlogg, det var ikke notert i fagsystem at denne telefonsamtalen
+
+141
+00:10:20,620 --> 00:10:24,939
+overhovedet fant sted, og i hvert fall ikke at den hadde det innholdet
+
+142
+00:10:24,939 --> 00:10:26,220
+som da megler påstod.
+
+143
+00:10:26,220 --> 00:10:32,579
+Det ble heller ikke gitt noen skriftlig bekreftelse eller tilbakemelding
+
+144
+00:10:32,579 --> 00:10:35,899
+i etterkant som kunne dokumentere at samtalen hadde funnet sted,
+
+145
+00:10:36,480 --> 00:10:39,059
+eller at det var gitt noen råd i slik forbindelse, for det hadde jo vært
+
+146
+00:10:39,059 --> 00:10:43,759
+naturlig at megler, når man får avslag på en økt forsikringssum,
+
+147
+00:10:44,399 --> 00:10:46,600
+rådgir kunden sin rundt hva man bør gjøre da.
+
+148
+00:10:47,120 --> 00:10:51,840
+Men der var det ganske vagt rundt hva som skulle blitt rådgitt av megleren
+
+149
+00:10:51,840 --> 00:10:53,439
+i etterkant av det avslaget.
+
+150
+00:10:53,439 --> 00:10:58,899
+Det, sier retten, er i strid med god megleskikk, som det het på den tiden,
+
+151
+00:10:59,720 --> 00:11:04,100
+slik kravene har kommet fram i ikke bare kravene til god megleskikk
+
+152
+00:11:04,100 --> 00:11:08,379
+i loven, men også i megleforetakets egen rutine.
+
+153
+00:11:09,139 --> 00:11:14,100
+Så megleforetaket hadde en rutine som jo er naturlig, at slike beskjeder
+
+154
+00:11:14,860 --> 00:11:18,819
+skal kommuniseres skriftlig og kunne dokumenteres, og det kunne de ikke her,
+
+155
+00:11:18,899 --> 00:11:20,360
+så det var også brudd på egen rutine.
+
+156
+00:11:22,240 --> 00:11:23,419
+Og retten viser også at begivenheten har hatt en rutine som er naturlig,
+
+157
+00:11:23,419 --> 00:11:27,220
+til et rundskriv fra kredittilsynet, altså det som nå heter finanstilsynet,
+
+158
+00:11:27,740 --> 00:11:29,879
+rundskriv 3 fra 1999.
+
+159
+00:11:31,039 --> 00:11:35,659
+Og det rundskrivet fastsetter som følger at megler bør sørge for at informasjon
+
+160
+00:11:35,659 --> 00:11:37,879
+blir videreformidlet så raskt og presist som mulig.
+
+161
+00:11:38,539 --> 00:11:42,240
+Megleren kan bli ansvarlig og omføre såvel oppdragsgiver som forsikringsgiver
+
+162
+00:11:42,240 --> 00:11:44,519
+for feil i den informasjonen som er formidlet.
+
+163
+00:11:45,120 --> 00:11:48,279
+Og for å motvirke dette bør megleforetaket etablere rutiner
+
+164
+00:11:48,279 --> 00:11:50,579
+for å kvalitetskontrollere informasjonen som formidles.
+
+165
+00:11:50,840 --> 00:11:53,259
+Her hadde de jo rutinene, men de var ikke fullt.
+
+166
+00:11:53,419 --> 00:11:59,100
+Så summa summarum, retten mener at her har det begått en feil
+
+167
+00:11:59,100 --> 00:12:02,720
+som egentlig ligger i kjernen av forsikringsmegleroppdraget.
+
+168
+00:12:02,799 --> 00:12:07,220
+Man har ikke hatt klar kommunikasjon rundt avslag eller aksept i dekningshendring
+
+169
+00:12:07,220 --> 00:12:11,480
+på et område som hadde en betydelig risikopetensiale for kunden.
+
+170
+00:12:12,419 --> 00:12:16,600
+Og da konstaterer retten at det er uaktsomt i henhold til profesjonsansvaret.
+
+171
+00:12:17,600 --> 00:12:22,899
+Så i denne konkrete saken ble forsikringsmeglerforetaket dømt til å betale
+
+172
+00:12:22,899 --> 00:12:23,399
+5 millioner kroner.
+
+173
+00:12:23,419 --> 00:12:29,019
+Som var da tapet deres, mellomlegget mellom 10 og 15 millioner i forsikringssum.
+
+174
+00:12:29,860 --> 00:12:33,159
+Pluss saksgåsnader til rederiet og skipets pantavler.
+
+175
+00:12:34,100 --> 00:12:36,839
+Og så er det jo flere ting vi kan ta med oss fra denne saken.
+
+176
+00:12:37,139 --> 00:12:39,059
+Vi skal jo også ta en oppsummering av dette her til slutt.
+
+177
+00:12:39,179 --> 00:12:43,919
+Men både dette med å få selvfølgelig dokumentert og skriftliggjort
+
+178
+00:12:43,919 --> 00:12:47,120
+den rådgivningen man har gitt og den kommunikasjonen man har med kunden.
+
+179
+00:12:48,079 --> 00:12:51,019
+Og så er det jo også verdt å merke at her var det en praksis
+
+180
+00:12:51,019 --> 00:12:53,379
+på at det gikk veldig lang periode fra man
+
+181
+00:12:53,379 --> 00:12:57,339
+tegnet inn en dekning til dekningsbekreftelsen kom,
+
+182
+00:12:57,440 --> 00:12:58,759
+kunne gå flere måneder.
+
+183
+00:12:59,500 --> 00:13:03,139
+Det er jo ikke noe som nå, 20 år senere,
+
+184
+00:13:03,600 --> 00:13:05,319
+er å anses som vanlig praksis i det hele tatt.
+
+185
+00:13:05,319 --> 00:13:09,019
+Det vil jo være, om ikke automatisk uaktsomt,
+
+186
+00:13:09,059 --> 00:13:12,519
+så hvertfall sterkt skjerpende for aktsomhetsvurderingen
+
+187
+00:13:12,519 --> 00:13:15,819
+hvis en megler ikke sørger for at en dekningsbekreftelse kommer inn
+
+188
+00:13:15,819 --> 00:13:19,659
+snarest mulig etter at den forsikringen er tegnet inn.
+
+189
+00:13:20,980 --> 00:13:21,679
+Der er det sak to.
+
+190
+00:13:23,379 --> 00:13:27,620
+Denne saken har vi valgt å kalle for for høy forsikringspremie
+
+191
+00:13:27,620 --> 00:13:32,179
+og ble behandlet i Borgarting lagmannsrett i 2008.
+
+192
+00:13:33,059 --> 00:13:37,220
+Saksforholdet her startet allerede på begynnelsen av 2000-tallet
+
+193
+00:13:37,220 --> 00:13:40,819
+og det vil altså si før vi hadde lov om forsikringsformidling
+
+194
+00:13:40,819 --> 00:13:42,240
+som trådte kraft 2005.
+
+195
+00:13:43,039 --> 00:13:48,039
+Og dommen var sånn sett avsatt på ulovfestet rettsbetraktninger
+
+196
+00:13:48,039 --> 00:13:52,500
+men den sier noe om hvilken bakgrunnsrett vi her baserer oss på.
+
+197
+00:13:53,379 --> 00:14:00,200
+Det var da et entreprenørselskap som i 2003 valgte å bytte forsikringsmegler.
+
+198
+00:14:01,319 --> 00:14:07,279
+Når hovedforfallet på forsikringsprogrammet til selskapet kom 30. juni 2003
+
+199
+00:14:07,279 --> 00:14:11,980
+så valgte den nye megleren å ikke sende forsikringsprogrammet på anbud.
+
+200
+00:14:13,000 --> 00:14:18,960
+Bakgrunnen var at man hadde fått noen indikasjoner på at det var prisøkninger i markedet
+
+201
+00:14:18,960 --> 00:14:21,960
+men også interne forhold hos entreprenørselskapet
+
+202
+00:14:23,379 --> 00:14:25,159
+i stedet for at det kom inn en ny ansatt
+
+203
+00:14:25,159 --> 00:14:30,480
+som gjorde at man valgte å beholde forsikringsprogrammet og forny det
+
+204
+00:14:30,480 --> 00:14:32,059
+og så se hen til neste år.
+
+205
+00:14:33,539 --> 00:14:37,139
+Når vi kommer inn i 2004 på nytt hovedforfall
+
+206
+00:14:37,139 --> 00:14:40,460
+så gjør megler samme vurdering
+
+207
+00:14:40,460 --> 00:14:44,360
+og rådgir kunden om å ikke gå på anbud med forsikringsprogrammet
+
+208
+00:14:44,360 --> 00:14:49,659
+heller ikke å gå direkte til enkelte forsikringsselskap
+
+209
+00:14:49,659 --> 00:14:52,500
+for å sjekke ut premie og vilkår.
+
+210
+00:14:53,379 --> 00:14:57,480
+Begrunnelsen igjen her, det var markedet.
+
+211
+00:14:57,480 --> 00:15:01,159
+Man så for seg at det ville komme prisøkninger.
+
+212
+00:15:01,159 --> 00:15:05,579
+Samtidig så hadde denne kunden en skadehistorikk
+
+213
+00:15:05,579 --> 00:15:11,579
+som viste en stadig økende prosentsats på skader
+
+214
+00:15:11,579 --> 00:15:14,579
+og man var begynt å bikke godt over 100%.
+
+215
+00:15:14,579 --> 00:15:20,740
+Det entreprenørselskapet da velger å gjøre det neste året
+
+216
+00:15:20,740 --> 00:15:23,139
+er jo å innhente en konsulent som skal se på forsikringsprogrammet.
+
+217
+00:15:23,139 --> 00:15:24,139
+er jo å innhente en konsulent som skal se på forsikringsprogrammet.
+
+218
+00:15:24,139 --> 00:15:24,740
+er jo å innhente en konsulent som skal se på forsikringsprogrammet.
+
+219
+00:15:24,740 --> 00:15:24,980
+er jo å innhente en konsulent som skal se på forsikringsprogrammet.
+
+220
+00:15:24,980 --> 00:15:26,980
+er jo å innhente en konsulent som skal se på forsikringsprogrammet.
+
+221
+00:15:26,980 --> 00:15:30,980
+Når det da nærmer seg hovedforfall i 2005
+
+222
+00:15:30,980 --> 00:15:38,980
+så klarer da entreprenørselskapet på egen hånd uten meglers innsats
+
+223
+00:15:38,980 --> 00:15:44,980
+å forhandle ned forsikringspremien sin med nærmere 2,6 millioner kroner.
+
+224
+00:15:44,980 --> 00:15:47,980
+Det de da hadde gjort var å ta vilkårene sine,
+
+225
+00:15:47,980 --> 00:16:02,289
+stryke ut forsikringssummen og sende den ut til ulike forsikringsselskap.
+
+226
+00:16:02,289 --> 00:16:09,289
+Etter hvert så ble det da en tvist mellom forsikringsmegler og kunden.
+
+227
+00:16:09,289 --> 00:16:16,289
+Det begynte med at kunden ikke ville betale hele meglerhonoraret,
+
+228
+00:16:16,289 --> 00:16:21,289
+hvorpå forsikringsmegler da tok ut stevning for retten.
+
+229
+00:16:21,289 --> 00:16:25,289
+Motsøksmålet kom da fra kunden,
+
+230
+00:16:25,289 --> 00:16:31,289
+hvor de hevdet at megler her hadde oppdratt i strid med profesjonsansvaret.
+
+231
+00:16:31,289 --> 00:16:38,289
+I og med at de da kunden på egen hånd hadde klart å få en langt lavere premie på forsikringene sine
+
+232
+00:16:38,289 --> 00:16:42,289
+enn hva forsikringsmegler hadde klart å oppnå.
+
+233
+00:16:42,289 --> 00:16:49,289
+Og det da retten kommer frem til etter en konkret vurdering av saksforholdet,
+
+234
+00:16:49,289 --> 00:16:55,289
+her er det også tatt og vist til de etiske retningslinjene for forsikringsmeglere.
+
+235
+00:16:55,289 --> 00:17:00,289
+Og så sier de at når da megler ikke kan bevise og ikke kan dokumentere,
+
+236
+00:17:01,289 --> 00:17:04,289
+at de har gjort gode nok forundersøkelser,
+
+237
+00:17:04,289 --> 00:17:10,289
+for å kunne konkludere med at markedet skulle tilsi at man ikke går på anbud,
+
+238
+00:17:10,289 --> 00:17:17,289
+så har de ikke oppdratt i strid, nei, i tråd med profesjonsansvaret sitt.
+
+239
+00:17:17,289 --> 00:17:27,289
+Og retten da kort forklart ender opp med at kunden har et krav på erstatning på en million kroner.
+
+240
+00:17:27,289 --> 00:17:30,799
+Så det vi kan egentlig dra lærdom av fra denne dommen her,
+
+241
+00:17:30,799 --> 00:17:31,799
+er at det er veldig vanskelig å forstå hva som skjer.
+
+242
+00:17:31,799 --> 00:17:32,799
+Så det vi kan egentlig dra lærdom av fra denne dommen her, er at kunden har et krav på erstatning på en million kroner.
+
+243
+00:17:32,799 --> 00:17:40,799
+Og det vi kan egentlig dra lærdom av fra denne dommen her, er at kunden har et krav på erstatning på en million kroner.
+
+244
+00:17:40,799 --> 00:17:43,299
+Men det er også unnlatelser.
+
+245
+00:17:43,299 --> 00:17:48,799
+Slik som her ved å rådige kunden om å ikke sende forsikringsprogrammet ut på anbud,
+
+246
+00:17:48,799 --> 00:17:53,299
+basert på rene antallelser om hvordan markedet er.
+
+247
+00:17:53,799 --> 00:17:55,799
+Det retten legger vekt på i denne dommen her
+
+248
+00:17:55,799 --> 00:18:01,799
+det er missforholdet mellom forsikringsmegler og det de var kontraktforpliktet til å gjøre,
+
+249
+00:18:01,799 --> 00:18:09,240
+gjennom behovsanalyse og risikogjennomgang, årlig status og strategimøter, og det som faktisk ble gjort.
+
+250
+00:18:10,039 --> 00:18:17,360
+I tillegg var det lite skriftlig dokumentasjon som kunne dokumentere at megler hadde etterlevd pliktene sine,
+
+251
+00:18:17,880 --> 00:18:24,619
+både det som følger av alminnelige forventninger til en forsikringsmegler, men også det som var kontraktsfestet i samarbeidsavtalen.
+
+252
+00:18:24,619 --> 00:18:37,220
+Og da blir domslutningen tatt i betraktning både meglers honorar og de generelle krav til høy kompetanse og god bistand,
+
+253
+00:18:37,360 --> 00:18:41,079
+som må forventes når en kunde velger en profesjonell rådgiver som dette,
+
+254
+00:18:42,000 --> 00:18:47,480
+så må det forutsettes at megler gjør en ansvarlig innsats for å sikre at kundene ikke betaler overpris.
+
+255
+00:18:48,420 --> 00:18:54,500
+I alle tilfelle må dette gjelde når situasjonen var at det var over mange år siden forsikringen hadde vært på anbud,
+
+256
+00:18:54,619 --> 00:18:59,220
+og megler hadde valgt å gi råd om fornyelse også det foregående året.
+
+257
+00:19:00,380 --> 00:19:06,000
+Da skal vi se på sak 3, og det er også den saken vi kommer til å bruke mest tid på her i dag.
+
+258
+00:19:07,039 --> 00:19:15,980
+Det er en sak hvor primær fokus vårt er på dommen fra Agder lagmannsrett, som kom i 2021.
+
+259
+00:19:16,940 --> 00:19:24,000
+Og så er det et aspekt av den dommen som også ble anket til høyesterett og avgjort der, som vi også skal bruke litt tid på.
+
+260
+00:19:24,619 --> 00:19:33,619
+Kort om fakta. Her hadde vi da en virksomhet, eller da kunden her var en liten bedrift som produserte innvendige og utvendige dører.
+
+261
+00:19:33,619 --> 00:19:38,619
+Og de hadde gjennom en årekke plassert sine forsikringer gjennom samme forsikringsmegler.
+
+262
+00:19:39,619 --> 00:19:46,619
+Det som skjer våren 2020 er at produksjonslokalene til denne kunden brenner helt ned til grunnen og alt blir totalt destruert.
+
+263
+00:19:46,619 --> 00:19:51,619
+Og det gjelder for bygninger, det gjelder for maskiner, varelager, mønstre og former og så videre.
+
+264
+00:19:51,619 --> 00:19:53,619
+Og alt blir totalt ødelagt i dag.
+
+265
+00:19:54,619 --> 00:19:56,860
+I denne branden.
+
+266
+00:19:56,860 --> 00:19:59,860
+Og da kommer jo selvfølgelig forsikringsoppgjørets tid.
+
+267
+00:19:59,860 --> 00:20:15,240
+Og kunden hadde på tidspunkt forbrann en rekke ulike forsikringer, blant disse en såkalt maskinerinventar og løsøredekning, altså MIL, med en avtalt forsikringssum på 5.166.300.
+
+268
+00:20:16,040 --> 00:20:22,600
+Og det var på første risiko, ikke fullverdig, så det var altså begrenset til akkurat da denne forsikringssummen.
+
+269
+00:20:22,600 --> 00:20:40,600
+En veldig viktig detalj da, som faktamessig, er at fastmontert utstyr, det var ikke omfattet av fullverdigforsikringen av bygningen, fordi bygningen, selve bygningen hadde fullverdigforsikring, det var greit, men ikke det fastmonterte utstyret som var montert inn i denne bygningsmassen.
+
+270
+00:20:41,740 --> 00:20:51,180
+Så går da kunden gjennom forsikringsoppgjøret, og de mener da å ha avdekket en ganske betydelig underdekning når det gjelder maskiner og varelager.
+
+271
+00:20:51,180 --> 00:20:55,660
+De sier at den er på 12 millioner, i hvert fall deres anførsel da.
+
+272
+00:20:57,020 --> 00:21:16,620
+Det er jo ikke deres megler enige i, de er heller ikke enige at de har vært uaktsomme i saken, og det ender med at kunden tar ut støvning, bruker ikke noen tid på tingretsdommen og hopper rett på lagmannsretsdommen da, av deres vurdering.
+
+273
+00:21:17,660 --> 00:21:21,060
+Og som domstoler jo liker å gjøre, så setter de rammen først.
+
+274
+00:21:21,060 --> 00:21:23,740
+Og her er rammen profesjonsansvaret.
+
+275
+00:21:24,700 --> 00:21:29,100
+Og da starter lagmannsretten med å vise til en høyesterettsdom fra 1995.
+
+276
+00:21:29,580 --> 00:21:35,800
+Den gikk på ansvaret til en egnomsmelger og en takstmann, i forbindelse med salg av fast eiendom.
+
+277
+00:21:37,120 --> 00:21:48,500
+Og der uttaler høyesterett en setning som har blitt en slags norm, på en måte en aktsomhetsnorm, som har blitt repetert i mange dommer siden den dommen ble avsagt.
+
+278
+00:21:48,900 --> 00:21:50,540
+Og der sier høyesterett at,
+
+279
+00:21:51,060 --> 00:21:56,340
+«Det er sikkert rett at det gjelder et strengt, ulovfestet uaktsomhetsansvar for profesjonsutøvere,
+
+280
+00:21:57,140 --> 00:22:02,580
+men likevel slik at det er et visst spillerom for adferd som kan kritiseres og anses som erstatningsbetingende uaktsomhet.
+
+281
+00:22:03,440 --> 00:22:07,800
+Som andre ord, er du profesjonsutøver, skal du bedømmes etter en veldig streng norm,
+
+282
+00:22:08,700 --> 00:22:12,900
+men det er likevel ikke slik at alle feil innebærer at du havner i ansvar.
+
+283
+00:22:13,100 --> 00:22:17,540
+Det vil være en konkret vurdering, basert på en rekke ulike momenter.
+
+284
+00:22:20,020 --> 00:22:23,020
+Så går lagmannsretten videre til å henvise til en ganske fersk dom,
+
+285
+00:22:23,040 --> 00:22:25,040
+fra høyesterett i 2022.
+
+286
+00:22:25,040 --> 00:22:27,760
+Det var en dom som gikk på advokatansvar.
+
+287
+00:22:28,560 --> 00:22:33,600
+Og der sier høyesterett at det er fire ulike momenter som kan være relevante å se på her.
+
+288
+00:22:34,400 --> 00:22:37,040
+Det ene er oppdragets omfang og kompleksitet.
+
+289
+00:22:37,920 --> 00:22:43,680
+Her er det jo relevant å se blant annet på rammen for oppdraget som den profesjonelle rådgiveren har fått.
+
+290
+00:22:44,320 --> 00:22:48,520
+Er det klart avgrenset til å gjelde kun et lite aspekt,
+
+291
+00:22:48,520 --> 00:22:51,920
+da typisk en meglefull makt, du kun skal megle styransvarsforsikring,
+
+292
+00:22:51,920 --> 00:22:52,840
+ehm,
+
+293
+00:22:52,840 --> 00:22:54,840
+så er jo det en veldig klar avgrensning da.
+
+294
+00:22:54,840 --> 00:22:58,440
+Det kan ikke megle lastes for noe som ligger langt utenfor det mandatet.
+
+295
+00:22:58,440 --> 00:23:02,840
+Men har man en bredt anlagt oppdrag i oppdragsavtale og full makt,
+
+296
+00:23:02,840 --> 00:23:11,320
+så vil jo da også rådgiveren bedømmes etter en norm om at de skal sørge for at kundene er sikret til å knytte det oppdraget.
+
+297
+00:23:12,680 --> 00:23:14,680
+Tiden som står til rådighet er en annen faktor.
+
+298
+00:23:15,240 --> 00:23:20,920
+Hvis rådgiveren har svært lite tid til rådighet fordi kundene har vært på bakbeina,
+
+299
+00:23:20,920 --> 00:23:22,200
+kommer liksom last minute,
+
+300
+00:23:22,200 --> 00:23:24,200
+med en sak som de må få løst,
+
+301
+00:23:24,200 --> 00:23:30,200
+så vil jo da rådgiveren bedømmes mildere enn hvis han har svært god tid til rådighet til å løse oppdraget.
+
+302
+00:23:30,200 --> 00:23:36,200
+Skadepotensialet, altså skadene som kan oppstå hvis det gis uriktig eller dårlig rådgivning,
+
+303
+00:23:36,200 --> 00:23:42,200
+det er også et element, kanskje spesielt relevant på skadeforsikring for meglere.
+
+304
+00:23:42,200 --> 00:23:46,200
+Der kan jo selv små kunder få svært store skader,
+
+305
+00:23:46,200 --> 00:23:50,200
+hvis de ikke har de korrekte dekningene.
+
+306
+00:23:50,200 --> 00:23:52,200
+Og ikke minst, klientenes yrker.
+
+307
+00:23:52,200 --> 00:23:57,200
+Instruksjoner, har kunden vært klar og tydelig i hva de ønsker,
+
+308
+00:23:57,200 --> 00:24:00,200
+når de ønsker det gjort, og så videre?
+
+309
+00:24:00,200 --> 00:24:04,200
+Eller har instruksjonene vært til å misforstå?
+
+310
+00:24:04,200 --> 00:24:07,200
+Eller har kunden vært vanskelig å ha kommunikasjon med?
+
+311
+00:24:07,200 --> 00:24:13,200
+Det vil også spille inn i vurderingen av aktsomhet av deres utvalgte rådgiver.
+
+312
+00:24:13,200 --> 00:24:20,200
+Den praksisen som lagmannsretten viser til fra høystrett,
+
+313
+00:24:20,200 --> 00:24:24,200
+den viser at det er en bred og sammensatt vurdering av mange forhold,
+
+314
+00:24:24,200 --> 00:24:27,200
+som spiller inn i vurderingen av profesjonsansvar.
+
+315
+00:24:27,200 --> 00:24:31,200
+Så det er rammen for profesjonsansvar.
+
+316
+00:24:31,200 --> 00:24:37,200
+Men konkret, hva kan man da forvente av sin forsikringsmegler ifølge lagmannsretten?
+
+317
+00:24:37,200 --> 00:24:41,200
+Lagmannsretten sier blant annet at forsikringsformidler skal,
+
+318
+00:24:41,200 --> 00:24:44,200
+særlig på grunnlag av opplysning fra kundene,
+
+319
+00:24:44,200 --> 00:24:46,200
+som et minimum presisere deres krav og behov,
+
+320
+00:24:46,200 --> 00:24:48,200
+og begrunne hvert råd den gir kunden om det bestemte forsikringsproduktet,
+
+321
+00:24:48,200 --> 00:24:51,200
+som de megler.
+
+322
+00:24:51,200 --> 00:24:56,200
+Og de presiseringene skal tilpasses kompleksiteten i den foreslåtte forsikringsavtalen.
+
+323
+00:24:56,200 --> 00:24:58,200
+Så klart, jo mer komplekse forsikringsavtaler,
+
+324
+00:24:58,200 --> 00:25:03,200
+jo strengere krav til rådgivning rundt disse produktene.
+
+325
+00:25:03,200 --> 00:25:08,200
+Så sier lagmannsretten også at den rådgivningen skal foreligges skriftlig.
+
+326
+00:25:08,200 --> 00:25:13,200
+Det viser blant annet til en veileder fra Finanstilsynet med krav til skriftlighet.
+
+327
+00:25:13,200 --> 00:25:17,200
+Og informasjonen skal også kommuniseres på en tydelig og nøyaktig måte,
+
+328
+00:25:17,200 --> 00:25:19,200
+som er forståelig for kunden.
+
+329
+00:25:19,200 --> 00:25:21,200
+For dette er jo ofte komplekse saker.
+
+330
+00:25:21,200 --> 00:25:24,200
+Kunden kommer til en megler for en grunn.
+
+331
+00:25:24,200 --> 00:25:27,200
+Det er fordi megler har spesialkompetanse på dette her,
+
+332
+00:25:27,200 --> 00:25:29,200
+og kunden har ikke det.
+
+333
+00:25:29,200 --> 00:25:31,200
+Det er merverdien til megleren.
+
+334
+00:25:31,200 --> 00:25:33,200
+Og da må de få råd som de faktisk kan forstå,
+
+335
+00:25:33,200 --> 00:25:36,200
+som er pedagogiske og forståelige.
+
+336
+00:25:36,200 --> 00:25:38,200
+Ikke på mer sånn stammespråk da,
+
+337
+00:25:38,200 --> 00:25:42,200
+som kanskje man bruker hvis man er i forsikringsbransjen.
+
+338
+00:25:42,200 --> 00:25:46,200
+Retten bruker også, eller henviser også til retningslinjer,
+
+339
+00:25:46,200 --> 00:25:50,200
+de etiske retningslinjene fra Forsikringsmeglerforeningen,
+
+340
+00:25:50,200 --> 00:25:54,200
+og siterer da at megler skal ha hensyn til oppdragets karakter,
+
+341
+00:25:54,200 --> 00:25:55,200
+og de lovbestemte krav,
+
+342
+00:25:55,200 --> 00:25:59,200
+og i samarbeid med kunden fremskaffe et best mulig beslutningsgrunnlag.
+
+343
+00:25:59,200 --> 00:26:03,280
+Men så til tvistens kjerne.
+
+344
+00:26:03,280 --> 00:26:06,280
+Hva er det egentlig man er uenig om, og hva er det man er enig om?
+
+345
+00:26:06,280 --> 00:26:10,280
+Retten begynner da med å konstatere at kjernen av megleroppdraget,
+
+346
+00:26:10,280 --> 00:26:14,280
+altså essensen i det oppdraget som Forsikringsmegler har påtatt seg her,
+
+347
+00:26:14,280 --> 00:26:17,280
+er å skaffe seg kjennskap til bedriften.
+
+348
+00:26:17,280 --> 00:26:21,280
+De forsikringene de har, og deretter gi dem veiledning og råd
+
+349
+00:26:21,280 --> 00:26:24,280
+som setter dem i stand til å treffe så godt valg som mulig
+
+350
+00:26:24,280 --> 00:26:26,280
+om forsikringsdekkingen de bør ha,
+
+351
+00:26:26,280 --> 00:26:30,280
+og forsikringsprodukter som dekker alle sider av den virksomheten de har,
+
+352
+00:26:30,280 --> 00:26:32,280
+og skadesituasjoner som kan oppstå.
+
+353
+00:26:32,280 --> 00:26:37,280
+Det tror jeg er en grei oppsummering av det det er å være forsikringsmegler.
+
+354
+00:26:37,280 --> 00:26:42,280
+Og partene var egentlig enige med et lite sånt unntak som jeg ikke bruker så mye tid på her,
+
+355
+00:26:42,280 --> 00:26:45,280
+da det gjaldt utvidet dekning for modeller, mønstre og former,
+
+356
+00:26:45,280 --> 00:26:47,280
+om det var en relevant dekning.
+
+357
+00:26:47,280 --> 00:26:53,280
+Men sett bort fra det, så var partene egentlig enige om at kunden var blitt tilbudt
+
+358
+00:26:53,280 --> 00:26:58,280
+relevante og korrekte forsikringer som dekket risikoen deres,
+
+359
+00:26:58,280 --> 00:27:02,280
+men uenigheten knyttet seg til anført underdekning.
+
+360
+00:27:02,280 --> 00:27:06,280
+Så tvisten, når det i alt ansvarsgrunnlaget handler om
+
+361
+00:27:06,280 --> 00:27:09,280
+forsikringsmegler har opptrådt erstatningsbetingene,
+
+362
+00:27:09,280 --> 00:27:14,280
+grunnet mangelfull rådgivning om hvordan disse forsikringsproduktene henger sammen.
+
+363
+00:27:14,280 --> 00:27:20,040
+Og da går retten inn i en konkret vurdering,
+
+364
+00:27:20,040 --> 00:27:24,040
+av hva slags rådgivning har forsikringsmegler faktisk gitt?
+
+365
+00:27:24,040 --> 00:27:27,040
+Og det som var gjennomført i dette tilfellet,
+
+366
+00:27:27,040 --> 00:27:31,040
+var at megler hadde årlige gjennomganger med kunden.
+
+367
+00:27:31,040 --> 00:27:34,040
+Det ble ikke brukt noe sånn standardisert møtereferat
+
+368
+00:27:34,040 --> 00:27:38,040
+eller standard mal på disse gjennomgangene.
+
+369
+00:27:38,040 --> 00:27:42,040
+Det som skjedde var at man tok utgangspunkt i de forsikringene som kunden hadde fra før,
+
+370
+00:27:42,040 --> 00:27:45,040
+og så snakket man, ok, har du bygget noen nye bygninger,
+
+371
+00:27:45,040 --> 00:27:47,040
+har du kjøpt nye maskiner eller utstyr,
+
+372
+00:27:47,040 --> 00:27:49,040
+ting som tilskriver at vi bør utvide forsikringssummer,
+
+373
+00:27:49,040 --> 00:27:51,040
+eller kjøpe nye dekkninger.
+
+374
+00:27:51,040 --> 00:27:53,040
+Og så i etterkant av møtene,
+
+375
+00:27:53,040 --> 00:27:55,040
+så sendte da megler en e-post til kunden,
+
+376
+00:27:55,040 --> 00:27:58,040
+der han oppsummerte kort det de hadde pratet om,
+
+377
+00:27:58,040 --> 00:28:03,040
+samt sendte over forsikringsbevis, vilkår og faktura.
+
+378
+00:28:03,040 --> 00:28:08,040
+Og det virkelig sånn sentrale punktet som partene var grunnleggende uenige om,
+
+379
+00:28:08,040 --> 00:28:12,040
+var om kunden faktisk forsto at det ikke var fullt dekket
+
+380
+00:28:12,040 --> 00:28:15,040
+hvis det kom en totalskade på produksjons- og varelager.
+
+381
+00:28:15,040 --> 00:28:19,040
+Og det viktige å fremme var at det er en faktisk uenighet,
+
+382
+00:28:19,040 --> 00:28:21,040
+det er ikke en juridisk uenighet,
+
+383
+00:28:21,040 --> 00:28:26,040
+man er uenige om hva som faktisk ble sagt og gjort i disse årlige kundemøtene.
+
+384
+00:28:26,040 --> 00:28:32,320
+Og der var partene som sagt uenige,
+
+385
+00:28:32,320 --> 00:28:34,320
+og da er jo spørsmålet som retten må ta stilling til,
+
+386
+00:28:34,320 --> 00:28:36,320
+hvem er det som egentlig har risikoen,
+
+387
+00:28:36,320 --> 00:28:39,320
+når man er bare uenig om hva som ble diskutert og sagt i møtene.
+
+388
+00:28:39,320 --> 00:28:41,320
+Og da skal jeg sitere fra det retten sier,
+
+389
+00:28:41,320 --> 00:28:43,320
+for dette her tror jeg er det man må forvente,
+
+390
+00:28:43,320 --> 00:28:45,320
+ikke bare som forsikringsmegler,
+
+391
+00:28:45,320 --> 00:28:48,320
+men som enhver profesjonsutøver,
+
+392
+00:28:48,320 --> 00:28:51,320
+en rådgiver som har mye ansvar for sine kunder,
+
+393
+00:28:51,320 --> 00:28:53,320
+og spesialkompetanse for sine kunder,
+
+394
+00:28:53,320 --> 00:28:55,320
+at man kan bli møtt med,
+
+395
+00:28:55,320 --> 00:29:00,320
+hvis man ikke kan dokumentere rådgivningen sin.
+
+396
+00:29:00,320 --> 00:29:02,320
+Da sier retten.
+
+397
+00:29:02,320 --> 00:29:06,320
+Partenes diametralt ulike oppfatning av hva som ble sagt og drøftet i de årlige kundemøtene,
+
+398
+00:29:06,320 --> 00:29:09,320
+etterlater uklarhet om hva som faktisk ble gjennomgått.
+
+399
+00:29:09,320 --> 00:29:13,320
+Hensett til den brann- og skaderisiko som trevareproduksjon fører med seg,
+
+400
+00:29:13,320 --> 00:29:15,320
+samtidig tross alt lave premiesumme det er å tale om,
+
+401
+00:29:15,320 --> 00:29:18,320
+har det formodningen motsatt kunden faktisk forstod
+
+402
+00:29:18,320 --> 00:29:22,320
+at man ikke var tilfredsstillende dekket ved en totalskade på produksjonsanlegget,
+
+403
+00:29:22,320 --> 00:29:25,320
+og således tok en bevisst risiko.
+
+404
+00:29:25,320 --> 00:29:27,320
+Og det er det vel lett å være enig i,
+
+405
+00:29:27,320 --> 00:29:31,320
+fordi det var snakk om noen tusenlapper i premie,
+
+406
+00:29:31,320 --> 00:29:33,320
+for å være helt sikret,
+
+407
+00:29:33,320 --> 00:29:37,320
+er det da slik at disse beslutningstagerne i denne virksomheten
+
+408
+00:29:37,320 --> 00:29:40,320
+satt og tenkte at de 2 000 kroner de skal vi spare,
+
+409
+00:29:40,320 --> 00:29:43,320
+så tar vi hele risikoen for at vi taper mange millioner,
+
+410
+00:29:43,320 --> 00:29:45,320
+hvis det går ordentlig galt.
+
+411
+00:29:45,320 --> 00:29:48,320
+Det har i hvert fall formodningen mot seg.
+
+412
+00:29:48,320 --> 00:29:52,320
+Og da sier retten at uklarheten rundt hva som ble sagt og gitt,
+
+413
+00:29:52,320 --> 00:29:54,320
+gitt av rådgivning,
+
+414
+00:29:54,320 --> 00:29:57,320
+det må i hvert fall som et utgangspunkt gå utover forsikringsmegler.
+
+415
+00:29:59,260 --> 00:30:08,080
+Men så viste jo da forsikringsmegler til at ok, det er greit nok, men det er jo faktisk slik at dekningsomfanget av Miel-dekningen og fullverdieforsikringen,
+
+416
+00:30:08,200 --> 00:30:18,000
+at all den informasjonen fremgikk av forsikringsvilkårene, og disse forsikringsvilkårene har kunden fått, og har hatt all anledning til å sette seg inn i og lese.
+
+417
+00:30:19,120 --> 00:30:26,440
+Og da sier retten at man må skille mellom to ting, og det er konsekvensen som dette her skal få for nummer en, ansvarsspørsmålet,
+
+418
+00:30:26,440 --> 00:30:36,200
+og nummer to ser vi utmålingen av erstatning. For de har skadelite medvirket til skaden, så kan da potensielt erstatningsbeløpet nedsettes.
+
+419
+00:30:36,520 --> 00:30:47,640
+Men det er to ulike vurderinger. Og rettene sier da at ja, lest i sammenheng, så er det ikke tvilsomt ut fra forsikringsvilkårene at alle maskiner,
+
+420
+00:30:47,640 --> 00:30:55,120
+også de fastmonterte, sorterer under denne Miel-forsikringen, så er det mange grensedragninger her som er vanskelig å forstå for kunden.
+
+421
+00:30:56,440 --> 00:31:06,800
+Og når da disse grensene mellom hvor et produkt slutter og et produkt starter, når disse grensedragningene gjør at det er en risiko for at man har ikke tilstrekkelig dekning,
+
+422
+00:31:07,620 --> 00:31:15,540
+og rådgiveren heller ikke har da sørget for å dokumentere at den risikoen er kjent for kunden, da taler det for erstatningsansvar for forsikringsmeldet.
+
+423
+00:31:15,540 --> 00:31:30,050
+Og da konkluderer retten at det er uklar og utilstrekkelig rådgivning innenfor det som er virkelig kjernområdet av meglers,
+
+424
+00:31:30,470 --> 00:31:39,470
+er det merverdi. Grunnen til at man går til megler er for at de skal klargjøre nettopp disse aspektene som er vanskelig å forene uten forsikringsteknisk kompetanse.
+
+425
+00:31:39,470 --> 00:31:44,470
+Det innebærer at megler har opptrådt erstatningsbetingene uaktsomt.
+
+426
+00:31:44,470 --> 00:31:53,470
+Og så presiserer lagmannsretten at det ansvaret, det knytter seg til den manglende klargjøringen av grenseflaten mellom disse forsikringsproduktene,
+
+427
+00:31:53,470 --> 00:31:59,470
+og ikke til selve prosessen med å avklare forsikringssummen, for det ligger på forsikringstager å avklare.
+
+428
+00:31:59,470 --> 00:32:09,720
+Men forsikringstager, altså kundene her da, de må jo vite hvilken risiko de tar når de gjør den vurderingen av hva som skal være korrekt forsikringssum.
+
+429
+00:32:09,720 --> 00:32:17,720
+Videre legger retten til grunn at krav til årsakssammenheng er oppfylt, for de sier at hadde kunden forstått at de ikke var fullt utdekket,
+
+430
+00:32:17,720 --> 00:32:22,720
+så hadde de selvfølgelig økt den forsikringssummen på ML, slik at de var dekket ved en totalskade.
+
+431
+00:32:22,720 --> 00:32:28,720
+Det var snakk om noen tusenlapper. Det er ikke en risiko som er naturlig å ta. Det virker helt irrasjonelt.
+
+432
+00:32:28,720 --> 00:32:43,950
+Så går da retten videre til å vurdere del 2. Det ene er betydningen av at vilkårene var oversent, og ikke da egentlig lest og gjennomgått av kundens representanter.
+
+433
+00:32:43,950 --> 00:32:51,950
+Det hadde ikke noe å si for ansvarsspørsmålet, men skal det ha noe å si i forhold til medvirkningsspørsmålet, og eventuelt nedsettelse av erstatningsbeløpet.
+
+434
+00:32:51,950 --> 00:32:58,950
+Og kundens representanter var jo inne og forklarte seg som vittnere i retten, samme som meglers representanter var inne og forklarte seg.
+
+435
+00:32:58,950 --> 00:32:59,950
+Og representantene til denne virksomheten var jo også medvirkningsspørsmålet.
+
+436
+00:32:59,950 --> 00:33:05,950
+Og representantene til denne virksomheten var helt åpne på at vi leste kun forsikringsbeviset. Vi leste ikke vilkårene.
+
+437
+00:33:05,950 --> 00:33:11,950
+Det hadde vi meglert til å gjøre, og vi anså ikke det for å være noe vi trengte å gjøre.
+
+438
+00:33:11,950 --> 00:33:20,950
+Og da sier lagområdesretten at hadde de lest vilkårene slik de skulle, så hadde misforståelsen om hva som var dekket vært ryddet av veien, og tapet kunne vært unngått.
+
+439
+00:33:20,950 --> 00:33:24,950
+Så basert på det er kunden også bebreidet for tap som oppstod.
+
+440
+00:33:24,950 --> 00:33:27,950
+Men hvor mye? Hvordan skal det vektes?
+
+441
+00:33:27,950 --> 00:33:32,950
+Jo, da sier retten at megler er den profesjonelle parten som må bære hoveddelen av ansvaret.
+
+442
+00:33:32,950 --> 00:33:40,950
+Men da likevel er kundens medvirkning til skaden såpass betydelig og tungtvegnet at det gjøres et fradrag på en tredjedel i erstatningen.
+
+443
+00:33:40,950 --> 00:33:50,950
+Og dermed ble erstatning for underdekning satt til 2.350.000 betalt av megleforetakets ansvarsselskap.
+
+444
+00:33:50,950 --> 00:33:55,950
+Men det mente kunden var uriktig.
+
+445
+00:33:55,950 --> 00:33:59,950
+Og de anket da dette medvirkningsspørsmålet til høyesterett.
+
+446
+00:33:59,950 --> 00:34:02,950
+Resten av lagmannsrettens dom ble stående.
+
+447
+00:34:02,950 --> 00:34:07,950
+Ansvarsspørsmålet ble løst og ferdig oppgjort og rettskraftig i lagmannsretten.
+
+448
+00:34:07,950 --> 00:34:12,950
+Men medvirkningsspørsmålet ble da separat anket og kom inn i høyesterett.
+
+449
+00:34:12,950 --> 00:34:17,950
+Og der får kunden medhold i at det ikke var grunnlag for å konstatere medvirkning.
+
+450
+00:34:17,950 --> 00:34:22,950
+Og forsikringsmegler ble dermed ansvarlig 100% for erstatningsbeløpet.
+
+451
+00:34:22,950 --> 00:34:24,950
+Og dette er jo typisk høyesterett.
+
+452
+00:34:24,950 --> 00:34:29,950
+De utpensler ikke dette her i veldig mange detaljer.
+
+453
+00:34:29,950 --> 00:34:35,950
+Men de tenker hva er de normene, de prinsippene de ønsker skal være førende på ulike forretningsområder.
+
+454
+00:34:35,950 --> 00:34:37,950
+Og bransjestandarder.
+
+455
+00:34:37,950 --> 00:34:44,950
+Og da sier de, prevensjonshensyn i særlig grad begrunner et strengt ansvar for den parten som sitter med størst kompetanse.
+
+456
+00:34:44,950 --> 00:34:47,950
+Og derfor har størst mulighet til å forebygge feil.
+
+457
+00:34:47,950 --> 00:34:50,950
+Og i dette tilfellet er det forsikringsmegler.
+
+458
+00:34:50,950 --> 00:34:53,950
+Vi innledde til dette kurset med å
+
+459
+00:34:54,950 --> 00:35:01,950
+reise spørsmål om rammene for det juridiske og etiske ansvaret for forsikringsmeglere.
+
+460
+00:35:01,950 --> 00:35:04,950
+Vi har jo da sett på lovverket.
+
+461
+00:35:04,950 --> 00:35:08,950
+Vi har sett på etiske retningslinjer og bransjestandarder.
+
+462
+00:35:08,950 --> 00:35:11,950
+Og vi har gått gjennom rettspraksis.
+
+463
+00:35:11,950 --> 00:35:16,950
+Og for å oppsummere rettspraksis så ser jeg, finnes det en rød tråd?
+
+464
+00:35:16,950 --> 00:35:18,950
+Jo, det gjør det jo.
+
+465
+00:35:18,950 --> 00:35:22,950
+Det er jo slik at forsikringsmeglere som profesjonsutøvere,
+
+466
+00:35:22,950 --> 00:35:29,950
+de vurderer seg ut etter den strenge normen da, som er trukket opp gjennom rettspraksis.
+
+467
+00:35:29,950 --> 00:35:37,950
+Og i forsikringsmegler-rollen så er det jo helt essensielt at man kjenner sin kundes virksomhet,
+
+468
+00:35:37,950 --> 00:35:44,950
+identifiserer kundens behov, og proaktivt sørger for å innhente korrekte opplysninger,
+
+469
+00:35:44,950 --> 00:35:47,950
+sørger for konkurransedekninger for kunden.
+
+470
+00:35:47,950 --> 00:35:50,950
+Og at man også sørger for at kunden forstår hva som skjer.
+
+471
+00:35:50,950 --> 00:35:56,950
+Sørger for at kunden forstår de forsikringsløsningene og pensjonsløsningene de har inngått.
+
+472
+00:35:56,950 --> 00:36:00,950
+For det hjelper jo ikke bare å sende over vilkår og forsikringsbevis,
+
+473
+00:36:00,950 --> 00:36:03,950
+hvis de ikke har forstått hvordan de faktisk er dekket.
+
+474
+00:36:03,950 --> 00:36:05,950
+Helt korrekt.
+
+475
+00:36:05,950 --> 00:36:12,950
+Det vi også har sett gjennom rettspraksis er at hvis det oppstår uklarheter i hva som har blitt avtalt
+
+476
+00:36:12,950 --> 00:36:19,950
+mellom kunden og megler, og den konkrete rådgivningen fra megleren om forsikringsprogrammet,
+
+477
+00:36:19,950 --> 00:36:25,950
+så går denne uklarheten som den klare hovedregelen utover forsikringsmegleren,
+
+478
+00:36:25,950 --> 00:36:29,950
+i og med at dette her er den profesjonelle parten.
+
+479
+00:36:29,950 --> 00:36:35,950
+Og det føyer seg egentlig bare inn i den praksis vi allerede har rundt andre betrodde profesjonsyrker,
+
+480
+00:36:35,950 --> 00:36:41,950
+om det være seg da egnomsmeglere, revisorer, takstmenn, advokater og så videre.
+
+481
+00:36:41,950 --> 00:36:49,950
+Alle blir bedømt etter det strenge profesjonsansvaret, og alle bør være veldig flinke til å dokumentere,
+
+482
+00:36:49,950 --> 00:36:53,950
+den rådgivning som blir gitt, og den kommunikasjonen man har med kunden.
+
+483
+00:36:53,950 --> 00:36:57,950
+Og som man da kan si, if it isn't written down, it didn't happen.
+
+484
+00:36:57,950 --> 00:36:59,950
+Er det ikke skrevet ned, så har det ikke hendt.
+
+485
+00:36:59,950 --> 00:37:04,950
+Det er en veldig viktig ting å ta med seg fra det vi har pratet om her i dag.
+
+486
+00:37:04,950 --> 00:37:10,950
+Det kan være forskjellen på å komme i ansvar, og det å være helt fri.
+
+487
+00:37:10,950 --> 00:37:17,950
+Ja, altså er det klart, vi har jo sett også fra disse dommerne at domstolen er opptatt av hva
+
+488
+00:37:17,950 --> 00:37:22,950
+bransjepraksis er, hva de etiske retningslinjene fra forsikringsmegleforeningen sier,
+
+489
+00:37:22,950 --> 00:37:25,950
+hva rundskre fra finanstilsynet sier, og så videre.
+
+490
+00:37:25,950 --> 00:37:32,950
+Men forsikringsmegleforetakenes egne rutiner, de vektlegges også i betydelig grad,
+
+491
+00:37:32,950 --> 00:37:38,950
+så brudd på disse vil jo tvelle i retning av ansvar hos megler.
+
+492
+00:37:38,950 --> 00:37:46,769
+Og så har vi laget et par caseoppgaver for å gjøre dette her litt mer praktisk.
+
+493
+00:37:46,769 --> 00:37:48,769
+Og første eksempelet,
+
+494
+00:37:48,769 --> 00:37:54,769
+da er du som forsikringsmegler har nettopp fått en kunde, la oss si et renovasjonsselskap,
+
+495
+00:37:54,769 --> 00:38:00,769
+og har gjennomført en risiko- og behovsanalyse med kunden.
+
+496
+00:38:00,769 --> 00:38:05,769
+Du har gått på anbud og fremskaffet tilbud på diverse relevante skadedekninger.
+
+497
+00:38:05,769 --> 00:38:12,769
+På bakgrunn av skadehistorikken til kunden og lav risikoappetitt i forsikringsmarkedet for denne type kunder,
+
+498
+00:38:12,769 --> 00:38:16,769
+så er forsikringspremiene på programmet dessvert høyt.
+
+499
+00:38:16,769 --> 00:38:21,769
+Du mener likevel at kunden bør ta denne kostnaden.
+
+500
+00:38:21,769 --> 00:38:30,770
+Kundens representant ønsker primært å kommunisere på telefon og forholder seg i liten grad på e-post.
+
+501
+00:38:30,770 --> 00:38:36,630
+Hvordan ville du da kommunisert dette til kunden, Martin?
+
+502
+00:38:36,630 --> 00:38:42,630
+Dette tror jeg er en scenarie som kan gi litt gjenklang hos mange, være litt gjenkjennbart.
+
+503
+00:38:42,630 --> 00:38:47,630
+Det er en del kunderepresentanter som er veldig glad i å ta ting på telefonen.
+
+504
+00:38:48,630 --> 00:38:56,630
+Inngangen til det er selvfølgelig at ja, man skal etterkomme et ønske om å ha kommunikasjon på telefon så langt det på en måte er tilrådelig.
+
+505
+00:38:56,630 --> 00:39:05,630
+Men for oppsummeringer som dette her, man skal konkret gi rådgivning, presentere resultater av et anbud,
+
+506
+00:39:05,630 --> 00:39:12,630
+helt sentrale ting i forsikringsmelderollen, da ville jeg si at jeg ville sendt en e-post som oppsummerer anbefalingen,
+
+507
+00:39:12,630 --> 00:39:14,630
+og heller da fulgt opp med telefonsamtalen.
+
+508
+00:39:14,630 --> 00:39:17,630
+For etter kommer man jo ønske om å ha en form for muntlig kommunikasjon.
+
+509
+00:39:17,630 --> 00:39:18,630
+For etter kommer man jo ønske om å ha en form for muntlig kommunikasjon.
+
+510
+00:39:18,630 --> 00:39:26,630
+Da blir kundene happy, men det er essensielt at man også får skriftliggjort all rådgivning man har gjort,
+
+511
+00:39:26,630 --> 00:39:29,630
+og eventuelle frarådninger man også ønsker å gi.
+
+512
+00:39:29,630 --> 00:39:37,630
+Så det å bare ta en gjennomgang på telefon vil være svært uheldig, så jeg ville valgt den løsningen i det tilfellet.
+
+513
+00:39:37,630 --> 00:39:41,630
+Og så har vi eksempel nummer to.
+
+514
+00:39:41,630 --> 00:39:47,630
+Du gjennomfører en grunnig og årlig gjennomgangsmøte med en eksisterende kunde.
+
+515
+00:39:47,630 --> 00:39:52,630
+Kundens representant, det er deres nye CFO.
+
+516
+00:39:52,630 --> 00:39:57,630
+I etterkant av møtet så får du en e-post fra denne personen som
+
+517
+00:39:57,630 --> 00:39:59,710
+tilsier at vedkommende kanskje ikke har skjønt
+
+518
+00:39:59,710 --> 00:40:01,450
+helt dette dekningsfeltet
+
+519
+00:40:01,450 --> 00:40:03,590
+til kundens cyberforsikring.
+
+520
+00:40:04,530 --> 00:40:05,150
+Hva ville du gjort da?
+
+521
+00:40:06,710 --> 00:40:07,510
+Altså jeg tenker
+
+522
+00:40:07,510 --> 00:40:09,450
+i den situasjonen her er vi veldig inn i
+
+523
+00:40:09,450 --> 00:40:11,930
+den sak 3 som vi diskuterte
+
+524
+00:40:11,930 --> 00:40:13,990
+ikke sant, denne brandcasen
+
+525
+00:40:13,990 --> 00:40:15,710
+der det er essensielt
+
+526
+00:40:15,710 --> 00:40:16,829
+å sørge for at
+
+527
+00:40:16,829 --> 00:40:19,789
+kundens representant faktisk forstår
+
+528
+00:40:19,789 --> 00:40:21,390
+dekningsfeltet
+
+529
+00:40:21,390 --> 00:40:23,110
+og hva som ikke er dekket.
+
+530
+00:40:23,890 --> 00:40:25,650
+Så nå er det jo etter hvert
+
+531
+00:40:25,650 --> 00:40:27,110
+blitt slik at alle skal jo ha
+
+532
+00:40:27,110 --> 00:40:29,230
+man overskjønner vilkår og etter hvert
+
+533
+00:40:29,230 --> 00:40:31,010
+IPID-skjemaer kommer vi inn med i det
+
+534
+00:40:31,010 --> 00:40:33,490
+men det å bare overskjønne vilkårene
+
+535
+00:40:33,490 --> 00:40:34,570
+og IPID-skjemaer
+
+536
+00:40:34,570 --> 00:40:37,369
+ja, IPID-skjemaene er en pedagogisk
+
+537
+00:40:37,369 --> 00:40:39,490
+fremstilling av den dekningen man har
+
+538
+00:40:39,490 --> 00:40:40,590
+og eventuelt ikke har
+
+539
+00:40:40,590 --> 00:40:43,329
+men den er ikke tilstrekkelig
+
+540
+00:40:43,329 --> 00:40:45,410
+for å fullføre sin plikt
+
+541
+00:40:45,410 --> 00:40:47,550
+som forsikringsmegler. Så her vil jeg
+
+542
+00:40:47,550 --> 00:40:49,349
+sende over selvfølgelig all den relevante
+
+543
+00:40:49,349 --> 00:40:51,769
+dokumentasjonen, men også med en skriftlig
+
+544
+00:40:51,769 --> 00:40:53,630
+redegjørelse rundt dekningsfeltet
+
+545
+00:40:53,630 --> 00:40:55,490
+til cyberforsikringen og eventuelt
+
+546
+00:40:55,490 --> 00:40:57,110
+andre forsikringer som det var tvil
+
+547
+00:40:57,110 --> 00:40:59,269
+om kundens representant har forstått det eller ikke.
+
+548
+00:41:00,050 --> 00:41:00,890
+Så den klassiske
+
+549
+00:41:00,890 --> 00:41:03,349
+merverdien som en megler
+
+550
+00:41:03,349 --> 00:41:05,450
+gir til oppdraget. Det er nettopp det
+
+551
+00:41:05,450 --> 00:41:07,130
+det ligger jo nettopp der i at man
+
+552
+00:41:07,130 --> 00:41:09,289
+har god innsikt og kompetanse
+
+553
+00:41:09,289 --> 00:41:11,490
+i disse forsikringstekniske spørsmålene
+
+554
+00:41:11,490 --> 00:41:13,289
+det er derfor kunden kommer
+
+555
+00:41:13,289 --> 00:41:14,610
+til en forsikringsmegler
+
+556
+00:41:14,610 --> 00:41:17,430
+og da er det tjenesten de kan forvente
+
+557
+00:41:17,430 --> 00:41:17,789
+tilbake.
+
+558
+00:41:19,030 --> 00:41:20,829
+Da skal vi prøve oss på en oppsummering
+
+559
+00:41:20,829 --> 00:41:23,570
+hvordan skal man som forsikringsmegler
+
+560
+00:41:23,570 --> 00:41:25,110
+opptrå etisk
+
+561
+00:41:25,110 --> 00:41:27,090
+korrekt i tråd med profesjonsmessig
+
+562
+00:41:27,110 --> 00:41:27,610
+ansvaret.
+
+563
+00:41:29,150 --> 00:41:30,930
+Noe av det viktigste og mest sentrale er jo
+
+564
+00:41:30,930 --> 00:41:32,910
+å starte med å kjenne kunden sin
+
+565
+00:41:32,910 --> 00:41:34,990
+for er du ikke kjent med kunden din så kan du ikke gjøre
+
+566
+00:41:34,990 --> 00:41:36,190
+en god jobb for kunden din.
+
+567
+00:41:36,970 --> 00:41:39,349
+Så du må kjenne din kunde, deres svakheter
+
+568
+00:41:39,349 --> 00:41:41,289
+deres styrker, deres risikoer
+
+569
+00:41:41,289 --> 00:41:42,050
+deres behov.
+
+570
+00:41:43,170 --> 00:41:44,950
+Alt starter jo egentlig
+
+571
+00:41:44,950 --> 00:41:45,450
+med det.
+
+572
+00:41:47,450 --> 00:41:48,930
+Og så er det også essensielt
+
+573
+00:41:48,930 --> 00:41:50,930
+at man alltid opererer med deres
+
+574
+00:41:50,930 --> 00:41:52,590
+altså med kundens beste interesse
+
+575
+00:41:52,590 --> 00:41:54,910
+som en ledestjerne. Det bør være
+
+576
+00:41:54,910 --> 00:41:56,869
+førende for alt det man gjør.
+
+577
+00:41:57,110 --> 00:41:58,690
+Og det kan jo være
+
+578
+00:41:58,690 --> 00:42:00,530
+alltid fristende
+
+579
+00:42:00,530 --> 00:42:02,930
+å på en måte spare litt tid
+
+580
+00:42:02,930 --> 00:42:04,050
+ved å gjøre
+
+581
+00:42:04,050 --> 00:42:06,869
+mindre arbeid på kunder som
+
+582
+00:42:06,869 --> 00:42:08,250
+kanskje spesielt mindre kunder.
+
+583
+00:42:08,869 --> 00:42:11,150
+Ikke ta årlige gjennomgangsmøter
+
+584
+00:42:11,150 --> 00:42:13,050
+at de kanskje blir
+
+585
+00:42:13,050 --> 00:42:14,890
+litt mer stemodelig behandlet enn de litt
+
+586
+00:42:14,890 --> 00:42:17,170
+større kundene. Men det må man ikke
+
+587
+00:42:17,170 --> 00:42:18,809
+falle for fristelsen til å gjøre
+
+588
+00:42:18,809 --> 00:42:20,730
+fordi små kunder kan også ha stor risiko
+
+589
+00:42:20,730 --> 00:42:22,890
+og alle fortjener en
+
+590
+00:42:22,890 --> 00:42:24,410
+megler som gjør et
+
+591
+00:42:24,990 --> 00:42:26,769
+skikkelig godt stykke arbeid
+
+592
+00:42:26,769 --> 00:42:28,369
+for deres virksomhet.
+
+593
+00:42:29,030 --> 00:42:29,789
+Så det bør være
+
+594
+00:42:29,789 --> 00:42:32,070
+front i pannen hele tiden.
+
+595
+00:42:32,610 --> 00:42:34,829
+Altid operere med kundens beste interesse som ledestjerne
+
+596
+00:42:34,829 --> 00:42:36,510
+om de er små,
+
+597
+00:42:36,890 --> 00:42:38,230
+mellomstore eller store.
+
+598
+00:42:38,890 --> 00:42:40,910
+Og så som vi også så i sak 2
+
+599
+00:42:40,910 --> 00:42:42,829
+denne forhøyde forsikringspremien
+
+600
+00:42:42,829 --> 00:42:44,950
+så må jo også megler kjenne
+
+601
+00:42:44,950 --> 00:42:46,430
+forsikringsmarkedet godt
+
+602
+00:42:46,430 --> 00:42:49,090
+til enhver tid. Ikke bare kundens interesse.
+
+603
+00:42:49,950 --> 00:42:50,690
+Og den viser jo også
+
+604
+00:42:50,690 --> 00:42:53,130
+bredden av det man kan potensielt komme i ansvar for.
+
+605
+00:42:54,110 --> 00:42:55,170
+Der var det jo
+
+606
+00:42:55,170 --> 00:42:56,769
+at kundene ikke hadde fått
+
+607
+00:42:56,769 --> 00:42:58,829
+egentlig en god nok pris på sine forsikringer.
+
+608
+00:42:59,650 --> 00:43:01,170
+Men megler må jo balansere
+
+609
+00:43:01,170 --> 00:43:02,789
+mellom det å sørge for at kundene er
+
+610
+00:43:02,789 --> 00:43:04,970
+korrekt forsikret, men heller ikke
+
+611
+00:43:04,970 --> 00:43:07,130
+overforsikret eller dobbelt forsikret.
+
+612
+00:43:07,230 --> 00:43:09,269
+Så det er jo mange nyanser her.
+
+613
+00:43:09,730 --> 00:43:11,130
+Men det begynner med å kjenne kunden sin
+
+614
+00:43:11,130 --> 00:43:12,950
+og sørge for at man alltid opererer i deres
+
+615
+00:43:12,950 --> 00:43:15,190
+beste interesse. Da vil dette
+
+616
+00:43:15,190 --> 00:43:16,869
+ofte falle på plass hvis man har det som
+
+617
+00:43:16,869 --> 00:43:17,650
+grunnprinsipper.
+
+618
+00:43:19,250 --> 00:43:21,390
+Og da er jo også det som er avtalt om oppdraget
+
+619
+00:43:21,390 --> 00:43:22,550
+veldig sentralt.
+
+620
+00:43:23,230 --> 00:43:24,769
+Nå har det jo etter hvert blitt
+
+621
+00:43:24,769 --> 00:43:26,650
+veldig standard at man på
+
+622
+00:43:26,650 --> 00:43:27,769
+de fleste kundforhold har
+
+623
+00:43:27,769 --> 00:43:30,650
+meglerfullmakter, oppdragsavtaler
+
+624
+00:43:30,650 --> 00:43:31,930
+som definerer dette her.
+
+625
+00:43:32,610 --> 00:43:34,670
+Men noen kan jo være ganske bredt
+
+626
+00:43:34,670 --> 00:43:36,430
+anlagt det, mens andre er veldig klart
+
+627
+00:43:36,430 --> 00:43:38,110
+innskrenket og definert det.
+
+628
+00:43:38,829 --> 00:43:40,150
+Og har man en bredt
+
+629
+00:43:40,150 --> 00:43:42,950
+anlagt meglerfullmakt og oppdragsavtale,
+
+630
+00:43:43,829 --> 00:43:44,809
+da kan jo kunden
+
+631
+00:43:44,809 --> 00:43:46,269
+også forvente at man ser
+
+632
+00:43:46,269 --> 00:43:48,650
+alle aspekter av den risikoeksponeringen
+
+633
+00:43:49,329 --> 00:43:49,950
+de kan ha.
+
+634
+00:43:50,730 --> 00:43:52,809
+Så i den grad man ønsker å
+
+635
+00:43:52,809 --> 00:43:55,110
+cappe og begrense ansvaret sitt,
+
+636
+00:43:55,110 --> 00:43:56,590
+så må man i hvert fall være veldig klar
+
+637
+00:43:56,590 --> 00:43:58,590
+på det i de avtalene
+
+638
+00:43:59,150 --> 00:44:00,809
+og fullmaktene man inngår med kunden.
+
+639
+00:44:02,730 --> 00:44:03,690
+Kan man også gjøre
+
+640
+00:44:03,690 --> 00:44:06,030
+etterfølgende korrespondanse med kunden
+
+641
+00:44:06,030 --> 00:44:08,030
+og forklare hvorfor enkelte
+
+642
+00:44:08,030 --> 00:44:09,690
+dekninger ikke er omfattet
+
+643
+00:44:09,690 --> 00:44:11,849
+av forsikringsprogrammet, selv om det er
+
+644
+00:44:11,849 --> 00:44:12,970
+en del av meglemandatet?
+
+645
+00:44:13,309 --> 00:44:14,490
+Det er nok greit med påminnelse også.
+
+646
+00:44:14,930 --> 00:44:15,550
+Det er helt riktig.
+
+647
+00:44:17,490 --> 00:44:19,170
+Og så har vi også sagt at man bør gjøre
+
+648
+00:44:19,170 --> 00:44:21,869
+en årlig gjennomgang, som sagt, både med små og store kunder.
+
+649
+00:44:22,869 --> 00:44:24,329
+Det er en forutsetning
+
+650
+00:44:24,329 --> 00:44:25,950
+for at man har kontroll på endringer
+
+651
+00:44:25,950 --> 00:44:27,210
+som har skjedd hos kunden.
+
+652
+00:44:27,869 --> 00:44:30,690
+Ikke kjøre den litt enkle løsningen
+
+653
+00:44:30,690 --> 00:44:32,690
+og bare kjøre fornyelse år etter år.
+
+654
+00:44:32,690 --> 00:44:35,690
+Da risikerer man at aktuelle risikoer
+
+655
+00:44:35,690 --> 00:44:37,690
+ikke blir fanget opp, eller at man kanskje ikke
+
+656
+00:44:37,690 --> 00:44:40,390
+skaffer kunden de vilkårene og den prisen
+
+657
+00:44:40,390 --> 00:44:42,390
+som de kunne fått ellers.
+
+658
+00:44:44,070 --> 00:44:47,190
+Og så det siste mantraet vi virkelig sitter igjen med
+
+659
+00:44:47,190 --> 00:44:49,190
+etter alle disse dommene er
+
+660
+00:44:49,190 --> 00:44:51,670
+dokumenter, dokumenter, dokumenter.
+
+661
+00:44:51,670 --> 00:44:54,289
+Og når du tror du har dokumentert nok,
+
+662
+00:44:54,289 --> 00:44:55,450
+så dokumenter enda litt til.
+
+663
+00:44:55,450 --> 00:44:57,450
+Fordi det er,
+
+664
+00:44:57,869 --> 00:45:00,869
+helt avgjørende, når ting kommer på spissen spesielt,
+
+665
+00:45:00,869 --> 00:45:03,869
+at man har skriftliggjort den rådgivning man har gitt.
+
+666
+00:45:03,869 --> 00:45:06,869
+Og meglere gir jo i veldig stor utstrekning
+
+667
+00:45:06,869 --> 00:45:09,869
+svært god rådgivning til sine kunder.
+
+668
+00:45:09,869 --> 00:45:11,869
+Men utfordringen er kanskje i større grad
+
+669
+00:45:11,869 --> 00:45:13,869
+at den ikke alltid er dokumentert godt nok.
+

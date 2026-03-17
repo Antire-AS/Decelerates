@@ -1,0 +1,5542 @@
+[
+  {
+    "title": "Introduksjon og Bakgrunn",
+    "description": "Foreleserne introduserer seg selv og deres erfaring i forsikringsbransjen, samt legger vekt på viktigheten av forberedelser før kundemøter.",
+    "start_seconds": 10,
+    "start_time": "00:00:10",
+    "entries": [
+      {
+        "time": "00:00:10",
+        "seconds": 10,
+        "text": "Hei, og velkommen til Forsikringsformidler-skolen, hvor vi i dag skal snakke om behovsanalysen,"
+      },
+      {
+        "time": "00:00:17",
+        "seconds": 17,
+        "text": "som er en helt sentral del av arbeidet til en forsikringsmegler og andre forsikringsformidler også."
+      },
+      {
+        "time": "00:00:25",
+        "seconds": 25,
+        "text": "Jeg heter Lars Foyn, jeg jobber i VTV. Der har jeg jobbet i 12 år, og før det så jobbet jeg 20 år i en sidige."
+      }
+    ]
+  },
+  {
+    "title": "Forstå Kundens Virksomhet",
+    "description": "Diskuterer viktigheten av å forstå kundens bransje og utfordringer, samt å benytte interne ressurser for å få oversikt.",
+    "start_seconds": 33,
+    "start_time": "00:00:33",
+    "entries": [
+      {
+        "time": "00:00:34",
+        "seconds": 34,
+        "text": "Jeg har med meg min veldig gode kollega og erfarne forsikringsmegler, Frode Johansen."
+      },
+      {
+        "time": "00:00:42",
+        "seconds": 42,
+        "text": "Frode, hvor lenge har du vært i bransjen?"
+      },
+      {
+        "time": "00:00:44",
+        "seconds": 44,
+        "text": "Hei, jeg har vært i bransjen, jobbet som megler siden 2005, og startet min karriere i forsikringsbransjen i 1991 også i en sidige."
+      },
+      {
+        "time": "00:00:56",
+        "seconds": 56,
+        "text": "Det vi tenkte vi skulle dele litt erfaring med dere på i dag er, som jeg nevnte,"
+      },
+      {
+        "time": "00:01:06",
+        "seconds": 66,
+        "text": "behovsanalys."
+      },
+      {
+        "time": "00:01:07",
+        "seconds": 67,
+        "text": "Behovsanalysen."
+      },
+      {
+        "time": "00:01:09",
+        "seconds": 69,
+        "text": "Frode, du er jo en veldig erfaren forsikringsmegler og har truffet veldig mange kunder opp gjennom karrieren din."
+      },
+      {
+        "time": "00:01:18",
+        "seconds": 78,
+        "text": "Når du møter en kunde første gang, hvordan forbereder du deg til det møtet,"
+      },
+      {
+        "time": "00:01:24",
+        "seconds": 84,
+        "text": "og hva vil du legge vekt på i et møte med kunden for å gjennomføre en behovsanalyse?"
+      },
+      {
+        "time": "00:01:33",
+        "seconds": 93,
+        "text": "Kunder er jo så mange, og det er klart."
+      },
+      {
+        "time": "00:01:37",
+        "seconds": 97,
+        "text": "Det er klart at snakker vi med Norsk Hydro, så er utgangspunktet litt annerledes enn om vi snakker med en mellommarkedsbedrift i sentrale strøk eller i distriktene."
+      }
+    ]
+  },
+  {
+    "title": "Kontraktskrav og Ansvarsforhold",
+    "description": "Fokuserer på kontraktskrav fra store selskaper, spesielt amerikanske, og hvordan dette påvirker kundens ansvarsforhold og eksponering.",
+    "start_seconds": 112,
+    "start_time": "00:02:12",
+    "entries": [
+      {
+        "time": "00:01:53",
+        "seconds": 113,
+        "text": "Min erfaring er i hovedsak dette mellommarkedet."
+      },
+      {
+        "time": "00:02:00",
+        "seconds": 120,
+        "text": "Jeg jobber som fagansvarlig i VTV for middenmarkedet, som vi kaller det."
+      },
+      {
+        "time": "00:02:04",
+        "seconds": 124,
+        "text": "Så mesteparten av denne seansen vil være basert på middenmarkedt kunder, som er de aller fleste kundene i Norge."
+      },
+      {
+        "time": "00:02:15",
+        "seconds": 135,
+        "text": "De store kundene har mer ressurser, mer kunnskap om dette."
+      },
+      {
+        "time": "00:02:23",
+        "seconds": 143,
+        "text": "Men vi ser kanskje at rådgivningen knyttet til middenmarkedet er veldig viktig, fordi det er komplekse spørsmålstillinger."
+      },
+      {
+        "time": "00:02:33",
+        "seconds": 153,
+        "text": "Man har ikke de samme ressursene."
+      },
+      {
+        "time": "00:02:34",
+        "seconds": 154,
+        "text": "Man har ikke de samme ressursene i de enkelte bedriftene."
+      },
+      {
+        "time": "00:02:38",
+        "seconds": 158,
+        "text": "Jeg starter ofte med å forberede både meg selv og kunden."
+      },
+      {
+        "time": "00:02:45",
+        "seconds": 165,
+        "text": "Det at kunden vet litt hva vi skal gå gjennom i et sånt møte er viktig."
+      },
+      {
+        "time": "00:02:52",
+        "seconds": 172,
+        "text": "Det er ikke sikkert at den vi har kontakt med er den som har den største innsikten i virksomheten,"
+      },
+      {
+        "time": "00:02:59",
+        "seconds": 179,
+        "text": "eller kjenner alle ulike ting om hva som skjer hvor og hva de gjør."
+      }
+    ]
+  },
+  {
+    "title": "BCP-Planer og Risikohåndtering",
+    "description": "Understreker viktigheten av å ha en beredskapsplan (BCP) for å håndtere situasjoner når ting går galt.",
+    "start_seconds": 184,
+    "start_time": "00:03:04",
+    "entries": [
+      {
+        "time": "00:03:04",
+        "seconds": 184,
+        "text": "Så det å få kanskje vår kontaktperson, som kanskje er en økonomisjef, til å tenke litt på hvem som er naturlig å ta med inn i et sånt møte, det er viktig."
+      },
+      {
+        "time": "00:03:19",
+        "seconds": 199,
+        "text": "Det at vi setter oss godt inn i kunden på forhånd, vi ser på kundens nettside,"
+      }
+    ]
+  },
+  {
+    "title": "Beslutningstakere i Forsikringssaker",
+    "description": "Identifiserer typiske beslutningstakere i forsikringssaker, som økonomidirektører eller kontrollører, og deres tilnærming til forsikring.",
+    "start_seconds": 203,
+    "start_time": "00:03:23",
+    "entries": [
+      {
+        "time": "00:03:28",
+        "seconds": 208,
+        "text": "og vi må forstå hvilken bransje de holder på med."
+      },
+      {
+        "time": "00:03:32",
+        "seconds": 212,
+        "text": "Vi må forstå hvilken bransje de holder på med."
+      },
+      {
+        "time": "00:03:33",
+        "seconds": 213,
+        "text": "Vi må forstå hvilken bransje de holder på med."
+      },
+      {
+        "time": "00:03:33",
+        "seconds": 213,
+        "text": "Vi må forstå hvilken bransje de holder på med."
+      },
+      {
+        "time": "00:03:34",
+        "seconds": 214,
+        "text": "Vi må forstå hvilken bransje de holder på med."
+      },
+      {
+        "time": "00:03:34",
+        "seconds": 214,
+        "text": "Hva er utfordringene i denne bransjen?"
+      },
+      {
+        "time": "00:03:38",
+        "seconds": 218,
+        "text": "Og hvis vi ikke kjenner denne bransjen så godt, så tenker jeg det er viktig at man konsulterer en kollega."
+      },
+      {
+        "time": "00:03:48",
+        "seconds": 228,
+        "text": "Snakk med noen som kjenner bransjen godt."
+      },
+      {
+        "time": "00:03:53",
+        "seconds": 233,
+        "text": "Og i hvert fall i de store meglerhusene, så har man gjerne en eller annen som har vært innom de aller fleste bransjer, som man kan trekke litt på."
+      },
+      {
+        "time": "00:04:02",
+        "seconds": 242,
+        "text": "For det er ulike problemstillinger."
+      },
+      {
+        "time": "00:04:03",
+        "seconds": 243,
+        "text": "For det er ulike problemstillinger."
+      },
+      {
+        "time": "00:04:04",
+        "seconds": 244,
+        "text": "Og det at man går inn i møte med litt drådling og erfaringsutveksling sammen med en kollega."
+      },
+      {
+        "time": "00:04:12",
+        "seconds": 252,
+        "text": "Det er viktig, tenker jeg."
+      },
+      {
+        "time": "00:04:16",
+        "seconds": 256,
+        "text": "Hvilke utfordringer er det du møter i disse møtene, Frode?"
+      },
+      {
+        "time": "00:04:21",
+        "seconds": 261,
+        "text": "Jeg har litt erfaring med å jobbe med ganske store bedrifter, og der er det ofte helt egne risk management miljøer,"
+      },
+      {
+        "time": "00:04:28",
+        "seconds": 268,
+        "text": "som har veldig god oversikt over hvilke risikoer de står overfor."
+      },
+      {
+        "time": "00:04:32",
+        "seconds": 272,
+        "text": "Men hvis du jobber med et..."
+      },
+      {
+        "time": "00:04:35",
+        "seconds": 275,
+        "text": "En mekanisk industri, for eksempel, som leverer til offshore prosjekter til skipsindustrien eller til andre krevende..."
+      }
+    ]
+  },
+  {
+    "title": "Profesjonelle Kunder og Bevissthet",
+    "description": "Observerer en økende grad av profesjonalitet og bevissthet hos kunder, spesielt hos nye generasjoner.",
+    "start_seconds": 287,
+    "start_time": "00:04:47",
+    "entries": [
+      {
+        "time": "00:04:47",
+        "seconds": 287,
+        "text": "Altså delleveranser til andre krevende industrier."
+      },
+      {
+        "time": "00:04:49",
+        "seconds": 289,
+        "text": "Hvilke risikoer og hvilke utfordringer er det du ser i møten med disse bedriftene?"
+      },
+      {
+        "time": "00:04:55",
+        "seconds": 295,
+        "text": "Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser"
+      },
+      {
+        "time": "00:05:05",
+        "seconds": 305,
+        "text": "Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser"
+      },
+      {
+        "time": "00:05:06",
+        "seconds": 306,
+        "text": "Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser"
+      },
+      {
+        "time": "00:05:06",
+        "seconds": 306,
+        "text": "og som kanskje leverer globalt, men det er ikke så store bedriftene, de har kanskje 50-100 ansatte og har ikke noe egen legal department, de har veldig ofte god fagkunnskap, god produktkunnskap,"
+      },
+      {
+        "time": "00:05:25",
+        "seconds": 325,
+        "text": "og trenger litt veiledning, for de har komplekse forsikringsutfordringer, mange av disse, og da blir det litt å få inn kontraktene som disse sitter på,"
+      },
+      {
+        "time": "00:05:40",
+        "seconds": 340,
+        "text": "veldig ofte, og det vil også være en del av den forberedelsesfasen, at vi ber kunden sende de vanligste kontraktene som de opererer i innenfor sin bransje,"
+      },
+      {
+        "time": "00:05:50",
+        "seconds": 350,
+        "text": "enten det er offshore-bransjen sine gjensidige skadeslag,"
+      },
+      {
+        "time": "00:05:55",
+        "seconds": 355,
+        "text": "løsholdelsesprinsipper som blir brukt, eller om det er entreprenørbransjen og NS-regime, så det gir på en måte en god inngang til møtet,"
+      }
+    ]
+  },
+  {
+    "title": "Pris vs. Konsekvenser",
+    "description": "Diskuterer balansen mellom pris og konsekvenser ved forsikring, og viktigheten av å vurdere hva som skjer ved manglende dekning.",
+    "start_seconds": 371,
+    "start_time": "00:06:11",
+    "entries": [
+      {
+        "time": "00:06:12",
+        "seconds": 372,
+        "text": "og så ser vi at kontraktskravene som stilles fra en del kanskje store amerikanske selskaper, advokatstandardkontrakten er kanskje skrevet i,"
+      },
+      {
+        "time": "00:06:25",
+        "seconds": 385,
+        "text": "av en Texas-lawyer, og kan være veldig ubalansert."
+      },
+      {
+        "time": "00:06:34",
+        "seconds": 394,
+        "text": "Da blir det litt å jobbe sammen med kunden for å se om dette er en kontrakt som er tilpasset den leveransen som de skal gjøre,"
+      },
+      {
+        "time": "00:06:42",
+        "seconds": 402,
+        "text": "og hvordan kan vi passe på at forsikringen som kunden kan få tegnet i Norge er i overensstemmelse med kontraktskravene."
+      },
+      {
+        "time": "00:06:55",
+        "seconds": 415,
+        "text": "Dette med kontrakter."
+      },
+      {
+        "time": "00:06:57",
+        "seconds": 417,
+        "text": "Er det veldig store variasjoner i hvordan disse kontraktene er utformet, og også der igjennom hvordan kundens ansvarsforhold og ansvarseksponeringer er påvirket?"
+      },
+      {
+        "time": "00:07:11",
+        "seconds": 431,
+        "text": "Vil du si at dette er en veldig viktig del av forberedelsene før et møte?"
+      }
+    ]
+  },
+  {
+    "title": "Forsikringsvilkår og Juridisk Kompetanse",
+    "description": "Understreker viktigheten av å sette seg inn i forsikringsvilkår og avgrense hva man kan bistå med uten juridisk kompetanse.",
+    "start_seconds": 434,
+    "start_time": "00:07:14",
+    "entries": [
+      {
+        "time": "00:07:16",
+        "seconds": 436,
+        "text": "Ja, det er viktig. Vi skal snakke litt om hvordan fastsette forsikringssum på ansvarsforsikringen etterpå."
+      },
+      {
+        "time": "00:07:27",
+        "seconds": 447,
+        "text": "Det er klart at veldig mye av disse, i hvert fall de internasjonale kontraktene, så er det ofte krav om ganske høye forsikringssummer."
+      },
+      {
+        "time": "00:07:41",
+        "seconds": 461,
+        "text": "En bedrift kanskje i Norge som omsetter for 100, 200, 300 millioner, en teknologibedrift, det kan være krevende å kjøpe ansvarsforsikring for veldig store summer."
+      },
+      {
+        "time": "00:07:57",
+        "seconds": 477,
+        "text": "Og kanskje er det ikke relevant. Så det er en viktig del av forberedelsene."
+      }
+    ]
+  },
+  {
+    "title": "Besøk hos Kunden og Observasjon",
+    "description": "Fremhever verdien av å besøke kunden for å observere virksomheten og møte de ansatte.",
+    "start_seconds": 479,
+    "start_time": "00:07:59",
+    "entries": [
+      {
+        "time": "00:08:02",
+        "seconds": 482,
+        "text": "En annen ting som jeg tenkte på når det gjelder det med forberedelsen, det er det med å be om å få overskjent en sånn business continuity plan, eller en beredskapsplan."
+      },
+      {
+        "time": "00:08:19",
+        "seconds": 499,
+        "text": "Hvor vanlig er det at bedriftene har dette litt tilgjengelig, og at de er oppdatert?"
+      }
+    ]
+  },
+  {
+    "title": "Forsikringssummer og Skader",
+    "description": "Forklarer viktigheten av å vurdere passende forsikringssummer basert på potensiell skadeomfang, spesielt i entreprenørbransjen.",
+    "start_seconds": 504,
+    "start_time": "00:08:24",
+    "entries": [
+      {
+        "time": "00:08:24",
+        "seconds": 504,
+        "text": "Det er ganske sjelden at vi får det."
+      },
+      {
+        "time": "00:08:27",
+        "seconds": 507,
+        "text": "På mindre kunder, men også opp i ganske stort segment."
+      },
+      {
+        "time": "00:08:34",
+        "seconds": 514,
+        "text": "For den er jo veldig viktig i forhold til, her tenker jeg fort, tingskadeforsikring og avbrudseksponeringer."
+      },
+      {
+        "time": "00:08:41",
+        "seconds": 521,
+        "text": "Hvordan skal bedriften klare å opprettholde driften etter at en skade har truffet?"
+      },
+      {
+        "time": "00:08:47",
+        "seconds": 527,
+        "text": "Vi ser jo at forsikringsselskapene etter hvert har blitt flinkere til å etterspørre den type dokumentasjon."
+      },
+      {
+        "time": "00:08:54",
+        "seconds": 534,
+        "text": "Men kundene blir ofte litt flakkne i å bli klare."
+      },
+      {
+        "time": "00:08:57",
+        "seconds": 537,
+        "text": "Ikke når vi ber om dette."
+      },
+      {
+        "time": "00:09:00",
+        "seconds": 540,
+        "text": "Er det noe vi hjelper til med å utarbeide en BCP-plan?"
+      },
+      {
+        "time": "00:09:04",
+        "seconds": 544,
+        "text": "Jeg tenker at vi i hvert fall kan være med i prosessen."
+      }
+    ]
+  },
+  {
+    "title": "Kontraktsanalyse og Risiko",
+    "description": "Diskuterer viktigheten av å analysere kontrakter, spesielt leietakeravtaler, for å identifisere risiko og forsikringsbehov.",
+    "start_seconds": 548,
+    "start_time": "00:09:08",
+    "entries": [
+      {
+        "time": "00:09:09",
+        "seconds": 549,
+        "text": "Så er det bedriften som må lage og eie og forstå."
+      },
+      {
+        "time": "00:09:13",
+        "seconds": 553,
+        "text": "Det er de som kjenner sin virksomhet."
+      },
+      {
+        "time": "00:09:15",
+        "seconds": 555,
+        "text": "Men det å få de inn i den tankeprosessen, og at de forstår viktighetene, og har en beredskapsplan."
+      },
+      {
+        "time": "00:09:27",
+        "seconds": 567,
+        "text": "Når alt går gærent, det å ha tenkt igjennom hvordan vi håndterer dette."
+      },
+      {
+        "time": "00:09:34",
+        "seconds": 574,
+        "text": "Hvordan kan vi avbøtte og begrense tapet."
+      },
+      {
+        "time": "00:09:39",
+        "seconds": 579,
+        "text": "Det er viktig, og det er viktig også i neste fase når vi skal ut og presentere denne risikoen for forsikringsmarkedet."
+      },
+      {
+        "time": "00:09:50",
+        "seconds": 590,
+        "text": "Så gir det en god tillit til underreiterne."
+      },
+      {
+        "time": "00:09:55",
+        "seconds": 595,
+        "text": "På at dette er en bedrift som ..."
+      },
+      {
+        "time": "00:09:57",
+        "seconds": 597,
+        "text": "... har forstått viktigheten."
+      },
+      {
+        "time": "00:10:00",
+        "seconds": 600,
+        "text": "og ha kontroll på risiko, så som regel så får vi ikke noe overskjent,"
+      },
+      {
+        "time": "00:10:08",
+        "seconds": 608,
+        "text": "men det setter i gang en prosess som vi kan bygge videre på gjennom relasjonen og kundforholdet."
+      },
+      {
+        "time": "00:10:14",
+        "seconds": 614,
+        "text": "Du var inne på dette med hvem du ønsker å møte i disse første møtene du har med en ny kunde,"
+      },
+      {
+        "time": "00:10:22",
+        "seconds": 622,
+        "text": "en ny bedrift, en ny virksomhet, Frode."
+      },
+      {
+        "time": "00:10:23",
+        "seconds": 623,
+        "text": "For det er jo ofte en økonomidirektør eller en kontroller kanskje som sitter med forsikringsansvaret,"
+      },
+      {
+        "time": "00:10:31",
+        "seconds": 631,
+        "text": "men de har vel ikke alltid full oversikt over hvilke eksponeringer og risikoer og farer en bedrift står overfor."
+      }
+    ]
+  },
+  {
+    "title": "Forsikring av Maskiner og Inventar",
+    "description": "Diskuterer klassifiseringen av maskiner og inventar som enten bygning eller løsøre, og hvordan dette påvirker forsikringsdekningen.",
+    "start_seconds": 638,
+    "start_time": "01:05:38",
+    "entries": [
+      {
+        "time": "00:10:40",
+        "seconds": 640,
+        "text": "Hvem er det du foretrekker å snakke med i en sånn behovskartleggingsfase utover økonomiansvarlig bedriften?"
+      },
+      {
+        "time": "00:10:50",
+        "seconds": 650,
+        "text": "Hvis vi kan få med compliance-delen."
+      },
+      {
+        "time": "00:10:55",
+        "seconds": 655,
+        "text": "Ja, bedriften, så er det veldig nyttig, men ofte så har de jo ikke noe egen compliance-ressurs."
+      },
+      {
+        "time": "00:11:02",
+        "seconds": 662,
+        "text": "Det er ofte noe de kjøper i en case-by-case og etter behov."
+      },
+      {
+        "time": "00:11:07",
+        "seconds": 667,
+        "text": "Så min erfaring er at det å få de operasjonelle lederne inn i en sånn diskusjon er viktig."
+      },
+      {
+        "time": "00:11:19",
+        "seconds": 679,
+        "text": "Platssjefer kan være de som..."
+      },
+      {
+        "time": "00:11:25",
+        "seconds": 685,
+        "text": "Som har ansvar for ulike produkter eller ulike markedssegmenter, som kan fortelle litt om sine leveranser."
+      },
+      {
+        "time": "00:11:32",
+        "seconds": 692,
+        "text": "Så mest mulig operasjonelle folk inn som kjenner sine markeder og sine produkter."
+      }
+    ]
+  },
+  {
+    "title": "Pandemi og Eksterne Faktorer",
+    "description": "Ser på hvordan pandemier og andre eksterne faktorer, som Suezkanalen-hendelsen, påvirker forsikringsbehovet og drift.",
+    "start_seconds": 696,
+    "start_time": "01:11:36",
+    "entries": [
+      {
+        "time": "00:11:39",
+        "seconds": 699,
+        "text": "Som kjenner risikoen på kroppen, som er ute i virksomheten hver dag og ser hva som kan oppstå."
+      },
+      {
+        "time": "00:11:49",
+        "seconds": 709,
+        "text": "Og også som vet på en måte hele spennende..."
+      },
+      {
+        "time": "00:11:55",
+        "seconds": 715,
+        "text": "I leveransen som kanskje både er en produktleveranse, det er kanskje en testing-kommisjoning og det er kanskje en ren tjenesteleveranse kombinert med hele kjeden av leveranser."
+      },
+      {
+        "time": "00:12:11",
+        "seconds": 731,
+        "text": "Vi har et spørsmål fra salen her som går på hvordan vi som forsikringsrådgivere blir møtt i bedriften første gang vi møter dem."
+      },
+      {
+        "time": "00:12:33",
+        "seconds": 753,
+        "text": "Og det er et veldig interessant spørsmål, for det er veldig varierende."
+      }
+    ]
+  },
+  {
+    "title": "Dokumentasjon og Kvalitetssikring",
+    "description": "Understreker viktigheten av å dokumentere forsikringsbehovet og kvalitetssikre avtalene, samt diskutere case med kollegaer.",
+    "start_seconds": 754,
+    "start_time": "01:25:14",
+    "entries": [
+      {
+        "time": "00:12:38",
+        "seconds": 758,
+        "text": "Noen ganger så møtes vi av kunder som rett og slett ønsker å kjøpe en billig løsning på et kontraktsproblem, for eksempel."
+      },
+      {
+        "time": "00:12:48",
+        "seconds": 768,
+        "text": "Andre ganger så er det en veldig holistisk tilnærming hvor de kanskje har fått en ny økonomi ansvarlig i bedriften som ønsker nå å ta fatt i forsikring."
+      },
+      {
+        "time": "00:12:59",
+        "seconds": 779,
+        "text": "Og ser at det er et viktig element for en forsvarlig drift fremover."
+      },
+      {
+        "time": "00:13:03",
+        "seconds": 783,
+        "text": "Dette varierer veldig, og det gjør jo hverdagen til en forsikringsmegler også veldig interessant, fordi du må tilpasse deg forskjellige kunder hele tiden."
+      },
+      {
+        "time": "00:13:15",
+        "seconds": 795,
+        "text": "Jeg vil si at det er blitt en betydelig profesjonalisering hos kundene de siste fem til ti årene."
+      },
+      {
+        "time": "00:13:23",
+        "seconds": 803,
+        "text": "Jeg synes vi møter langt mer profesjonelle mennesker i dag, og det er veldig gledelig å se når det kommer inn nye generasjoner, hvor bevisste de er."
+      },
+      {
+        "time": "00:13:33",
+        "seconds": 813,
+        "text": "Og hvor profesjonelle de er i tilnærming til risiko og forsikring."
+      },
+      {
+        "time": "00:13:39",
+        "seconds": 819,
+        "text": "Det er min erfaring, Frode. Hvordan opplever du det?"
+      },
+      {
+        "time": "00:13:42",
+        "seconds": 822,
+        "text": "Min erfaring er kanskje ikke så positiv med tanke på akkurat forståelsen og dette med å ha et bevisst forhold til risiko og risikoakseptanse."
+      }
+    ]
+  },
+  {
+    "title": "Avslutning og Oppsummering",
+    "description": "Oppsummerer forelesningens hovedpunkter og gir råd for å avdekke forsikringsbehovet og sikre gode forsikringsavtaler.",
+    "start_seconds": 831,
+    "start_time": "01:33:51",
+    "entries": [
+      {
+        "time": "00:13:56",
+        "seconds": 836,
+        "text": "Vi må jo være kjennende at vi leverer kanskje eller jobber innenfor et litt sånn lavinteresseprodukt."
+      },
+      {
+        "time": "00:14:07",
+        "seconds": 847,
+        "text": "Det er jo når det går gærent at dette skal virke, og stort sett så går det jo heldigvis bra."
+      },
+      {
+        "time": "00:14:15",
+        "seconds": 855,
+        "text": "Så de fleste får jo ikke testet ut at dette faktisk virker sånn som de hadde tenkt."
+      },
+      {
+        "time": "00:14:22",
+        "seconds": 862,
+        "text": "Men hos de som har prøvd en skade, jeg pleier å si til kunderne,"
+      },
+      {
+        "time": "00:14:26",
+        "seconds": 866,
+        "text": "hvis du synes at forsikring er dyrt, så skal du prøve en skade."
+      },
+      {
+        "time": "00:14:31",
+        "seconds": 871,
+        "text": "Og det er noe med at man får en forståelse av viktigheten av at forsikringene er korrekt."
+      },
+      {
+        "time": "00:14:43",
+        "seconds": 883,
+        "text": "Hvis vi ser på pris og prissensivitet og dette med at det skal være rimelig,"
+      },
+      {
+        "time": "00:14:49",
+        "seconds": 889,
+        "text": "ja, vårt oppdrag er jo å skaffe den beste prisen for den risikoavlastningen som kunden skal."
+      },
+      {
+        "time": "00:14:56",
+        "seconds": 896,
+        "text": "Men det viktigste, når jeg treffer mine kunder, så sier jeg at det jeg driver med er risikoavlastning."
+      },
+      {
+        "time": "00:15:06",
+        "seconds": 906,
+        "text": "Jeg er en rådgiver innen risikoavlastning."
+      },
+      {
+        "time": "00:15:09",
+        "seconds": 909,
+        "text": "Og det å finne eller få kunden til å forstå viktighetene og ha en riktig dekning,"
+      },
+      {
+        "time": "00:15:21",
+        "seconds": 921,
+        "text": "da må vi prøve oss å se på konsekvensene av,"
+      },
+      {
+        "time": "00:15:26",
+        "seconds": 926,
+        "text": "hva kan skje når det er feil?"
+      },
+      {
+        "time": "00:15:30",
+        "seconds": 930,
+        "text": "Når du mangler 2 millioner kroner i et erstatningsoppgjør for en mellomstor bedrift,"
+      },
+      {
+        "time": "00:15:39",
+        "seconds": 939,
+        "text": "så er det kanskje kroken på døra."
+      },
+      {
+        "time": "00:15:41",
+        "seconds": 941,
+        "text": "Og hva hvis det mangler 10 millioner?"
+      },
+      {
+        "time": "00:15:43",
+        "seconds": 943,
+        "text": "Hva hvis det mangler 50 millioner?"
+      },
+      {
+        "time": "00:15:47",
+        "seconds": 947,
+        "text": "Da blir det på en måte om det koster 500 000, 700 000 eller 800 000 ikke så viktig."
+      },
+      {
+        "time": "00:15:55",
+        "seconds": 955,
+        "text": "Så det er på en måte..."
+      },
+      {
+        "time": "00:15:56",
+        "seconds": 956,
+        "text": "Mitt utgangspunkt nr. 1, det er å få denne forståelsen av konsekvensene hvis det er feil."
+      },
+      {
+        "time": "00:16:04",
+        "seconds": 964,
+        "text": "Fordi en kunde opplever kanskje bare en skade eller kanskje ingen skade i løpet av sitt liv,"
+      },
+      {
+        "time": "00:16:11",
+        "seconds": 971,
+        "text": "i hvert fall av de store skadene som er vitale."
+      },
+      {
+        "time": "00:16:15",
+        "seconds": 975,
+        "text": "Mens vi ser jo at skadene hender, og de hender litt, de skjer jo litt random."
+      },
+      {
+        "time": "00:16:23",
+        "seconds": 983,
+        "text": "Jeg har bare lyst til å knytte en kommentar til til det,"
+      },
+      {
+        "time": "00:16:25",
+        "seconds": 985,
+        "text": "og da er det utrolig viktig,"
+      },
+      {
+        "time": "00:16:26",
+        "seconds": 986,
+        "text": "at vi som forsikringsrådgivere, forsikringsmeglere har god vilkårsforståelse,"
+      },
+      {
+        "time": "00:16:32",
+        "seconds": 992,
+        "text": "tar oss tid til å sette oss inn i forsikringsvilkårene som vil gjelde."
+      },
+      {
+        "time": "00:16:36",
+        "seconds": 996,
+        "text": "Fordi det er veldig store forskjeller i de vilkårene som er ute og gå,"
+      },
+      {
+        "time": "00:16:42",
+        "seconds": 1002,
+        "text": "som kan ha voldsomme konsekvenser for et skadeoppgjør, dersom det inntreffer."
+      },
+      {
+        "time": "00:16:56",
+        "seconds": 1016,
+        "text": "Da ser jeg der et spørsmål til fra salen her, Frode."
+      },
+      {
+        "time": "00:16:59",
+        "seconds": 1019,
+        "text": "Jeg lurer på om du skal svare på det."
+      },
+      {
+        "time": "00:17:00",
+        "seconds": 1020,
+        "text": "Det jeg oppfatter er at det spøres om her,"
+      },
+      {
+        "time": "00:17:04",
+        "seconds": 1024,
+        "text": "at man oppfatter at det er kompliserte kontrakter som krever mye juridisk kompetanse."
+      },
+      {
+        "time": "00:17:12",
+        "seconds": 1032,
+        "text": "Og spørsmålet er da hvordan tilnærmer vi oss den problematikken i forhold til juridiske utfordringer."
+      },
+      {
+        "time": "00:17:19",
+        "seconds": 1039,
+        "text": "Hvordan gjør du det i ditt daglige virke?"
+      },
+      {
+        "time": "00:17:22",
+        "seconds": 1042,
+        "text": "Ja, og jeg er jo ikke jurist."
+      },
+      {
+        "time": "00:17:27",
+        "seconds": 1047,
+        "text": "Vi, i vårt selskap, vi har"
+      },
+      {
+        "time": "00:17:33",
+        "seconds": 1053,
+        "text": "mye juridiske ressurser internt hos oss,"
+      },
+      {
+        "time": "00:17:38",
+        "seconds": 1058,
+        "text": "som vi har tilgang til."
+      },
+      {
+        "time": "00:17:40",
+        "seconds": 1060,
+        "text": "De fleste menglerhusene har nok det."
+      },
+      {
+        "time": "00:17:42",
+        "seconds": 1062,
+        "text": "Og så har jo også selskapene en viss juridisk kompetanse,"
+      },
+      {
+        "time": "00:17:49",
+        "seconds": 1069,
+        "text": "som det går an å trekke litt på."
+      },
+      {
+        "time": "00:17:53",
+        "seconds": 1073,
+        "text": "Og så er det en del spørsmål som jeg vil si som er,"
+      },
+      {
+        "time": "00:17:59",
+        "seconds": 1079,
+        "text": "la oss si,"
+      },
+      {
+        "time": "00:18:01",
+        "seconds": 1081,
+        "text": "som går igjen,"
+      },
+      {
+        "time": "00:18:03",
+        "seconds": 1083,
+        "text": "det er en del ting,"
+      },
+      {
+        "time": "00:18:05",
+        "seconds": 1085,
+        "text": "som når man har vært gjennom disse,"
+      },
+      {
+        "time": "00:18:07",
+        "seconds": 1087,
+        "text": "hva skal vi si,"
+      },
+      {
+        "time": "00:18:09",
+        "seconds": 1089,
+        "text": "det å kanskje spesialisere seg litt innenfor visse bransjer,"
+      },
+      {
+        "time": "00:18:11",
+        "seconds": 1091,
+        "text": "det gjør at man kjenner igjen problemstillinger i kontrakter som kommer opp,"
+      },
+      {
+        "time": "00:18:17",
+        "seconds": 1097,
+        "text": "og man kan svare på forholdsvis kompliserte kontrakter,"
+      },
+      {
+        "time": "00:18:23",
+        "seconds": 1103,
+        "text": "uten nødvendigvis å ha en juridisk kompetanse."
+      },
+      {
+        "time": "00:18:26",
+        "seconds": 1106,
+        "text": "Men det er viktig å avgrense vår rådgivning,"
+      },
+      {
+        "time": "00:18:30",
+        "seconds": 1110,
+        "text": "fordi vi er forsikringsformidler."
+      },
+      {
+        "time": "00:18:32",
+        "seconds": 1112,
+        "text": "Og vår konsursjon er ikke kontraktsrett,"
+      },
+      {
+        "time": "00:18:40",
+        "seconds": 1120,
+        "text": "eller å yte advokatjeneste for kundene."
+      },
+      {
+        "time": "00:18:44",
+        "seconds": 1124,
+        "text": "Så det er en viktig avgrensning å gjøre sammen med kunden,"
+      },
+      {
+        "time": "00:18:48",
+        "seconds": 1128,
+        "text": "at det vi kan rådgive på er knyttet til risikoavlastningen,"
+      },
+      {
+        "time": "00:18:52",
+        "seconds": 1132,
+        "text": "og risikoallokeringen i kontrakten,"
+      },
+      {
+        "time": "00:18:56",
+        "seconds": 1136,
+        "text": "og hvordan vi løser det forsikringsmessig."
+      },
+      {
+        "time": "00:18:58",
+        "seconds": 1138,
+        "text": "Juridisk bistand som sånn,"
+      },
+      {
+        "time": "00:19:00",
+        "seconds": 1140,
+        "text": "det driver vi ikke med,"
+      },
+      {
+        "time": "00:19:02",
+        "seconds": 1142,
+        "text": "men vi har juridisk kompetanse i vårt selskap,"
+      },
+      {
+        "time": "00:19:06",
+        "seconds": 1146,
+        "text": "i forhold til den rådgivningen vi skal gjøre,"
+      },
+      {
+        "time": "00:19:10",
+        "seconds": 1150,
+        "text": "når det gjelder kontrakter sett opp mot lovverk."
+      },
+      {
+        "time": "00:19:14",
+        "seconds": 1154,
+        "text": "Og det tror vi er veldig viktig,"
+      },
+      {
+        "time": "00:19:16",
+        "seconds": 1156,
+        "text": "å ha en god kompetanse i bunn,"
+      },
+      {
+        "time": "00:19:18",
+        "seconds": 1158,
+        "text": "for å kunne gi en trygg rådgivning til kundene våre."
+      },
+      {
+        "time": "00:19:22",
+        "seconds": 1162,
+        "text": "At vi har med oss den kompetansen."
+      },
+      {
+        "time": "00:19:24",
+        "seconds": 1164,
+        "text": "Jeg har lyst å knytte et punkt til,"
+      },
+      {
+        "time": "00:19:26",
+        "seconds": 1166,
+        "text": "fordi vi ser jo av og til at kontrakter,"
+      },
+      {
+        "time": "00:19:28",
+        "seconds": 1168,
+        "text": "benyttes i bransjer som kan gi kundene en ganske stor utfordring,"
+      },
+      {
+        "time": "00:19:39",
+        "seconds": 1179,
+        "text": "uten at man kanskje er klar over det."
+      },
+      {
+        "time": "00:19:41",
+        "seconds": 1181,
+        "text": "Vi har visse bransjeorganisasjoner,"
+      },
+      {
+        "time": "00:19:46",
+        "seconds": 1186,
+        "text": "for eksempel i NOO,"
+      },
+      {
+        "time": "00:19:51",
+        "seconds": 1191,
+        "text": "bistår jo en del av medlemmene sine i å utforme kontrakter."
+      },
+      {
+        "time": "00:19:56",
+        "seconds": 1196,
+        "text": "Vi har sett eksempler som"
+      },
+      {
+        "time": "00:20:00",
+        "seconds": 1200,
+        "text": "på kontrakter som er innenfor entreprenørbransjen som går helt på tvers av NS-regime."
+      },
+      {
+        "time": "00:20:08",
+        "seconds": 1208,
+        "text": "NS-regime er et veldig omforent kontraktsystem for byggebransjen i Norge."
+      },
+      {
+        "time": "00:20:17",
+        "seconds": 1217,
+        "text": "Det er kjent av forsikringsselskapene, det er kjent av entreprenørene og leverandørene,"
+      },
+      {
+        "time": "00:20:23",
+        "seconds": 1223,
+        "text": "og man har bygget av forsikringsprodukter knyttet opp mot kontraktsforpliktelsene."
+      },
+      {
+        "time": "00:20:32",
+        "seconds": 1232,
+        "text": "Så hele forsikringsproduktet i Norge er bygd litt rundt dette kontraktregimeet."
+      },
+      {
+        "time": "00:20:41",
+        "seconds": 1241,
+        "text": "Når vi da ser kontrakter som går helt på tvers av dette, da må vi vifte med det røde flagget."
+      },
+      {
+        "time": "00:20:52",
+        "seconds": 1252,
+        "text": "Og, altså, det er ikke så mye vi kan gjøre. Det er ikke så mye vi kan gjøre. Det er ikke så mye vi kan gjøre."
+      },
+      {
+        "time": "00:20:53",
+        "seconds": 1253,
+        "text": "Vi må adressere de problemstillingene. Vi har sett kontrakter som for eksempel for tekkerbransjen som …"
+      },
+      {
+        "time": "00:21:04",
+        "seconds": 1264,
+        "text": "Tekkerbransjen, er det taktekkeret du tenker på?"
+      },
+      {
+        "time": "00:21:06",
+        "seconds": 1266,
+        "text": "Taktekkerbransjen som da unntar seg ansvar, og som fraskriver seg ansvar, og som heller ikke forsikrer kontraktsarbeidet,"
+      },
+      {
+        "time": "00:21:18",
+        "seconds": 1278,
+        "text": "eller som forutsetter at kundene har forsikret kontraktsarbeidet."
+      },
+      {
+        "time": "00:21:22",
+        "seconds": 1282,
+        "text": "Og vi har Sperl og Pynt-foreningen, som er av en sånn karakter at de anser at de jobber under instruks,"
+      },
+      {
+        "time": "00:21:33",
+        "seconds": 1293,
+        "text": "og de gjør det jo for så vidt, både fra instrukset fra rådgiveren og instrukset fra totale entreprenøren,"
+      },
+      {
+        "time": "00:21:39",
+        "seconds": 1299,
+        "text": "men har selvfølgelig sitt eget selvstendig ansvar for det de gjør. Og disse kontraktsbestemmelsene, eller det at man unntar seg for ansvar,"
+      },
+      {
+        "time": "00:21:48",
+        "seconds": 1308,
+        "text": "de er jo da i motstrid med det vi gjør."
+      },
+      {
+        "time": "00:21:51",
+        "seconds": 1311,
+        "text": "De er jo da i motstrid med en del av forutsetningene i NS-regime."
+      },
+      {
+        "time": "00:21:54",
+        "seconds": 1314,
+        "text": "Og løsningen på det, det er flere veier til rom, men en løsning kan jo være å regulere hvilken kontrakt som har forrang for den andre,"
+      },
+      {
+        "time": "00:22:13",
+        "seconds": 1333,
+        "text": "sånn at man får avklart spørsmålet der."
+      },
+      {
+        "time": "00:22:16",
+        "seconds": 1336,
+        "text": "Og man bør nok også adressere forsikringsgiver."
+      },
+      {
+        "time": "00:22:21",
+        "seconds": 1341,
+        "text": "Når man opplever at man har denne type divergens- eller kontraktstyper."
+      },
+      {
+        "time": "00:22:29",
+        "seconds": 1349,
+        "text": "Og så er det vel også viktig, Frode, å ha nok juridisk kompetanse med seg, enten selv eller med kollegaer,"
+      },
+      {
+        "time": "00:22:37",
+        "seconds": 1357,
+        "text": "til å forstå at det er ikke alt ansvar du heller kan avtale deg vekk ifra, for eksempel overfor tredjemenn."
+      },
+      {
+        "time": "00:22:44",
+        "seconds": 1364,
+        "text": "Så til spørsmålet overfor salen her, juridisk kompetanse er grunnleggende i det vi gjør."
+      },
+      {
+        "time": "00:22:51",
+        "seconds": 1371,
+        "text": "Men det må ikke nødvendigvis være den enkelte forsikringsmegleren som har det."
+      },
+      {
+        "time": "00:22:56",
+        "seconds": 1376,
+        "text": "Men han må ha en god forståelse med seg, gjerne basert på interne ressurser som man kan samarbeide med."
+      },
+      {
+        "time": "00:23:04",
+        "seconds": 1384,
+        "text": "Nå har vi jo vært litt grundig innom hvilke forberedelser som skal gjennomføres før vi møter en kunde første gang."
+      },
+      {
+        "time": "00:24:05",
+        "seconds": 1445,
+        "text": "Det er alltid litt spennende, det kiler litt i magen når vi gjør det."
+      },
+      {
+        "time": "00:24:08",
+        "seconds": 1448,
+        "text": "Hvem er det vi treffer?"
+      },
+      {
+        "time": "00:24:10",
+        "seconds": 1450,
+        "text": "Og da, Frode, når du reiser ut til Grønland."
+      },
+      {
+        "time": "00:24:12",
+        "seconds": 1452,
+        "text": "Du reiser ut til kunden for første gang, parkerer bilen, og slipset har vi jo lagt fra oss nå."
+      },
+      {
+        "time": "00:24:18",
+        "seconds": 1458,
+        "text": "Men skjorta er pen og sveisten er fin når du møter kunden."
+      },
+      {
+        "time": "00:24:21",
+        "seconds": 1461,
+        "text": "Hvordan er det du starter dette møtet?"
+      },
+      {
+        "time": "00:24:24",
+        "seconds": 1464,
+        "text": "Hvordan er det du legger opp en sånn samtale, et møte med kunden?"
+      },
+      {
+        "time": "00:24:29",
+        "seconds": 1469,
+        "text": "Har du tid til å fortelle oss litt om det?"
+      },
+      {
+        "time": "00:24:32",
+        "seconds": 1472,
+        "text": "Vi er jo nå ferdig med korona."
+      },
+      {
+        "time": "00:24:37",
+        "seconds": 1477,
+        "text": "Etter korona så ser vi jo at antall møter har avtatt."
+      },
+      {
+        "time": "00:24:41",
+        "seconds": 1481,
+        "text": "Vi kjører flere teamsmøter."
+      },
+      {
+        "time": "00:24:45",
+        "seconds": 1485,
+        "text": "Og det vil jeg anbefale de fleste å være litt forsiktig med når vi ser på et førstegangsmøte med kunden."
+      },
+      {
+        "time": "00:24:57",
+        "seconds": 1497,
+        "text": "Eller det at du skal forstå virksomheten godt."
+      },
+      {
+        "time": "00:24:59",
+        "seconds": 1499,
+        "text": "Fordi det er noe med å komme ut på plassen og se hva som er der."
+      },
+      {
+        "time": "00:25:05",
+        "seconds": 1505,
+        "text": "Er det ting ute? Er det ting inne?"
+      },
+      {
+        "time": "00:25:09",
+        "seconds": 1509,
+        "text": "Hva skal forsikres?"
+      },
+      {
+        "time": "00:25:11",
+        "seconds": 1511,
+        "text": "Det gir i hvert fall meg en mye bedre, mye større trygghet."
+      },
+      {
+        "time": "00:25:17",
+        "seconds": 1517,
+        "text": "Du ser virksomheten, får et inntrykk av virksomheten."
+      },
+      {
+        "time": "00:25:19",
+        "seconds": 1519,
+        "text": "Du møter menneskene."
+      },
+      {
+        "time": "00:25:21",
+        "seconds": 1521,
+        "text": "Ja, og du får også..."
+      },
+      {
+        "time": "00:25:23",
+        "seconds": 1523,
+        "text": "Vi skal jo formidle dette videre til en underwriter som skal prise dette."
+      },
+      {
+        "time": "00:25:27",
+        "seconds": 1527,
+        "text": "Og hvis ikke vi har vært det, så er det vanskelig."
+      },
+      {
+        "time": "00:25:33",
+        "seconds": 1533,
+        "text": "Vi skal si noe om systemen her."
+      },
+      {
+        "time": "00:25:38",
+        "seconds": 1538,
+        "text": "Hvordan systemen er."
+      },
+      {
+        "time": "00:25:40",
+        "seconds": 1540,
+        "text": "Vi skal beskrive risikoen."
+      },
+      {
+        "time": "00:25:42",
+        "seconds": 1542,
+        "text": "Det er krevende å gjøre det hvis ikke du har vært der."
+      },
+      {
+        "time": "00:25:48",
+        "seconds": 1548,
+        "text": "Det er vel nesten umulig."
+      },
+      {
+        "time": "00:25:50",
+        "seconds": 1550,
+        "text": "Men så er det klart at er det enkelte, kanskje mer sånn financial lines baserte risiker som skal plasseres,"
+      },
+      {
+        "time": "00:26:00",
+        "seconds": 1560,
+        "text": "så kan man ha en annen tilnærming."
+      },
+      {
+        "time": "00:26:02",
+        "seconds": 1562,
+        "text": "Men snakker vi property, da må vi ut og snakker vi i hvert fall produksjon."
+      },
+      {
+        "time": "00:26:08",
+        "seconds": 1568,
+        "text": "Da må vi ut."
+      },
+      {
+        "time": "00:26:10",
+        "seconds": 1570,
+        "text": "En del megleforetak har risikoingeniører som gjør surveys."
+      },
+      {
+        "time": "00:26:20",
+        "seconds": 1580,
+        "text": "Vi har heldigvis det i VTV."
+      },
+      {
+        "time": "00:26:22",
+        "seconds": 1582,
+        "text": "Og det er en veldig bra ressurs å bringe inn."
+      },
+      {
+        "time": "00:26:26",
+        "seconds": 1586,
+        "text": "Da får man veldig god teknisk informasjon om risikoen som kan presenteres til underwriter."
+      },
+      {
+        "time": "00:26:36",
+        "seconds": 1596,
+        "text": "Det er en ressurs du kanskje setter på etter de første møtene."
+      },
+      {
+        "time": "00:26:40",
+        "seconds": 1600,
+        "text": "Hvordan risikoingeniøren gjør en solid gjennomgang og lager en risikobeskrivelse for bruk i forsikringsmarkedet."
+      },
+      {
+        "time": "00:26:48",
+        "seconds": 1608,
+        "text": "Du har vel ikke med deg han eller hun i de første møtene med kunden?"
+      },
+      {
+        "time": "00:26:50",
+        "seconds": 1610,
+        "text": "Nei."
+      },
+      {
+        "time": "00:26:52",
+        "seconds": 1612,
+        "text": "Vi er jo født med to ører og én munn."
+      },
+      {
+        "time": "00:26:58",
+        "seconds": 1618,
+        "text": "Jeg tenker at det er en grunn til det ofte."
+      },
+      {
+        "time": "00:27:02",
+        "seconds": 1622,
+        "text": "Det å stille spørsmål."
+      },
+      {
+        "time": "00:27:04",
+        "seconds": 1624,
+        "text": "Å høre hva kunden sier."
+      },
+      {
+        "time": "00:27:06",
+        "seconds": 1626,
+        "text": "Det er viktig."
+      },
+      {
+        "time": "00:27:10",
+        "seconds": 1630,
+        "text": "Det å kanskje utfordre kunden litt."
+      },
+      {
+        "time": "00:27:14",
+        "seconds": 1634,
+        "text": "Jeg tror kunden liker det."
+      },
+      {
+        "time": "00:27:20",
+        "seconds": 1640,
+        "text": "Det å levere litt bedre enn bare en forsikring."
+      },
+      {
+        "time": "00:27:26",
+        "seconds": 1646,
+        "text": "Det tror jeg er noe som blir et konkurransefortrykk fremover i vår bransje."
+      },
+      {
+        "time": "00:27:34",
+        "seconds": 1654,
+        "text": "Jeg tror at folk liker å bli utfordret."
+      },
+      {
+        "time": "00:27:42",
+        "seconds": 1662,
+        "text": "Tar du utgangspunkt, Frode, i forsikringsproduktene som er tilgjengelige?"
+      },
+      {
+        "time": "00:27:46",
+        "seconds": 1666,
+        "text": "Om det er ansvarsforsikring, styreansvar, transportforsikring, tingsskade og avbrusforsikringer?"
+      },
+      {
+        "time": "00:27:53",
+        "seconds": 1673,
+        "text": "Eller tar du utgangspunkt i bedriften som sånn når du gjennomfører disse samtalene?"
+      },
+      {
+        "time": "00:27:58",
+        "seconds": 1678,
+        "text": "Det er vel litt tilbake til behovsanalysen igjen."
+      },
+      {
+        "time": "00:28:02",
+        "seconds": 1682,
+        "text": "Og dette med verden."
+      },
+      {
+        "time": "00:28:04",
+        "seconds": 1684,
+        "text": "Hvilket verktøy har vi å bruke?"
+      },
+      {
+        "time": "00:28:09",
+        "seconds": 1689,
+        "text": "Jeg har sett ulike modeller opp gjennom årene."
+      },
+      {
+        "time": "00:28:17",
+        "seconds": 1697,
+        "text": "I en CD hadde vi for mange år siden en sånn ..."
+      },
+      {
+        "time": "00:28:21",
+        "seconds": 1701,
+        "text": "Jeg husker den. Den malen. Blankettnummer et eller annet."
+      },
+      {
+        "time": "00:28:25",
+        "seconds": 1705,
+        "text": "Det var mye bra i den fordi man fikk en slags huskeliste."
+      },
+      {
+        "time": "00:28:31",
+        "seconds": 1711,
+        "text": "Den var forholdsvis produktorientert."
+      },
+      {
+        "time": "00:28:33",
+        "seconds": 1713,
+        "text": "Men det var litt sånn ja og nei. Hva er valgt og hva er ikke valgt?"
+      },
+      {
+        "time": "00:28:38",
+        "seconds": 1718,
+        "text": "Og det er en veldig god metode å bruke."
+      },
+      {
+        "time": "00:28:43",
+        "seconds": 1723,
+        "text": "Vi har prøvd. Jeg har prøvd å lage et verktøy."
+      },
+      {
+        "time": "00:28:46",
+        "seconds": 1726,
+        "text": "Men jeg har gitt opp litt."
+      },
+      {
+        "time": "00:28:50",
+        "seconds": 1730,
+        "text": "Fordi virksomhetene er så ulike."
+      },
+      {
+        "time": "00:28:55",
+        "seconds": 1735,
+        "text": "Og et sånt verktøy blir veldig schematisk."
+      },
+      {
+        "time": "00:29:01",
+        "seconds": 1741,
+        "text": "Og det flyter."
+      },
+      {
+        "time": "00:29:02",
+        "seconds": 1742,
+        "text": "Det er ikke for dårlig."
+      },
+      {
+        "time": "00:29:04",
+        "seconds": 1744,
+        "text": "Men det er kanskje fordi du har veldig lang erfaring."
+      },
+      {
+        "time": "00:29:07",
+        "seconds": 1747,
+        "text": "Du har god trening i dette."
+      },
+      {
+        "time": "00:29:09",
+        "seconds": 1749,
+        "text": "For en som er nyere. Ikke har den lange erfaringen du har."
+      },
+      {
+        "time": "00:29:13",
+        "seconds": 1753,
+        "text": "Kan det kanskje være lurt å ha en god forberedelse med seg?"
+      },
+      {
+        "time": "00:29:16",
+        "seconds": 1756,
+        "text": "Og trene på hvordan man skal gjennomføre et sånt møte?"
+      },
+      {
+        "time": "00:29:20",
+        "seconds": 1760,
+        "text": "Absolutt."
+      },
+      {
+        "time": "00:29:22",
+        "seconds": 1762,
+        "text": "Vi var innom det så vidt innledningsvis."
+      },
+      {
+        "time": "00:29:26",
+        "seconds": 1766,
+        "text": "Vi som forsikringsmeglere må kjenne noe til den bransjen som ..."
+      },
+      {
+        "time": "00:29:30",
+        "seconds": 1770,
+        "text": "Noe til den bransjen som kunden opererer innenfor."
+      },
+      {
+        "time": "00:29:35",
+        "seconds": 1775,
+        "text": "Og gjør vi ikke det så må vi finne noen som kan det."
+      },
+      {
+        "time": "00:29:39",
+        "seconds": 1779,
+        "text": "Som enten kan være med i møtet."
+      },
+      {
+        "time": "00:29:41",
+        "seconds": 1781,
+        "text": "Eller som kan forberede oss litt på forhånd."
+      },
+      {
+        "time": "00:29:44",
+        "seconds": 1784,
+        "text": "Og når vi da er i gang med samtalen."
+      },
+      {
+        "time": "00:29:51",
+        "seconds": 1791,
+        "text": "Så tenker jeg at da blir det litt å spørre."
+      },
+      {
+        "time": "00:29:55",
+        "seconds": 1795,
+        "text": "Hva kan skje?"
+      },
+      {
+        "time": "00:29:58",
+        "seconds": 1798,
+        "text": "Og hvor galt kan det gå?"
+      },
+      {
+        "time": "00:30:00",
+        "seconds": 1800,
+        "text": "Hvis kunden har laget en risikoanalyse ut fra et mer holistisk perspektiv,"
+      },
+      {
+        "time": "00:30:10",
+        "seconds": 1810,
+        "text": "det ser vi ikke så ofte, for det de ofte gjør,"
+      },
+      {
+        "time": "00:30:13",
+        "seconds": 1813,
+        "text": "vi er veldig gode på å ha med spitten."
+      },
+      {
+        "time": "00:30:16",
+        "seconds": 1816,
+        "text": "Man lager sikker jobbanalyse, og man lager en risikoanalyse for de ulike operasjonene,"
+      },
+      {
+        "time": "00:30:21",
+        "seconds": 1821,
+        "text": "men vi ser ikke så ofte at man har gjort en risikoanalyse på overordnet nivå,"
+      },
+      {
+        "time": "00:30:30",
+        "seconds": 1830,
+        "text": "og sett på konsekvensene av avbruddstap og så videre."
+      },
+      {
+        "time": "00:30:34",
+        "seconds": 1834,
+        "text": "Da blir det å stille spørsmålet, hva kan skje her?"
+      },
+      {
+        "time": "00:30:40",
+        "seconds": 1840,
+        "text": "Hvor gærent kan det gå? Og hva kan det koste?"
+      },
+      {
+        "time": "00:30:45",
+        "seconds": 1845,
+        "text": "Oi, da tenker jeg på ..."
+      },
+      {
+        "time": "00:30:47",
+        "seconds": 1847,
+        "text": "En ting er bygninger og kanskje en maskinpark,"
+      },
+      {
+        "time": "00:30:51",
+        "seconds": 1851,
+        "text": "det er ganske konkrete verdier vi skal hjelpe kunden til å finne en god forsikring på."
+      },
+      {
+        "time": "00:30:57",
+        "seconds": 1857,
+        "text": "Men når det gjelder ansvarseksponeringer, avbruddseksponeringer,"
+      },
+      {
+        "time": "00:31:02",
+        "seconds": 1862,
+        "text": "det må jo kreve mye trening, Frode, for å kunne finne en god måte å avlaste dette på."
+      },
+      {
+        "time": "00:31:10",
+        "seconds": 1870,
+        "text": "Ja, jeg tror kanskje at det faktisk krever litt trening,"
+      },
+      {
+        "time": "00:31:16",
+        "seconds": 1876,
+        "text": "og det å være med på,"
+      },
+      {
+        "time": "00:31:21",
+        "seconds": 1881,
+        "text": "både å ha sett en del skadecase, men også når man starter som megler,"
+      },
+      {
+        "time": "00:31:27",
+        "seconds": 1887,
+        "text": "så er den beste skolen det er å bli med ut i kundemøter, bli med en erfaren megler,"
+      },
+      {
+        "time": "00:31:34",
+        "seconds": 1894,
+        "text": "og oppleve case i praksis."
+      },
+      {
+        "time": "00:31:40",
+        "seconds": 1900,
+        "text": "Men hvis jeg ser på det du nevnte med å fastsette forsikringssum,"
+      },
+      {
+        "time": "00:31:48",
+        "seconds": 1908,
+        "text": "så handler det også litt om ..."
+      },
+      {
+        "time": "00:31:49",
+        "seconds": 1909,
+        "text": "Men hvis jeg ser på det du nevnte med å fastsette forsikringssum,"
+      },
+      {
+        "time": "00:31:50",
+        "seconds": 1910,
+        "text": "så handler det også litt om ..."
+      },
+      {
+        "time": "00:31:52",
+        "seconds": 1912,
+        "text": "Da må man også kjenne produktene."
+      },
+      {
+        "time": "00:31:56",
+        "seconds": 1916,
+        "text": "Så vår rolle som forsikringsmegler, vi må forstå ulike bransjer,"
+      },
+      {
+        "time": "00:32:01",
+        "seconds": 1921,
+        "text": "og så må vi kjenne både markedet, men også produktene og begrensningene"
+      },
+      {
+        "time": "00:32:07",
+        "seconds": 1927,
+        "text": "og mulighetene som ligger i produktene."
+      },
+      {
+        "time": "00:32:09",
+        "seconds": 1929,
+        "text": "Så det er et forholdsvis omfattende kunnskapsbilde som man har oversikt over."
+      },
+      {
+        "time": "00:32:19",
+        "seconds": 1939,
+        "text": "Vi bruker jo ofte skadeeksempler i møte med kunden for å illustrere hva konsekvensene av en skade kan bli."
+      },
+      {
+        "time": "00:32:30",
+        "seconds": 1950,
+        "text": "Der må vi jo være forsiktige med å identifisere hvilken kunde det er, anonymisere det,"
+      },
+      {
+        "time": "00:32:35",
+        "seconds": 1955,
+        "text": "for det er jo en konfidensiell virksomhet vi driver med."
+      },
+      {
+        "time": "00:32:39",
+        "seconds": 1959,
+        "text": "Men du har et par skadeeksempler, Frode. Skal vi nevne de som du bruker i dine kundemøter?"
+      },
+      {
+        "time": "00:32:48",
+        "seconds": 1968,
+        "text": "Jeg tenker jo at det er relevant for … av skade blir man klok, som noen sier, og det er jeg litt enig i."
+      },
+      {
+        "time": "00:32:59",
+        "seconds": 1979,
+        "text": "Og hvis vi ser på dette med … ta for eksempel det med å forstå virksomheten,"
+      },
+      {
+        "time": "00:33:10",
+        "seconds": 1990,
+        "text": "og så skal vi videreformidle dette til en underwriter som skal forstå,"
+      },
+      {
+        "time": "00:33:16",
+        "seconds": 1996,
+        "text": "og en underwriter har et litt annet utgangspunkt enn oss, tenker jeg vi."
+      },
+      {
+        "time": "00:33:22",
+        "seconds": 2002,
+        "text": "Vårt utgangspunkt er at vi skal prøve å avdekke og dekke kundens risikobehov eller behov for risikoavlastning."
+      },
+      {
+        "time": "00:33:31",
+        "seconds": 2011,
+        "text": "Mens en underwriter, han vil prøve å forstå risikoen, og så vil han avgrense det til det han har forstått."
+      },
+      {
+        "time": "00:33:37",
+        "seconds": 2017,
+        "text": "Han vil helst ikke ha noe usikkerhet utover hverken på den siden eller på den siden."
+      },
+      {
+        "time": "00:33:43",
+        "seconds": 2023,
+        "text": "Mens vi …"
+      },
+      {
+        "time": "00:33:45",
+        "seconds": 2025,
+        "text": "Jeg har …"
+      },
+      {
+        "time": "00:33:46",
+        "seconds": 2026,
+        "text": "holdt på med dette i tredje år,"
+      },
+      {
+        "time": "00:33:49",
+        "seconds": 2029,
+        "text": "og jeg vet at jeg har ikke fantasi til å tenke på alt som kan skje."
+      },
+      {
+        "time": "00:33:54",
+        "seconds": 2034,
+        "text": "Så …"
+      },
+      {
+        "time": "00:33:56",
+        "seconds": 2036,
+        "text": "Mitt utgangspunkt er at jeg ønsker å ha litt sånn belt og bukses her og der."
+      },
+      {
+        "time": "00:34:01",
+        "seconds": 2041,
+        "text": "Jeg ønsker ikke å ha en veldig smal, særlig dette med …"
+      },
+      {
+        "time": "00:34:06",
+        "seconds": 2046,
+        "text": "og en virksomhetsbeskrivelse innenfor ansvar."
+      },
+      {
+        "time": "00:34:09",
+        "seconds": 2049,
+        "text": "Da vil jeg ha en brei tekst, og ikke for mye ord inni hvert fall."
+      },
+      {
+        "time": "00:34:15",
+        "seconds": 2055,
+        "text": "Fordi har man for mye tekst, fordi man prøver å forklare godt hva denne kunden driver med,"
+      },
+      {
+        "time": "00:34:25",
+        "seconds": 2065,
+        "text": "så kan det slå litt tilbake igjen."
+      },
+      {
+        "time": "00:34:28",
+        "seconds": 2068,
+        "text": "For hvis man har sagt veldig mye, men ikke det …"
+      },
+      {
+        "time": "00:34:31",
+        "seconds": 2071,
+        "text": "Det er jo umulig å forklare alt hva en kunde driver med i et forsikringsbevis."
+      },
+      {
+        "time": "00:34:35",
+        "seconds": 2075,
+        "text": "Og derfor så er jeg tilhenger av at man har forsikret en bransje nærmest."
+      },
+      {
+        "time": "00:34:42",
+        "seconds": 2082,
+        "text": "Ja."
+      },
+      {
+        "time": "00:34:43",
+        "seconds": 2083,
+        "text": "Så i selve underlaget, eller submissionen, så må vi beskrive godt hva den gjør."
+      },
+      {
+        "time": "00:34:51",
+        "seconds": 2091,
+        "text": "Men vi skal ikke ha det over i et forsikringsbevis."
+      },
+      {
+        "time": "00:34:54",
+        "seconds": 2094,
+        "text": "Veldig detaljert."
+      },
+      {
+        "time": "00:34:57",
+        "seconds": 2097,
+        "text": "Og et eksempel …"
+      },
+      {
+        "time": "00:34:59",
+        "seconds": 2099,
+        "text": "Vi er en stor aktør innenfor skadesanering."
+      },
+      {
+        "time": "00:35:04",
+        "seconds": 2104,
+        "text": "Hva forsikres som skadesaneringsselskap?"
+      },
+      {
+        "time": "00:35:10",
+        "seconds": 2110,
+        "text": "Ja."
+      },
+      {
+        "time": "00:35:11",
+        "seconds": 2111,
+        "text": "Som rydder opp etter at en skade er inntroffet?"
+      },
+      {
+        "time": "00:35:14",
+        "seconds": 2114,
+        "text": "Ja. Skadesaneringsselskap, det er jo en forholdsvis …"
+      },
+      {
+        "time": "00:35:21",
+        "seconds": 2121,
+        "text": "Vi virksomhet, når vi ser på hva er det et sånt selskap gjør i praksis,"
+      },
+      {
+        "time": "00:35:27",
+        "seconds": 2127,
+        "text": "de kommer inn og rydder og begrenser skaden."
+      },
+      {
+        "time": "00:35:32",
+        "seconds": 2132,
+        "text": "De har ting i varetekt. De henter kanskje ting som de reparerer litt på,"
+      },
+      {
+        "time": "00:35:38",
+        "seconds": 2138,
+        "text": "eller i hvert fall så lagrer de det."
+      },
+      {
+        "time": "00:35:40",
+        "seconds": 2140,
+        "text": "Lagrer det mens det blir ryddet opp, og skaden blir utbedret på skadestedet."
+      },
+      {
+        "time": "00:35:48",
+        "seconds": 2148,
+        "text": "Et eksempel på et ansvarskrav da, som skjer hos veldig mange av den type virksomheter,"
+      },
+      {
+        "time": "00:36:00",
+        "seconds": 2160,
+        "text": "man får oppdraget på å utbedre skaden også etter man har vært ferdig med den nidledende fasen,"
+      },
+      {
+        "time": "00:36:08",
+        "seconds": 2168,
+        "text": "eller skadebegrensning og opprydding da."
+      },
+      {
+        "time": "00:36:09",
+        "seconds": 2169,
+        "text": "Så får man kanskje oppdraget med å utbedre skaden, hvis det er en mindre skade."
+      },
+      {
+        "time": "00:36:15",
+        "seconds": 2175,
+        "text": "Oppdraget her var å legge en ny parkett etter en stor skade."
+      },
+      {
+        "time": "00:36:24",
+        "seconds": 2184,
+        "text": "Så det var mye kvadrat med parkett som skulle legges da."
+      },
+      {
+        "time": "00:36:29",
+        "seconds": 2189,
+        "text": "Og så under dette arbeidet så kom det opp en ny skade."
+      },
+      {
+        "time": "00:36:37",
+        "seconds": 2197,
+        "text": "En vannskade."
+      },
+      {
+        "time": "00:36:41",
+        "seconds": 2201,
+        "text": "Og da ble det en diskusjon med forsikringsselskapet,"
+      },
+      {
+        "time": "00:36:45",
+        "seconds": 2205,
+        "text": "at dette har vi ikke forstått at de driver med entreprenører."
+      },
+      {
+        "time": "00:36:50",
+        "seconds": 2210,
+        "text": "Med parkettlegging."
+      },
+      {
+        "time": "00:36:52",
+        "seconds": 2212,
+        "text": "At et skadesaneringsselskap også driver å legge parkett."
+      },
+      {
+        "time": "00:36:55",
+        "seconds": 2215,
+        "text": "Ja, det var ikke naturlig for ansvarsunderreiteren."
+      },
+      {
+        "time": "00:36:58",
+        "seconds": 2218,
+        "text": "Nei."
+      },
+      {
+        "time": "00:36:59",
+        "seconds": 2219,
+        "text": "Men for skadeavdelingen til samme selskapet som faktisk kjøper tjenesten."
+      },
+      {
+        "time": "00:37:05",
+        "seconds": 2225,
+        "text": "Men de to snakker jo ikke med hverandre."
+      },
+      {
+        "time": "00:37:08",
+        "seconds": 2228,
+        "text": "Så var det jo selvfølgelig naturlig."
+      },
+      {
+        "time": "00:37:10",
+        "seconds": 2230,
+        "text": "Så forsikringsselskapet kjøpte tjenester innen parkettlegging fra skadesaneringsselskapet?"
+      },
+      {
+        "time": "00:37:15",
+        "seconds": 2235,
+        "text": "Ja, nå var det ikke samme selskapet her, men de gjør jo det."
+      },
+      {
+        "time": "00:37:19",
+        "seconds": 2239,
+        "text": "Og det viser jo at underreiteren på ansvar har litt sine skylapper og ser sitt produkt."
+      },
+      {
+        "time": "00:37:28",
+        "seconds": 2248,
+        "text": "Og andre deler av virksomheten, kanskje de som regulerer skaden,"
+      },
+      {
+        "time": "00:37:35",
+        "seconds": 2255,
+        "text": "de kjøper jo både tjenestene og ser på bredden av tjenester som de kjøper da."
+      },
+      {
+        "time": "00:37:39",
+        "seconds": 2259,
+        "text": "Så vi greide å få selskapet til å forstå at selvfølgelig så driver de med gjenoppbygging også."
+      },
+      {
+        "time": "00:37:48",
+        "seconds": 2268,
+        "text": "Men det var ikke i utgangspunktet noe som underreiteren hadde forstått."
+      },
+      {
+        "time": "00:37:53",
+        "seconds": 2273,
+        "text": "Og det blir veldig sånn, skadesaneringsvirksomhet sto det i forsikringsby,"
+      },
+      {
+        "time": "00:37:57",
+        "seconds": 2277,
+        "text": "så vi fikk avslag innledningsvis."
+      },
+      {
+        "time": "00:37:59",
+        "seconds": 2279,
+        "text": "Ja."
+      },
+      {
+        "time": "00:38:00",
+        "seconds": 2280,
+        "text": "Så det viser noe av kompleksiteten i det her."
+      },
+      {
+        "time": "00:38:04",
+        "seconds": 2284,
+        "text": "Og kanskje også kunden hadde jo ingen forståelse for at forsikringen ikke skulle dekke en sånn ting."
+      },
+      {
+        "time": "00:38:14",
+        "seconds": 2294,
+        "text": "Frodo, da er det kommet et spørsmål fra salen igjen."
+      },
+      {
+        "time": "00:38:26",
+        "seconds": 2306,
+        "text": "Og det er jo spennende at det er interesse for det vi snakker om."
+      },
+      {
+        "time": "00:38:29",
+        "seconds": 2309,
+        "text": "Det gjelder når utenlandske forsikringsselskaper har ofte i forsikringsbevisene i virksomhetsbeskrivelsen"
+      },
+      {
+        "time": "00:38:39",
+        "seconds": 2319,
+        "text": "en beskrivelse av virksomheten, men ikke begrenset."
+      },
+      {
+        "time": "00:38:42",
+        "seconds": 2322,
+        "text": "Men ikke begrenset til dette."
+      },
+      {
+        "time": "00:38:44",
+        "seconds": 2324,
+        "text": "I det tilfellet du nevnte, så kunne det da for eksempel stått skadesanering,"
+      },
+      {
+        "time": "00:38:48",
+        "seconds": 2328,
+        "text": "men ikke begrenset til virksomhet som skadesanering."
+      },
+      {
+        "time": "00:38:53",
+        "seconds": 2333,
+        "text": "Jeg har også sett all past and present activities, altså hvor man ikke har en snever begrensning."
+      },
+      {
+        "time": "00:39:00",
+        "seconds": 2340,
+        "text": "Jeg vet ikke hvordan du håndterer det."
+      },
+      {
+        "time": "00:39:05",
+        "seconds": 2345,
+        "text": "Min erfaring er at når man jobber på standardvilkår fra norske forsikringsselskaper,"
+      },
+      {
+        "time": "00:39:12",
+        "seconds": 2352,
+        "text": "så er de ganske spesifikke, og som Frodo var inne på, ganske begrensende i forhold til hvilken virksomhet man driver."
+      },
+      {
+        "time": "00:39:22",
+        "seconds": 2362,
+        "text": "Altså driver du med bilsalg, så er det ikke sikkert at bilverkstedtjenester vil være omfødt av forsikringsavtalen i norske vilkår."
+      },
+      {
+        "time": "00:39:31",
+        "seconds": 2371,
+        "text": "Spørsmålet fra salen her er kanskje lettere å få aksept for i det større markedet,"
+      },
+      {
+        "time": "00:39:40",
+        "seconds": 2380,
+        "text": "når man jobber med internasjonale forsikringsgivere,"
+      },
+      {
+        "time": "00:39:44",
+        "seconds": 2384,
+        "text": "hvor det er en mer naturlig måte å skrive et forsikringsbevis på."
+      },
+      {
+        "time": "00:39:49",
+        "seconds": 2389,
+        "text": "Jeg tror dette kan være en liten, ikke en felle, men noe vi må være veldig oppmerksom på når vi jobber på standardvilkår fra norske selskaper, Frodo."
+      },
+      {
+        "time": "00:39:59",
+        "seconds": 2399,
+        "text": "I vårt mid-market segment så jobber vi på standardvilkår fra selskapene."
+      },
+      {
+        "time": "00:40:06",
+        "seconds": 2406,
+        "text": "Det som vi gjør i vårt selskap, vi skriver at i selve submissionen så skriver vi at dette er en beskrivelse av virksomheten,"
+      },
+      {
+        "time": "00:40:20",
+        "seconds": 2420,
+        "text": "men sånn som salen var inne på, det er ikke begrenset til."
+      },
+      {
+        "time": "00:40:27",
+        "seconds": 2427,
+        "text": "Altså dette er en underwriting informasjon for at underwriter skal få en god forståelse,"
+      },
+      {
+        "time": "00:40:33",
+        "seconds": 2433,
+        "text": "men det er ikke en begrensning i dekningen, for det er umulig å beskrive alt."
+      },
+      {
+        "time": "00:40:38",
+        "seconds": 2438,
+        "text": "Så ja, det er vel en hård snak på det."
+      },
+      {
+        "time": "00:40:43",
+        "seconds": 2443,
+        "text": "Men til spørsmålstiller i salen, det er utrolig viktig hvordan vi beskriver kundens virksomhet"
+      },
+      {
+        "time": "00:40:49",
+        "seconds": 2449,
+        "text": "og les forsikringsbevisene nøye før de sendes kunden for betaling."
+      },
+      {
+        "time": "00:40:54",
+        "seconds": 2454,
+        "text": "Jeg har lyst til å følge opp med en ting."
+      },
+      {
+        "time": "00:40:56",
+        "seconds": 2456,
+        "text": "Fordi vi har..."
+      },
+      {
+        "time": "00:40:57",
+        "seconds": 2457,
+        "text": "Det er jo noe med at kunden også må forstå det her, at selskapet ønsker å ha en avgrensning på hva som er forsikret."
+      },
+      {
+        "time": "00:41:08",
+        "seconds": 2468,
+        "text": "Fordi man skal jo sette en pris, og man kan jo ikke dekke all verdens aktiviteter,"
+      },
+      {
+        "time": "00:41:13",
+        "seconds": 2473,
+        "text": "fordi den ene typen aktivitet har mye større risiko enn den andre."
+      },
+      {
+        "time": "00:41:17",
+        "seconds": 2477,
+        "text": "Og særlig det med..."
+      },
+      {
+        "time": "00:41:24",
+        "seconds": 2484,
+        "text": "Hvis man begynner å gjøre andre ting, endring i risikoen, i forsikringsbeviset,"
+      },
+      {
+        "time": "00:41:34",
+        "seconds": 2494,
+        "text": "så står det jo at sikkerheten skal plikte og informere selskapet om at det er en endring i risikoen."
+      },
+      {
+        "time": "00:41:41",
+        "seconds": 2501,
+        "text": "Du begynner med noe nytt, eller du..."
+      },
+      {
+        "time": "00:41:43",
+        "seconds": 2503,
+        "text": "Begynner med noe nytt."
+      },
+      {
+        "time": "00:41:44",
+        "seconds": 2504,
+        "text": "Ja."
+      },
+      {
+        "time": "00:41:45",
+        "seconds": 2505,
+        "text": "Og vi hadde et annet eksempel, det var en elektrobedrift innenfor..."
+      },
+      {
+        "time": "00:41:54",
+        "seconds": 2514,
+        "text": "infrastruktur, altså tunnelbelysning og lysregulering, viftestyring og sånne ting."
+      },
+      {
+        "time": "00:42:05",
+        "seconds": 2525,
+        "text": "De hadde en ansvarsforsikring basert på at det var det de drev med."
+      },
+      {
+        "time": "00:42:14",
+        "seconds": 2534,
+        "text": "Så fikk de noen store oppdrag, og det var jeg som var kundeansvarlig."
+      },
+      {
+        "time": "00:42:21",
+        "seconds": 2541,
+        "text": "De fikk noen store totalantrepriser."
+      },
+      {
+        "time": "00:42:24",
+        "seconds": 2544,
+        "text": "Og vi så på totalantreprisekontrakten, altså NS'en."
+      },
+      {
+        "time": "00:42:31",
+        "seconds": 2551,
+        "text": "Og der gikk det..."
+      },
+      {
+        "time": "00:42:32",
+        "seconds": 2552,
+        "text": "Det som viste seg var at de hadde faktisk tatt et stort oppdrag,"
+      },
+      {
+        "time": "00:42:37",
+        "seconds": 2557,
+        "text": "ikke bare for den tekniske elektroleveransen,"
+      },
+      {
+        "time": "00:42:42",
+        "seconds": 2562,
+        "text": "men de hadde også ansvar for fjellrensing og grøfterensing"
+      },
+      {
+        "time": "00:42:48",
+        "seconds": 2568,
+        "text": "og rett og slett rehabilitering av tunnelen."
+      },
+      {
+        "time": "00:42:52",
+        "seconds": 2572,
+        "text": "Åja, som gikk utenfor det å være elektroinsert."
+      },
+      {
+        "time": "00:42:54",
+        "seconds": 2574,
+        "text": "Ja, altså også sprøytestøping av tunnelvegger."
+      },
+      {
+        "time": "00:43:01",
+        "seconds": 2581,
+        "text": "Og dette kom aldri fram, at de faktisk gjorde det."
+      },
+      {
+        "time": "00:43:06",
+        "seconds": 2586,
+        "text": "Og de hadde leidt inn en underentreprenør til å gjøre den jobben,"
+      },
+      {
+        "time": "00:43:10",
+        "seconds": 2590,
+        "text": "for det var jo ikke noe som var innenfor deres kompetanseområde egentlig."
+      },
+      {
+        "time": "00:43:15",
+        "seconds": 2595,
+        "text": "Og da gikk det vel sånn det måtte gå?"
+      },
+      {
+        "time": "00:43:16",
+        "seconds": 2596,
+        "text": "Da gikk det den veien hønasparken der, eller?"
+      },
+      {
+        "time": "00:43:18",
+        "seconds": 2598,
+        "text": "Det er heldigvis ikke så med store konsekvenser,"
+      },
+      {
+        "time": "00:43:24",
+        "seconds": 2604,
+        "text": "men det var jo en skade som gjorde at dette ble adekka."
+      },
+      {
+        "time": "00:43:28",
+        "seconds": 2608,
+        "text": "Da var det en stein som hadde dett i ned på en bil,"
+      },
+      {
+        "time": "00:43:31",
+        "seconds": 2611,
+        "text": "og så begynte man å se på hva som var skjedd og behandle skaden."
+      },
+      {
+        "time": "00:43:38",
+        "seconds": 2618,
+        "text": "Og det er klart at forsikringsgiver som trodde de forsikret elektroinstallering,"
+      },
+      {
+        "time": "00:43:47",
+        "seconds": 2627,
+        "text": "de var ikke enige i at man hadde et ansvar også for,"
+      },
+      {
+        "time": "00:43:54",
+        "seconds": 2634,
+        "text": "gravarbeider og sprøytestøping og fjellrensing."
+      },
+      {
+        "time": "00:44:01",
+        "seconds": 2641,
+        "text": "Så det ble en god læring."
+      },
+      {
+        "time": "00:44:05",
+        "seconds": 2645,
+        "text": "Altså det å hele tiden spørre kunden hva gjør man,"
+      },
+      {
+        "time": "00:44:09",
+        "seconds": 2649,
+        "text": "og det kommer en ny stor kontrakt, ok, hva skal du gjøre?"
+      },
+      {
+        "time": "00:44:12",
+        "seconds": 2652,
+        "text": "Fordi det er litt av problemet med NS-kontraktene."
+      },
+      {
+        "time": "00:44:15",
+        "seconds": 2655,
+        "text": "De er ganske lite beskrivende på hva oppdraget faktisk går ut på."
+      },
+      {
+        "time": "00:44:20",
+        "seconds": 2660,
+        "text": "De regulerer veldig mange ting,"
+      },
+      {
+        "time": "00:44:22",
+        "seconds": 2662,
+        "text": "men hva oppdraget går ut på, det står i tilbudet og i anbudsbeskrivelsen."
+      },
+      {
+        "time": "00:44:28",
+        "seconds": 2668,
+        "text": "Så det at vi kanskje også husker på å få inn det,"
+      },
+      {
+        "time": "00:44:32",
+        "seconds": 2672,
+        "text": "i mange tilfeller kan være nyttig for å forstå virksomheten."
+      },
+      {
+        "time": "00:44:36",
+        "seconds": 2676,
+        "text": "Og så er det vel ofte sånn i virksomheten at forsikring er ikke det de tenker først på."
+      },
+      {
+        "time": "00:44:45",
+        "seconds": 2685,
+        "text": "Og denne elektroinstallatøren her synes vel kanskje det var veldig flott"
+      },
+      {
+        "time": "00:44:48",
+        "seconds": 2688,
+        "text": "å få et tilleggsoppdrag som kunne gi betydelige inntekter."
+      },
+      {
+        "time": "00:44:51",
+        "seconds": 2691,
+        "text": "Og så var det kanskje ingen i kontraktsamfunnet,"
+      },
+      {
+        "time": "00:44:53",
+        "seconds": 2693,
+        "text": "kontraktsavdelingen, som tenkte på at her må vi tenke på forsikring."
+      },
+      {
+        "time": "00:44:57",
+        "seconds": 2697,
+        "text": "Det er vel ikke noe vanlig."
+      },
+      {
+        "time": "00:44:57",
+        "seconds": 2697,
+        "text": "Nei, det var jo ingen kontraktsavdeling,"
+      },
+      {
+        "time": "00:45:01",
+        "seconds": 2701,
+        "text": "men oppdraget var såpass stort at de tok kontakt."
+      },
+      {
+        "time": "00:45:07",
+        "seconds": 2707,
+        "text": "Og da går vi jo igjen på dette med forsikringssum."
+      },
+      {
+        "time": "00:45:11",
+        "seconds": 2711,
+        "text": "Hvilken forsikringssum skal man ha?"
+      },
+      {
+        "time": "00:45:14",
+        "seconds": 2714,
+        "text": "Når man plutselig, hvis vi ser på en prosjektforsikring,"
+      },
+      {
+        "time": "00:45:17",
+        "seconds": 2717,
+        "text": "så har jo den, i en del tilfeller for mindre kunder,"
+      },
+      {
+        "time": "00:45:22",
+        "seconds": 2722,
+        "text": "så er det en standardsum på 20 millioner som er sånn gjengs i bransjen"
+      },
+      {
+        "time": "00:45:26",
+        "seconds": 2726,
+        "text": "hvis ikke man har avtalt noe at forsikringen dekker opp til 20 millioner per skade."
+      },
+      {
+        "time": "00:45:30",
+        "seconds": 2730,
+        "text": "Og så dekker man det på årsbasis på omsetning."
+      },
+      {
+        "time": "00:45:34",
+        "seconds": 2734,
+        "text": "Og i andre selskaper så avtaler man at kontraktsstørrelsen er sånn og sånn"
+      },
+      {
+        "time": "00:45:39",
+        "seconds": 2739,
+        "text": "på årsprogrammet, og så betaler man ut for omsetning."
+      },
+      {
+        "time": "00:45:43",
+        "seconds": 2743,
+        "text": "Og så i dette tilfellet så var jo den summen ganske mye større"
+      },
+      {
+        "time": "00:45:48",
+        "seconds": 2748,
+        "text": "enn de vanlige kontraktene, og derfor kom vi inn."
+      },
+      {
+        "time": "00:45:51",
+        "seconds": 2751,
+        "text": "Men vi klarte ikke å forstå at dette omfattet også helt andre arbeidere"
+      },
+      {
+        "time": "00:45:56",
+        "seconds": 2756,
+        "text": "enn elektroinstallasjon, for den informasjonen tilfellet aldri oss."
+      },
+      {
+        "time": "00:46:01",
+        "seconds": 2761,
+        "text": "Så det illustrerer jo hvor vanskelig det er, og hvor viktig det er å stille spørsmål."
+      },
+      {
+        "time": "00:46:14",
+        "seconds": 2774,
+        "text": "Da kom det en spørsmål til her."
+      },
+      {
+        "time": "00:46:16",
+        "seconds": 2776,
+        "text": "De er nysgjerrig på hvordan denne skadesaken gikk."
+      },
+      {
+        "time": "00:46:18",
+        "seconds": 2778,
+        "text": "Hva var sluttspillet på denne skadesaken?"
+      },
+      {
+        "time": "00:46:23",
+        "seconds": 2783,
+        "text": "Det var jo sånn at heldigvis så hadde jo denne underentreprenøren,"
+      },
+      {
+        "time": "00:46:31",
+        "seconds": 2791,
+        "text": "en ansvarsforsikring, og sånn er det jo i de aller fleste saker."
+      },
+      {
+        "time": "00:46:35",
+        "seconds": 2795,
+        "text": "Så var det underentreprenøren som plukket opp denne skaden"
+      },
+      {
+        "time": "00:46:42",
+        "seconds": 2802,
+        "text": "på sin ansvarsforsikring, for han har jo forsikret for"
+      },
+      {
+        "time": "00:46:46",
+        "seconds": 2806,
+        "text": "det faktiske arbeidet som han skal gjøre."
+      },
+      {
+        "time": "00:46:49",
+        "seconds": 2809,
+        "text": "Men det er ikke nødvendigvis gitt at underentreprenøren hadde tilstrekkelig forsikring her?"
+      },
+      {
+        "time": "00:47:00",
+        "seconds": 2820,
+        "text": "Nei, og da er vi litt inne på dette med hvor mye forsikring skal du kjøpe."
+      },
+      {
+        "time": "00:47:05",
+        "seconds": 2825,
+        "text": "For det har vi ikke snakket om enda."
+      },
+      {
+        "time": "00:47:08",
+        "seconds": 2828,
+        "text": "NS-standarden sier 150G for entreprenørbransjen."
+      },
+      {
+        "time": "00:47:15",
+        "seconds": 2835,
+        "text": "Og det er vel i dag en sånn 16 millioner kroner eller noe sånt, er det ikke det?"
+      },
+      {
+        "time": "00:47:18",
+        "seconds": 2838,
+        "text": "Ja, 17, tenker jeg."
+      },
+      {
+        "time": "00:47:19",
+        "seconds": 2839,
+        "text": "Ja, noe sånt nå."
+      },
+      {
+        "time": "00:47:21",
+        "seconds": 2841,
+        "text": "Og dette er jo ingen ansvarsbegrensning."
+      },
+      {
+        "time": "00:47:29",
+        "seconds": 2849,
+        "text": "Det er et minimumskrav for å levere."
+      },
+      {
+        "time": "00:47:33",
+        "seconds": 2853,
+        "text": "Og så ser vi at veldig mange,"
+      },
+      {
+        "time": "00:47:34",
+        "seconds": 2854,
+        "text": "forholder seg til det minimumskravet og tenker at nå har vi alt i orden."
+      },
+      {
+        "time": "00:47:41",
+        "seconds": 2861,
+        "text": "Men da må vi igjen se litt på dette og stille kundens spørsmål, hvor gærent kan det gå?"
+      },
+      {
+        "time": "00:47:48",
+        "seconds": 2868,
+        "text": "Og hvis sprinklet rett før overlevering på et stort næringsbygg,"
+      },
+      {
+        "time": "00:47:54",
+        "seconds": 2874,
+        "text": "det er gjerne da vi ser disse vannskadene."
+      },
+      {
+        "time": "00:47:59",
+        "seconds": 2879,
+        "text": "For da blir det satt på vanntrykk."
+      },
+      {
+        "time": "00:48:01",
+        "seconds": 2881,
+        "text": "Og så,"
+      },
+      {
+        "time": "00:48:02",
+        "seconds": 2882,
+        "text": "og så,"
+      },
+      {
+        "time": "00:48:04",
+        "seconds": 2884,
+        "text": "settes kanskje det trykket på,"
+      },
+      {
+        "time": "00:48:06",
+        "seconds": 2886,
+        "text": "selvfølgelig så skal man ikke jobbe på den måten,"
+      },
+      {
+        "time": "00:48:08",
+        "seconds": 2888,
+        "text": "men vi har jo sett noen saker."
+      },
+      {
+        "time": "00:48:10",
+        "seconds": 2890,
+        "text": "Det settes kanskje på på fredagen,"
+      },
+      {
+        "time": "00:48:12",
+        "seconds": 2892,
+        "text": "og så kommer arbeiderne på på mandagen,"
+      },
+      {
+        "time": "00:48:14",
+        "seconds": 2894,
+        "text": "og så er det forholdsvis vått nedover i etasjene."
+      },
+      {
+        "time": "00:48:18",
+        "seconds": 2898,
+        "text": "Og det,"
+      },
+      {
+        "time": "00:48:20",
+        "seconds": 2900,
+        "text": "et stort krav jeg har sett, det var opp mot 100 millioner kroner, innledningsvis."
+      },
+      {
+        "time": "00:48:24",
+        "seconds": 2904,
+        "text": "Rødeleggerbedriften hadde forsikringen i orden, tenkte han."
+      },
+      {
+        "time": "00:48:29",
+        "seconds": 2909,
+        "text": "Han hadde 150G i forsikringssum, og det manglet mange, mange, mange millioner."
+      },
+      {
+        "time": "00:48:34",
+        "seconds": 2914,
+        "text": "Så man må rett og slett, det holder ikke å bare se på minimumskraven,"
+      },
+      {
+        "time": "00:48:41",
+        "seconds": 2921,
+        "text": "man må se på hvilken eksponering er det man har."
+      },
+      {
+        "time": "00:48:44",
+        "seconds": 2924,
+        "text": "Her tenker jeg fort frode på entreprenører som jobber på store anlegg, store bygg,"
+      },
+      {
+        "time": "00:48:51",
+        "seconds": 2931,
+        "text": "om det er, ja det kan jo være Oslo Lufthavn Gardermoen,"
+      },
+      {
+        "time": "00:48:55",
+        "seconds": 2935,
+        "text": "det kan være store fabrikkanlegg for eksempel,"
+      },
+      {
+        "time": "00:48:58",
+        "seconds": 2938,
+        "text": "hvor konsekvensene av bruk av varmearbeider, dersom noe skulle skje,"
+      },
+      {
+        "time": "00:49:04",
+        "seconds": 2944,
+        "text": "kan bli ganske katastrofale."
+      },
+      {
+        "time": "00:49:06",
+        "seconds": 2946,
+        "text": "Og da å ha en forsikringssum på ansvar på 150G, synes kanskje litt tynt,"
+      },
+      {
+        "time": "00:49:12",
+        "seconds": 2952,
+        "text": "sånn som jeg ser det."
+      },
+      {
+        "time": "00:49:14",
+        "seconds": 2954,
+        "text": "Og et annet poeng her er jo at denne forsikringssummen på 150G,"
+      },
+      {
+        "time": "00:49:19",
+        "seconds": 2959,
+        "text": "den begrenser jo overhovedet ikke ansvaret overfor tredje personer,"
+      },
+      {
+        "time": "00:49:23",
+        "seconds": 2963,
+        "text": "altså de andre personene du kan komme til å skade, som ikke er en del av kontraktsforholdet."
+      },
+      {
+        "time": "00:49:31",
+        "seconds": 2971,
+        "text": "Så dette er jo viktig å diskutere med kunden."
+      },
+      {
+        "time": "00:49:34",
+        "seconds": 2974,
+        "text": "Da er det kommet et interessant spørsmål fra salen."
+      },
+      {
+        "time": "00:49:45",
+        "seconds": 2985,
+        "text": "Vi hadde, som gamle ringrever i bransjen, så hadde vi en liten hyggelig kaffekopp her på morgenen,"
+      },
+      {
+        "time": "00:49:51",
+        "seconds": 2991,
+        "text": "og da diskuterte vi med en av de deltakerne i salen her nå,"
+      },
+      {
+        "time": "00:49:54",
+        "seconds": 2994,
+        "text": "denne gruvebranden som var på Svalbard i 2006, tror jeg den var."
+      },
+      {
+        "time": "00:49:59",
+        "seconds": 2999,
+        "text": "Og det er en skade som beløp seg til mer enn 500 millioner kroner, etter hva jeg kan huske."
+      },
+      {
+        "time": "00:50:07",
+        "seconds": 3007,
+        "text": "Den var forårsaket av et ganske lite firma som drev med plastsveising av rør inne i gruvene."
+      },
+      {
+        "time": "00:50:18",
+        "seconds": 3018,
+        "text": "Og det å drive med varmearbeider inne i en kullgruve, det må sies å være en høy risiko."
+      },
+      {
+        "time": "00:50:23",
+        "seconds": 3023,
+        "text": "Og etter hva jeg husker til spørsmålstiller, så var det dette plastsveisfirma som drev med denne rørskjøtingen, en ansvarsforsikring på 10 millioner kroner."
+      },
+      {
+        "time": "00:50:36",
+        "seconds": 3036,
+        "text": "Nå vet jeg ikke helt hvordan den saken endte, men hvis man ser for seg en regress fra forsikringsselskapet mot skadevolder her på en skade på mange hundre millioner kroner,"
+      },
+      {
+        "time": "00:50:47",
+        "seconds": 3047,
+        "text": "det kan jo være helt andre skader også, og du har en forsikringssum på 10 millioner, 20 millioner."
+      },
+      {
+        "time": "00:50:53",
+        "seconds": 3053,
+        "text": "Så kan det få dramatiske økonomiske konsekvenser."
+      },
+      {
+        "time": "00:50:57",
+        "seconds": 3057,
+        "text": "Så dette med forsikringssummer, spesielt på ansvar, styreansvar, det er noe som må diskuteres nøye med kundene."
+      },
+      {
+        "time": "00:52:00",
+        "seconds": 3120,
+        "text": "Ja, da går vi litt videre, Frode. Dette med skader er jo det vi egentlig jobber med."
+      },
+      {
+        "time": "00:52:04",
+        "seconds": 3124,
+        "text": "Vi synes jo det er litt morsomt å jobbe med skader, og vi har en liten heading her av skade blir man klok."
+      },
+      {
+        "time": "00:52:11",
+        "seconds": 3131,
+        "text": "Og i en sidige tiden så hadde vi en undertitel til det som heter at man blir sjelden."
+      },
+      {
+        "time": "00:52:16",
+        "seconds": 3136,
+        "text": "Så av skade blir man klok, Frode. Hva er det du legger vekt på i samtalen med kundene dine når det gjelder skadeforsikring, avdekkeforsikring?"
+      },
+      {
+        "time": "00:52:29",
+        "seconds": 3149,
+        "text": "Hvis vi ser på først, bare for å holde litt lenger i ansvarsproduktet som vi er litt inne på nå, hva kan man ødelegge?"
+      },
+      {
+        "time": "00:52:41",
+        "seconds": 3161,
+        "text": "Jeg vil bare gå videre på det."
+      },
+      {
+        "time": "00:52:44",
+        "seconds": 3164,
+        "text": "Husk på en ting som vi har så vidt."
+      },
+      {
+        "time": "00:52:46",
+        "seconds": 3166,
+        "text": "Når vi skal avdekke virksomheten, det er veldig stor forskjell på, driver man bare hos seg selv?"
+      },
+      {
+        "time": "00:52:54",
+        "seconds": 3174,
+        "text": "Altså et mekanisk verste som holder på i egne lokaler, så er jo ansvarsrisikoen forholdsvis begrenset."
+      },
+      {
+        "time": "00:53:01",
+        "seconds": 3181,
+        "text": "Da er det kanskje produktansvaret."
+      },
+      {
+        "time": "00:53:04",
+        "seconds": 3184,
+        "text": "Men når man driver rundt omkring, så kan man jo skade helt andre ting, for da skader man andres verdier."
+      },
+      {
+        "time": "00:53:16",
+        "seconds": 3196,
+        "text": "Hvis vi ser på eiendom, bygningsforsikringer, og opp mot leietaker og en kunde som leier lokalene, hva skal han kjøpe ansvarsforsikring for?"
+      },
+      {
+        "time": "00:53:42",
+        "seconds": 3222,
+        "text": "Husleiekontraktene går veldig langt i å pålegge veldig mye ansvar."
+      },
+      {
+        "time": "00:53:48",
+        "seconds": 3228,
+        "text": "Rett og slett på leietaker."
+      },
+      {
+        "time": "00:53:52",
+        "seconds": 3232,
+        "text": "Men så ser vi også i de standard husleiekontraktene, så sier man også at det er huseier som skal forsikre bygningen, og leietaker skal forsikre sitt."
+      },
+      {
+        "time": "00:54:04",
+        "seconds": 3244,
+        "text": "Men videre i leiekontrakten, så står det også at til tross for det, så det står ikke noe om hvilken forsikring som skal brukes."
+      },
+      {
+        "time": "00:54:18",
+        "seconds": 3258,
+        "text": "Vi har jo sett at bransjen etter hvert er flinkere og flinkere til å regresse."
+      },
+      {
+        "time": "00:54:26",
+        "seconds": 3266,
+        "text": "Og av og til så er de etter mitt syn litt for flinke."
+      },
+      {
+        "time": "00:54:30",
+        "seconds": 3270,
+        "text": "Man fyrer og går et regresskrav uten at det er veldig godt fundamentert og dokumentert."
+      },
+      {
+        "time": "00:54:37",
+        "seconds": 3277,
+        "text": "Og den som mottar regresskravet blir nødt til å håndtere det."
+      },
+      {
+        "time": "00:54:43",
+        "seconds": 3283,
+        "text": "Og relatert til ansvarsforsikring og eksponering."
+      },
+      {
+        "time": "00:54:46",
+        "seconds": 3286,
+        "text": "Og hvor mye skal man kjøpe forsikring for, så synes jeg det er noe av det vanskeligste."
+      },
+      {
+        "time": "00:54:51",
+        "seconds": 3291,
+        "text": "Fordi det er både fantasi og just og kontrakter som må ses på i et helhetlig, men også litt sånn hva er rettspraksis."
+      },
+      {
+        "time": "00:55:03",
+        "seconds": 3303,
+        "text": "Og ikke minst, hva får man kjøpt av avlastning?"
+      },
+      {
+        "time": "00:55:09",
+        "seconds": 3309,
+        "text": "Og hvis vi ser på dette, en liten bedrift i leietaker i et stort næringsbygg, kan jo risikere."
+      },
+      {
+        "time": "00:55:16",
+        "seconds": 3316,
+        "text": "Å starte en brann som får fatale konsekvenser eller veldig store skader, kanskje totalskade."
+      },
+      {
+        "time": "00:55:27",
+        "seconds": 3327,
+        "text": "Og bygge da til kanskje 100 millioner eller 500 millioner eller en milliard for de største byggene."
+      },
+      {
+        "time": "00:55:34",
+        "seconds": 3334,
+        "text": "Det kan jo være en helt enkel virksomhet som for eksempel en kiosk som er integrert, som driver i en del av et digert næringsbygg for eksempel."
+      },
+      {
+        "time": "00:55:43",
+        "seconds": 3343,
+        "text": "Ja."
+      },
+      {
+        "time": "00:55:46",
+        "seconds": 3346,
+        "text": "En kiosk får ikke kjøpt ansvarsforsikring for en milliard."
+      },
+      {
+        "time": "00:55:50",
+        "seconds": 3350,
+        "text": "Og det er jo ikke sånn vi har organisert forsikringsinstrumentet vårt i Norge."
+      },
+      {
+        "time": "00:56:02",
+        "seconds": 3362,
+        "text": "Likevel så er det på en måte ikke noe helt sånn tydelig rettspraksis på hvor stort ansvar denne kiosken kan få."
+      },
+      {
+        "time": "00:56:09",
+        "seconds": 3369,
+        "text": "Men vi ser jo at man kanskje ikke regresser mer enn det som er forsikringssøkning."
+      },
+      {
+        "time": "00:56:16",
+        "seconds": 3376,
+        "text": "Ja."
+      },
+      {
+        "time": "00:56:17",
+        "seconds": 3377,
+        "text": "Og så har vi andre problemstillinger hvor du eier hele, du eier ikke men du leier hele lokalet."
+      },
+      {
+        "time": "00:56:29",
+        "seconds": 3389,
+        "text": "Hele bygningsmasten, ja."
+      },
+      {
+        "time": "00:56:30",
+        "seconds": 3390,
+        "text": "Ja. Da har man jo hele bygget i sin varetekt."
+      },
+      {
+        "time": "00:56:34",
+        "seconds": 3394,
+        "text": "Og i alle ansvarsforsikringsvilkår så er det jo unntak for skade på lei deg ennå, eller unntak for ting du har i din varetekt."
+      },
+      {
+        "time": "00:56:44",
+        "seconds": 3404,
+        "text": "Så der er ..."
+      },
+      {
+        "time": "00:56:45",
+        "seconds": 3405,
+        "text": "Der er vilkårene sånn blitt litt kanskje spissa i de siste årene hvor man spesifikt nevner skade på lei deg ennå som unntak."
+      },
+      {
+        "time": "00:56:58",
+        "seconds": 3418,
+        "text": "Og før hadde man mer det generelle varetektsunntaket og så falt dette under det."
+      },
+      {
+        "time": "00:57:04",
+        "seconds": 3424,
+        "text": "Og så har man da fått produkter som ..."
+      },
+      {
+        "time": "00:57:09",
+        "seconds": 3429,
+        "text": "Eller man kan få opphevet dette unntaket med en sublimitt."
+      },
+      {
+        "time": "00:57:15",
+        "seconds": 3435,
+        "text": "Eller til hvor stor forsikring skal man kjøpe."
+      },
+      {
+        "time": "00:57:21",
+        "seconds": 3441,
+        "text": "Og da har jeg begynt å tenke litt i retning av at det kanskje er hensiktsmessig for noen parter å avtale at leietaker kanskje skal overta hele bygningsforsikringen."
+      },
+      {
+        "time": "00:57:34",
+        "seconds": 3454,
+        "text": "Og ta med huseier som medforsikrerett."
+      },
+      {
+        "time": "00:57:39",
+        "seconds": 3459,
+        "text": "I alle fall i de tilfellene tenker jeg hvor man leier hele bygningsmasten."
+      },
+      {
+        "time": "00:57:43",
+        "seconds": 3463,
+        "text": "I de tilfellene kan det være lurt."
+      },
+      {
+        "time": "00:57:44",
+        "seconds": 3464,
+        "text": "For vi har sett at markedet priser denne utvidelsen av skade på lei deg ennå om såpass høyt at man betaler faktisk propertyraten flere ganger."
+      },
+      {
+        "time": "00:58:02",
+        "seconds": 3482,
+        "text": "Og hvor mange ganger skal man forsikre et næringsbygg?"
+      },
+      {
+        "time": "00:58:05",
+        "seconds": 3485,
+        "text": "Så her synes jeg at bransjen har litt vei å gå faktisk på å rydde litt i sitt produkt."
+      },
+      {
+        "time": "00:58:12",
+        "seconds": 3492,
+        "text": "I sitt produktspekter og vilkår og unntak."
+      },
+      {
+        "time": "00:58:16",
+        "seconds": 3496,
+        "text": "Da ser jeg at det er et spørsmål til her, Frode."
+      },
+      {
+        "time": "00:58:27",
+        "seconds": 3507,
+        "text": "Det var et spørsmål om blir dette en dobbeltforsikringsproblematikk i markedet?"
+      },
+      {
+        "time": "00:58:34",
+        "seconds": 3514,
+        "text": "Er det det vi ser som kan oppstå her?"
+      },
+      {
+        "time": "00:58:36",
+        "seconds": 3516,
+        "text": "Ja, det blir jo en form for dobbeltforsikring selv om det er ulike forsikringsdekninger."
+      },
+      {
+        "time": "00:58:44",
+        "seconds": 3524,
+        "text": "I ansvarsforsikringen mener man jo å fange det rettslige."
+      },
+      {
+        "time": "00:58:49",
+        "seconds": 3529,
+        "text": "Det rettslige erstatningsansvaret."
+      },
+      {
+        "time": "00:58:51",
+        "seconds": 3531,
+        "text": "Mens på propertyforsikringen så er det jo det objektive skaden."
+      },
+      {
+        "time": "00:59:00",
+        "seconds": 3540,
+        "text": "Det at skaden er innenfor dekningen."
+      },
+      {
+        "time": "00:59:04",
+        "seconds": 3544,
+        "text": "Det har vært en brand."
+      },
+      {
+        "time": "00:59:06",
+        "seconds": 3546,
+        "text": "Det dekkes på tingforsikringen."
+      },
+      {
+        "time": "00:59:09",
+        "seconds": 3549,
+        "text": "Og hvis vi ender opp med et regime da hvor alle leietakerne skal både ha en"
+      },
+      {
+        "time": "00:59:18",
+        "seconds": 3558,
+        "text": "eller husseieren har en tingforsikring på bygningen."
+      },
+      {
+        "time": "00:59:23",
+        "seconds": 3563,
+        "text": "Og så må alle leietakere kjøpe en høy ansvarsforsikring i tilfellet regresser."
+      },
+      {
+        "time": "00:59:29",
+        "seconds": 3569,
+        "text": "Så blir jo dette byggeforsikret veldig mange ganger."
+      },
+      {
+        "time": "00:59:31",
+        "seconds": 3571,
+        "text": "Og det er ikke meningen."
+      },
+      {
+        "time": "00:59:33",
+        "seconds": 3573,
+        "text": "Men der skulle jeg ønske at bransjen hadde kommet fram med litt klarere retningslinjer."
+      },
+      {
+        "time": "00:59:39",
+        "seconds": 3579,
+        "text": "Og vi har en høyesterettsdom for noen år siden som ikke egentlig gikk inn i denne problemstillingen."
+      },
+      {
+        "time": "00:59:45",
+        "seconds": 3585,
+        "text": "Men der."
+      },
+      {
+        "time": "00:59:46",
+        "seconds": 3586,
+        "text": "Det var KLP som regressa en kunde."
+      },
+      {
+        "time": "00:59:54",
+        "seconds": 3594,
+        "text": "Og der tok man det på."
+      },
+      {
+        "time": "00:59:59",
+        "seconds": 3599,
+        "text": "at man hadde ikke hevda en mangel, rett og slett."
+      },
+      {
+        "time": "01:00:03",
+        "seconds": 3603,
+        "text": "Så man fikk ikke egentlig utredet dette uaktsomhetsansvaret"
+      },
+      {
+        "time": "01:00:07",
+        "seconds": 3607,
+        "text": "og hvor langt det strekker seg for en leitaker."
+      },
+      {
+        "time": "01:00:09",
+        "seconds": 3609,
+        "text": "Så selskapet, KLP, nådde ikke fram med sitt krav"
+      },
+      {
+        "time": "01:00:17",
+        "seconds": 3617,
+        "text": "på grunn av at man hadde ikke hevda en mangel"
+      },
+      {
+        "time": "01:00:21",
+        "seconds": 3621,
+        "text": "og man tok det på de kontraktsretslige tingene"
+      },
+      {
+        "time": "01:00:23",
+        "seconds": 3623,
+        "text": "og ikke på selve uaktsomhetsbiten."
+      },
+      {
+        "time": "01:00:25",
+        "seconds": 3625,
+        "text": "Det var litt synd, for da hadde vi kanskje hatt en tydelig avklaring."
+      },
+      {
+        "time": "01:00:29",
+        "seconds": 3629,
+        "text": "Det var en veldig fin avklaring, Frode."
+      },
+      {
+        "time": "01:00:33",
+        "seconds": 3633,
+        "text": "Det er jo veldig betegnende for hvorfor vi synes det er gøy"
+      },
+      {
+        "time": "01:00:38",
+        "seconds": 3638,
+        "text": "å jobbe med forsikring."
+      },
+      {
+        "time": "01:00:39",
+        "seconds": 3639,
+        "text": "Man er jo ute og treffer nye problemstillinger hver eneste dag"
+      },
+      {
+        "time": "01:00:43",
+        "seconds": 3643,
+        "text": "og vi lærer hver eneste dag."
+      },
+      {
+        "time": "01:00:46",
+        "seconds": 3646,
+        "text": "Så dette er spennende, men det krever også veldig mye av oss"
+      },
+      {
+        "time": "01:00:49",
+        "seconds": 3649,
+        "text": "når vi er ute og jobber. Det må vi påpeke."
+      },
+      {
+        "time": "01:00:52",
+        "seconds": 3652,
+        "text": "Får jeg lov til å knytte et lite spørsmål til deg også"
+      },
+      {
+        "time": "01:00:54",
+        "seconds": 3654,
+        "text": "til dette med leietakeransvar?"
+      },
+      {
+        "time": "01:00:58",
+        "seconds": 3658,
+        "text": "For det jeg tenker på når du snakker om dette,"
+      },
+      {
+        "time": "01:01:01",
+        "seconds": 3661,
+        "text": "går det an å råde kunden til i sin kontrakt med huseier,"
+      },
+      {
+        "time": "01:01:09",
+        "seconds": 3669,
+        "text": "altså leietaker i kontrakt med huseier,"
+      },
+      {
+        "time": "01:01:11",
+        "seconds": 3671,
+        "text": "inngår en ansvarsbegrensningsklausul i denne leietakeravtalen."
+      },
+      {
+        "time": "01:01:18",
+        "seconds": 3678,
+        "text": "Er det noe du har vært borti?"
+      },
+      {
+        "time": "01:01:20",
+        "seconds": 3680,
+        "text": "Kan det være en vei å gå for å begrense dette behovet"
+      },
+      {
+        "time": "01:01:23",
+        "seconds": 3683,
+        "text": "for forsikring flere ganger?"
+      },
+      {
+        "time": "01:01:26",
+        "seconds": 3686,
+        "text": "Ja, dette kan jo reguleres kontraktsmessig."
+      },
+      {
+        "time": "01:01:31",
+        "seconds": 3691,
+        "text": "Og det er kanskje det som bør gjøres,"
+      },
+      {
+        "time": "01:01:36",
+        "seconds": 3696,
+        "text": "i hvert fall stramme opp kontraktene som brukes i dag."
+      },
+      {
+        "time": "01:01:40",
+        "seconds": 3700,
+        "text": "Men problemet er jo at veldig mye av disse leikontraktene"
+      },
+      {
+        "time": "01:01:44",
+        "seconds": 3704,
+        "text": "er veldig i favør av utleier,"
+      },
+      {
+        "time": "01:01:48",
+        "seconds": 3708,
+        "text": "og at den enkelte leietaker har forholdsvis liten innvirkning"
+      },
+      {
+        "time": "01:01:53",
+        "seconds": 3713,
+        "text": "på det å få endret kontrakten, så det kan være litt vanskelig."
+      },
+      {
+        "time": "01:01:58",
+        "seconds": 3718,
+        "text": "Riktig."
+      },
+      {
+        "time": "01:01:59",
+        "seconds": 3719,
+        "text": "Men det er klart, jo større..."
+      },
+      {
+        "time": "01:02:01",
+        "seconds": 3721,
+        "text": "Man er i kraft av det å være kunde, leier man hele bygget,"
+      },
+      {
+        "time": "01:02:06",
+        "seconds": 3726,
+        "text": "så er det mye lettere å gjøre sånne avklaringer i kontrakten."
+      },
+      {
+        "time": "01:02:12",
+        "seconds": 3732,
+        "text": "Ja, det er klart."
+      },
+      {
+        "time": "01:02:15",
+        "seconds": 3735,
+        "text": "Ja vel, det er spennende."
+      },
+      {
+        "time": "01:02:17",
+        "seconds": 3737,
+        "text": "Skal vi gå litt videre, Frode, og kanskje tenke litt på dette med..."
+      },
+      {
+        "time": "01:02:21",
+        "seconds": 3741,
+        "text": "Vi har jo opplevd en periode med ganske høy inflasjon de siste årene."
+      },
+      {
+        "time": "01:02:27",
+        "seconds": 3747,
+        "text": "Hvordan får vi tak i de riktige forsikringsverdier fra kundene?"
+      },
+      {
+        "time": "01:02:32",
+        "seconds": 3752,
+        "text": "Skal vi si noen ord om det?"
+      },
+      {
+        "time": "01:02:35",
+        "seconds": 3755,
+        "text": "Hva slags erfaring har du med det?"
+      },
+      {
+        "time": "01:02:37",
+        "seconds": 3757,
+        "text": "Her er det viktig at kunden forstår hva som er grunnlaget for noen av de begrepene vi bruker."
+      },
+      {
+        "time": "01:02:50",
+        "seconds": 3770,
+        "text": "Og vi må jo forsikre alle verdiene til kunden."
+      },
+      {
+        "time": "01:02:54",
+        "seconds": 3774,
+        "text": "Så når det gjelder varer, da, så har jo de fleste full kontroll på det."
+      },
+      {
+        "time": "01:03:02",
+        "seconds": 3782,
+        "text": "Varer, det finner de i renskriften."
+      },
+      {
+        "time": "01:03:04",
+        "seconds": 3784,
+        "text": "Det finner de i egenskapene sine."
+      },
+      {
+        "time": "01:03:06",
+        "seconds": 3786,
+        "text": "Og er ganske lett."
+      },
+      {
+        "time": "01:03:08",
+        "seconds": 3788,
+        "text": "Det kan være noen sesongvariasjoner som gjør at man kan ha utfordringer der."
+      },
+      {
+        "time": "01:03:12",
+        "seconds": 3792,
+        "text": "Og man må tenke på varetoppen."
+      },
+      {
+        "time": "01:03:14",
+        "seconds": 3794,
+        "text": "Det brenner jo ofte på det verst tenkelige tidspunktet."
+      },
+      {
+        "time": "01:03:18",
+        "seconds": 3798,
+        "text": "Det er ulike måter å løse det på, sånn forsikringsmessig."
+      },
+      {
+        "time": "01:03:22",
+        "seconds": 3802,
+        "text": "Man kan ha deklarasjonsordninger som gjør at man betaler for en snittsum."
+      },
+      {
+        "time": "01:03:30",
+        "seconds": 3810,
+        "text": "Men det som jeg synes er vanskeligst,"
+      },
+      {
+        "time": "01:03:33",
+        "seconds": 3813,
+        "text": "det er dette med maskinlinjer."
+      },
+      {
+        "time": "01:03:35",
+        "seconds": 3815,
+        "text": "Og hvordan fastsette forsikringssum på maskiner, inventar og løser, eller eiendelene."
+      },
+      {
+        "time": "01:03:43",
+        "seconds": 3823,
+        "text": "Det er krevende fordi man kan ikke gå i balansen og finne det."
+      },
+      {
+        "time": "01:03:50",
+        "seconds": 3830,
+        "text": "Det er nedskrevet ofte til nesten null, mange steder."
+      },
+      {
+        "time": "01:03:55",
+        "seconds": 3835,
+        "text": "Men har jo en stor verdi i praksis for kunden."
+      },
+      {
+        "time": "01:03:59",
+        "seconds": 3839,
+        "text": "Og har en veldig høy gjenanskaffelse."
+      },
+      {
+        "time": "01:04:02",
+        "seconds": 3842,
+        "text": "Og der er det en veldig pedagogisk øvelse å få kunden til å forstå at det vi snakker om forsikringsmessig,"
+      },
+      {
+        "time": "01:04:12",
+        "seconds": 3852,
+        "text": "det er gjenanskaffelseskost som nytt på skadedagen."
+      },
+      {
+        "time": "01:04:17",
+        "seconds": 3857,
+        "text": "Altså hva koster det å få tak i dette utstyret nytt på skadedagen eller nå?"
+      },
+      {
+        "time": "01:04:24",
+        "seconds": 3864,
+        "text": "Og så sier kunden ofte at, for han tenker at verdien,"
+      },
+      {
+        "time": "01:04:30",
+        "seconds": 3870,
+        "text": "hvis han skulle selge det, det er jo veldig lite ofte."
+      },
+      {
+        "time": "01:04:36",
+        "seconds": 3876,
+        "text": "Og så er det jo også det at kunden får jo ikke erstattet nytt for gammelt."
+      },
+      {
+        "time": "01:04:43",
+        "seconds": 3883,
+        "text": "Utgangspunktet er at kunden skal være i samme økonomiske situasjon etter skade som før skade."
+      },
+      {
+        "time": "01:04:51",
+        "seconds": 3891,
+        "text": "Med fradrag av den avtalte egenhandelen."
+      },
+      {
+        "time": "01:04:53",
+        "seconds": 3893,
+        "text": "Og da får man noen diskusjoner på hva er, for eksempel,"
+      },
+      {
+        "time": "01:04:58",
+        "seconds": 3898,
+        "text": "Hva er for eksempel forventet levetid på en ting?"
+      },
+      {
+        "time": "01:05:02",
+        "seconds": 3902,
+        "text": "Noen selskaper har tabulariske avskrivninger, mens andre selskaper ser på levetid."
+      },
+      {
+        "time": "01:05:09",
+        "seconds": 3909,
+        "text": "Og uansett kan man reparere."
+      },
+      {
+        "time": "01:05:13",
+        "seconds": 3913,
+        "text": "En del utstyr har kort levetid og høy avskrivning,"
+      },
+      {
+        "time": "01:05:16",
+        "seconds": 3916,
+        "text": "og annen type utstyr har veldig lang levetid."
+      },
+      {
+        "time": "01:05:19",
+        "seconds": 3919,
+        "text": "Men utgangspunktet for forsikringen skal være gjennomskaffelseskosten."
+      },
+      {
+        "time": "01:05:23",
+        "seconds": 3923,
+        "text": "I disse tider ser vi for en del virksomheter at vi har en regulering i vårt FNO."
+      },
+      {
+        "time": "01:05:34",
+        "seconds": 3934,
+        "text": "Vi regulerer forsikringene, eller har en fullverdig justering hvert år på alt av bygningsmasset,"
+      },
+      {
+        "time": "01:05:42",
+        "seconds": 3942,
+        "text": "og en maskinindeks som fastsettes hvert år."
+      },
+      {
+        "time": "01:05:48",
+        "seconds": 3948,
+        "text": "Den bestemmes i juni årefølgen for..."
+      },
+      {
+        "time": "01:05:53",
+        "seconds": 3953,
+        "text": "...virkning."
+      },
+      {
+        "time": "01:05:57",
+        "seconds": 3957,
+        "text": "Og vi har sett at man ikke har klart å henge med på den reelle kostnadsutviklingen."
+      },
+      {
+        "time": "01:06:05",
+        "seconds": 3965,
+        "text": "Og derfor har vi sett tilfeller av underforsikring,"
+      },
+      {
+        "time": "01:06:08",
+        "seconds": 3968,
+        "text": "fordi pristigningen har tatt såpass fart at man ikke har kommet til underforsikring av den grunn."
+      },
+      {
+        "time": "01:06:18",
+        "seconds": 3978,
+        "text": "Men man har også underforsikring fordi man ikke har fått med seg verdiene,"
+      },
+      {
+        "time": "01:06:22",
+        "seconds": 3982,
+        "text": "eller forstått hvordan man skal rapportere."
+      },
+      {
+        "time": "01:06:25",
+        "seconds": 3985,
+        "text": "Så det er viktig at kunden forstår, at megleren forstår hva som er selskapets forutsetning"
+      },
+      {
+        "time": "01:06:31",
+        "seconds": 3991,
+        "text": "for å tegne denne eiendelstekningen."
+      },
+      {
+        "time": "01:06:38",
+        "seconds": 3998,
+        "text": "Ja, det er jo en pedagogisk viktig ting å diskutere også i møte med kunden."
+      },
+      {
+        "time": "01:06:43",
+        "seconds": 4003,
+        "text": "Hva er forsikringsverdiene her, som er noe helt annet enn bokførte verdier?"
+      },
+      {
+        "time": "01:06:47",
+        "seconds": 4007,
+        "text": "Ja, og da får vi samtidig en sånn fin..."
+      },
+      {
+        "time": "01:06:52",
+        "seconds": 4012,
+        "text": "forventningsavklaring da på hva er..."
+      },
+      {
+        "time": "01:06:55",
+        "seconds": 4015,
+        "text": "fordi da vil man jo også diskutere hva er erstatningen, og hva er erstatningsprinsippene."
+      },
+      {
+        "time": "01:07:00",
+        "seconds": 4020,
+        "text": "Så kan man før skade være enig om hva som er forventningen."
+      },
+      {
+        "time": "01:07:08",
+        "seconds": 4028,
+        "text": "Så det er en viktig element å være innom i behovsanalysen."
+      },
+      {
+        "time": "01:07:15",
+        "seconds": 4035,
+        "text": "Vi pleier å være lettere å bli enige før skade enn etter skade, synes jeg."
+      },
+      {
+        "time": "01:07:19",
+        "seconds": 4039,
+        "text": "Det er ofte sånn."
+      },
+      {
+        "time": "01:07:20",
+        "seconds": 4040,
+        "text": "Ja."
+      },
+      {
+        "time": "01:07:22",
+        "seconds": 4042,
+        "text": "I forhold til disse dekningene, Frode, det er jo litt forskjellige vilkår ut og går"
+      },
+      {
+        "time": "01:07:26",
+        "seconds": 4046,
+        "text": "når vi spesielt jobber i det norske markedet på selskapsvilkår."
+      },
+      {
+        "time": "01:07:30",
+        "seconds": 4050,
+        "text": "Er det mye av det vi kaller «name perils», altså nevnte farer,"
+      },
+      {
+        "time": "01:07:36",
+        "seconds": 4056,
+        "text": "hvor man har en forsikring som for eksempel dekker brann, vann, innbrunnsskade,"
+      },
+      {
+        "time": "01:07:41",
+        "seconds": 4061,
+        "text": "kontra all risk-vilkår som har et annet perspektiv,"
+      },
+      {
+        "time": "01:07:46",
+        "seconds": 4066,
+        "text": "der det er alle farer med mindre de er beskrevet direkte unntatt dekket,"
+      },
+      {
+        "time": "01:07:51",
+        "seconds": 4071,
+        "text": "ser du mye til forskjell på dette i markedet?"
+      },
+      {
+        "time": "01:07:55",
+        "seconds": 4075,
+        "text": "Ja, etter hvert så har jo en del forsikringsselskaper fått såkalte dynamiske vilkår,"
+      },
+      {
+        "time": "01:08:02",
+        "seconds": 4082,
+        "text": "og da er det litt sånn at bransjekoden styrer litt hvilke produkter som man på en måte legger inn."
+      },
+      {
+        "time": "01:08:12",
+        "seconds": 4092,
+        "text": "Også når vi ser på dekningsomfanget, så ser vi at en del selskaper,"
+      },
+      {
+        "time": "01:08:20",
+        "seconds": 4100,
+        "text": "opererer med heldekning. Du kan kjøpe heldekning,"
+      },
+      {
+        "time": "01:08:26",
+        "seconds": 4106,
+        "text": "eller du kan kjøpe kombinert dekning som det heter i gamle dager,"
+      },
+      {
+        "time": "01:08:31",
+        "seconds": 4111,
+        "text": "brann, vann, innbrunn og naturskade."
+      },
+      {
+        "time": "01:08:33",
+        "seconds": 4113,
+        "text": "Veldig mye av utgangspunktet for forsikringen som er tegnet opp gjennom i middenmarkedet i Norge,"
+      },
+      {
+        "time": "01:08:39",
+        "seconds": 4119,
+        "text": "har som utgangspunkt i en sånn kombinert bedriftsforsikring,"
+      },
+      {
+        "time": "01:08:44",
+        "seconds": 4124,
+        "text": "hvor det er brann, vann, innbrunn og natur."
+      },
+      {
+        "time": "01:08:48",
+        "seconds": 4128,
+        "text": "Også har flere og flere selskaper etter hvert kommet til å lage sine produkter"
+      },
+      {
+        "time": "01:08:54",
+        "seconds": 4134,
+        "text": "for å få med dette annet skadebegrepet."
+      },
+      {
+        "time": "01:08:58",
+        "seconds": 4138,
+        "text": "Og igjen da, det her med fantasien og hva du klarer å tenke på kan skje og ikke,"
+      },
+      {
+        "time": "01:09:05",
+        "seconds": 4145,
+        "text": "så hadde jeg lyst til å ta et par eksempler som illustrerer hvorfor man kanskje skal velge"
+      },
+      {
+        "time": "01:09:13",
+        "seconds": 4153,
+        "text": "en belte-bukseselgløsning kontra en elektrisk løsning."
+      },
+      {
+        "time": "01:09:16",
+        "seconds": 4156,
+        "text": "Kontra nemne perils eller bare visse dekninger."
+      },
+      {
+        "time": "01:09:21",
+        "seconds": 4161,
+        "text": "Og det er et case som illustrerer veldig mange problemstillinger egentlig."
+      },
+      {
+        "time": "01:09:37",
+        "seconds": 4177,
+        "text": "Det var altså på et stort kjøpesenter, så skulle man gjøre en ombygging."
+      },
+      {
+        "time": "01:09:45",
+        "seconds": 4185,
+        "text": "Og den ombyggingen skulle man gjøre mens det var drift."
+      },
+      {
+        "time": "01:09:48",
+        "seconds": 4188,
+        "text": "Og da er det litt sånn, da er det mange forskjellige parter inne,"
+      },
+      {
+        "time": "01:09:55",
+        "seconds": 4195,
+        "text": "og en del ting som kan gå gærent."
+      },
+      {
+        "time": "01:09:58",
+        "seconds": 4198,
+        "text": "Og vi har eierne av kjøpesenteret, han vil jo da være byggherre i dette prosjektet."
+      },
+      {
+        "time": "01:10:09",
+        "seconds": 4209,
+        "text": "Har han byggherreansvarsforsikring, for eksempel i de fleste sånne huseierforsikringer,"
+      },
+      {
+        "time": "01:10:17",
+        "seconds": 4217,
+        "text": "eller de fleste ansvarsforsikringer, hvis han har bare en bygningsforsikring og så en egen ansvarsforsikring,"
+      },
+      {
+        "time": "01:10:24",
+        "seconds": 4224,
+        "text": "eller om han har en huseierforsikring med en inkludert ansvarstekning på,"
+      },
+      {
+        "time": "01:10:29",
+        "seconds": 4229,
+        "text": "så vil det i begge tilfeller være unntak for byggherreansvar."
+      },
+      {
+        "time": "01:10:33",
+        "seconds": 4233,
+        "text": "Sånn at det er noe vi må, og er vi så heldige at vi blir involvert før de starter,"
+      },
+      {
+        "time": "01:10:42",
+        "seconds": 4242,
+        "text": "så har vi jo muligheten til å komme med noen gode råd her."
+      },
+      {
+        "time": "01:10:46",
+        "seconds": 4246,
+        "text": "Byggeren må sørge for å tegne en byggherreansvarsforsikring."
+      },
+      {
+        "time": "01:10:51",
+        "seconds": 4251,
+        "text": "Og så har vi en entreprenør inne, eller vi har flere entreprenører,"
+      },
+      {
+        "time": "01:10:54",
+        "seconds": 4254,
+        "text": "men vi har kanskje en total entreprise på ombyggingen,"
+      },
+      {
+        "time": "01:10:58",
+        "seconds": 4258,
+        "text": "og han har en del underentrepriser."
+      },
+      {
+        "time": "01:11:02",
+        "seconds": 4262,
+        "text": "Vi har alle de som er drivere i senteret, som har sin drift der,"
+      },
+      {
+        "time": "01:11:09",
+        "seconds": 4269,
+        "text": "det er mulig avbrudseksponering, skade på varene,"
+      },
+      {
+        "time": "01:11:15",
+        "seconds": 4275,
+        "text": "og det er åpent i åpningstid, vi har kunder som kan bli skadet av den økte eksponeringen,"
+      },
+      {
+        "time": "01:11:24",
+        "seconds": 4284,
+        "text": "for å få skade også på personskade på en lokasjon som er i drift i forhold til en byggeplass"
+      },
+      {
+        "time": "01:11:33",
+        "seconds": 4293,
+        "text": "som er veldig avgrenset og stengt for publikum."
+      },
+      {
+        "time": "01:11:36",
+        "seconds": 4296,
+        "text": "Så her er det mange greier, og det som skjedde her var at i og med at de skulle bygge om litt,"
+      },
+      {
+        "time": "01:11:47",
+        "seconds": 4307,
+        "text": "så hadde totalentreprenøren leidt inn et mindre firma som drev med betongskjæring,"
+      },
+      {
+        "time": "01:11:54",
+        "seconds": 4314,
+        "text": "han gjorde det han skulle, som vi vet så feiker det veldig mye når man driver med betongskjæring,"
+      },
+      {
+        "time": "01:12:02",
+        "seconds": 4322,
+        "text": "og dette støvet spredde seg i luftsystemet, som igjen transporterte det ut i butikkene,"
+      },
+      {
+        "time": "01:12:09",
+        "seconds": 4329,
+        "text": "og la et fint, tynt støv på alt av tigerdresser og forskjellige typer dyre klær."
+      },
+      {
+        "time": "01:12:18",
+        "seconds": 4338,
+        "text": "Dyre klær ble dekket med fint betongstøv, det var fint."
+      },
+      {
+        "time": "01:12:22",
+        "seconds": 4342,
+        "text": "Det ble skader."
+      },
+      {
+        "time": "01:12:24",
+        "seconds": 4344,
+        "text": "Det ble skader for mange millioner, og så er det da, ja, du har en kombinert bedriftsforsikring,"
+      },
+      {
+        "time": "01:12:36",
+        "seconds": 4356,
+        "text": "du har dekket brann, vann, innbrud og naturskade, dette er jo ingen av delene."
+      },
+      {
+        "time": "01:12:41",
+        "seconds": 4361,
+        "text": "Nei."
+      },
+      {
+        "time": "01:12:42",
+        "seconds": 4362,
+        "text": "Men har du helekning, så har vi plutselig fått med dette annet skadebegrepet."
+      },
+      {
+        "time": "01:12:48",
+        "seconds": 4368,
+        "text": "Med mindre det er direkte unntatt."
+      },
+      {
+        "time": "01:12:50",
+        "seconds": 4370,
+        "text": "Med mindre det er, med mindre betongskjæring er direkte unntatt."
+      },
+      {
+        "time": "01:12:54",
+        "seconds": 4374,
+        "text": "Direkte unntatt."
+      },
+      {
+        "time": "01:12:56",
+        "seconds": 4376,
+        "text": "Så heldigvis, for denne kunden som drev denne butikken, fikk både et stort avbrudstap og fikk et stort varetap,"
+      },
+      {
+        "time": "01:13:04",
+        "seconds": 4384,
+        "text": "hadde heldigvis forsikring for annen skade."
+      },
+      {
+        "time": "01:13:13",
+        "seconds": 4393,
+        "text": "Og så dukket det jo opp noen problemstillinger her for denne entreprenøren, det var et lite firma."
+      },
+      {
+        "time": "01:13:21",
+        "seconds": 4401,
+        "text": "Hva tror du han hadde i ansvarsforsikringssum?"
+      },
+      {
+        "time": "01:13:24",
+        "seconds": 4404,
+        "text": "Tipene, han hadde 150G."
+      },
+      {
+        "time": "01:13:25",
+        "seconds": 4405,
+        "text": "Han hadde 150G."
+      },
+      {
+        "time": "01:13:27",
+        "seconds": 4407,
+        "text": "Og skadene gikk langt over 150G."
+      },
+      {
+        "time": "01:13:33",
+        "seconds": 4413,
+        "text": "Og så er det spørsmålet, er det han?"
+      },
+      {
+        "time": "01:13:36",
+        "seconds": 4416,
+        "text": "Eller har han jobbet på Instruks?"
+      },
+      {
+        "time": "01:13:39",
+        "seconds": 4419,
+        "text": "Var det byggeren som hadde glemt å sørge for at disse luftesystemene var slåtta når han skulle gjøres inn, eller sikra?"
+      },
+      {
+        "time": "01:13:52",
+        "seconds": 4432,
+        "text": "Hvem hadde ansvar for å gjøre hva?"
+      },
+      {
+        "time": "01:13:54",
+        "seconds": 4434,
+        "text": "Og her i denne prosessen, så har du totalentreprenøren inne i bildet."
+      },
+      {
+        "time": "01:14:02",
+        "seconds": 4442,
+        "text": "Her ble det, i tillegg så viste det seg at disse varene i butikken, den ene butikken, det var varer i kommisjon."
+      },
+      {
+        "time": "01:14:13",
+        "seconds": 4453,
+        "text": "Så det var jo ikke kundens varer."
+      },
+      {
+        "time": "01:14:15",
+        "seconds": 4455,
+        "text": "Det var ikke butikkens varer heller, nei."
+      },
+      {
+        "time": "01:14:16",
+        "seconds": 4456,
+        "text": "Nei."
+      },
+      {
+        "time": "01:14:17",
+        "seconds": 4457,
+        "text": "Hvordan ble det løst da?"
+      },
+      {
+        "time": "01:14:18",
+        "seconds": 4458,
+        "text": "Ja, det ble jo noen diskusjoner rundt det."
+      },
+      {
+        "time": "01:14:24",
+        "seconds": 4464,
+        "text": "Når man oppdaget at..."
+      },
+      {
+        "time": "01:14:25",
+        "seconds": 4465,
+        "text": "Dette ikke var kundens varer."
+      },
+      {
+        "time": "01:14:29",
+        "seconds": 4469,
+        "text": "Og dette er jo løst i forsikringsvilkårene i det norske markedet ved en bestemmelse om at forsikringen..."
+      },
+      {
+        "time": "01:14:39",
+        "seconds": 4479,
+        "text": "Når man ser på hvem forsikringen gjelder for, så gjelder den til fordel for sikrede."
+      },
+      {
+        "time": "01:14:43",
+        "seconds": 4483,
+        "text": "Det gjelder fordel for noen hvis man har tatt pant."
+      },
+      {
+        "time": "01:14:49",
+        "seconds": 4489,
+        "text": "Men så gjelder den også for andre hvis man skriftlig har påtatt."
+      },
+      {
+        "time": "01:14:55",
+        "seconds": 4495,
+        "text": "Det gjelder for andre hvis man har satt seg forsikringsplikt for dette."
+      },
+      {
+        "time": "01:14:57",
+        "seconds": 4497,
+        "text": "Men nå må det være en skrevet avtale."
+      },
+      {
+        "time": "01:14:59",
+        "seconds": 4499,
+        "text": "Ja, det må det jo være."
+      },
+      {
+        "time": "01:15:04",
+        "seconds": 4504,
+        "text": "Og da måtte forsikringsselskapet dekke tingsskaden her."
+      },
+      {
+        "time": "01:15:12",
+        "seconds": 4512,
+        "text": "Og så ble det en regresssak mot både man vurderer byggherre og man vurderer betongskjæreren."
+      },
+      {
+        "time": "01:15:23",
+        "seconds": 4523,
+        "text": "Og så har vi sett, jeg vet ikke om det er som en konsekvens av denne skaden, men vi har sett at noen selskaper har begrenset forsikringssummen for varer i kommisjonen."
+      },
+      {
+        "time": "01:15:40",
+        "seconds": 4540,
+        "text": "Så det er automatisk inkludert, men det er begrenset til en sum."
+      },
+      {
+        "time": "01:15:44",
+        "seconds": 4544,
+        "text": "Det er en underforsikringssum som vi også kaller en sublimit."
+      },
+      {
+        "time": "01:15:47",
+        "seconds": 4547,
+        "text": "Det er en underforsikringssum."
+      },
+      {
+        "time": "01:15:49",
+        "seconds": 4549,
+        "text": "Og det er viktig å kjenne."
+      },
+      {
+        "time": "01:15:53",
+        "seconds": 4553,
+        "text": "De ulike selskapenes produkter og begrensninger sånn at man ikke hadde da kommet short i det tilfellet her da."
+      },
+      {
+        "time": "01:16:01",
+        "seconds": 4561,
+        "text": "Jeg husker en annen gang, Frode, som vi spiste lunsj sammen, så kom du inn om at det hadde vært et brann i et treningssenter som var en kunde av deg."
+      },
+      {
+        "time": "01:16:09",
+        "seconds": 4569,
+        "text": "Det ble også en interessant problemstilling i forhold til forsikringsbehovet og hvordan forsikringsavtalene virka."
+      },
+      {
+        "time": "01:16:15",
+        "seconds": 4575,
+        "text": "Har du tid til å snakke litt om den skaden også?"
+      },
+      {
+        "time": "01:16:18",
+        "seconds": 4578,
+        "text": "Ja, her var det et tilfelle da."
+      },
+      {
+        "time": "01:16:22",
+        "seconds": 4582,
+        "text": "Det er en god illustrasjon på en problemstilling som jeg ser ganske ofte, og som jeg tror er noen bomber."
+      },
+      {
+        "time": "01:16:35",
+        "seconds": 4595,
+        "text": "Heldigvis så brønner det ganske sjelden."
+      },
+      {
+        "time": "01:16:38",
+        "seconds": 4598,
+        "text": "Men jeg synes jeg ser at det er mye feil i forsikringsavtaler i Norge."
+      },
+      {
+        "time": "01:16:45",
+        "seconds": 4605,
+        "text": "Det er både fordi det er litt vanskelig tilgjengelig, det er et lav interesse,"
+      },
+      {
+        "time": "01:16:52",
+        "seconds": 4612,
+        "text": "og det er litt vanskelig faktisk også å finne ut hva som er reelt unntatt og ikke."
+      },
+      {
+        "time": "01:16:59",
+        "seconds": 4619,
+        "text": "Det som man tenker kanskje at det er enkelt å forsikre en bygning, og det er jo forholdsvis enkelt,"
+      },
+      {
+        "time": "01:17:07",
+        "seconds": 4627,
+        "text": "men det er noen ting som er litt viktige å fange opp, og det er hvordan forsikringsselskapet ser på bygning,"
+      },
+      {
+        "time": "01:17:17",
+        "seconds": 4637,
+        "text": "og hvordan forsikringsselskapet eller forsikringsbransjen vurderer det som er,"
+      },
+      {
+        "time": "01:17:22",
+        "seconds": 4642,
+        "text": "og mer å anse som eiendeler, altså det som er inni bygning."
+      },
+      {
+        "time": "01:17:27",
+        "seconds": 4647,
+        "text": "Og her hadde vi et tilfelle da, hvor branden i oppbyggingsfasen her,"
+      },
+      {
+        "time": "01:17:34",
+        "seconds": 4654,
+        "text": "så når man skulle fastsette skaden, så ble det en diskusjon, fordi det var en del ting som var,"
+      },
+      {
+        "time": "01:17:42",
+        "seconds": 4662,
+        "text": "det var et treningssenter det her, og det var da utstyr som forsikringsselskapet mente var eiendeler,"
+      },
+      {
+        "time": "01:17:51",
+        "seconds": 4671,
+        "text": "eller maskiner og inventarer."
+      },
+      {
+        "time": "01:17:52",
+        "seconds": 4672,
+        "text": "Inventarer og inventarer løsere, og ikke bygning, og dermed ikke dekka på bygningsforsikringen."
+      },
+      {
+        "time": "01:17:59",
+        "seconds": 4679,
+        "text": "Vi hadde ikke, vårt oppdrag var ikke for leietaker eller treningssenter, men det var bygningseieren."
+      },
+      {
+        "time": "01:18:06",
+        "seconds": 4686,
+        "text": "Og da fikk vi en diskusjon på hva som var å anse som bygning, og hva som ikke var å anse som bygning."
+      },
+      {
+        "time": "01:18:15",
+        "seconds": 4695,
+        "text": "Hva som var bygning, og hva som var maskiner."
+      },
+      {
+        "time": "01:18:17",
+        "seconds": 4697,
+        "text": "Hva som var maskiner og inventarer løsere."
+      },
+      {
+        "time": "01:18:18",
+        "seconds": 4698,
+        "text": "Riktig."
+      },
+      {
+        "time": "01:18:19",
+        "seconds": 4699,
+        "text": "Og det er jo,"
+      },
+      {
+        "time": "01:18:22",
+        "seconds": 4702,
+        "text": "for kundene, de driver jo i ulik grad av leietakertilpassning,"
+      },
+      {
+        "time": "01:18:30",
+        "seconds": 4710,
+        "text": "uten å tenke på at de har jo en fullverdig forsikring på å bygge,"
+      },
+      {
+        "time": "01:18:35",
+        "seconds": 4715,
+        "text": "og de tenker at denne storkjøkkenet som er innredet, ferdig og klart til leietaker,"
+      },
+      {
+        "time": "01:18:44",
+        "seconds": 4724,
+        "text": "eller finansiert av bygningseier, er dekket på bygningsforsikringen."
+      },
+      {
+        "time": "01:18:50",
+        "seconds": 4730,
+        "text": "Riktig."
+      },
+      {
+        "time": "01:18:51",
+        "seconds": 4731,
+        "text": "Det er jo ofte veldig integrert i bygningen."
+      },
+      {
+        "time": "01:18:54",
+        "seconds": 4734,
+        "text": "Det er kanskje kjølerom som er bygd, og naturlig å tenke sånn rent intuitivt at det er bygning."
+      },
+      {
+        "time": "01:19:03",
+        "seconds": 4743,
+        "text": "Men i forsikring så er det ikke bygning."
+      },
+      {
+        "time": "01:19:09",
+        "seconds": 4749,
+        "text": "Og her er det en veldig god, tydelig avklaring på FNO sin hjemmeside på takst og index."
+      },
+      {
+        "time": "01:19:19",
+        "seconds": 4759,
+        "text": "Og jeg anbefaler..."
+      },
+      {
+        "time": "01:19:21",
+        "seconds": 4761,
+        "text": "Jeg anbefaler å rett og slett sette seg litt inn i den, for den gir en veldig god forklaring."
+      },
+      {
+        "time": "01:19:27",
+        "seconds": 4767,
+        "text": "Og hovedprinsippet er rett og slett at man må se på det som er at bygningen kan fungere som bygning,"
+      },
+      {
+        "time": "01:19:34",
+        "seconds": 4774,
+        "text": "isolert, det er bygning, men alt som er inne i bygningen for at det skal kunne utøves en virksomhet,"
+      },
+      {
+        "time": "01:19:41",
+        "seconds": 4781,
+        "text": "det er i utgangspunktet maskiner og mental løsere."
+      },
+      {
+        "time": "01:19:52",
+        "seconds": 4792,
+        "text": "Det er et nytt spørsmål fra salen her borte, Frode."
+      },
+      {
+        "time": "01:19:55",
+        "seconds": 4795,
+        "text": "Det viser..."
+      },
+      {
+        "time": "01:19:57",
+        "seconds": 4797,
+        "text": "vises det i en dom hvor det kan ha vært noe feil rådgivning fra et av meglerhusene for en ikke så lang tid tilbake"
+      },
+      {
+        "time": "01:20:07",
+        "seconds": 4807,
+        "text": "i forhold til hva som er bygning og hva som er maskiner. Er det noe du kjenner til som vi kan kommentere på generelt grunnlag?"
+      },
+      {
+        "time": "01:20:14",
+        "seconds": 4814,
+        "text": "Ja, denne dommen er godt kjent i vår bransje. Vi kan nok synes at den er streng."
+      },
+      {
+        "time": "01:20:26",
+        "seconds": 4826,
+        "text": "Da er det viktig at vi fanger den opp og forstår hva som er samfunnets forventning til utøvelsen av vår profesjon."
+      },
+      {
+        "time": "01:20:42",
+        "seconds": 4842,
+        "text": "Og,"
+      },
+      {
+        "time": "01:20:43",
+        "seconds": 4843,
+        "text": "Og det jeg i hvert fall kan si er at det er krevende å tenke at du skal på en måte klare å avdekke alt ute hos kunden."
+      },
+      {
+        "time": "01:20:58",
+        "seconds": 4858,
+        "text": "Men hvis vi ser på det som vi snakket om innledningsvis, ja hvis ikke du har vært der, da har du i hvert fall ikke sjans."
+      },
+      {
+        "time": "01:21:04",
+        "seconds": 4864,
+        "text": "Altså hvis du aldri har sett et lokale, hvordan skal du da diskutere med kunden? Hva er bygningsmessig innredning? Hva trenger du av forsikringssum for bygget og for utstyret ditt?"
+      },
+      {
+        "time": "01:21:24",
+        "seconds": 4884,
+        "text": "Og dette handler jo da om å forstå virksomheten, gå sammen med kundene i virksomheten, snakke med relevante personer i virksomheten og også klare å formidle dette."
+      },
+      {
+        "time": "01:21:34",
+        "seconds": 4894,
+        "text": "På en ordentlig måte til forsikringsselskapet i det grunnlagsmateriale som megleren utarbeider."
+      },
+      {
+        "time": "01:21:51",
+        "seconds": 4911,
+        "text": "Det kommer et nytt spørsmål, Frode, her nede. Om det er et etisk dilemma for oss i forhold til hvor vi skal allokere eiendelene, hvis jeg har forstått spørsmålet riktig."
+      },
+      {
+        "time": "01:22:04",
+        "seconds": 4924,
+        "text": "Er det billigere å forsikre maskiner som bygning kontra å forsikre de som maskiner, for eksempel?"
+      },
+      {
+        "time": "01:22:12",
+        "seconds": 4932,
+        "text": "Hvordan stiller vi oss til?"
+      },
+      {
+        "time": "01:22:13",
+        "seconds": 4933,
+        "text": "Hvordan stiller vi oss til det etiske problemet, og kanskje kort om hvordan vi forholder oss til etiske spørsmål og integritet ellers?"
+      },
+      {
+        "time": "01:22:23",
+        "seconds": 4943,
+        "text": "Jeg tenker vel at det for min del ikke er noe etisk dilemma, for her er det mye mer rett og slett fakta og teknisk forståelse av hvordan du skal gjøre det."
+      },
+      {
+        "time": "01:22:42",
+        "seconds": 4962,
+        "text": "For noen bygningstyper er dette med fullverdig grunnlag og takst, og hvordan man skal beregne fullverdig grunnlag."
+      },
+      {
+        "time": "01:23:01",
+        "seconds": 4981,
+        "text": "Det er såpass tydelig for en del bygninger, men i visse tilfeller kan det være ..."
+      },
+      {
+        "time": "01:23:09",
+        "seconds": 4989,
+        "text": "Hva skal vi si? La oss si at du bygger en svømmehall med en plastdøpt stupetårn."
+      },
+      {
+        "time": "01:23:21",
+        "seconds": 5001,
+        "text": "Er stupetårnet bygning, eller er stupetårnet maskiner, inventarer og løsere?"
+      },
+      {
+        "time": "01:23:27",
+        "seconds": 5007,
+        "text": "Du kan i hvert fall ikke ta det med."
+      },
+      {
+        "time": "01:23:31",
+        "seconds": 5011,
+        "text": "Noen hadde en enkel forklaring på hva er bygning og hva er maskiner, inventarer og løsere."
+      },
+      {
+        "time": "01:23:37",
+        "seconds": 5017,
+        "text": "Hvis du snur bygningen på hodet ..."
+      },
+      {
+        "time": "01:23:39",
+        "seconds": 5019,
+        "text": "Det som døtter ned er maskiner, inventarer og løsere, men stupetårnet døtter jo ikke ned."
+      },
+      {
+        "time": "01:23:45",
+        "seconds": 5025,
+        "text": "Det er jo ikke bygning, men det er bygning, ikke sant?"
+      },
+      {
+        "time": "01:23:49",
+        "seconds": 5029,
+        "text": "Det samme gjaldt tribunen her."
+      },
+      {
+        "time": "01:23:51",
+        "seconds": 5031,
+        "text": "Det er en plastdøpt tribune."
+      },
+      {
+        "time": "01:23:54",
+        "seconds": 5034,
+        "text": "Og så i naboseksjonen var det også en tribune, den var løs på rull, kunne du kjøre frem og tilbake."
+      },
+      {
+        "time": "01:24:05",
+        "seconds": 5045,
+        "text": "Da er vi i et farvann hvor det begynner å bli ..."
+      },
+      {
+        "time": "01:24:08",
+        "seconds": 5048,
+        "text": "Ja."
+      },
+      {
+        "time": "01:24:09",
+        "seconds": 5049,
+        "text": "Komplisert, og da må man rett og slett si hva man har tenkt, og hva dette er for noe sånn at forsikring forstår hvilken risiko de har påtatt seg."
+      },
+      {
+        "time": "01:24:20",
+        "seconds": 5060,
+        "text": "Og ofte så har man jo også litt hjelp av, hva skal vi si, entreprisen eller det som er gjort da."
+      },
+      {
+        "time": "01:24:27",
+        "seconds": 5067,
+        "text": "Når det blir bygd så vet man hva det har kostet, og så får man ha den dialogen med underretter, at her har vi tenkt sånn og sånn."
+      },
+      {
+        "time": "01:24:34",
+        "seconds": 5074,
+        "text": "Og fullverdig grunnlaget gjør jo, gir også ..."
+      },
+      {
+        "time": "01:24:38",
+        "seconds": 5078,
+        "text": "Eller takst og indeks og skjema-vurderingen gir oss jo noe veiledning på at man kan gjøre, hva skal vi si, tillegg eller fradrag eller forklare hvordan man har tenkt da."
+      },
+      {
+        "time": "01:24:54",
+        "seconds": 5094,
+        "text": "Riktig."
+      },
+      {
+        "time": "01:24:56",
+        "seconds": 5096,
+        "text": "Som, og til det på en måte etiske sånn, det er jo, vi kan komme i mange problemstillinger, men akkurat det tror jeg ikke er noe vanskelig å gjøre."
+      },
+      {
+        "time": "01:25:06",
+        "seconds": 5106,
+        "text": "Men akkurat det tror jeg ikke er noe vanskelig å gjøre."
+      },
+      {
+        "time": "01:25:08",
+        "seconds": 5108,
+        "text": "Det er mer kanskje vanskelig der hvor vi i en behovsanalyse og i et oppdrag da, blir for opptatt av å spare kunden for penger, finne en bedre premie enn det han hadde."
+      },
+      {
+        "time": "01:25:28",
+        "seconds": 5128,
+        "text": "Hvis det blir hovedfokuset i det vi skal gjøre, da er vi liksom på feil, da er vi veldig fort på feil vei."
+      },
+      {
+        "time": "01:25:36",
+        "seconds": 5136,
+        "text": "Veldig, dette er veldig spennende."
+      },
+      {
+        "time": "01:25:38",
+        "seconds": 5138,
+        "text": "Tiden går Frodo, men det er et par ting jeg tror vi skal komme innom som jeg har lyst til å belyse, som har aktualisert seg spesielt i senårene."
+      },
+      {
+        "time": "01:25:48",
+        "seconds": 5148,
+        "text": "Først ved pandemien og også da i forhold til inflasjon som har kommet."
+      },
+      {
+        "time": "01:25:56",
+        "seconds": 5156,
+        "text": "Dette med ansvarstiden for avbruddsforsikringer, altså hvor lenge skal det en avbruddsforsikring i erstatning etter at en skade har inntroffet?"
+      },
+      {
+        "time": "01:26:06",
+        "seconds": 5166,
+        "text": "Jeg har jobbet med noen større skader de senårene, og jeg kan jo nevne parkeringshuset til av i nord på Sola."
+      },
+      {
+        "time": "01:26:16",
+        "seconds": 5176,
+        "text": "Det tok mer enn tre år å bygge opp igjen det parkeringshuset fra det brant til det var ferdig."
+      },
+      {
+        "time": "01:26:23",
+        "seconds": 5183,
+        "text": "Nå ble det riktig nok gjenoppbygget i pandemien som forsinket det."
+      },
+      {
+        "time": "01:26:27",
+        "seconds": 5187,
+        "text": "Men for meg er det en tankevekker hvor lang tid det tar å komme i gang med drift igjen etter en skade."
+      },
+      {
+        "time": "01:26:33",
+        "seconds": 5193,
+        "text": "Har du noe erfaring med det som vi skal dele?"
+      },
+      {
+        "time": "01:26:35",
+        "seconds": 5195,
+        "text": "Vi hører fra forsikringsselskapene at ting tar lengre tid enn det man kanskje hadde forutsatt."
+      },
+      {
+        "time": "01:26:49",
+        "seconds": 5209,
+        "text": "Avbruddsstapene blir større på en del av de store skadene."
+      },
+      {
+        "time": "01:26:53",
+        "seconds": 5213,
+        "text": "Så det å vurdere avbrudds-lengden og ansvarstiden er viktig."
+      },
+      {
+        "time": "01:27:03",
+        "seconds": 5223,
+        "text": "For noen kunder er det kanskje sånn at en totalskade så kommer man liksom ikke i gang igjen."
+      },
+      {
+        "time": "01:27:09",
+        "seconds": 5229,
+        "text": "Det kan være slutten på virksomheten, og det kan være kanskje andre løsninger."
+      },
+      {
+        "time": "01:27:13",
+        "seconds": 5233,
+        "text": "Men hvis utgangspunktet er at man skal fortsette innenfor samme bransje, og det er jo ofte utgangspunktet,"
+      },
+      {
+        "time": "01:27:21",
+        "seconds": 5241,
+        "text": "så må man liksom se litt på, ja, da er vi over i litt den der worst case-tenkningen igjen, og tilbake til den business continuity plan."
+      },
+      {
+        "time": "01:27:33",
+        "seconds": 5253,
+        "text": "Hva kan skje? Hvilke alternativer har vi? Har vi en lokasjon? Har vi flere? Hvor mange leverandører? Og så videre."
+      },
+      {
+        "time": "01:27:44",
+        "seconds": 5264,
+        "text": "Og vi ser vel at man bør i hvert fall ha et bevisst forhold til ansvarstiden og gjøre den øvelsen grunnig."
+      },
+      {
+        "time": "01:27:57",
+        "seconds": 5277,
+        "text": "Standard vilkår på husleietap."
+      },
+      {
+        "time": "01:28:03",
+        "seconds": 5283,
+        "text": "På husleietap i bransjen har i mange år vært 24 måneder og 10% av fullverdissummen som en slags norm som du får uten at du ber om noe spesielt."
+      },
+      {
+        "time": "01:28:16",
+        "seconds": 5296,
+        "text": "Og så ser vi at for noen år siden begynte Jensidie å innføre standard på 36 måneder, fordi de erfarte at det tok lengre tid."
+      },
+      {
+        "time": "01:28:23",
+        "seconds": 5303,
+        "text": "Og det ser vi jo også. Det er jo mye. Først så skal man jo etterforske. Byggeplassen er stengt. Bygningen er stengt."
+      },
+      {
+        "time": "01:28:31",
+        "seconds": 5311,
+        "text": "Det er farlig å være der."
+      },
+      {
+        "time": "01:28:32",
+        "seconds": 5312,
+        "text": "Det er farlig å være der."
+      },
+      {
+        "time": "01:28:33",
+        "seconds": 5313,
+        "text": "Og brandpolitiet skal gjøre ferdig sine etterforskninger."
+      },
+      {
+        "time": "01:28:37",
+        "seconds": 5317,
+        "text": "Og så skal man rive og sanere."
+      },
+      {
+        "time": "01:28:40",
+        "seconds": 5320,
+        "text": "Og så skal man..."
+      },
+      {
+        "time": "01:28:42",
+        "seconds": 5322,
+        "text": "Så begynner man jo helt på nytt igjen."
+      },
+      {
+        "time": "01:28:45",
+        "seconds": 5325,
+        "text": "Fordi hele byggesaken må jo startes fra null."
+      },
+      {
+        "time": "01:28:48",
+        "seconds": 5328,
+        "text": "Så man må jo bestemme hva man skal gjennomføre."
+      },
+      {
+        "time": "01:28:51",
+        "seconds": 5331,
+        "text": "Og hele byggesaksprosessen."
+      },
+      {
+        "time": "01:28:54",
+        "seconds": 5334,
+        "text": "Så det kan være at det tar lengre tid."
+      },
+      {
+        "time": "01:28:58",
+        "seconds": 5338,
+        "text": "Og kanskje i pandemien så så vi jo en del andre ting også."
+      },
+      {
+        "time": "01:29:02",
+        "seconds": 5342,
+        "text": "Som mange er blitt mer oppmerksom på med hensyn til supply chain."
+      },
+      {
+        "time": "01:29:06",
+        "seconds": 5346,
+        "text": "Og at det tar lengre tid å få tak i ting."
+      },
+      {
+        "time": "01:29:09",
+        "seconds": 5349,
+        "text": "Nå har nok mange av de flokene blitt løst."
+      },
+      {
+        "time": "01:29:12",
+        "seconds": 5352,
+        "text": "Men vi har jo noen problemstillinger fremdeles da."
+      },
+      {
+        "time": "01:29:17",
+        "seconds": 5357,
+        "text": "Vi var jo borte i Suezkanalen også for noen år siden."
+      },
+      {
+        "time": "01:29:21",
+        "seconds": 5361,
+        "text": "Hvor et stort skip blokkerte Suezkanalen."
+      },
+      {
+        "time": "01:29:24",
+        "seconds": 5364,
+        "text": "Og når vareflytten gjennom Suez står."
+      },
+      {
+        "time": "01:29:26",
+        "seconds": 5366,
+        "text": "Nå har det jo vært krig og krigshandlinger i Rødehavet."
+      },
+      {
+        "time": "01:29:29",
+        "seconds": 5369,
+        "text": "Som også gjør at seilingstiden rundt."
+      },
+      {
+        "time": "01:29:31",
+        "seconds": 5371,
+        "text": "Afrika gjør at vareleveranser også tar lengre tid."
+      },
+      {
+        "time": "01:29:35",
+        "seconds": 5375,
+        "text": "Det er mye å huske på her."
+      },
+      {
+        "time": "01:29:37",
+        "seconds": 5377,
+        "text": "Og det er klart det er ikke intuitivt for kunden å tenke på."
+      },
+      {
+        "time": "01:29:41",
+        "seconds": 5381,
+        "text": "Og det er klart hvor mye skal du legge inn i sikkerhetsmargen."
+      },
+      {
+        "time": "01:29:46",
+        "seconds": 5386,
+        "text": "Skal du tenke på at ja det kan jo bli stengt i Suezkanalen igjen."
+      },
+      {
+        "time": "01:29:50",
+        "seconds": 5390,
+        "text": "Det får bli litt opp til kunden."
+      },
+      {
+        "time": "01:29:52",
+        "seconds": 5392,
+        "text": "Men det er viktig å i hvert fall ha den diskusjonen."
+      },
+      {
+        "time": "01:29:56",
+        "seconds": 5396,
+        "text": "så ser man jo at det koster forholdsvis lite å kjøpe noe lenger avbrudstid."
+      },
+      {
+        "time": "01:30:02",
+        "seconds": 5402,
+        "text": "Mens konsekvensene av å ha for lite, det kan bli veldig stort."
+      },
+      {
+        "time": "01:30:06",
+        "seconds": 5406,
+        "text": "Og så får det bli opp til kundens valg,"
+      },
+      {
+        "time": "01:30:07",
+        "seconds": 5407,
+        "text": "men det er veldig viktig at kunden har et bevisst valg,"
+      },
+      {
+        "time": "01:30:11",
+        "seconds": 5411,
+        "text": "og at han vet hva han har valgt bort,"
+      },
+      {
+        "time": "01:30:16",
+        "seconds": 5416,
+        "text": "og at han kanskje har også fundamentert dette hos sine eiere,"
+      },
+      {
+        "time": "01:30:27",
+        "seconds": 5427,
+        "text": "og de han representerer og jobber på vegne av."
+      },
+      {
+        "time": "01:30:32",
+        "seconds": 5432,
+        "text": "Det er også viktig."
+      },
+      {
+        "time": "01:30:35",
+        "seconds": 5435,
+        "text": "Dette med nye lokasjoner, eiendomsselskaper, mekaniske verksteder,"
+      },
+      {
+        "time": "01:30:40",
+        "seconds": 5440,
+        "text": "som ekspanderer."
+      },
+      {
+        "time": "01:30:42",
+        "seconds": 5442,
+        "text": "De kjøper nye eiendommer, de utvider virksomheten sin,"
+      },
+      {
+        "time": "01:30:46",
+        "seconds": 5446,
+        "text": "de flytter og etablerer seg i et nytt sted,"
+      },
+      {
+        "time": "01:30:49",
+        "seconds": 5449,
+        "text": "i tillegg til der hvor de kanskje er før."
+      },
+      {
+        "time": "01:30:52",
+        "seconds": 5452,
+        "text": "Og så har vi jo opplevd at de glemmer å melde fra til oss om de nye lokasjonene."
+      },
+      {
+        "time": "01:30:58",
+        "seconds": 5458,
+        "text": "Hva kan vi gjøre da, Frode, hvis noe sånt nå skulle skje?"
+      },
+      {
+        "time": "01:31:02",
+        "seconds": 5462,
+        "text": "Ja, det er jo sånn med det at, igjen tilbake til underwriter,"
+      },
+      {
+        "time": "01:31:06",
+        "seconds": 5466,
+        "text": "han har forsikret det, og han vil ikke ha noe usikkerhet."
+      },
+      {
+        "time": "01:31:13",
+        "seconds": 5473,
+        "text": "Sånn, det er det verste de vet, tror jeg."
+      },
+      {
+        "time": "01:31:16",
+        "seconds": 5476,
+        "text": "Så..."
+      },
+      {
+        "time": "01:31:16",
+        "seconds": 5476,
+        "text": "Så spørsmålet er, hvor gode rutiner har kunden?"
+      },
+      {
+        "time": "01:31:26",
+        "seconds": 5486,
+        "text": "Det er det ene, for å forstå han konsekvensene og ikke si ifra."
+      },
+      {
+        "time": "01:31:31",
+        "seconds": 5491,
+        "text": "Han har jo forsikring."
+      },
+      {
+        "time": "01:31:34",
+        "seconds": 5494,
+        "text": "Men i utgangspunktet så er jo bare de nevnte lokasjonene dekket."
+      },
+      {
+        "time": "01:31:40",
+        "seconds": 5500,
+        "text": "Og sånn tenker forsikring på det."
+      },
+      {
+        "time": "01:31:46",
+        "seconds": 5506,
+        "text": "Det må kunden forstå."
+      },
+      {
+        "time": "01:31:48",
+        "seconds": 5508,
+        "text": "Så har vi noen sånne, tilbake til beltebuksesæler igjen."
+      },
+      {
+        "time": "01:31:53",
+        "seconds": 5513,
+        "text": "Vi får av og til kjøpt sånne forsikringer for det som du kan glemme."
+      },
+      {
+        "time": "01:32:02",
+        "seconds": 5522,
+        "text": "Altså feilvurdering, ute glemt."
+      },
+      {
+        "time": "01:32:05",
+        "seconds": 5525,
+        "text": "Du legger inn en sikkerhetsmargin i forsikringsavtalen for disse tingene?"
+      },
+      {
+        "time": "01:32:09",
+        "seconds": 5529,
+        "text": "Jeg foreslår det i hvert fall."
+      },
+      {
+        "time": "01:32:11",
+        "seconds": 5531,
+        "text": "Det er hvor jeg ser at det er en kompleks bedrift."
+      },
+      {
+        "time": "01:32:15",
+        "seconds": 5535,
+        "text": "Har mange lokaliseringer."
+      },
+      {
+        "time": "01:32:16",
+        "seconds": 5536,
+        "text": "Informasjoner."
+      },
+      {
+        "time": "01:32:17",
+        "seconds": 5537,
+        "text": "Har mange folk som er involvert."
+      },
+      {
+        "time": "01:32:19",
+        "seconds": 5539,
+        "text": "Og det er ikke sikkert at den informasjonen flyter oppover til den som skal rapportere til oss."
+      },
+      {
+        "time": "01:32:23",
+        "seconds": 5543,
+        "text": "Og som sitter med ansvar for forsikringen."
+      },
+      {
+        "time": "01:32:26",
+        "seconds": 5546,
+        "text": "Og da kan det være greit å løse."
+      },
+      {
+        "time": "01:32:32",
+        "seconds": 5552,
+        "text": "En grei måte å løse det på."
+      },
+      {
+        "time": "01:32:34",
+        "seconds": 5554,
+        "text": "De fleste selskaper tar det."
+      },
+      {
+        "time": "01:32:41",
+        "seconds": 5561,
+        "text": "Ikke sånn veldig."
+      },
+      {
+        "time": "01:32:43",
+        "seconds": 5563,
+        "text": "Ikke med veldig."
+      },
+      {
+        "time": "01:32:45",
+        "seconds": 5565,
+        "text": "Hva skal vi si."
+      },
+      {
+        "time": "01:32:46",
+        "seconds": 5566,
+        "text": "De er ikke veldig glad for det."
+      },
+      {
+        "time": "01:32:48",
+        "seconds": 5568,
+        "text": "For de mener at kunden må ha kontroll på risikoen."
+      },
+      {
+        "time": "01:32:51",
+        "seconds": 5571,
+        "text": "Men så vet vi jo at verden er litt annerledes."
+      },
+      {
+        "time": "01:32:54",
+        "seconds": 5574,
+        "text": "Og vi vet at det er noen som tilbyr det."
+      },
+      {
+        "time": "01:32:57",
+        "seconds": 5577,
+        "text": "Så jeg synes det er en god ting å ha med seg."
+      },
+      {
+        "time": "01:33:00",
+        "seconds": 5580,
+        "text": "Og man betaler forholdsvis lite for det."
+      },
+      {
+        "time": "01:33:02",
+        "seconds": 5582,
+        "text": "Og man kan få kjøpt dette for en del millioner."
+      },
+      {
+        "time": "01:33:07",
+        "seconds": 5587,
+        "text": "Som en sånn."
+      },
+      {
+        "time": "01:33:08",
+        "seconds": 5588,
+        "text": "Et sikkerhetsnett."
+      },
+      {
+        "time": "01:33:10",
+        "seconds": 5590,
+        "text": "Et sikkerhetsnett."
+      },
+      {
+        "time": "01:33:11",
+        "seconds": 5591,
+        "text": "I forsikringsavtalen."
+      },
+      {
+        "time": "01:33:12",
+        "seconds": 5592,
+        "text": "Det var et godt tips å ta med seg."
+      },
+      {
+        "time": "01:33:15",
+        "seconds": 5595,
+        "text": "Da er vi mot slutten av det vi hadde tenkt å snakke om."
+      },
+      {
+        "time": "01:33:18",
+        "seconds": 5598,
+        "text": "I dag, Frode."
+      },
+      {
+        "time": "01:33:19",
+        "seconds": 5599,
+        "text": "Og da bør vi vel oppsummere litt om det som er viktig."
+      },
+      {
+        "time": "01:33:23",
+        "seconds": 5603,
+        "text": "I en god behovsanalyse og en kartleggingssamtale."
+      },
+      {
+        "time": "01:33:26",
+        "seconds": 5606,
+        "text": "For å avdekke forsikringsbehovet til kunden."
+      },
+      {
+        "time": "01:33:29",
+        "seconds": 5609,
+        "text": "Ja."
+      },
+      {
+        "time": "01:33:30",
+        "seconds": 5610,
+        "text": "Og da sa du et sånt nøkkelord."
+      },
+      {
+        "time": "01:33:32",
+        "seconds": 5612,
+        "text": "En oppsummering."
+      },
+      {
+        "time": "01:33:35",
+        "seconds": 5615,
+        "text": "Den vil kunne fungere på en god måte."
+      },
+      {
+        "time": "01:33:40",
+        "seconds": 5620,
+        "text": "For å dokumentere hva vi har vært gjennom."
+      },
+      {
+        "time": "01:33:44",
+        "seconds": 5624,
+        "text": "Og du ber kunden."
+      },
+      {
+        "time": "01:33:46",
+        "seconds": 5626,
+        "text": "Kanskje om."
+      },
+      {
+        "time": "01:33:48",
+        "seconds": 5628,
+        "text": "En aksept på oppsummeringen."
+      },
+      {
+        "time": "01:33:50",
+        "seconds": 5630,
+        "text": "Dette er det jeg har forstått at vi er enige om."
+      },
+      {
+        "time": "01:33:53",
+        "seconds": 5633,
+        "text": "Dette er det du har valgt bort."
+      },
+      {
+        "time": "01:33:59",
+        "seconds": 5639,
+        "text": "Men før vi skriver på en måte referatet eller gjør oppsummeringen."
+      },
+      {
+        "time": "01:34:03",
+        "seconds": 5643,
+        "text": "Så tenker jeg at det er en veldig god metode."
+      },
+      {
+        "time": "01:34:08",
+        "seconds": 5648,
+        "text": "Det er å gå gjennom unntaket i forsikringsavtalen."
+      },
+      {
+        "time": "01:34:12",
+        "seconds": 5652,
+        "text": "De standard unntakene som vi vet de aller fleste selskapene har."
+      },
+      {
+        "time": "01:34:16",
+        "seconds": 5656,
+        "text": "Og kanskje særlig på ansvars."
+      },
+      {
+        "time": "01:34:18",
+        "seconds": 5658,
+        "text": "Ved produktet."
+      },
+      {
+        "time": "01:34:19",
+        "seconds": 5659,
+        "text": "Fordi da vil du få opp en del ting."
+      },
+      {
+        "time": "01:34:23",
+        "seconds": 5663,
+        "text": "Som rett og slett."
+      },
+      {
+        "time": "01:34:24",
+        "seconds": 5664,
+        "text": "Ja, men det gjør vi jo."
+      },
+      {
+        "time": "01:34:25",
+        "seconds": 5665,
+        "text": "Har jeg opplevd å høre."
+      },
+      {
+        "time": "01:34:27",
+        "seconds": 5667,
+        "text": "Fra noen i virksomheten."
+      },
+      {
+        "time": "01:34:32",
+        "seconds": 5672,
+        "text": "Og igjen til det med forventning og forventningsstyring."
+      },
+      {
+        "time": "01:34:37",
+        "seconds": 5677,
+        "text": "Så ser vi en del av unntakene som du kanskje ramser opp."
+      },
+      {
+        "time": "01:34:41",
+        "seconds": 5681,
+        "text": "Er kanskje ting han hadde tenkt."
+      },
+      {
+        "time": "01:34:44",
+        "seconds": 5684,
+        "text": "Er mulig å forsikre."
+      },
+      {
+        "time": "01:34:46",
+        "seconds": 5686,
+        "text": "Eller at ansvarsforsikringen tar inn."
+      },
+      {
+        "time": "01:34:48",
+        "seconds": 5688,
+        "text": "Men den faktisk ikke gjør."
+      },
+      {
+        "time": "01:34:49",
+        "seconds": 5689,
+        "text": "Og det er kanskje ikke mulig å forsikre det."
+      },
+      {
+        "time": "01:34:52",
+        "seconds": 5692,
+        "text": "For eksempel å gå gjennom litt kontraktsunntakene."
+      },
+      {
+        "time": "01:34:56",
+        "seconds": 5696,
+        "text": "Og hva som er mulig å forsikre."
+      },
+      {
+        "time": "01:34:59",
+        "seconds": 5699,
+        "text": "Kontraktsansvaret er generelt unntak for."
+      },
+      {
+        "time": "01:35:01",
+        "seconds": 5701,
+        "text": "Og med god grunn."
+      },
+      {
+        "time": "01:35:03",
+        "seconds": 5703,
+        "text": "Og da."
+      },
+      {
+        "time": "01:35:07",
+        "seconds": 5707,
+        "text": "Ha det også fundamentert hos kunden."
+      },
+      {
+        "time": "01:35:13",
+        "seconds": 5713,
+        "text": "Det er også med på å."
+      },
+      {
+        "time": "01:35:15",
+        "seconds": 5715,
+        "text": "Å."
+      },
+      {
+        "time": "01:35:17",
+        "seconds": 5717,
+        "text": "Hva skal vi si."
+      },
+      {
+        "time": "01:35:18",
+        "seconds": 5718,
+        "text": "Gjør kunden mer oppmerksom på."
+      },
+      {
+        "time": "01:35:22",
+        "seconds": 5722,
+        "text": "Den risiko eksponeringen som han selv står og som kanskje gjør at han blir enda mer opptatt av å gjøre ting riktig."
+      },
+      {
+        "time": "01:35:29",
+        "seconds": 5729,
+        "text": "For det er faktisk en del som."
+      },
+      {
+        "time": "01:35:32",
+        "seconds": 5732,
+        "text": "Det er ikke det er ikke sånn at forsikring kan løse alt som er vondt vondt og vanskelig."
+      },
+      {
+        "time": "01:35:36",
+        "seconds": 5736,
+        "text": "Nesten alt."
+      },
+      {
+        "time": "01:35:39",
+        "seconds": 5739,
+        "text": "Ikke helt."
+      },
+      {
+        "time": "01:35:40",
+        "seconds": 5740,
+        "text": "Ikke helt."
+      },
+      {
+        "time": "01:35:41",
+        "seconds": 5741,
+        "text": "Så dette med et referat."
+      },
+      {
+        "time": "01:35:43",
+        "seconds": 5743,
+        "text": "Det er viktig påpeke hva man ikke ønsker å forsikre."
+      },
+      {
+        "time": "01:35:46",
+        "seconds": 5746,
+        "text": "Og du sier også Frode at du ber at styret behandler forsikringsstrategien."
+      },
+      {
+        "time": "01:35:53",
+        "seconds": 5753,
+        "text": "Ja jeg tenker at det er relevant fordi vi vi representerer jo vårt selskap som forsikringsmengder og vi skal vareta kundens behov."
+      },
+      {
+        "time": "01:36:06",
+        "seconds": 5766,
+        "text": "Så."
+      },
+      {
+        "time": "01:36:08",
+        "seconds": 5768,
+        "text": "Han vi snakker med eller de vi snakker med hos bedriften er jo av og til eieren men av og til ikke."
+      },
+      {
+        "time": "01:36:16",
+        "seconds": 5776,
+        "text": "Og de representerer da eierne og jeg tenker at det er veldig smart av vedkommende å få en hva skal vi si en godkjenning på den prosessen som har vært og de valgene som har gjort."
+      },
+      {
+        "time": "01:36:32",
+        "seconds": 5792,
+        "text": "Ikke minst hvorfor har man ikke valgt å forsikre."
+      },
+      {
+        "time": "01:36:37",
+        "seconds": 5797,
+        "text": "Hvorfor har man valgt å ikke få tegne cyberforsikring for eksempel."
+      },
+      {
+        "time": "01:36:40",
+        "seconds": 5800,
+        "text": "Dette er jo etter hvert et sånt hot topic og som styre."
+      },
+      {
+        "time": "01:36:46",
+        "seconds": 5806,
+        "text": "Kanskje."
+      },
+      {
+        "time": "01:36:46",
+        "seconds": 5806,
+        "text": "Er er opptatt av har vi sett en del sånne."
+      },
+      {
+        "time": "01:36:52",
+        "seconds": 5812,
+        "text": "Undersøkelser på hva som styre medlemmer er opptatt av for tiden og og det å da ha."
+      },
+      {
+        "time": "01:37:02",
+        "seconds": 5822,
+        "text": "Skal vi si fundamentert det helt til topps er smart for det kan hende de har en forventning om at de har kjøpt mer i risiko overlastning enn det som faktisk har gjort så det er en viktig avklaring."
+      },
+      {
+        "time": "01:37:16",
+        "seconds": 5836,
+        "text": "Fra."
+      },
+      {
+        "time": "01:37:16",
+        "seconds": 5836,
+        "text": "Ja, og så kan vi tenke avslutningsvis også da det dette med."
+      },
+      {
+        "time": "01:37:25",
+        "seconds": 5845,
+        "text": "Når du har."
+      },
+      {
+        "time": "01:37:26",
+        "seconds": 5846,
+        "text": "Ha kanskje en løsning som du tenker hvor dette det sånn sånn vil jeg løse det eller du er kanskje i tvil om hvordan du skal løse det."
+      },
+      {
+        "time": "01:37:37",
+        "seconds": 5857,
+        "text": "Diskutere med en kollega en som kjenner bransjen og få en til å se på dette case her er det hvordan ville du sett på dette."
+      },
+      {
+        "time": "01:37:46",
+        "seconds": 5866,
+        "text": "Er det hvordan ville du sett på dette."
+      },
+      {
+        "time": "01:37:46",
+        "seconds": 5866,
+        "text": "Er det hvordan ville du sett på dette case her."
+      },
+      {
+        "time": "01:37:46",
+        "seconds": 5866,
+        "text": "dette. Få kanskje ta det inn i kollegiumet og"
+      },
+      {
+        "time": "01:37:50",
+        "seconds": 5870,
+        "text": "drodle litt rundt det, særlig hvis det er litt"
+      },
+      {
+        "time": "01:37:53",
+        "seconds": 5873,
+        "text": "komplekst. Så flere syn, flere øyne er ofte en"
+      },
+      {
+        "time": "01:37:59",
+        "seconds": 5879,
+        "text": "veldig god metode for å både finne løsninger og"
+      },
+      {
+        "time": "01:38:04",
+        "seconds": 5884,
+        "text": "for å bekrefte at det du har tenkt er bra. Og da"
+      },
+      {
+        "time": "01:38:09",
+        "seconds": 5889,
+        "text": "får du også denne, hva skal vi si, kvalitetssikringen"
+      },
+      {
+        "time": "01:38:14",
+        "seconds": 5894,
+        "text": "internt på profesjonsutøvelsen din."
+      },
+      {
+        "time": "01:38:21",
+        "seconds": 5901,
+        "text": "Så du mener her at det er ikke lurt å drive et"
+      },
+      {
+        "time": "01:38:25",
+        "seconds": 5905,
+        "text": "one man band her, det er lurt å drøfte og"
+      },
+      {
+        "time": "01:38:28",
+        "seconds": 5908,
+        "text": "diskutere med gode kollegaer for å få gode"
+      },
+      {
+        "time": "01:38:32",
+        "seconds": 5912,
+        "text": "innspill?"
+      },
+      {
+        "time": "01:38:33",
+        "seconds": 5913,
+        "text": "Absolutt. Jeg tror kanskje at forsikringsmeglerbransjen"
+      },
+      {
+        "time": "01:38:38",
+        "seconds": 5918,
+        "text": "har vært, at det historisk har vært litt sånn"
+      },
+      {
+        "time": "01:38:41",
+        "seconds": 5921,
+        "text": "lone wolves her og der."
+      },
+      {
+        "time": "01:38:45",
+        "seconds": 5925,
+        "text": "Og det tror jeg er uheldig. Det er høy risiko."
+      },
+      {
+        "time": "01:38:52",
+        "seconds": 5932,
+        "text": "Det er mennesker, vi gjør feil, og det å få flere"
+      },
+      {
+        "time": "01:38:56",
+        "seconds": 5936,
+        "text": "øyne på en sak, det gir både bedre løsninger og"
+      },
+      {
+        "time": "01:39:00",
+        "seconds": 5940,
+        "text": "reduserer risiko. Så det er absolutt en ting som"
+      },
+      {
+        "time": "01:39:05",
+        "seconds": 5945,
+        "text": "bør inn i metodikken, på hvordan man jobber."
+      },
+      {
+        "time": "01:39:10",
+        "seconds": 5950,
+        "text": "Fint, da er vel vi ved veis ende, om det ikke er noe"
+      },
+      {
+        "time": "01:39:13",
+        "seconds": 5953,
+        "text": "flere spørsmål fra salen."
+      },
+      {
+        "time": "01:39:15",
+        "seconds": 5955,
+        "text": "Det ser ikke ut til å være det, Frode. Da benytter vi anledningen til å takke for oss og ønske lykke til i en sprennende bransje i fremtiden."
+      },
+      {
+        "time": "01:39:28",
+        "seconds": 5968,
+        "text": "Takk for oss."
+      }
+    ]
+  }
+]

@@ -1,0 +1,4336 @@
+1
+00:00:10,609 --> 00:00:16,469
+Hei, og velkommen til Forsikringsformidler-skolen, hvor vi i dag skal snakke om behovsanalysen,
+
+2
+00:00:17,129 --> 00:00:24,510
+som er en helt sentral del av arbeidet til en forsikringsmegler og andre forsikringsformidler også.
+
+3
+00:00:25,629 --> 00:00:34,329
+Jeg heter Lars Foyn, jeg jobber i VTV. Der har jeg jobbet i 12 år, og før det så jobbet jeg 20 år i en sidige.
+
+4
+00:00:34,329 --> 00:00:41,509
+Jeg har med meg min veldig gode kollega og erfarne forsikringsmegler, Frode Johansen.
+
+5
+00:00:42,310 --> 00:00:43,929
+Frode, hvor lenge har du vært i bransjen?
+
+6
+00:00:44,390 --> 00:00:56,310
+Hei, jeg har vært i bransjen, jobbet som megler siden 2005, og startet min karriere i forsikringsbransjen i 1991 også i en sidige.
+
+7
+00:00:56,689 --> 00:01:06,349
+Det vi tenkte vi skulle dele litt erfaring med dere på i dag er, som jeg nevnte,
+
+8
+00:01:06,870 --> 00:01:07,030
+behovsanalys.
+
+9
+00:01:07,049 --> 00:01:07,849
+Behovsanalysen.
+
+10
+00:01:09,329 --> 00:01:17,010
+Frode, du er jo en veldig erfaren forsikringsmegler og har truffet veldig mange kunder opp gjennom karrieren din.
+
+11
+00:01:18,290 --> 00:01:24,250
+Når du møter en kunde første gang, hvordan forbereder du deg til det møtet,
+
+12
+00:01:24,489 --> 00:01:31,609
+og hva vil du legge vekt på i et møte med kunden for å gjennomføre en behovsanalyse?
+
+13
+00:01:33,750 --> 00:01:36,969
+Kunder er jo så mange, og det er klart.
+
+14
+00:01:37,049 --> 00:01:49,489
+Det er klart at snakker vi med Norsk Hydro, så er utgangspunktet litt annerledes enn om vi snakker med en mellommarkedsbedrift i sentrale strøk eller i distriktene.
+
+15
+00:01:53,489 --> 00:02:00,579
+Min erfaring er i hovedsak dette mellommarkedet.
+
+16
+00:02:00,680 --> 00:02:04,739
+Jeg jobber som fagansvarlig i VTV for middenmarkedet, som vi kaller det.
+
+17
+00:02:04,739 --> 00:02:14,740
+Så mesteparten av denne seansen vil være basert på middenmarkedt kunder, som er de aller fleste kundene i Norge.
+
+18
+00:02:15,479 --> 00:02:22,860
+De store kundene har mer ressurser, mer kunnskap om dette.
+
+19
+00:02:23,520 --> 00:02:32,219
+Men vi ser kanskje at rådgivningen knyttet til middenmarkedet er veldig viktig, fordi det er komplekse spørsmålstillinger.
+
+20
+00:02:33,060 --> 00:02:34,719
+Man har ikke de samme ressursene.
+
+21
+00:02:34,740 --> 00:02:37,000
+Man har ikke de samme ressursene i de enkelte bedriftene.
+
+22
+00:02:38,280 --> 00:02:44,020
+Jeg starter ofte med å forberede både meg selv og kunden.
+
+23
+00:02:45,460 --> 00:02:51,879
+Det at kunden vet litt hva vi skal gå gjennom i et sånt møte er viktig.
+
+24
+00:02:52,259 --> 00:02:59,580
+Det er ikke sikkert at den vi har kontakt med er den som har den største innsikten i virksomheten,
+
+25
+00:02:59,580 --> 00:03:04,580
+eller kjenner alle ulike ting om hva som skjer hvor og hva de gjør.
+
+26
+00:03:04,740 --> 00:03:19,080
+Så det å få kanskje vår kontaktperson, som kanskje er en økonomisjef, til å tenke litt på hvem som er naturlig å ta med inn i et sånt møte, det er viktig.
+
+27
+00:03:19,080 --> 00:03:28,819
+Det at vi setter oss godt inn i kunden på forhånd, vi ser på kundens nettside,
+
+28
+00:03:28,819 --> 00:03:32,280
+og vi må forstå hvilken bransje de holder på med.
+
+29
+00:03:32,280 --> 00:03:33,379
+Vi må forstå hvilken bransje de holder på med.
+
+30
+00:03:33,379 --> 00:03:33,780
+Vi må forstå hvilken bransje de holder på med.
+
+31
+00:03:33,780 --> 00:03:34,280
+Vi må forstå hvilken bransje de holder på med.
+
+32
+00:03:34,280 --> 00:03:34,979
+Vi må forstå hvilken bransje de holder på med.
+
+33
+00:03:34,979 --> 00:03:38,979
+Hva er utfordringene i denne bransjen?
+
+34
+00:03:38,979 --> 00:03:48,620
+Og hvis vi ikke kjenner denne bransjen så godt, så tenker jeg det er viktig at man konsulterer en kollega.
+
+35
+00:03:48,620 --> 00:03:53,479
+Snakk med noen som kjenner bransjen godt.
+
+36
+00:03:53,479 --> 00:04:02,780
+Og i hvert fall i de store meglerhusene, så har man gjerne en eller annen som har vært innom de aller fleste bransjer, som man kan trekke litt på.
+
+37
+00:04:02,780 --> 00:04:03,319
+For det er ulike problemstillinger.
+
+38
+00:04:03,319 --> 00:04:04,819
+For det er ulike problemstillinger.
+
+39
+00:04:04,819 --> 00:04:12,020
+Og det at man går inn i møte med litt drådling og erfaringsutveksling sammen med en kollega.
+
+40
+00:04:12,020 --> 00:04:16,939
+Det er viktig, tenker jeg.
+
+41
+00:04:16,939 --> 00:04:21,939
+Hvilke utfordringer er det du møter i disse møtene, Frode?
+
+42
+00:04:21,939 --> 00:04:28,939
+Jeg har litt erfaring med å jobbe med ganske store bedrifter, og der er det ofte helt egne risk management miljøer,
+
+43
+00:04:28,939 --> 00:04:32,939
+som har veldig god oversikt over hvilke risikoer de står overfor.
+
+44
+00:04:32,939 --> 00:04:34,939
+Men hvis du jobber med et...
+
+45
+00:04:35,240 --> 00:04:47,240
+En mekanisk industri, for eksempel, som leverer til offshore prosjekter til skipsindustrien eller til andre krevende...
+
+46
+00:04:47,240 --> 00:04:49,740
+Altså delleveranser til andre krevende industrier.
+
+47
+00:04:49,740 --> 00:04:55,240
+Hvilke risikoer og hvilke utfordringer er det du ser i møten med disse bedriftene?
+
+48
+00:04:55,240 --> 00:05:05,220
+Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser
+
+49
+00:05:05,220 --> 00:05:06,019
+Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser
+
+50
+00:05:06,019 --> 00:05:06,680
+Det er jo som du sier, mange virksomheter i Norge som har ganske komplekse leveranser
+
+51
+00:05:06,680 --> 00:05:25,639
+og som kanskje leverer globalt, men det er ikke så store bedriftene, de har kanskje 50-100 ansatte og har ikke noe egen legal department, de har veldig ofte god fagkunnskap, god produktkunnskap,
+
+52
+00:05:25,639 --> 00:05:39,439
+og trenger litt veiledning, for de har komplekse forsikringsutfordringer, mange av disse, og da blir det litt å få inn kontraktene som disse sitter på,
+
+53
+00:05:40,920 --> 00:05:50,279
+veldig ofte, og det vil også være en del av den forberedelsesfasen, at vi ber kunden sende de vanligste kontraktene som de opererer i innenfor sin bransje,
+
+54
+00:05:50,759 --> 00:05:55,439
+enten det er offshore-bransjen sine gjensidige skadeslag,
+
+55
+00:05:55,639 --> 00:06:12,100
+løsholdelsesprinsipper som blir brukt, eller om det er entreprenørbransjen og NS-regime, så det gir på en måte en god inngang til møtet,
+
+56
+00:06:12,100 --> 00:06:25,300
+og så ser vi at kontraktskravene som stilles fra en del kanskje store amerikanske selskaper, advokatstandardkontrakten er kanskje skrevet i,
+
+57
+00:06:25,639 --> 00:06:32,420
+av en Texas-lawyer, og kan være veldig ubalansert.
+
+58
+00:06:34,000 --> 00:06:42,699
+Da blir det litt å jobbe sammen med kunden for å se om dette er en kontrakt som er tilpasset den leveransen som de skal gjøre,
+
+59
+00:06:42,699 --> 00:06:53,180
+og hvordan kan vi passe på at forsikringen som kunden kan få tegnet i Norge er i overensstemmelse med kontraktskravene.
+
+60
+00:06:55,529 --> 00:06:56,870
+Dette med kontrakter.
+
+61
+00:06:57,310 --> 00:07:11,589
+Er det veldig store variasjoner i hvordan disse kontraktene er utformet, og også der igjennom hvordan kundens ansvarsforhold og ansvarseksponeringer er påvirket?
+
+62
+00:07:11,850 --> 00:07:15,930
+Vil du si at dette er en veldig viktig del av forberedelsene før et møte?
+
+63
+00:07:16,769 --> 00:07:26,610
+Ja, det er viktig. Vi skal snakke litt om hvordan fastsette forsikringssum på ansvarsforsikringen etterpå.
+
+64
+00:07:27,310 --> 00:07:40,470
+Det er klart at veldig mye av disse, i hvert fall de internasjonale kontraktene, så er det ofte krav om ganske høye forsikringssummer.
+
+65
+00:07:41,329 --> 00:07:56,769
+En bedrift kanskje i Norge som omsetter for 100, 200, 300 millioner, en teknologibedrift, det kan være krevende å kjøpe ansvarsforsikring for veldig store summer.
+
+66
+00:07:57,310 --> 00:08:01,509
+Og kanskje er det ikke relevant. Så det er en viktig del av forberedelsene.
+
+67
+00:08:02,329 --> 00:08:17,269
+En annen ting som jeg tenkte på når det gjelder det med forberedelsen, det er det med å be om å få overskjent en sånn business continuity plan, eller en beredskapsplan.
+
+68
+00:08:19,430 --> 00:08:24,029
+Hvor vanlig er det at bedriftene har dette litt tilgjengelig, og at de er oppdatert?
+
+69
+00:08:24,029 --> 00:08:27,209
+Det er ganske sjelden at vi får det.
+
+70
+00:08:27,310 --> 00:08:34,190
+På mindre kunder, men også opp i ganske stort segment.
+
+71
+00:08:34,669 --> 00:08:40,309
+For den er jo veldig viktig i forhold til, her tenker jeg fort, tingskadeforsikring og avbrudseksponeringer.
+
+72
+00:08:41,090 --> 00:08:46,210
+Hvordan skal bedriften klare å opprettholde driften etter at en skade har truffet?
+
+73
+00:08:47,029 --> 00:08:54,129
+Vi ser jo at forsikringsselskapene etter hvert har blitt flinkere til å etterspørre den type dokumentasjon.
+
+74
+00:08:54,629 --> 00:08:57,129
+Men kundene blir ofte litt flakkne i å bli klare.
+
+75
+00:08:57,309 --> 00:08:58,669
+Ikke når vi ber om dette.
+
+76
+00:09:00,750 --> 00:09:04,669
+Er det noe vi hjelper til med å utarbeide en BCP-plan?
+
+77
+00:09:04,669 --> 00:09:08,370
+Jeg tenker at vi i hvert fall kan være med i prosessen.
+
+78
+00:09:09,049 --> 00:09:13,049
+Så er det bedriften som må lage og eie og forstå.
+
+79
+00:09:13,470 --> 00:09:14,950
+Det er de som kjenner sin virksomhet.
+
+80
+00:09:15,590 --> 00:09:25,110
+Men det å få de inn i den tankeprosessen, og at de forstår viktighetene, og har en beredskapsplan.
+
+81
+00:09:27,309 --> 00:09:34,750
+Når alt går gærent, det å ha tenkt igjennom hvordan vi håndterer dette.
+
+82
+00:09:34,750 --> 00:09:39,750
+Hvordan kan vi avbøtte og begrense tapet.
+
+83
+00:09:39,750 --> 00:09:50,750
+Det er viktig, og det er viktig også i neste fase når vi skal ut og presentere denne risikoen for forsikringsmarkedet.
+
+84
+00:09:50,750 --> 00:09:55,750
+Så gir det en god tillit til underreiterne.
+
+85
+00:09:55,750 --> 00:09:56,750
+På at dette er en bedrift som ...
+
+86
+00:09:57,309 --> 00:10:00,309
+... har forstått viktigheten.
+
+87
+00:10:00,309 --> 00:10:07,309
+og ha kontroll på risiko, så som regel så får vi ikke noe overskjent,
+
+88
+00:10:08,149 --> 00:10:13,469
+men det setter i gang en prosess som vi kan bygge videre på gjennom relasjonen og kundforholdet.
+
+89
+00:10:14,529 --> 00:10:22,109
+Du var inne på dette med hvem du ønsker å møte i disse første møtene du har med en ny kunde,
+
+90
+00:10:22,269 --> 00:10:23,809
+en ny bedrift, en ny virksomhet, Frode.
+
+91
+00:10:23,809 --> 00:10:30,509
+For det er jo ofte en økonomidirektør eller en kontroller kanskje som sitter med forsikringsansvaret,
+
+92
+00:10:31,109 --> 00:10:39,750
+men de har vel ikke alltid full oversikt over hvilke eksponeringer og risikoer og farer en bedrift står overfor.
+
+93
+00:10:40,349 --> 00:10:48,889
+Hvem er det du foretrekker å snakke med i en sånn behovskartleggingsfase utover økonomiansvarlig bedriften?
+
+94
+00:10:50,969 --> 00:10:55,229
+Hvis vi kan få med compliance-delen.
+
+95
+00:10:55,349 --> 00:11:02,029
+Ja, bedriften, så er det veldig nyttig, men ofte så har de jo ikke noe egen compliance-ressurs.
+
+96
+00:11:02,649 --> 00:11:07,609
+Det er ofte noe de kjøper i en case-by-case og etter behov.
+
+97
+00:11:07,609 --> 00:11:19,029
+Så min erfaring er at det å få de operasjonelle lederne inn i en sånn diskusjon er viktig.
+
+98
+00:11:19,609 --> 00:11:24,609
+Platssjefer kan være de som...
+
+99
+00:11:25,349 --> 00:11:32,250
+Som har ansvar for ulike produkter eller ulike markedssegmenter, som kan fortelle litt om sine leveranser.
+
+100
+00:11:32,949 --> 00:11:39,990
+Så mest mulig operasjonelle folk inn som kjenner sine markeder og sine produkter.
+
+101
+00:11:39,990 --> 00:11:47,289
+Som kjenner risikoen på kroppen, som er ute i virksomheten hver dag og ser hva som kan oppstå.
+
+102
+00:11:49,409 --> 00:11:54,990
+Og også som vet på en måte hele spennende...
+
+103
+00:11:55,349 --> 00:12:11,669
+I leveransen som kanskje både er en produktleveranse, det er kanskje en testing-kommisjoning og det er kanskje en ren tjenesteleveranse kombinert med hele kjeden av leveranser.
+
+104
+00:12:11,669 --> 00:12:32,299
+Vi har et spørsmål fra salen her som går på hvordan vi som forsikringsrådgivere blir møtt i bedriften første gang vi møter dem.
+
+105
+00:12:33,759 --> 00:12:37,339
+Og det er et veldig interessant spørsmål, for det er veldig varierende.
+
+106
+00:12:38,439 --> 00:12:48,539
+Noen ganger så møtes vi av kunder som rett og slett ønsker å kjøpe en billig løsning på et kontraktsproblem, for eksempel.
+
+107
+00:12:48,959 --> 00:12:58,539
+Andre ganger så er det en veldig holistisk tilnærming hvor de kanskje har fått en ny økonomi ansvarlig i bedriften som ønsker nå å ta fatt i forsikring.
+
+108
+00:12:59,319 --> 00:13:03,179
+Og ser at det er et viktig element for en forsvarlig drift fremover.
+
+109
+00:13:03,759 --> 00:13:13,619
+Dette varierer veldig, og det gjør jo hverdagen til en forsikringsmegler også veldig interessant, fordi du må tilpasse deg forskjellige kunder hele tiden.
+
+110
+00:13:15,019 --> 00:13:22,759
+Jeg vil si at det er blitt en betydelig profesjonalisering hos kundene de siste fem til ti årene.
+
+111
+00:13:23,299 --> 00:13:33,719
+Jeg synes vi møter langt mer profesjonelle mennesker i dag, og det er veldig gledelig å se når det kommer inn nye generasjoner, hvor bevisste de er.
+
+112
+00:13:33,759 --> 00:13:39,259
+Og hvor profesjonelle de er i tilnærming til risiko og forsikring.
+
+113
+00:13:39,899 --> 00:13:42,479
+Det er min erfaring, Frode. Hvordan opplever du det?
+
+114
+00:13:42,879 --> 00:13:56,879
+Min erfaring er kanskje ikke så positiv med tanke på akkurat forståelsen og dette med å ha et bevisst forhold til risiko og risikoakseptanse.
+
+115
+00:13:56,879 --> 00:14:06,879
+Vi må jo være kjennende at vi leverer kanskje eller jobber innenfor et litt sånn lavinteresseprodukt.
+
+116
+00:14:07,699 --> 00:14:14,479
+Det er jo når det går gærent at dette skal virke, og stort sett så går det jo heldigvis bra.
+
+117
+00:14:15,559 --> 00:14:22,500
+Så de fleste får jo ikke testet ut at dette faktisk virker sånn som de hadde tenkt.
+
+118
+00:14:22,740 --> 00:14:26,859
+Men hos de som har prøvd en skade, jeg pleier å si til kunderne,
+
+119
+00:14:26,879 --> 00:14:30,019
+hvis du synes at forsikring er dyrt, så skal du prøve en skade.
+
+120
+00:14:31,699 --> 00:14:42,139
+Og det er noe med at man får en forståelse av viktigheten av at forsikringene er korrekt.
+
+121
+00:14:43,359 --> 00:14:49,199
+Hvis vi ser på pris og prissensivitet og dette med at det skal være rimelig,
+
+122
+00:14:49,199 --> 00:14:56,859
+ja, vårt oppdrag er jo å skaffe den beste prisen for den risikoavlastningen som kunden skal.
+
+123
+00:14:56,879 --> 00:15:06,379
+Men det viktigste, når jeg treffer mine kunder, så sier jeg at det jeg driver med er risikoavlastning.
+
+124
+00:15:06,639 --> 00:15:08,919
+Jeg er en rådgiver innen risikoavlastning.
+
+125
+00:15:09,919 --> 00:15:20,419
+Og det å finne eller få kunden til å forstå viktighetene og ha en riktig dekning,
+
+126
+00:15:21,199 --> 00:15:24,659
+da må vi prøve oss å se på konsekvensene av,
+
+127
+00:15:26,879 --> 00:15:29,299
+hva kan skje når det er feil?
+
+128
+00:15:30,299 --> 00:15:38,599
+Når du mangler 2 millioner kroner i et erstatningsoppgjør for en mellomstor bedrift,
+
+129
+00:15:39,339 --> 00:15:41,539
+så er det kanskje kroken på døra.
+
+130
+00:15:41,699 --> 00:15:42,959
+Og hva hvis det mangler 10 millioner?
+
+131
+00:15:43,539 --> 00:15:45,659
+Hva hvis det mangler 50 millioner?
+
+132
+00:15:47,039 --> 00:15:54,299
+Da blir det på en måte om det koster 500 000, 700 000 eller 800 000 ikke så viktig.
+
+133
+00:15:55,919 --> 00:15:56,859
+Så det er på en måte...
+
+134
+00:15:56,879 --> 00:16:04,000
+Mitt utgangspunkt nr. 1, det er å få denne forståelsen av konsekvensene hvis det er feil.
+
+135
+00:16:04,000 --> 00:16:11,459
+Fordi en kunde opplever kanskje bare en skade eller kanskje ingen skade i løpet av sitt liv,
+
+136
+00:16:11,459 --> 00:16:15,959
+i hvert fall av de store skadene som er vitale.
+
+137
+00:16:15,959 --> 00:16:21,399
+Mens vi ser jo at skadene hender, og de hender litt, de skjer jo litt random.
+
+138
+00:16:23,199 --> 00:16:25,199
+Jeg har bare lyst til å knytte en kommentar til til det,
+
+139
+00:16:25,199 --> 00:16:26,859
+og da er det utrolig viktig,
+
+140
+00:16:26,879 --> 00:16:32,799
+at vi som forsikringsrådgivere, forsikringsmeglere har god vilkårsforståelse,
+
+141
+00:16:32,799 --> 00:16:36,959
+tar oss tid til å sette oss inn i forsikringsvilkårene som vil gjelde.
+
+142
+00:16:36,959 --> 00:16:42,399
+Fordi det er veldig store forskjeller i de vilkårene som er ute og gå,
+
+143
+00:16:42,399 --> 00:16:47,839
+som kan ha voldsomme konsekvenser for et skadeoppgjør, dersom det inntreffer.
+
+144
+00:16:56,509 --> 00:16:59,230
+Da ser jeg der et spørsmål til fra salen her, Frode.
+
+145
+00:16:59,230 --> 00:17:00,669
+Jeg lurer på om du skal svare på det.
+
+146
+00:17:00,669 --> 00:17:04,429
+Det jeg oppfatter er at det spøres om her,
+
+147
+00:17:04,429 --> 00:17:12,269
+at man oppfatter at det er kompliserte kontrakter som krever mye juridisk kompetanse.
+
+148
+00:17:12,269 --> 00:17:19,629
+Og spørsmålet er da hvordan tilnærmer vi oss den problematikken i forhold til juridiske utfordringer.
+
+149
+00:17:19,629 --> 00:17:22,829
+Hvordan gjør du det i ditt daglige virke?
+
+150
+00:17:22,829 --> 00:17:27,460
+Ja, og jeg er jo ikke jurist.
+
+151
+00:17:27,460 --> 00:17:33,619
+Vi, i vårt selskap, vi har
+
+152
+00:17:33,619 --> 00:17:38,259
+mye juridiske ressurser internt hos oss,
+
+153
+00:17:38,259 --> 00:17:40,259
+som vi har tilgang til.
+
+154
+00:17:40,259 --> 00:17:42,259
+De fleste menglerhusene har nok det.
+
+155
+00:17:42,259 --> 00:17:49,460
+Og så har jo også selskapene en viss juridisk kompetanse,
+
+156
+00:17:49,460 --> 00:17:53,460
+som det går an å trekke litt på.
+
+157
+00:17:53,460 --> 00:17:59,460
+Og så er det en del spørsmål som jeg vil si som er,
+
+158
+00:17:59,460 --> 00:18:01,460
+la oss si,
+
+159
+00:18:01,460 --> 00:18:03,460
+som går igjen,
+
+160
+00:18:03,460 --> 00:18:05,460
+det er en del ting,
+
+161
+00:18:05,460 --> 00:18:07,460
+som når man har vært gjennom disse,
+
+162
+00:18:07,460 --> 00:18:09,460
+hva skal vi si,
+
+163
+00:18:09,460 --> 00:18:11,460
+det å kanskje spesialisere seg litt innenfor visse bransjer,
+
+164
+00:18:11,460 --> 00:18:17,460
+det gjør at man kjenner igjen problemstillinger i kontrakter som kommer opp,
+
+165
+00:18:17,460 --> 00:18:23,460
+og man kan svare på forholdsvis kompliserte kontrakter,
+
+166
+00:18:23,460 --> 00:18:26,099
+uten nødvendigvis å ha en juridisk kompetanse.
+
+167
+00:18:26,099 --> 00:18:30,099
+Men det er viktig å avgrense vår rådgivning,
+
+168
+00:18:30,099 --> 00:18:32,099
+fordi vi er forsikringsformidler.
+
+169
+00:18:32,099 --> 00:18:40,099
+Og vår konsursjon er ikke kontraktsrett,
+
+170
+00:18:40,099 --> 00:18:44,099
+eller å yte advokatjeneste for kundene.
+
+171
+00:18:44,099 --> 00:18:48,099
+Så det er en viktig avgrensning å gjøre sammen med kunden,
+
+172
+00:18:48,099 --> 00:18:52,099
+at det vi kan rådgive på er knyttet til risikoavlastningen,
+
+173
+00:18:52,099 --> 00:18:56,099
+og risikoallokeringen i kontrakten,
+
+174
+00:18:56,099 --> 00:18:58,099
+og hvordan vi løser det forsikringsmessig.
+
+175
+00:18:58,099 --> 00:19:00,099
+Juridisk bistand som sånn,
+
+176
+00:19:00,099 --> 00:19:02,099
+det driver vi ikke med,
+
+177
+00:19:02,099 --> 00:19:06,099
+men vi har juridisk kompetanse i vårt selskap,
+
+178
+00:19:06,099 --> 00:19:10,099
+i forhold til den rådgivningen vi skal gjøre,
+
+179
+00:19:10,099 --> 00:19:14,099
+når det gjelder kontrakter sett opp mot lovverk.
+
+180
+00:19:14,099 --> 00:19:16,099
+Og det tror vi er veldig viktig,
+
+181
+00:19:16,099 --> 00:19:18,099
+å ha en god kompetanse i bunn,
+
+182
+00:19:18,099 --> 00:19:22,099
+for å kunne gi en trygg rådgivning til kundene våre.
+
+183
+00:19:22,099 --> 00:19:24,099
+At vi har med oss den kompetansen.
+
+184
+00:19:24,099 --> 00:19:26,099
+Jeg har lyst å knytte et punkt til,
+
+185
+00:19:26,099 --> 00:19:28,099
+fordi vi ser jo av og til at kontrakter,
+
+186
+00:19:28,099 --> 00:19:39,099
+benyttes i bransjer som kan gi kundene en ganske stor utfordring,
+
+187
+00:19:39,099 --> 00:19:41,099
+uten at man kanskje er klar over det.
+
+188
+00:19:41,099 --> 00:19:46,099
+Vi har visse bransjeorganisasjoner,
+
+189
+00:19:46,099 --> 00:19:51,099
+for eksempel i NOO,
+
+190
+00:19:51,099 --> 00:19:56,099
+bistår jo en del av medlemmene sine i å utforme kontrakter.
+
+191
+00:19:56,099 --> 00:20:00,099
+Vi har sett eksempler som
+
+192
+00:20:00,099 --> 00:20:08,099
+på kontrakter som er innenfor entreprenørbransjen som går helt på tvers av NS-regime.
+
+193
+00:20:08,099 --> 00:20:17,099
+NS-regime er et veldig omforent kontraktsystem for byggebransjen i Norge.
+
+194
+00:20:17,099 --> 00:20:23,099
+Det er kjent av forsikringsselskapene, det er kjent av entreprenørene og leverandørene,
+
+195
+00:20:23,099 --> 00:20:32,099
+og man har bygget av forsikringsprodukter knyttet opp mot kontraktsforpliktelsene.
+
+196
+00:20:32,099 --> 00:20:41,099
+Så hele forsikringsproduktet i Norge er bygd litt rundt dette kontraktregimeet.
+
+197
+00:20:41,099 --> 00:20:52,099
+Når vi da ser kontrakter som går helt på tvers av dette, da må vi vifte med det røde flagget.
+
+198
+00:20:52,099 --> 00:20:53,099
+Og, altså, det er ikke så mye vi kan gjøre. Det er ikke så mye vi kan gjøre. Det er ikke så mye vi kan gjøre.
+
+199
+00:20:53,099 --> 00:21:04,099
+Vi må adressere de problemstillingene. Vi har sett kontrakter som for eksempel for tekkerbransjen som …
+
+200
+00:21:04,099 --> 00:21:06,099
+Tekkerbransjen, er det taktekkeret du tenker på?
+
+201
+00:21:06,099 --> 00:21:18,099
+Taktekkerbransjen som da unntar seg ansvar, og som fraskriver seg ansvar, og som heller ikke forsikrer kontraktsarbeidet,
+
+202
+00:21:18,099 --> 00:21:22,099
+eller som forutsetter at kundene har forsikret kontraktsarbeidet.
+
+203
+00:21:22,099 --> 00:21:33,099
+Og vi har Sperl og Pynt-foreningen, som er av en sånn karakter at de anser at de jobber under instruks,
+
+204
+00:21:33,099 --> 00:21:39,099
+og de gjør det jo for så vidt, både fra instrukset fra rådgiveren og instrukset fra totale entreprenøren,
+
+205
+00:21:39,099 --> 00:21:48,099
+men har selvfølgelig sitt eget selvstendig ansvar for det de gjør. Og disse kontraktsbestemmelsene, eller det at man unntar seg for ansvar,
+
+206
+00:21:48,099 --> 00:21:51,099
+de er jo da i motstrid med det vi gjør.
+
+207
+00:21:51,099 --> 00:21:54,099
+De er jo da i motstrid med en del av forutsetningene i NS-regime.
+
+208
+00:21:54,099 --> 00:22:13,099
+Og løsningen på det, det er flere veier til rom, men en løsning kan jo være å regulere hvilken kontrakt som har forrang for den andre,
+
+209
+00:22:13,099 --> 00:22:16,099
+sånn at man får avklart spørsmålet der.
+
+210
+00:22:16,099 --> 00:22:20,099
+Og man bør nok også adressere forsikringsgiver.
+
+211
+00:22:21,099 --> 00:22:29,099
+Når man opplever at man har denne type divergens- eller kontraktstyper.
+
+212
+00:22:29,099 --> 00:22:37,099
+Og så er det vel også viktig, Frode, å ha nok juridisk kompetanse med seg, enten selv eller med kollegaer,
+
+213
+00:22:37,099 --> 00:22:44,099
+til å forstå at det er ikke alt ansvar du heller kan avtale deg vekk ifra, for eksempel overfor tredjemenn.
+
+214
+00:22:44,099 --> 00:22:50,099
+Så til spørsmålet overfor salen her, juridisk kompetanse er grunnleggende i det vi gjør.
+
+215
+00:22:51,099 --> 00:22:56,099
+Men det må ikke nødvendigvis være den enkelte forsikringsmegleren som har det.
+
+216
+00:22:56,099 --> 00:23:04,099
+Men han må ha en god forståelse med seg, gjerne basert på interne ressurser som man kan samarbeide med.
+
+217
+00:23:04,099 --> 00:24:05,359
+Nå har vi jo vært litt grundig innom hvilke forberedelser som skal gjennomføres før vi møter en kunde første gang.
+
+218
+00:24:05,359 --> 00:24:08,359
+Det er alltid litt spennende, det kiler litt i magen når vi gjør det.
+
+219
+00:24:08,359 --> 00:24:10,359
+Hvem er det vi treffer?
+
+220
+00:24:10,359 --> 00:24:12,359
+Og da, Frode, når du reiser ut til Grønland.
+
+221
+00:24:12,359 --> 00:24:18,359
+Du reiser ut til kunden for første gang, parkerer bilen, og slipset har vi jo lagt fra oss nå.
+
+222
+00:24:18,359 --> 00:24:21,359
+Men skjorta er pen og sveisten er fin når du møter kunden.
+
+223
+00:24:21,359 --> 00:24:24,359
+Hvordan er det du starter dette møtet?
+
+224
+00:24:24,359 --> 00:24:29,359
+Hvordan er det du legger opp en sånn samtale, et møte med kunden?
+
+225
+00:24:29,359 --> 00:24:32,359
+Har du tid til å fortelle oss litt om det?
+
+226
+00:24:32,359 --> 00:24:37,359
+Vi er jo nå ferdig med korona.
+
+227
+00:24:37,359 --> 00:24:41,359
+Etter korona så ser vi jo at antall møter har avtatt.
+
+228
+00:24:41,359 --> 00:24:45,359
+Vi kjører flere teamsmøter.
+
+229
+00:24:45,359 --> 00:24:57,359
+Og det vil jeg anbefale de fleste å være litt forsiktig med når vi ser på et førstegangsmøte med kunden.
+
+230
+00:24:57,359 --> 00:24:59,359
+Eller det at du skal forstå virksomheten godt.
+
+231
+00:24:59,359 --> 00:25:05,359
+Fordi det er noe med å komme ut på plassen og se hva som er der.
+
+232
+00:25:05,359 --> 00:25:09,359
+Er det ting ute? Er det ting inne?
+
+233
+00:25:09,359 --> 00:25:11,359
+Hva skal forsikres?
+
+234
+00:25:11,359 --> 00:25:17,359
+Det gir i hvert fall meg en mye bedre, mye større trygghet.
+
+235
+00:25:17,359 --> 00:25:19,359
+Du ser virksomheten, får et inntrykk av virksomheten.
+
+236
+00:25:19,359 --> 00:25:21,359
+Du møter menneskene.
+
+237
+00:25:21,359 --> 00:25:23,359
+Ja, og du får også...
+
+238
+00:25:23,359 --> 00:25:27,359
+Vi skal jo formidle dette videre til en underwriter som skal prise dette.
+
+239
+00:25:27,359 --> 00:25:33,359
+Og hvis ikke vi har vært det, så er det vanskelig.
+
+240
+00:25:33,359 --> 00:25:38,669
+Vi skal si noe om systemen her.
+
+241
+00:25:38,669 --> 00:25:40,669
+Hvordan systemen er.
+
+242
+00:25:40,669 --> 00:25:42,669
+Vi skal beskrive risikoen.
+
+243
+00:25:42,669 --> 00:25:48,669
+Det er krevende å gjøre det hvis ikke du har vært der.
+
+244
+00:25:48,669 --> 00:25:50,669
+Det er vel nesten umulig.
+
+245
+00:25:50,669 --> 00:26:00,669
+Men så er det klart at er det enkelte, kanskje mer sånn financial lines baserte risiker som skal plasseres,
+
+246
+00:26:00,669 --> 00:26:02,669
+så kan man ha en annen tilnærming.
+
+247
+00:26:02,669 --> 00:26:08,669
+Men snakker vi property, da må vi ut og snakker vi i hvert fall produksjon.
+
+248
+00:26:08,669 --> 00:26:10,669
+Da må vi ut.
+
+249
+00:26:10,669 --> 00:26:20,669
+En del megleforetak har risikoingeniører som gjør surveys.
+
+250
+00:26:20,669 --> 00:26:22,669
+Vi har heldigvis det i VTV.
+
+251
+00:26:22,669 --> 00:26:26,669
+Og det er en veldig bra ressurs å bringe inn.
+
+252
+00:26:26,669 --> 00:26:36,669
+Da får man veldig god teknisk informasjon om risikoen som kan presenteres til underwriter.
+
+253
+00:26:36,669 --> 00:26:40,669
+Det er en ressurs du kanskje setter på etter de første møtene.
+
+254
+00:26:40,669 --> 00:26:48,669
+Hvordan risikoingeniøren gjør en solid gjennomgang og lager en risikobeskrivelse for bruk i forsikringsmarkedet.
+
+255
+00:26:48,669 --> 00:26:50,669
+Du har vel ikke med deg han eller hun i de første møtene med kunden?
+
+256
+00:26:50,669 --> 00:26:52,669
+Nei.
+
+257
+00:26:52,669 --> 00:26:58,669
+Vi er jo født med to ører og én munn.
+
+258
+00:26:58,669 --> 00:27:02,669
+Jeg tenker at det er en grunn til det ofte.
+
+259
+00:27:02,669 --> 00:27:04,669
+Det å stille spørsmål.
+
+260
+00:27:04,669 --> 00:27:06,669
+Å høre hva kunden sier.
+
+261
+00:27:06,669 --> 00:27:08,669
+Det er viktig.
+
+262
+00:27:10,669 --> 00:27:14,669
+Det å kanskje utfordre kunden litt.
+
+263
+00:27:14,669 --> 00:27:16,669
+Jeg tror kunden liker det.
+
+264
+00:27:20,669 --> 00:27:26,669
+Det å levere litt bedre enn bare en forsikring.
+
+265
+00:27:26,669 --> 00:27:34,669
+Det tror jeg er noe som blir et konkurransefortrykk fremover i vår bransje.
+
+266
+00:27:34,669 --> 00:27:42,039
+Jeg tror at folk liker å bli utfordret.
+
+267
+00:27:42,039 --> 00:27:46,039
+Tar du utgangspunkt, Frode, i forsikringsproduktene som er tilgjengelige?
+
+268
+00:27:46,039 --> 00:27:53,039
+Om det er ansvarsforsikring, styreansvar, transportforsikring, tingsskade og avbrusforsikringer?
+
+269
+00:27:53,039 --> 00:27:58,039
+Eller tar du utgangspunkt i bedriften som sånn når du gjennomfører disse samtalene?
+
+270
+00:27:58,039 --> 00:28:02,039
+Det er vel litt tilbake til behovsanalysen igjen.
+
+271
+00:28:02,039 --> 00:28:04,039
+Og dette med verden.
+
+272
+00:28:04,039 --> 00:28:09,039
+Hvilket verktøy har vi å bruke?
+
+273
+00:28:09,039 --> 00:28:17,039
+Jeg har sett ulike modeller opp gjennom årene.
+
+274
+00:28:17,039 --> 00:28:21,039
+I en CD hadde vi for mange år siden en sånn ...
+
+275
+00:28:21,039 --> 00:28:25,039
+Jeg husker den. Den malen. Blankettnummer et eller annet.
+
+276
+00:28:25,039 --> 00:28:31,039
+Det var mye bra i den fordi man fikk en slags huskeliste.
+
+277
+00:28:31,039 --> 00:28:33,039
+Den var forholdsvis produktorientert.
+
+278
+00:28:33,039 --> 00:28:38,039
+Men det var litt sånn ja og nei. Hva er valgt og hva er ikke valgt?
+
+279
+00:28:38,039 --> 00:28:43,039
+Og det er en veldig god metode å bruke.
+
+280
+00:28:43,039 --> 00:28:46,039
+Vi har prøvd. Jeg har prøvd å lage et verktøy.
+
+281
+00:28:46,039 --> 00:28:50,039
+Men jeg har gitt opp litt.
+
+282
+00:28:50,039 --> 00:28:55,039
+Fordi virksomhetene er så ulike.
+
+283
+00:28:55,039 --> 00:29:01,039
+Og et sånt verktøy blir veldig schematisk.
+
+284
+00:29:01,039 --> 00:29:02,039
+Og det flyter.
+
+285
+00:29:02,039 --> 00:29:04,039
+Det er ikke for dårlig.
+
+286
+00:29:04,039 --> 00:29:07,039
+Men det er kanskje fordi du har veldig lang erfaring.
+
+287
+00:29:07,039 --> 00:29:09,039
+Du har god trening i dette.
+
+288
+00:29:09,039 --> 00:29:13,039
+For en som er nyere. Ikke har den lange erfaringen du har.
+
+289
+00:29:13,039 --> 00:29:16,039
+Kan det kanskje være lurt å ha en god forberedelse med seg?
+
+290
+00:29:16,039 --> 00:29:20,039
+Og trene på hvordan man skal gjennomføre et sånt møte?
+
+291
+00:29:20,039 --> 00:29:22,039
+Absolutt.
+
+292
+00:29:22,039 --> 00:29:26,039
+Vi var innom det så vidt innledningsvis.
+
+293
+00:29:26,039 --> 00:29:30,039
+Vi som forsikringsmeglere må kjenne noe til den bransjen som ...
+
+294
+00:29:30,039 --> 00:29:35,039
+Noe til den bransjen som kunden opererer innenfor.
+
+295
+00:29:35,039 --> 00:29:39,039
+Og gjør vi ikke det så må vi finne noen som kan det.
+
+296
+00:29:39,039 --> 00:29:41,039
+Som enten kan være med i møtet.
+
+297
+00:29:41,039 --> 00:29:44,039
+Eller som kan forberede oss litt på forhånd.
+
+298
+00:29:44,039 --> 00:29:51,039
+Og når vi da er i gang med samtalen.
+
+299
+00:29:51,039 --> 00:29:55,039
+Så tenker jeg at da blir det litt å spørre.
+
+300
+00:29:55,039 --> 00:29:58,039
+Hva kan skje?
+
+301
+00:29:58,039 --> 00:30:00,039
+Og hvor galt kan det gå?
+
+302
+00:30:00,039 --> 00:30:09,379
+Hvis kunden har laget en risikoanalyse ut fra et mer holistisk perspektiv,
+
+303
+00:30:10,099 --> 00:30:13,779
+det ser vi ikke så ofte, for det de ofte gjør,
+
+304
+00:30:13,779 --> 00:30:15,720
+vi er veldig gode på å ha med spitten.
+
+305
+00:30:16,579 --> 00:30:21,680
+Man lager sikker jobbanalyse, og man lager en risikoanalyse for de ulike operasjonene,
+
+306
+00:30:21,680 --> 00:30:30,619
+men vi ser ikke så ofte at man har gjort en risikoanalyse på overordnet nivå,
+
+307
+00:30:30,619 --> 00:30:33,720
+og sett på konsekvensene av avbruddstap og så videre.
+
+308
+00:30:34,720 --> 00:30:40,539
+Da blir det å stille spørsmålet, hva kan skje her?
+
+309
+00:30:40,539 --> 00:30:45,039
+Hvor gærent kan det gå? Og hva kan det koste?
+
+310
+00:30:45,879 --> 00:30:47,779
+Oi, da tenker jeg på ...
+
+311
+00:30:47,779 --> 00:30:51,539
+En ting er bygninger og kanskje en maskinpark,
+
+312
+00:30:51,539 --> 00:30:57,779
+det er ganske konkrete verdier vi skal hjelpe kunden til å finne en god forsikring på.
+
+313
+00:30:57,779 --> 00:31:02,579
+Men når det gjelder ansvarseksponeringer, avbruddseksponeringer,
+
+314
+00:31:02,579 --> 00:31:09,399
+det må jo kreve mye trening, Frode, for å kunne finne en god måte å avlaste dette på.
+
+315
+00:31:10,299 --> 00:31:16,200
+Ja, jeg tror kanskje at det faktisk krever litt trening,
+
+316
+00:31:16,200 --> 00:31:21,139
+og det å være med på,
+
+317
+00:31:21,139 --> 00:31:27,899
+både å ha sett en del skadecase, men også når man starter som megler,
+
+318
+00:31:27,899 --> 00:31:34,899
+så er den beste skolen det er å bli med ut i kundemøter, bli med en erfaren megler,
+
+319
+00:31:34,899 --> 00:31:40,899
+og oppleve case i praksis.
+
+320
+00:31:40,899 --> 00:31:48,899
+Men hvis jeg ser på det du nevnte med å fastsette forsikringssum,
+
+321
+00:31:48,899 --> 00:31:49,899
+så handler det også litt om ...
+
+322
+00:31:49,899 --> 00:31:50,899
+Men hvis jeg ser på det du nevnte med å fastsette forsikringssum,
+
+323
+00:31:50,899 --> 00:31:52,659
+så handler det også litt om ...
+
+324
+00:31:52,659 --> 00:31:56,659
+Da må man også kjenne produktene.
+
+325
+00:31:56,659 --> 00:32:01,659
+Så vår rolle som forsikringsmegler, vi må forstå ulike bransjer,
+
+326
+00:32:01,659 --> 00:32:07,659
+og så må vi kjenne både markedet, men også produktene og begrensningene
+
+327
+00:32:07,659 --> 00:32:09,659
+og mulighetene som ligger i produktene.
+
+328
+00:32:09,659 --> 00:32:19,659
+Så det er et forholdsvis omfattende kunnskapsbilde som man har oversikt over.
+
+329
+00:32:19,659 --> 00:32:30,420
+Vi bruker jo ofte skadeeksempler i møte med kunden for å illustrere hva konsekvensene av en skade kan bli.
+
+330
+00:32:30,420 --> 00:32:35,420
+Der må vi jo være forsiktige med å identifisere hvilken kunde det er, anonymisere det,
+
+331
+00:32:35,420 --> 00:32:39,420
+for det er jo en konfidensiell virksomhet vi driver med.
+
+332
+00:32:39,420 --> 00:32:48,420
+Men du har et par skadeeksempler, Frode. Skal vi nevne de som du bruker i dine kundemøter?
+
+333
+00:32:48,420 --> 00:32:59,420
+Jeg tenker jo at det er relevant for … av skade blir man klok, som noen sier, og det er jeg litt enig i.
+
+334
+00:32:59,420 --> 00:33:10,420
+Og hvis vi ser på dette med … ta for eksempel det med å forstå virksomheten,
+
+335
+00:33:10,420 --> 00:33:16,420
+og så skal vi videreformidle dette til en underwriter som skal forstå,
+
+336
+00:33:16,420 --> 00:33:22,420
+og en underwriter har et litt annet utgangspunkt enn oss, tenker jeg vi.
+
+337
+00:33:22,420 --> 00:33:31,420
+Vårt utgangspunkt er at vi skal prøve å avdekke og dekke kundens risikobehov eller behov for risikoavlastning.
+
+338
+00:33:31,420 --> 00:33:37,420
+Mens en underwriter, han vil prøve å forstå risikoen, og så vil han avgrense det til det han har forstått.
+
+339
+00:33:37,420 --> 00:33:43,420
+Han vil helst ikke ha noe usikkerhet utover hverken på den siden eller på den siden.
+
+340
+00:33:43,420 --> 00:33:45,420
+Mens vi …
+
+341
+00:33:45,420 --> 00:33:46,420
+Jeg har …
+
+342
+00:33:46,420 --> 00:33:49,420
+holdt på med dette i tredje år,
+
+343
+00:33:49,420 --> 00:33:54,420
+og jeg vet at jeg har ikke fantasi til å tenke på alt som kan skje.
+
+344
+00:33:54,420 --> 00:33:56,420
+Så …
+
+345
+00:33:56,420 --> 00:34:01,420
+Mitt utgangspunkt er at jeg ønsker å ha litt sånn belt og bukses her og der.
+
+346
+00:34:01,420 --> 00:34:06,420
+Jeg ønsker ikke å ha en veldig smal, særlig dette med …
+
+347
+00:34:06,420 --> 00:34:09,420
+og en virksomhetsbeskrivelse innenfor ansvar.
+
+348
+00:34:09,420 --> 00:34:15,420
+Da vil jeg ha en brei tekst, og ikke for mye ord inni hvert fall.
+
+349
+00:34:15,420 --> 00:34:25,420
+Fordi har man for mye tekst, fordi man prøver å forklare godt hva denne kunden driver med,
+
+350
+00:34:25,420 --> 00:34:28,420
+så kan det slå litt tilbake igjen.
+
+351
+00:34:28,420 --> 00:34:31,420
+For hvis man har sagt veldig mye, men ikke det …
+
+352
+00:34:31,420 --> 00:34:35,420
+Det er jo umulig å forklare alt hva en kunde driver med i et forsikringsbevis.
+
+353
+00:34:35,420 --> 00:34:42,420
+Og derfor så er jeg tilhenger av at man har forsikret en bransje nærmest.
+
+354
+00:34:42,420 --> 00:34:43,420
+Ja.
+
+355
+00:34:43,420 --> 00:34:51,420
+Så i selve underlaget, eller submissionen, så må vi beskrive godt hva den gjør.
+
+356
+00:34:51,420 --> 00:34:54,420
+Men vi skal ikke ha det over i et forsikringsbevis.
+
+357
+00:34:54,420 --> 00:34:57,420
+Veldig detaljert.
+
+358
+00:34:57,420 --> 00:34:59,420
+Og et eksempel …
+
+359
+00:34:59,420 --> 00:35:04,420
+Vi er en stor aktør innenfor skadesanering.
+
+360
+00:35:04,420 --> 00:35:10,420
+Hva forsikres som skadesaneringsselskap?
+
+361
+00:35:10,420 --> 00:35:11,420
+Ja.
+
+362
+00:35:11,420 --> 00:35:14,420
+Som rydder opp etter at en skade er inntroffet?
+
+363
+00:35:14,420 --> 00:35:21,420
+Ja. Skadesaneringsselskap, det er jo en forholdsvis …
+
+364
+00:35:21,420 --> 00:35:27,420
+Vi virksomhet, når vi ser på hva er det et sånt selskap gjør i praksis,
+
+365
+00:35:27,420 --> 00:35:32,420
+de kommer inn og rydder og begrenser skaden.
+
+366
+00:35:32,420 --> 00:35:38,420
+De har ting i varetekt. De henter kanskje ting som de reparerer litt på,
+
+367
+00:35:38,420 --> 00:35:40,420
+eller i hvert fall så lagrer de det.
+
+368
+00:35:40,420 --> 00:35:48,420
+Lagrer det mens det blir ryddet opp, og skaden blir utbedret på skadestedet.
+
+369
+00:35:48,420 --> 00:36:00,420
+Et eksempel på et ansvarskrav da, som skjer hos veldig mange av den type virksomheter,
+
+370
+00:36:00,420 --> 00:36:08,420
+man får oppdraget på å utbedre skaden også etter man har vært ferdig med den nidledende fasen,
+
+371
+00:36:08,420 --> 00:36:09,420
+eller skadebegrensning og opprydding da.
+
+372
+00:36:09,420 --> 00:36:15,420
+Så får man kanskje oppdraget med å utbedre skaden, hvis det er en mindre skade.
+
+373
+00:36:15,420 --> 00:36:24,420
+Oppdraget her var å legge en ny parkett etter en stor skade.
+
+374
+00:36:24,420 --> 00:36:29,420
+Så det var mye kvadrat med parkett som skulle legges da.
+
+375
+00:36:29,420 --> 00:36:37,420
+Og så under dette arbeidet så kom det opp en ny skade.
+
+376
+00:36:37,420 --> 00:36:41,420
+En vannskade.
+
+377
+00:36:41,420 --> 00:36:45,420
+Og da ble det en diskusjon med forsikringsselskapet,
+
+378
+00:36:45,420 --> 00:36:50,420
+at dette har vi ikke forstått at de driver med entreprenører.
+
+379
+00:36:50,420 --> 00:36:52,420
+Med parkettlegging.
+
+380
+00:36:52,420 --> 00:36:55,420
+At et skadesaneringsselskap også driver å legge parkett.
+
+381
+00:36:55,420 --> 00:36:58,420
+Ja, det var ikke naturlig for ansvarsunderreiteren.
+
+382
+00:36:58,420 --> 00:36:59,420
+Nei.
+
+383
+00:36:59,420 --> 00:37:05,420
+Men for skadeavdelingen til samme selskapet som faktisk kjøper tjenesten.
+
+384
+00:37:05,420 --> 00:37:08,420
+Men de to snakker jo ikke med hverandre.
+
+385
+00:37:08,420 --> 00:37:10,420
+Så var det jo selvfølgelig naturlig.
+
+386
+00:37:10,420 --> 00:37:15,420
+Så forsikringsselskapet kjøpte tjenester innen parkettlegging fra skadesaneringsselskapet?
+
+387
+00:37:15,420 --> 00:37:19,420
+Ja, nå var det ikke samme selskapet her, men de gjør jo det.
+
+388
+00:37:19,420 --> 00:37:28,420
+Og det viser jo at underreiteren på ansvar har litt sine skylapper og ser sitt produkt.
+
+389
+00:37:28,420 --> 00:37:35,420
+Og andre deler av virksomheten, kanskje de som regulerer skaden,
+
+390
+00:37:35,420 --> 00:37:39,420
+de kjøper jo både tjenestene og ser på bredden av tjenester som de kjøper da.
+
+391
+00:37:39,420 --> 00:37:48,420
+Så vi greide å få selskapet til å forstå at selvfølgelig så driver de med gjenoppbygging også.
+
+392
+00:37:48,420 --> 00:37:53,420
+Men det var ikke i utgangspunktet noe som underreiteren hadde forstått.
+
+393
+00:37:53,420 --> 00:37:57,420
+Og det blir veldig sånn, skadesaneringsvirksomhet sto det i forsikringsby,
+
+394
+00:37:57,420 --> 00:37:59,420
+så vi fikk avslag innledningsvis.
+
+395
+00:37:59,420 --> 00:38:00,420
+Ja.
+
+396
+00:38:00,420 --> 00:38:04,420
+Så det viser noe av kompleksiteten i det her.
+
+397
+00:38:04,420 --> 00:38:14,420
+Og kanskje også kunden hadde jo ingen forståelse for at forsikringen ikke skulle dekke en sånn ting.
+
+398
+00:38:14,420 --> 00:38:26,440
+Frodo, da er det kommet et spørsmål fra salen igjen.
+
+399
+00:38:26,440 --> 00:38:29,440
+Og det er jo spennende at det er interesse for det vi snakker om.
+
+400
+00:38:29,440 --> 00:38:39,440
+Det gjelder når utenlandske forsikringsselskaper har ofte i forsikringsbevisene i virksomhetsbeskrivelsen
+
+401
+00:38:39,440 --> 00:38:42,440
+en beskrivelse av virksomheten, men ikke begrenset.
+
+402
+00:38:42,440 --> 00:38:44,440
+Men ikke begrenset til dette.
+
+403
+00:38:44,440 --> 00:38:48,440
+I det tilfellet du nevnte, så kunne det da for eksempel stått skadesanering,
+
+404
+00:38:48,440 --> 00:38:53,440
+men ikke begrenset til virksomhet som skadesanering.
+
+405
+00:38:53,440 --> 00:39:00,440
+Jeg har også sett all past and present activities, altså hvor man ikke har en snever begrensning.
+
+406
+00:39:00,440 --> 00:39:05,440
+Jeg vet ikke hvordan du håndterer det.
+
+407
+00:39:05,440 --> 00:39:12,440
+Min erfaring er at når man jobber på standardvilkår fra norske forsikringsselskaper,
+
+408
+00:39:12,440 --> 00:39:22,440
+så er de ganske spesifikke, og som Frodo var inne på, ganske begrensende i forhold til hvilken virksomhet man driver.
+
+409
+00:39:22,440 --> 00:39:31,440
+Altså driver du med bilsalg, så er det ikke sikkert at bilverkstedtjenester vil være omfødt av forsikringsavtalen i norske vilkår.
+
+410
+00:39:31,440 --> 00:39:40,440
+Spørsmålet fra salen her er kanskje lettere å få aksept for i det større markedet,
+
+411
+00:39:40,440 --> 00:39:44,440
+når man jobber med internasjonale forsikringsgivere,
+
+412
+00:39:44,440 --> 00:39:49,440
+hvor det er en mer naturlig måte å skrive et forsikringsbevis på.
+
+413
+00:39:49,440 --> 00:39:59,440
+Jeg tror dette kan være en liten, ikke en felle, men noe vi må være veldig oppmerksom på når vi jobber på standardvilkår fra norske selskaper, Frodo.
+
+414
+00:39:59,440 --> 00:40:04,740
+I vårt mid-market segment så jobber vi på standardvilkår fra selskapene.
+
+415
+00:40:06,460 --> 00:40:20,700
+Det som vi gjør i vårt selskap, vi skriver at i selve submissionen så skriver vi at dette er en beskrivelse av virksomheten,
+
+416
+00:40:20,700 --> 00:40:27,320
+men sånn som salen var inne på, det er ikke begrenset til.
+
+417
+00:40:27,320 --> 00:40:32,659
+Altså dette er en underwriting informasjon for at underwriter skal få en god forståelse,
+
+418
+00:40:33,179 --> 00:40:37,820
+men det er ikke en begrensning i dekningen, for det er umulig å beskrive alt.
+
+419
+00:40:38,579 --> 00:40:42,980
+Så ja, det er vel en hård snak på det.
+
+420
+00:40:43,340 --> 00:40:49,159
+Men til spørsmålstiller i salen, det er utrolig viktig hvordan vi beskriver kundens virksomhet
+
+421
+00:40:49,159 --> 00:40:54,619
+og les forsikringsbevisene nøye før de sendes kunden for betaling.
+
+422
+00:40:54,619 --> 00:40:56,099
+Jeg har lyst til å følge opp med en ting.
+
+423
+00:40:56,320 --> 00:40:56,619
+Fordi vi har...
+
+424
+00:40:57,320 --> 00:41:07,820
+Det er jo noe med at kunden også må forstå det her, at selskapet ønsker å ha en avgrensning på hva som er forsikret.
+
+425
+00:41:08,920 --> 00:41:12,920
+Fordi man skal jo sette en pris, og man kan jo ikke dekke all verdens aktiviteter,
+
+426
+00:41:13,059 --> 00:41:17,480
+fordi den ene typen aktivitet har mye større risiko enn den andre.
+
+427
+00:41:17,480 --> 00:41:24,480
+Og særlig det med...
+
+428
+00:41:24,480 --> 00:41:33,900
+Hvis man begynner å gjøre andre ting, endring i risikoen, i forsikringsbeviset,
+
+429
+00:41:34,039 --> 00:41:41,280
+så står det jo at sikkerheten skal plikte og informere selskapet om at det er en endring i risikoen.
+
+430
+00:41:41,280 --> 00:41:43,240
+Du begynner med noe nytt, eller du...
+
+431
+00:41:43,240 --> 00:41:44,159
+Begynner med noe nytt.
+
+432
+00:41:44,159 --> 00:41:44,280
+Ja.
+
+433
+00:41:45,599 --> 00:41:53,159
+Og vi hadde et annet eksempel, det var en elektrobedrift innenfor...
+
+434
+00:41:54,480 --> 00:42:04,559
+infrastruktur, altså tunnelbelysning og lysregulering, viftestyring og sånne ting.
+
+435
+00:42:05,559 --> 00:42:13,559
+De hadde en ansvarsforsikring basert på at det var det de drev med.
+
+436
+00:42:14,619 --> 00:42:21,900
+Så fikk de noen store oppdrag, og det var jeg som var kundeansvarlig.
+
+437
+00:42:21,900 --> 00:42:24,039
+De fikk noen store totalantrepriser.
+
+438
+00:42:24,480 --> 00:42:29,619
+Og vi så på totalantreprisekontrakten, altså NS'en.
+
+439
+00:42:31,039 --> 00:42:32,860
+Og der gikk det...
+
+440
+00:42:32,860 --> 00:42:37,139
+Det som viste seg var at de hadde faktisk tatt et stort oppdrag,
+
+441
+00:42:37,300 --> 00:42:42,000
+ikke bare for den tekniske elektroleveransen,
+
+442
+00:42:42,780 --> 00:42:48,519
+men de hadde også ansvar for fjellrensing og grøfterensing
+
+443
+00:42:48,519 --> 00:42:52,320
+og rett og slett rehabilitering av tunnelen.
+
+444
+00:42:52,320 --> 00:42:54,320
+Åja, som gikk utenfor det å være elektroinsert.
+
+445
+00:42:54,480 --> 00:42:59,800
+Ja, altså også sprøytestøping av tunnelvegger.
+
+446
+00:43:01,240 --> 00:43:06,460
+Og dette kom aldri fram, at de faktisk gjorde det.
+
+447
+00:43:06,599 --> 00:43:10,360
+Og de hadde leidt inn en underentreprenør til å gjøre den jobben,
+
+448
+00:43:10,460 --> 00:43:15,039
+for det var jo ikke noe som var innenfor deres kompetanseområde egentlig.
+
+449
+00:43:15,260 --> 00:43:16,579
+Og da gikk det vel sånn det måtte gå?
+
+450
+00:43:16,740 --> 00:43:18,960
+Da gikk det den veien hønasparken der, eller?
+
+451
+00:43:18,960 --> 00:43:24,280
+Det er heldigvis ikke så med store konsekvenser,
+
+452
+00:43:24,480 --> 00:43:27,639
+men det var jo en skade som gjorde at dette ble adekka.
+
+453
+00:43:28,280 --> 00:43:31,019
+Da var det en stein som hadde dett i ned på en bil,
+
+454
+00:43:31,599 --> 00:43:37,639
+og så begynte man å se på hva som var skjedd og behandle skaden.
+
+455
+00:43:38,599 --> 00:43:44,760
+Og det er klart at forsikringsgiver som trodde de forsikret elektroinstallering,
+
+456
+00:43:47,159 --> 00:43:52,639
+de var ikke enige i at man hadde et ansvar også for,
+
+457
+00:43:54,480 --> 00:44:00,559
+gravarbeider og sprøytestøping og fjellrensing.
+
+458
+00:44:01,720 --> 00:44:05,059
+Så det ble en god læring.
+
+459
+00:44:05,300 --> 00:44:09,260
+Altså det å hele tiden spørre kunden hva gjør man,
+
+460
+00:44:09,340 --> 00:44:12,680
+og det kommer en ny stor kontrakt, ok, hva skal du gjøre?
+
+461
+00:44:12,800 --> 00:44:15,280
+Fordi det er litt av problemet med NS-kontraktene.
+
+462
+00:44:15,280 --> 00:44:19,980
+De er ganske lite beskrivende på hva oppdraget faktisk går ut på.
+
+463
+00:44:20,720 --> 00:44:22,039
+De regulerer veldig mange ting,
+
+464
+00:44:22,039 --> 00:44:28,119
+men hva oppdraget går ut på, det står i tilbudet og i anbudsbeskrivelsen.
+
+465
+00:44:28,880 --> 00:44:32,240
+Så det at vi kanskje også husker på å få inn det,
+
+466
+00:44:32,659 --> 00:44:36,300
+i mange tilfeller kan være nyttig for å forstå virksomheten.
+
+467
+00:44:36,820 --> 00:44:44,510
+Og så er det vel ofte sånn i virksomheten at forsikring er ikke det de tenker først på.
+
+468
+00:44:45,110 --> 00:44:48,030
+Og denne elektroinstallatøren her synes vel kanskje det var veldig flott
+
+469
+00:44:48,030 --> 00:44:50,930
+å få et tilleggsoppdrag som kunne gi betydelige inntekter.
+
+470
+00:44:51,110 --> 00:44:53,130
+Og så var det kanskje ingen i kontraktsamfunnet,
+
+471
+00:44:53,449 --> 00:44:56,090
+kontraktsavdelingen, som tenkte på at her må vi tenke på forsikring.
+
+472
+00:44:57,170 --> 00:44:57,769
+Det er vel ikke noe vanlig.
+
+473
+00:44:57,769 --> 00:45:01,309
+Nei, det var jo ingen kontraktsavdeling,
+
+474
+00:45:01,570 --> 00:45:06,389
+men oppdraget var såpass stort at de tok kontakt.
+
+475
+00:45:07,449 --> 00:45:11,730
+Og da går vi jo igjen på dette med forsikringssum.
+
+476
+00:45:11,789 --> 00:45:13,230
+Hvilken forsikringssum skal man ha?
+
+477
+00:45:14,030 --> 00:45:17,530
+Når man plutselig, hvis vi ser på en prosjektforsikring,
+
+478
+00:45:17,530 --> 00:45:22,190
+så har jo den, i en del tilfeller for mindre kunder,
+
+479
+00:45:22,190 --> 00:45:26,789
+så er det en standardsum på 20 millioner som er sånn gjengs i bransjen
+
+480
+00:45:26,789 --> 00:45:30,389
+hvis ikke man har avtalt noe at forsikringen dekker opp til 20 millioner per skade.
+
+481
+00:45:30,889 --> 00:45:33,210
+Og så dekker man det på årsbasis på omsetning.
+
+482
+00:45:34,610 --> 00:45:39,110
+Og i andre selskaper så avtaler man at kontraktsstørrelsen er sånn og sånn
+
+483
+00:45:39,110 --> 00:45:43,590
+på årsprogrammet, og så betaler man ut for omsetning.
+
+484
+00:45:43,849 --> 00:45:48,170
+Og så i dette tilfellet så var jo den summen ganske mye større
+
+485
+00:45:48,170 --> 00:45:51,530
+enn de vanlige kontraktene, og derfor kom vi inn.
+
+486
+00:45:51,530 --> 00:45:56,949
+Men vi klarte ikke å forstå at dette omfattet også helt andre arbeidere
+
+487
+00:45:56,949 --> 00:46:00,309
+enn elektroinstallasjon, for den informasjonen tilfellet aldri oss.
+
+488
+00:46:01,309 --> 00:46:06,269
+Så det illustrerer jo hvor vanskelig det er, og hvor viktig det er å stille spørsmål.
+
+489
+00:46:14,840 --> 00:46:16,159
+Da kom det en spørsmål til her.
+
+490
+00:46:16,220 --> 00:46:18,159
+De er nysgjerrig på hvordan denne skadesaken gikk.
+
+491
+00:46:18,400 --> 00:46:20,099
+Hva var sluttspillet på denne skadesaken?
+
+492
+00:46:23,240 --> 00:46:31,420
+Det var jo sånn at heldigvis så hadde jo denne underentreprenøren,
+
+493
+00:46:31,539 --> 00:46:35,159
+en ansvarsforsikring, og sånn er det jo i de aller fleste saker.
+
+494
+00:46:35,940 --> 00:46:42,300
+Så var det underentreprenøren som plukket opp denne skaden
+
+495
+00:46:42,300 --> 00:46:46,280
+på sin ansvarsforsikring, for han har jo forsikret for
+
+496
+00:46:46,280 --> 00:46:48,920
+det faktiske arbeidet som han skal gjøre.
+
+497
+00:46:49,360 --> 00:46:57,699
+Men det er ikke nødvendigvis gitt at underentreprenøren hadde tilstrekkelig forsikring her?
+
+498
+00:47:00,230 --> 00:47:04,829
+Nei, og da er vi litt inne på dette med hvor mye forsikring skal du kjøpe.
+
+499
+00:47:05,289 --> 00:47:07,289
+For det har vi ikke snakket om enda.
+
+500
+00:47:08,789 --> 00:47:15,730
+NS-standarden sier 150G for entreprenørbransjen.
+
+501
+00:47:15,730 --> 00:47:18,730
+Og det er vel i dag en sånn 16 millioner kroner eller noe sånt, er det ikke det?
+
+502
+00:47:18,730 --> 00:47:19,510
+Ja, 17, tenker jeg.
+
+503
+00:47:19,510 --> 00:47:20,409
+Ja, noe sånt nå.
+
+504
+00:47:21,409 --> 00:47:27,570
+Og dette er jo ingen ansvarsbegrensning.
+
+505
+00:47:29,470 --> 00:47:32,050
+Det er et minimumskrav for å levere.
+
+506
+00:47:33,449 --> 00:47:34,930
+Og så ser vi at veldig mange,
+
+507
+00:47:34,930 --> 00:47:41,430
+forholder seg til det minimumskravet og tenker at nå har vi alt i orden.
+
+508
+00:47:41,430 --> 00:47:48,670
+Men da må vi igjen se litt på dette og stille kundens spørsmål, hvor gærent kan det gå?
+
+509
+00:47:48,670 --> 00:47:54,409
+Og hvis sprinklet rett før overlevering på et stort næringsbygg,
+
+510
+00:47:54,409 --> 00:47:57,090
+det er gjerne da vi ser disse vannskadene.
+
+511
+00:47:59,090 --> 00:48:01,090
+For da blir det satt på vanntrykk.
+
+512
+00:48:01,090 --> 00:48:02,490
+Og så,
+
+513
+00:48:02,490 --> 00:48:04,490
+og så,
+
+514
+00:48:04,930 --> 00:48:06,690
+settes kanskje det trykket på,
+
+515
+00:48:06,690 --> 00:48:08,690
+selvfølgelig så skal man ikke jobbe på den måten,
+
+516
+00:48:08,690 --> 00:48:10,690
+men vi har jo sett noen saker.
+
+517
+00:48:10,690 --> 00:48:12,690
+Det settes kanskje på på fredagen,
+
+518
+00:48:12,690 --> 00:48:14,690
+og så kommer arbeiderne på på mandagen,
+
+519
+00:48:14,690 --> 00:48:18,690
+og så er det forholdsvis vått nedover i etasjene.
+
+520
+00:48:18,690 --> 00:48:20,690
+Og det,
+
+521
+00:48:20,690 --> 00:48:24,690
+et stort krav jeg har sett, det var opp mot 100 millioner kroner, innledningsvis.
+
+522
+00:48:24,690 --> 00:48:29,690
+Rødeleggerbedriften hadde forsikringen i orden, tenkte han.
+
+523
+00:48:29,690 --> 00:48:34,690
+Han hadde 150G i forsikringssum, og det manglet mange, mange, mange millioner.
+
+524
+00:48:34,930 --> 00:48:41,190
+Så man må rett og slett, det holder ikke å bare se på minimumskraven,
+
+525
+00:48:41,190 --> 00:48:44,190
+man må se på hvilken eksponering er det man har.
+
+526
+00:48:44,190 --> 00:48:51,190
+Her tenker jeg fort frode på entreprenører som jobber på store anlegg, store bygg,
+
+527
+00:48:51,190 --> 00:48:55,190
+om det er, ja det kan jo være Oslo Lufthavn Gardermoen,
+
+528
+00:48:55,190 --> 00:48:58,190
+det kan være store fabrikkanlegg for eksempel,
+
+529
+00:48:58,190 --> 00:49:04,190
+hvor konsekvensene av bruk av varmearbeider, dersom noe skulle skje,
+
+530
+00:49:04,190 --> 00:49:06,190
+kan bli ganske katastrofale.
+
+531
+00:49:06,430 --> 00:49:12,190
+Og da å ha en forsikringssum på ansvar på 150G, synes kanskje litt tynt,
+
+532
+00:49:12,190 --> 00:49:14,190
+sånn som jeg ser det.
+
+533
+00:49:14,190 --> 00:49:19,190
+Og et annet poeng her er jo at denne forsikringssummen på 150G,
+
+534
+00:49:19,190 --> 00:49:23,190
+den begrenser jo overhovedet ikke ansvaret overfor tredje personer,
+
+535
+00:49:23,190 --> 00:49:31,190
+altså de andre personene du kan komme til å skade, som ikke er en del av kontraktsforholdet.
+
+536
+00:49:31,190 --> 00:49:34,190
+Så dette er jo viktig å diskutere med kunden.
+
+537
+00:49:34,190 --> 00:49:45,500
+Da er det kommet et interessant spørsmål fra salen.
+
+538
+00:49:45,500 --> 00:49:51,500
+Vi hadde, som gamle ringrever i bransjen, så hadde vi en liten hyggelig kaffekopp her på morgenen,
+
+539
+00:49:51,500 --> 00:49:54,500
+og da diskuterte vi med en av de deltakerne i salen her nå,
+
+540
+00:49:54,500 --> 00:49:59,500
+denne gruvebranden som var på Svalbard i 2006, tror jeg den var.
+
+541
+00:49:59,500 --> 00:50:06,840
+Og det er en skade som beløp seg til mer enn 500 millioner kroner, etter hva jeg kan huske.
+
+542
+00:50:07,840 --> 00:50:17,159
+Den var forårsaket av et ganske lite firma som drev med plastsveising av rør inne i gruvene.
+
+543
+00:50:18,340 --> 00:50:23,400
+Og det å drive med varmearbeider inne i en kullgruve, det må sies å være en høy risiko.
+
+544
+00:50:23,400 --> 00:50:35,760
+Og etter hva jeg husker til spørsmålstiller, så var det dette plastsveisfirma som drev med denne rørskjøtingen, en ansvarsforsikring på 10 millioner kroner.
+
+545
+00:50:36,340 --> 00:50:47,139
+Nå vet jeg ikke helt hvordan den saken endte, men hvis man ser for seg en regress fra forsikringsselskapet mot skadevolder her på en skade på mange hundre millioner kroner,
+
+546
+00:50:47,139 --> 00:50:53,139
+det kan jo være helt andre skader også, og du har en forsikringssum på 10 millioner, 20 millioner.
+
+547
+00:50:53,840 --> 00:50:57,139
+Så kan det få dramatiske økonomiske konsekvenser.
+
+548
+00:50:57,960 --> 00:51:06,239
+Så dette med forsikringssummer, spesielt på ansvar, styreansvar, det er noe som må diskuteres nøye med kundene.
+
+549
+00:52:00,099 --> 00:52:04,940
+Ja, da går vi litt videre, Frode. Dette med skader er jo det vi egentlig jobber med.
+
+550
+00:52:04,940 --> 00:52:11,239
+Vi synes jo det er litt morsomt å jobbe med skader, og vi har en liten heading her av skade blir man klok.
+
+551
+00:52:11,639 --> 00:52:16,400
+Og i en sidige tiden så hadde vi en undertitel til det som heter at man blir sjelden.
+
+552
+00:52:16,420 --> 00:52:27,920
+Så av skade blir man klok, Frode. Hva er det du legger vekt på i samtalen med kundene dine når det gjelder skadeforsikring, avdekkeforsikring?
+
+553
+00:52:29,380 --> 00:52:41,079
+Hvis vi ser på først, bare for å holde litt lenger i ansvarsproduktet som vi er litt inne på nå, hva kan man ødelegge?
+
+554
+00:52:41,980 --> 00:52:43,980
+Jeg vil bare gå videre på det.
+
+555
+00:52:44,179 --> 00:52:46,340
+Husk på en ting som vi har så vidt.
+
+556
+00:52:46,420 --> 00:52:54,639
+Når vi skal avdekke virksomheten, det er veldig stor forskjell på, driver man bare hos seg selv?
+
+557
+00:52:54,900 --> 00:53:01,199
+Altså et mekanisk verste som holder på i egne lokaler, så er jo ansvarsrisikoen forholdsvis begrenset.
+
+558
+00:53:01,880 --> 00:53:03,920
+Da er det kanskje produktansvaret.
+
+559
+00:53:04,960 --> 00:53:14,920
+Men når man driver rundt omkring, så kan man jo skade helt andre ting, for da skader man andres verdier.
+
+560
+00:53:16,420 --> 00:53:38,559
+Hvis vi ser på eiendom, bygningsforsikringer, og opp mot leietaker og en kunde som leier lokalene, hva skal han kjøpe ansvarsforsikring for?
+
+561
+00:53:42,889 --> 00:53:46,190
+Husleiekontraktene går veldig langt i å pålegge veldig mye ansvar.
+
+562
+00:53:48,090 --> 00:53:51,590
+Rett og slett på leietaker.
+
+563
+00:53:52,210 --> 00:54:03,969
+Men så ser vi også i de standard husleiekontraktene, så sier man også at det er huseier som skal forsikre bygningen, og leietaker skal forsikre sitt.
+
+564
+00:54:04,989 --> 00:54:15,610
+Men videre i leiekontrakten, så står det også at til tross for det, så det står ikke noe om hvilken forsikring som skal brukes.
+
+565
+00:54:18,090 --> 00:54:24,550
+Vi har jo sett at bransjen etter hvert er flinkere og flinkere til å regresse.
+
+566
+00:54:26,449 --> 00:54:30,170
+Og av og til så er de etter mitt syn litt for flinke.
+
+567
+00:54:30,349 --> 00:54:36,329
+Man fyrer og går et regresskrav uten at det er veldig godt fundamentert og dokumentert.
+
+568
+00:54:37,230 --> 00:54:40,769
+Og den som mottar regresskravet blir nødt til å håndtere det.
+
+569
+00:54:43,010 --> 00:54:46,869
+Og relatert til ansvarsforsikring og eksponering.
+
+570
+00:54:46,869 --> 00:54:51,210
+Og hvor mye skal man kjøpe forsikring for, så synes jeg det er noe av det vanskeligste.
+
+571
+00:54:51,710 --> 00:55:02,829
+Fordi det er både fantasi og just og kontrakter som må ses på i et helhetlig, men også litt sånn hva er rettspraksis.
+
+572
+00:55:03,970 --> 00:55:09,269
+Og ikke minst, hva får man kjøpt av avlastning?
+
+573
+00:55:09,269 --> 00:55:16,710
+Og hvis vi ser på dette, en liten bedrift i leietaker i et stort næringsbygg, kan jo risikere.
+
+574
+00:55:16,869 --> 00:55:27,630
+Å starte en brann som får fatale konsekvenser eller veldig store skader, kanskje totalskade.
+
+575
+00:55:27,630 --> 00:55:34,829
+Og bygge da til kanskje 100 millioner eller 500 millioner eller en milliard for de største byggene.
+
+576
+00:55:34,829 --> 00:55:43,210
+Det kan jo være en helt enkel virksomhet som for eksempel en kiosk som er integrert, som driver i en del av et digert næringsbygg for eksempel.
+
+577
+00:55:43,210 --> 00:55:45,210
+Ja.
+
+578
+00:55:46,869 --> 00:55:50,869
+En kiosk får ikke kjøpt ansvarsforsikring for en milliard.
+
+579
+00:55:50,869 --> 00:55:59,869
+Og det er jo ikke sånn vi har organisert forsikringsinstrumentet vårt i Norge.
+
+580
+00:56:02,869 --> 00:56:09,869
+Likevel så er det på en måte ikke noe helt sånn tydelig rettspraksis på hvor stort ansvar denne kiosken kan få.
+
+581
+00:56:09,869 --> 00:56:15,869
+Men vi ser jo at man kanskje ikke regresser mer enn det som er forsikringssøkning.
+
+582
+00:56:16,869 --> 00:56:17,869
+Ja.
+
+583
+00:56:17,869 --> 00:56:29,869
+Og så har vi andre problemstillinger hvor du eier hele, du eier ikke men du leier hele lokalet.
+
+584
+00:56:29,869 --> 00:56:30,869
+Hele bygningsmasten, ja.
+
+585
+00:56:30,869 --> 00:56:34,869
+Ja. Da har man jo hele bygget i sin varetekt.
+
+586
+00:56:34,869 --> 00:56:44,869
+Og i alle ansvarsforsikringsvilkår så er det jo unntak for skade på lei deg ennå, eller unntak for ting du har i din varetekt.
+
+587
+00:56:44,869 --> 00:56:45,869
+Så der er ...
+
+588
+00:56:45,869 --> 00:56:58,869
+Der er vilkårene sånn blitt litt kanskje spissa i de siste årene hvor man spesifikt nevner skade på lei deg ennå som unntak.
+
+589
+00:56:58,869 --> 00:57:04,869
+Og før hadde man mer det generelle varetektsunntaket og så falt dette under det.
+
+590
+00:57:04,869 --> 00:57:09,869
+Og så har man da fått produkter som ...
+
+591
+00:57:09,869 --> 00:57:14,869
+Eller man kan få opphevet dette unntaket med en sublimitt.
+
+592
+00:57:15,869 --> 00:57:21,869
+Eller til hvor stor forsikring skal man kjøpe.
+
+593
+00:57:21,869 --> 00:57:34,869
+Og da har jeg begynt å tenke litt i retning av at det kanskje er hensiktsmessig for noen parter å avtale at leietaker kanskje skal overta hele bygningsforsikringen.
+
+594
+00:57:34,869 --> 00:57:39,869
+Og ta med huseier som medforsikrerett.
+
+595
+00:57:39,869 --> 00:57:43,869
+I alle fall i de tilfellene tenker jeg hvor man leier hele bygningsmasten.
+
+596
+00:57:43,869 --> 00:57:44,869
+I de tilfellene kan det være lurt.
+
+597
+00:57:44,869 --> 00:58:02,869
+For vi har sett at markedet priser denne utvidelsen av skade på lei deg ennå om såpass høyt at man betaler faktisk propertyraten flere ganger.
+
+598
+00:58:02,869 --> 00:58:05,869
+Og hvor mange ganger skal man forsikre et næringsbygg?
+
+599
+00:58:05,869 --> 00:58:12,869
+Så her synes jeg at bransjen har litt vei å gå faktisk på å rydde litt i sitt produkt.
+
+600
+00:58:12,869 --> 00:58:16,869
+I sitt produktspekter og vilkår og unntak.
+
+601
+00:58:16,869 --> 00:58:27,519
+Da ser jeg at det er et spørsmål til her, Frode.
+
+602
+00:58:27,519 --> 00:58:34,519
+Det var et spørsmål om blir dette en dobbeltforsikringsproblematikk i markedet?
+
+603
+00:58:34,519 --> 00:58:36,519
+Er det det vi ser som kan oppstå her?
+
+604
+00:58:36,519 --> 00:58:44,519
+Ja, det blir jo en form for dobbeltforsikring selv om det er ulike forsikringsdekninger.
+
+605
+00:58:44,519 --> 00:58:49,519
+I ansvarsforsikringen mener man jo å fange det rettslige.
+
+606
+00:58:49,519 --> 00:58:51,519
+Det rettslige erstatningsansvaret.
+
+607
+00:58:51,519 --> 00:59:00,519
+Mens på propertyforsikringen så er det jo det objektive skaden.
+
+608
+00:59:00,519 --> 00:59:04,519
+Det at skaden er innenfor dekningen.
+
+609
+00:59:04,519 --> 00:59:06,519
+Det har vært en brand.
+
+610
+00:59:06,519 --> 00:59:09,519
+Det dekkes på tingforsikringen.
+
+611
+00:59:09,519 --> 00:59:18,519
+Og hvis vi ender opp med et regime da hvor alle leietakerne skal både ha en
+
+612
+00:59:18,519 --> 00:59:23,519
+eller husseieren har en tingforsikring på bygningen.
+
+613
+00:59:23,519 --> 00:59:29,519
+Og så må alle leietakere kjøpe en høy ansvarsforsikring i tilfellet regresser.
+
+614
+00:59:29,519 --> 00:59:31,519
+Så blir jo dette byggeforsikret veldig mange ganger.
+
+615
+00:59:31,519 --> 00:59:33,519
+Og det er ikke meningen.
+
+616
+00:59:33,519 --> 00:59:39,519
+Men der skulle jeg ønske at bransjen hadde kommet fram med litt klarere retningslinjer.
+
+617
+00:59:39,519 --> 00:59:45,519
+Og vi har en høyesterettsdom for noen år siden som ikke egentlig gikk inn i denne problemstillingen.
+
+618
+00:59:45,519 --> 00:59:46,519
+Men der.
+
+619
+00:59:46,519 --> 00:59:54,519
+Det var KLP som regressa en kunde.
+
+620
+00:59:54,519 --> 00:59:59,519
+Og der tok man det på.
+
+621
+00:59:59,519 --> 01:00:03,159
+at man hadde ikke hevda en mangel, rett og slett.
+
+622
+01:00:03,320 --> 01:00:07,019
+Så man fikk ikke egentlig utredet dette uaktsomhetsansvaret
+
+623
+01:00:07,019 --> 01:00:08,920
+og hvor langt det strekker seg for en leitaker.
+
+624
+01:00:09,800 --> 01:00:17,159
+Så selskapet, KLP, nådde ikke fram med sitt krav
+
+625
+01:00:17,159 --> 01:00:21,019
+på grunn av at man hadde ikke hevda en mangel
+
+626
+01:00:21,019 --> 01:00:23,579
+og man tok det på de kontraktsretslige tingene
+
+627
+01:00:23,579 --> 01:00:25,099
+og ikke på selve uaktsomhetsbiten.
+
+628
+01:00:25,099 --> 01:00:29,079
+Det var litt synd, for da hadde vi kanskje hatt en tydelig avklaring.
+
+629
+01:00:29,519 --> 01:00:33,639
+Det var en veldig fin avklaring, Frode.
+
+630
+01:00:33,860 --> 01:00:38,300
+Det er jo veldig betegnende for hvorfor vi synes det er gøy
+
+631
+01:00:38,300 --> 01:00:39,199
+å jobbe med forsikring.
+
+632
+01:00:39,539 --> 01:00:43,780
+Man er jo ute og treffer nye problemstillinger hver eneste dag
+
+633
+01:00:43,780 --> 01:00:45,920
+og vi lærer hver eneste dag.
+
+634
+01:00:46,099 --> 01:00:49,480
+Så dette er spennende, men det krever også veldig mye av oss
+
+635
+01:00:49,480 --> 01:00:51,159
+når vi er ute og jobber. Det må vi påpeke.
+
+636
+01:00:52,159 --> 01:00:54,759
+Får jeg lov til å knytte et lite spørsmål til deg også
+
+637
+01:00:54,759 --> 01:00:57,920
+til dette med leietakeransvar?
+
+638
+01:00:58,619 --> 01:01:01,039
+For det jeg tenker på når du snakker om dette,
+
+639
+01:01:01,059 --> 01:01:08,059
+går det an å råde kunden til i sin kontrakt med huseier,
+
+640
+01:01:09,099 --> 01:01:11,259
+altså leietaker i kontrakt med huseier,
+
+641
+01:01:11,820 --> 01:01:18,259
+inngår en ansvarsbegrensningsklausul i denne leietakeravtalen.
+
+642
+01:01:18,480 --> 01:01:19,880
+Er det noe du har vært borti?
+
+643
+01:01:20,239 --> 01:01:23,559
+Kan det være en vei å gå for å begrense dette behovet
+
+644
+01:01:23,559 --> 01:01:24,960
+for forsikring flere ganger?
+
+645
+01:01:26,039 --> 01:01:30,300
+Ja, dette kan jo reguleres kontraktsmessig.
+
+646
+01:01:31,059 --> 01:01:36,039
+Og det er kanskje det som bør gjøres,
+
+647
+01:01:36,119 --> 01:01:39,940
+i hvert fall stramme opp kontraktene som brukes i dag.
+
+648
+01:01:40,079 --> 01:01:44,719
+Men problemet er jo at veldig mye av disse leikontraktene
+
+649
+01:01:44,719 --> 01:01:47,860
+er veldig i favør av utleier,
+
+650
+01:01:48,139 --> 01:01:53,579
+og at den enkelte leietaker har forholdsvis liten innvirkning
+
+651
+01:01:53,579 --> 01:01:57,860
+på det å få endret kontrakten, så det kan være litt vanskelig.
+
+652
+01:01:58,559 --> 01:01:59,000
+Riktig.
+
+653
+01:01:59,000 --> 01:02:01,000
+Men det er klart, jo større...
+
+654
+01:02:01,059 --> 01:02:06,099
+Man er i kraft av det å være kunde, leier man hele bygget,
+
+655
+01:02:06,199 --> 01:02:11,179
+så er det mye lettere å gjøre sånne avklaringer i kontrakten.
+
+656
+01:02:12,679 --> 01:02:13,279
+Ja, det er klart.
+
+657
+01:02:15,500 --> 01:02:17,380
+Ja vel, det er spennende.
+
+658
+01:02:17,519 --> 01:02:21,860
+Skal vi gå litt videre, Frode, og kanskje tenke litt på dette med...
+
+659
+01:02:21,860 --> 01:02:26,420
+Vi har jo opplevd en periode med ganske høy inflasjon de siste årene.
+
+660
+01:02:27,360 --> 01:02:31,579
+Hvordan får vi tak i de riktige forsikringsverdier fra kundene?
+
+661
+01:02:32,340 --> 01:02:35,380
+Skal vi si noen ord om det?
+
+662
+01:02:35,380 --> 01:02:37,380
+Hva slags erfaring har du med det?
+
+663
+01:02:37,380 --> 01:02:50,170
+Her er det viktig at kunden forstår hva som er grunnlaget for noen av de begrepene vi bruker.
+
+664
+01:02:50,170 --> 01:02:54,789
+Og vi må jo forsikre alle verdiene til kunden.
+
+665
+01:02:54,789 --> 01:03:02,050
+Så når det gjelder varer, da, så har jo de fleste full kontroll på det.
+
+666
+01:03:02,050 --> 01:03:04,050
+Varer, det finner de i renskriften.
+
+667
+01:03:04,610 --> 01:03:06,610
+Det finner de i egenskapene sine.
+
+668
+01:03:06,610 --> 01:03:08,610
+Og er ganske lett.
+
+669
+01:03:08,610 --> 01:03:12,610
+Det kan være noen sesongvariasjoner som gjør at man kan ha utfordringer der.
+
+670
+01:03:12,610 --> 01:03:14,610
+Og man må tenke på varetoppen.
+
+671
+01:03:14,610 --> 01:03:18,610
+Det brenner jo ofte på det verst tenkelige tidspunktet.
+
+672
+01:03:18,610 --> 01:03:22,610
+Det er ulike måter å løse det på, sånn forsikringsmessig.
+
+673
+01:03:22,610 --> 01:03:30,610
+Man kan ha deklarasjonsordninger som gjør at man betaler for en snittsum.
+
+674
+01:03:30,610 --> 01:03:33,610
+Men det som jeg synes er vanskeligst,
+
+675
+01:03:33,610 --> 01:03:35,610
+det er dette med maskinlinjer.
+
+676
+01:03:35,610 --> 01:03:43,610
+Og hvordan fastsette forsikringssum på maskiner, inventar og løser, eller eiendelene.
+
+677
+01:03:43,610 --> 01:03:50,610
+Det er krevende fordi man kan ikke gå i balansen og finne det.
+
+678
+01:03:50,610 --> 01:03:55,610
+Det er nedskrevet ofte til nesten null, mange steder.
+
+679
+01:03:55,610 --> 01:03:59,610
+Men har jo en stor verdi i praksis for kunden.
+
+680
+01:03:59,610 --> 01:04:02,610
+Og har en veldig høy gjenanskaffelse.
+
+681
+01:04:02,610 --> 01:04:12,610
+Og der er det en veldig pedagogisk øvelse å få kunden til å forstå at det vi snakker om forsikringsmessig,
+
+682
+01:04:12,610 --> 01:04:17,610
+det er gjenanskaffelseskost som nytt på skadedagen.
+
+683
+01:04:17,610 --> 01:04:24,610
+Altså hva koster det å få tak i dette utstyret nytt på skadedagen eller nå?
+
+684
+01:04:24,610 --> 01:04:30,610
+Og så sier kunden ofte at, for han tenker at verdien,
+
+685
+01:04:30,610 --> 01:04:36,610
+hvis han skulle selge det, det er jo veldig lite ofte.
+
+686
+01:04:36,610 --> 01:04:43,610
+Og så er det jo også det at kunden får jo ikke erstattet nytt for gammelt.
+
+687
+01:04:43,610 --> 01:04:51,610
+Utgangspunktet er at kunden skal være i samme økonomiske situasjon etter skade som før skade.
+
+688
+01:04:51,610 --> 01:04:53,610
+Med fradrag av den avtalte egenhandelen.
+
+689
+01:04:53,610 --> 01:04:58,610
+Og da får man noen diskusjoner på hva er, for eksempel,
+
+690
+01:04:58,610 --> 01:05:01,289
+Hva er for eksempel forventet levetid på en ting?
+
+691
+01:05:02,230 --> 01:05:08,050
+Noen selskaper har tabulariske avskrivninger, mens andre selskaper ser på levetid.
+
+692
+01:05:09,170 --> 01:05:12,210
+Og uansett kan man reparere.
+
+693
+01:05:13,529 --> 01:05:16,550
+En del utstyr har kort levetid og høy avskrivning,
+
+694
+01:05:16,550 --> 01:05:19,130
+og annen type utstyr har veldig lang levetid.
+
+695
+01:05:19,210 --> 01:05:23,110
+Men utgangspunktet for forsikringen skal være gjennomskaffelseskosten.
+
+696
+01:05:23,110 --> 01:05:33,570
+I disse tider ser vi for en del virksomheter at vi har en regulering i vårt FNO.
+
+697
+01:05:34,029 --> 01:05:41,889
+Vi regulerer forsikringene, eller har en fullverdig justering hvert år på alt av bygningsmasset,
+
+698
+01:05:42,050 --> 01:05:46,050
+og en maskinindeks som fastsettes hvert år.
+
+699
+01:05:48,010 --> 01:05:52,050
+Den bestemmes i juni årefølgen for...
+
+700
+01:05:53,110 --> 01:05:56,529
+...virkning.
+
+701
+01:05:57,210 --> 01:06:03,949
+Og vi har sett at man ikke har klart å henge med på den reelle kostnadsutviklingen.
+
+702
+01:06:05,090 --> 01:06:08,909
+Og derfor har vi sett tilfeller av underforsikring,
+
+703
+01:06:08,909 --> 01:06:18,349
+fordi pristigningen har tatt såpass fart at man ikke har kommet til underforsikring av den grunn.
+
+704
+01:06:18,750 --> 01:06:22,210
+Men man har også underforsikring fordi man ikke har fått med seg verdiene,
+
+705
+01:06:22,210 --> 01:06:24,210
+eller forstått hvordan man skal rapportere.
+
+706
+01:06:25,210 --> 01:06:31,210
+Så det er viktig at kunden forstår, at megleren forstår hva som er selskapets forutsetning
+
+707
+01:06:31,210 --> 01:06:36,210
+for å tegne denne eiendelstekningen.
+
+708
+01:06:38,210 --> 01:06:43,210
+Ja, det er jo en pedagogisk viktig ting å diskutere også i møte med kunden.
+
+709
+01:06:43,210 --> 01:06:47,210
+Hva er forsikringsverdiene her, som er noe helt annet enn bokførte verdier?
+
+710
+01:06:47,210 --> 01:06:50,210
+Ja, og da får vi samtidig en sånn fin...
+
+711
+01:06:52,210 --> 01:06:55,210
+forventningsavklaring da på hva er...
+
+712
+01:06:55,210 --> 01:07:00,210
+fordi da vil man jo også diskutere hva er erstatningen, og hva er erstatningsprinsippene.
+
+713
+01:07:00,210 --> 01:07:07,210
+Så kan man før skade være enig om hva som er forventningen.
+
+714
+01:07:08,210 --> 01:07:15,210
+Så det er en viktig element å være innom i behovsanalysen.
+
+715
+01:07:15,210 --> 01:07:19,210
+Vi pleier å være lettere å bli enige før skade enn etter skade, synes jeg.
+
+716
+01:07:19,210 --> 01:07:20,210
+Det er ofte sånn.
+
+717
+01:07:20,210 --> 01:07:21,210
+Ja.
+
+718
+01:07:22,210 --> 01:07:26,210
+I forhold til disse dekningene, Frode, det er jo litt forskjellige vilkår ut og går
+
+719
+01:07:26,210 --> 01:07:30,210
+når vi spesielt jobber i det norske markedet på selskapsvilkår.
+
+720
+01:07:30,210 --> 01:07:36,210
+Er det mye av det vi kaller «name perils», altså nevnte farer,
+
+721
+01:07:36,210 --> 01:07:41,210
+hvor man har en forsikring som for eksempel dekker brann, vann, innbrunnsskade,
+
+722
+01:07:41,210 --> 01:07:46,210
+kontra all risk-vilkår som har et annet perspektiv,
+
+723
+01:07:46,210 --> 01:07:51,210
+der det er alle farer med mindre de er beskrevet direkte unntatt dekket,
+
+724
+01:07:51,210 --> 01:07:55,210
+ser du mye til forskjell på dette i markedet?
+
+725
+01:07:55,210 --> 01:08:02,210
+Ja, etter hvert så har jo en del forsikringsselskaper fått såkalte dynamiske vilkår,
+
+726
+01:08:02,210 --> 01:08:12,210
+og da er det litt sånn at bransjekoden styrer litt hvilke produkter som man på en måte legger inn.
+
+727
+01:08:12,210 --> 01:08:20,210
+Også når vi ser på dekningsomfanget, så ser vi at en del selskaper,
+
+728
+01:08:20,210 --> 01:08:26,210
+opererer med heldekning. Du kan kjøpe heldekning,
+
+729
+01:08:26,210 --> 01:08:31,210
+eller du kan kjøpe kombinert dekning som det heter i gamle dager,
+
+730
+01:08:31,210 --> 01:08:33,210
+brann, vann, innbrunn og naturskade.
+
+731
+01:08:33,210 --> 01:08:39,210
+Veldig mye av utgangspunktet for forsikringen som er tegnet opp gjennom i middenmarkedet i Norge,
+
+732
+01:08:39,210 --> 01:08:44,210
+har som utgangspunkt i en sånn kombinert bedriftsforsikring,
+
+733
+01:08:44,210 --> 01:08:48,210
+hvor det er brann, vann, innbrunn og natur.
+
+734
+01:08:48,210 --> 01:08:54,210
+Også har flere og flere selskaper etter hvert kommet til å lage sine produkter
+
+735
+01:08:54,210 --> 01:08:58,210
+for å få med dette annet skadebegrepet.
+
+736
+01:08:58,210 --> 01:09:05,210
+Og igjen da, det her med fantasien og hva du klarer å tenke på kan skje og ikke,
+
+737
+01:09:05,210 --> 01:09:13,210
+så hadde jeg lyst til å ta et par eksempler som illustrerer hvorfor man kanskje skal velge
+
+738
+01:09:13,210 --> 01:09:16,210
+en belte-bukseselgløsning kontra en elektrisk løsning.
+
+739
+01:09:16,210 --> 01:09:21,210
+Kontra nemne perils eller bare visse dekninger.
+
+740
+01:09:21,210 --> 01:09:37,220
+Og det er et case som illustrerer veldig mange problemstillinger egentlig.
+
+741
+01:09:37,220 --> 01:09:45,500
+Det var altså på et stort kjøpesenter, så skulle man gjøre en ombygging.
+
+742
+01:09:45,500 --> 01:09:48,500
+Og den ombyggingen skulle man gjøre mens det var drift.
+
+743
+01:09:48,500 --> 01:09:55,699
+Og da er det litt sånn, da er det mange forskjellige parter inne,
+
+744
+01:09:55,699 --> 01:09:58,699
+og en del ting som kan gå gærent.
+
+745
+01:09:58,699 --> 01:10:07,800
+Og vi har eierne av kjøpesenteret, han vil jo da være byggherre i dette prosjektet.
+
+746
+01:10:09,199 --> 01:10:17,779
+Har han byggherreansvarsforsikring, for eksempel i de fleste sånne huseierforsikringer,
+
+747
+01:10:17,779 --> 01:10:24,800
+eller de fleste ansvarsforsikringer, hvis han har bare en bygningsforsikring og så en egen ansvarsforsikring,
+
+748
+01:10:24,800 --> 01:10:29,159
+eller om han har en huseierforsikring med en inkludert ansvarstekning på,
+
+749
+01:10:29,679 --> 01:10:32,340
+så vil det i begge tilfeller være unntak for byggherreansvar.
+
+750
+01:10:33,679 --> 01:10:41,639
+Sånn at det er noe vi må, og er vi så heldige at vi blir involvert før de starter,
+
+751
+01:10:42,519 --> 01:10:45,939
+så har vi jo muligheten til å komme med noen gode råd her.
+
+752
+01:10:46,300 --> 01:10:49,260
+Byggeren må sørge for å tegne en byggherreansvarsforsikring.
+
+753
+01:10:51,260 --> 01:10:54,439
+Og så har vi en entreprenør inne, eller vi har flere entreprenører,
+
+754
+01:10:54,439 --> 01:10:57,460
+men vi har kanskje en total entreprise på ombyggingen,
+
+755
+01:10:58,099 --> 01:11:01,479
+og han har en del underentrepriser.
+
+756
+01:11:02,260 --> 01:11:09,059
+Vi har alle de som er drivere i senteret, som har sin drift der,
+
+757
+01:11:09,059 --> 01:11:14,500
+det er mulig avbrudseksponering, skade på varene,
+
+758
+01:11:15,359 --> 01:11:24,059
+og det er åpent i åpningstid, vi har kunder som kan bli skadet av den økte eksponeringen,
+
+759
+01:11:24,439 --> 01:11:33,260
+for å få skade også på personskade på en lokasjon som er i drift i forhold til en byggeplass
+
+760
+01:11:33,260 --> 01:11:35,800
+som er veldig avgrenset og stengt for publikum.
+
+761
+01:11:36,939 --> 01:11:45,579
+Så her er det mange greier, og det som skjedde her var at i og med at de skulle bygge om litt,
+
+762
+01:11:47,119 --> 01:11:52,699
+så hadde totalentreprenøren leidt inn et mindre firma som drev med betongskjæring,
+
+763
+01:11:54,439 --> 01:12:02,559
+han gjorde det han skulle, som vi vet så feiker det veldig mye når man driver med betongskjæring,
+
+764
+01:12:02,559 --> 01:12:08,720
+og dette støvet spredde seg i luftsystemet, som igjen transporterte det ut i butikkene,
+
+765
+01:12:09,380 --> 01:12:18,880
+og la et fint, tynt støv på alt av tigerdresser og forskjellige typer dyre klær.
+
+766
+01:12:18,880 --> 01:12:22,939
+Dyre klær ble dekket med fint betongstøv, det var fint.
+
+767
+01:12:22,939 --> 01:12:24,359
+Det ble skader.
+
+768
+01:12:24,439 --> 01:12:36,279
+Det ble skader for mange millioner, og så er det da, ja, du har en kombinert bedriftsforsikring,
+
+769
+01:12:36,380 --> 01:12:41,300
+du har dekket brann, vann, innbrud og naturskade, dette er jo ingen av delene.
+
+770
+01:12:41,679 --> 01:12:41,920
+Nei.
+
+771
+01:12:42,979 --> 01:12:48,359
+Men har du helekning, så har vi plutselig fått med dette annet skadebegrepet.
+
+772
+01:12:48,659 --> 01:12:50,099
+Med mindre det er direkte unntatt.
+
+773
+01:12:50,099 --> 01:12:54,099
+Med mindre det er, med mindre betongskjæring er direkte unntatt.
+
+774
+01:12:54,439 --> 01:12:55,039
+Direkte unntatt.
+
+775
+01:12:56,000 --> 01:13:02,859
+Så heldigvis, for denne kunden som drev denne butikken, fikk både et stort avbrudstap og fikk et stort varetap,
+
+776
+01:13:04,000 --> 01:13:10,420
+hadde heldigvis forsikring for annen skade.
+
+777
+01:13:13,460 --> 01:13:20,220
+Og så dukket det jo opp noen problemstillinger her for denne entreprenøren, det var et lite firma.
+
+778
+01:13:21,119 --> 01:13:23,479
+Hva tror du han hadde i ansvarsforsikringssum?
+
+779
+01:13:24,439 --> 01:13:25,659
+Tipene, han hadde 150G.
+
+780
+01:13:25,659 --> 01:13:26,699
+Han hadde 150G.
+
+781
+01:13:27,960 --> 01:13:33,139
+Og skadene gikk langt over 150G.
+
+782
+01:13:33,279 --> 01:13:34,599
+Og så er det spørsmålet, er det han?
+
+783
+01:13:36,460 --> 01:13:38,319
+Eller har han jobbet på Instruks?
+
+784
+01:13:39,939 --> 01:13:52,279
+Var det byggeren som hadde glemt å sørge for at disse luftesystemene var slåtta når han skulle gjøres inn, eller sikra?
+
+785
+01:13:52,599 --> 01:13:54,380
+Hvem hadde ansvar for å gjøre hva?
+
+786
+01:13:54,439 --> 01:14:01,739
+Og her i denne prosessen, så har du totalentreprenøren inne i bildet.
+
+787
+01:14:02,639 --> 01:14:11,439
+Her ble det, i tillegg så viste det seg at disse varene i butikken, den ene butikken, det var varer i kommisjon.
+
+788
+01:14:13,479 --> 01:14:15,180
+Så det var jo ikke kundens varer.
+
+789
+01:14:15,199 --> 01:14:16,260
+Det var ikke butikkens varer heller, nei.
+
+790
+01:14:16,559 --> 01:14:16,960
+Nei.
+
+791
+01:14:17,239 --> 01:14:18,119
+Hvordan ble det løst da?
+
+792
+01:14:18,500 --> 01:14:23,859
+Ja, det ble jo noen diskusjoner rundt det.
+
+793
+01:14:24,340 --> 01:14:25,680
+Når man oppdaget at...
+
+794
+01:14:25,779 --> 01:14:27,859
+Dette ikke var kundens varer.
+
+795
+01:14:29,099 --> 01:14:38,859
+Og dette er jo løst i forsikringsvilkårene i det norske markedet ved en bestemmelse om at forsikringen...
+
+796
+01:14:39,420 --> 01:14:43,420
+Når man ser på hvem forsikringen gjelder for, så gjelder den til fordel for sikrede.
+
+797
+01:14:43,979 --> 01:14:49,039
+Det gjelder fordel for noen hvis man har tatt pant.
+
+798
+01:14:49,279 --> 01:14:55,760
+Men så gjelder den også for andre hvis man skriftlig har påtatt.
+
+799
+01:14:55,779 --> 01:14:57,460
+Det gjelder for andre hvis man har satt seg forsikringsplikt for dette.
+
+800
+01:14:57,460 --> 01:14:58,899
+Men nå må det være en skrevet avtale.
+
+801
+01:14:59,180 --> 01:15:01,319
+Ja, det må det jo være.
+
+802
+01:15:04,800 --> 01:15:12,319
+Og da måtte forsikringsselskapet dekke tingsskaden her.
+
+803
+01:15:12,859 --> 01:15:23,260
+Og så ble det en regresssak mot både man vurderer byggherre og man vurderer betongskjæreren.
+
+804
+01:15:23,260 --> 01:15:40,539
+Og så har vi sett, jeg vet ikke om det er som en konsekvens av denne skaden, men vi har sett at noen selskaper har begrenset forsikringssummen for varer i kommisjonen.
+
+805
+01:15:40,539 --> 01:15:44,680
+Så det er automatisk inkludert, men det er begrenset til en sum.
+
+806
+01:15:44,939 --> 01:15:47,739
+Det er en underforsikringssum som vi også kaller en sublimit.
+
+807
+01:15:47,739 --> 01:15:49,239
+Det er en underforsikringssum.
+
+808
+01:15:49,559 --> 01:15:52,519
+Og det er viktig å kjenne.
+
+809
+01:15:53,260 --> 01:15:59,699
+De ulike selskapenes produkter og begrensninger sånn at man ikke hadde da kommet short i det tilfellet her da.
+
+810
+01:16:01,619 --> 01:16:09,180
+Jeg husker en annen gang, Frode, som vi spiste lunsj sammen, så kom du inn om at det hadde vært et brann i et treningssenter som var en kunde av deg.
+
+811
+01:16:09,260 --> 01:16:15,099
+Det ble også en interessant problemstilling i forhold til forsikringsbehovet og hvordan forsikringsavtalene virka.
+
+812
+01:16:15,279 --> 01:16:17,800
+Har du tid til å snakke litt om den skaden også?
+
+813
+01:16:18,439 --> 01:16:22,819
+Ja, her var det et tilfelle da.
+
+814
+01:16:22,819 --> 01:16:33,939
+Det er en god illustrasjon på en problemstilling som jeg ser ganske ofte, og som jeg tror er noen bomber.
+
+815
+01:16:35,079 --> 01:16:37,300
+Heldigvis så brønner det ganske sjelden.
+
+816
+01:16:38,099 --> 01:16:45,199
+Men jeg synes jeg ser at det er mye feil i forsikringsavtaler i Norge.
+
+817
+01:16:45,199 --> 01:16:51,079
+Det er både fordi det er litt vanskelig tilgjengelig, det er et lav interesse,
+
+818
+01:16:52,819 --> 01:16:58,219
+og det er litt vanskelig faktisk også å finne ut hva som er reelt unntatt og ikke.
+
+819
+01:16:59,279 --> 01:17:06,180
+Det som man tenker kanskje at det er enkelt å forsikre en bygning, og det er jo forholdsvis enkelt,
+
+820
+01:17:07,840 --> 01:17:16,319
+men det er noen ting som er litt viktige å fange opp, og det er hvordan forsikringsselskapet ser på bygning,
+
+821
+01:17:17,399 --> 01:17:22,019
+og hvordan forsikringsselskapet eller forsikringsbransjen vurderer det som er,
+
+822
+01:17:22,819 --> 01:17:25,899
+og mer å anse som eiendeler, altså det som er inni bygning.
+
+823
+01:17:27,439 --> 01:17:34,460
+Og her hadde vi et tilfelle da, hvor branden i oppbyggingsfasen her,
+
+824
+01:17:34,460 --> 01:17:42,420
+så når man skulle fastsette skaden, så ble det en diskusjon, fordi det var en del ting som var,
+
+825
+01:17:42,699 --> 01:17:51,300
+det var et treningssenter det her, og det var da utstyr som forsikringsselskapet mente var eiendeler,
+
+826
+01:17:51,639 --> 01:17:52,800
+eller maskiner og inventarer.
+
+827
+01:17:52,819 --> 01:17:58,439
+Inventarer og inventarer løsere, og ikke bygning, og dermed ikke dekka på bygningsforsikringen.
+
+828
+01:17:59,180 --> 01:18:05,939
+Vi hadde ikke, vårt oppdrag var ikke for leietaker eller treningssenter, men det var bygningseieren.
+
+829
+01:18:06,800 --> 01:18:15,539
+Og da fikk vi en diskusjon på hva som var å anse som bygning, og hva som ikke var å anse som bygning.
+
+830
+01:18:15,559 --> 01:18:17,059
+Hva som var bygning, og hva som var maskiner.
+
+831
+01:18:17,079 --> 01:18:18,539
+Hva som var maskiner og inventarer løsere.
+
+832
+01:18:18,539 --> 01:18:18,599
+Riktig.
+
+833
+01:18:19,800 --> 01:18:21,279
+Og det er jo,
+
+834
+01:18:22,819 --> 01:18:29,880
+for kundene, de driver jo i ulik grad av leietakertilpassning,
+
+835
+01:18:30,960 --> 01:18:35,579
+uten å tenke på at de har jo en fullverdig forsikring på å bygge,
+
+836
+01:18:35,579 --> 01:18:43,559
+og de tenker at denne storkjøkkenet som er innredet, ferdig og klart til leietaker,
+
+837
+01:18:44,099 --> 01:18:50,599
+eller finansiert av bygningseier, er dekket på bygningsforsikringen.
+
+838
+01:18:50,719 --> 01:18:51,079
+Riktig.
+
+839
+01:18:51,079 --> 01:18:54,659
+Det er jo ofte veldig integrert i bygningen.
+
+840
+01:18:54,859 --> 01:19:02,979
+Det er kanskje kjølerom som er bygd, og naturlig å tenke sånn rent intuitivt at det er bygning.
+
+841
+01:19:03,680 --> 01:19:09,219
+Men i forsikring så er det ikke bygning.
+
+842
+01:19:09,819 --> 01:19:19,199
+Og her er det en veldig god, tydelig avklaring på FNO sin hjemmeside på takst og index.
+
+843
+01:19:19,199 --> 01:19:20,199
+Og jeg anbefaler...
+
+844
+01:19:21,079 --> 01:19:27,279
+Jeg anbefaler å rett og slett sette seg litt inn i den, for den gir en veldig god forklaring.
+
+845
+01:19:27,819 --> 01:19:33,579
+Og hovedprinsippet er rett og slett at man må se på det som er at bygningen kan fungere som bygning,
+
+846
+01:19:34,639 --> 01:19:40,800
+isolert, det er bygning, men alt som er inne i bygningen for at det skal kunne utøves en virksomhet,
+
+847
+01:19:41,319 --> 01:19:43,219
+det er i utgangspunktet maskiner og mental løsere.
+
+848
+01:19:52,260 --> 01:19:55,619
+Det er et nytt spørsmål fra salen her borte, Frode.
+
+849
+01:19:55,619 --> 01:19:57,619
+Det viser...
+
+850
+01:19:57,619 --> 01:20:07,619
+vises det i en dom hvor det kan ha vært noe feil rådgivning fra et av meglerhusene for en ikke så lang tid tilbake
+
+851
+01:20:07,619 --> 01:20:14,619
+i forhold til hva som er bygning og hva som er maskiner. Er det noe du kjenner til som vi kan kommentere på generelt grunnlag?
+
+852
+01:20:14,619 --> 01:20:26,619
+Ja, denne dommen er godt kjent i vår bransje. Vi kan nok synes at den er streng.
+
+853
+01:20:26,619 --> 01:20:42,619
+Da er det viktig at vi fanger den opp og forstår hva som er samfunnets forventning til utøvelsen av vår profesjon.
+
+854
+01:20:42,619 --> 01:20:43,619
+Og,
+
+855
+01:20:43,619 --> 01:20:57,439
+Og det jeg i hvert fall kan si er at det er krevende å tenke at du skal på en måte klare å avdekke alt ute hos kunden.
+
+856
+01:20:58,059 --> 01:21:04,640
+Men hvis vi ser på det som vi snakket om innledningsvis, ja hvis ikke du har vært der, da har du i hvert fall ikke sjans.
+
+857
+01:21:04,640 --> 01:21:24,079
+Altså hvis du aldri har sett et lokale, hvordan skal du da diskutere med kunden? Hva er bygningsmessig innredning? Hva trenger du av forsikringssum for bygget og for utstyret ditt?
+
+858
+01:21:24,079 --> 01:21:34,619
+Og dette handler jo da om å forstå virksomheten, gå sammen med kundene i virksomheten, snakke med relevante personer i virksomheten og også klare å formidle dette.
+
+859
+01:21:34,640 --> 01:21:42,019
+På en ordentlig måte til forsikringsselskapet i det grunnlagsmateriale som megleren utarbeider.
+
+860
+01:21:51,659 --> 01:22:04,239
+Det kommer et nytt spørsmål, Frode, her nede. Om det er et etisk dilemma for oss i forhold til hvor vi skal allokere eiendelene, hvis jeg har forstått spørsmålet riktig.
+
+861
+01:22:04,979 --> 01:22:11,720
+Er det billigere å forsikre maskiner som bygning kontra å forsikre de som maskiner, for eksempel?
+
+862
+01:22:12,300 --> 01:22:13,579
+Hvordan stiller vi oss til?
+
+863
+01:22:13,599 --> 01:22:23,019
+Hvordan stiller vi oss til det etiske problemet, og kanskje kort om hvordan vi forholder oss til etiske spørsmål og integritet ellers?
+
+864
+01:22:23,640 --> 01:22:42,840
+Jeg tenker vel at det for min del ikke er noe etisk dilemma, for her er det mye mer rett og slett fakta og teknisk forståelse av hvordan du skal gjøre det.
+
+865
+01:22:42,840 --> 01:23:01,939
+For noen bygningstyper er dette med fullverdig grunnlag og takst, og hvordan man skal beregne fullverdig grunnlag.
+
+866
+01:23:01,939 --> 01:23:09,939
+Det er såpass tydelig for en del bygninger, men i visse tilfeller kan det være ...
+
+867
+01:23:09,939 --> 01:23:20,260
+Hva skal vi si? La oss si at du bygger en svømmehall med en plastdøpt stupetårn.
+
+868
+01:23:21,619 --> 01:23:26,640
+Er stupetårnet bygning, eller er stupetårnet maskiner, inventarer og løsere?
+
+869
+01:23:27,319 --> 01:23:28,779
+Du kan i hvert fall ikke ta det med.
+
+870
+01:23:31,859 --> 01:23:37,720
+Noen hadde en enkel forklaring på hva er bygning og hva er maskiner, inventarer og løsere.
+
+871
+01:23:37,819 --> 01:23:39,779
+Hvis du snur bygningen på hodet ...
+
+872
+01:23:39,939 --> 01:23:45,619
+Det som døtter ned er maskiner, inventarer og løsere, men stupetårnet døtter jo ikke ned.
+
+873
+01:23:45,619 --> 01:23:49,420
+Det er jo ikke bygning, men det er bygning, ikke sant?
+
+874
+01:23:49,420 --> 01:23:51,420
+Det samme gjaldt tribunen her.
+
+875
+01:23:51,420 --> 01:23:53,420
+Det er en plastdøpt tribune.
+
+876
+01:23:54,920 --> 01:24:05,119
+Og så i naboseksjonen var det også en tribune, den var løs på rull, kunne du kjøre frem og tilbake.
+
+877
+01:24:05,619 --> 01:24:08,979
+Da er vi i et farvann hvor det begynner å bli ...
+
+878
+01:24:08,979 --> 01:24:09,559
+Ja.
+
+879
+01:24:09,559 --> 01:24:20,000
+Komplisert, og da må man rett og slett si hva man har tenkt, og hva dette er for noe sånn at forsikring forstår hvilken risiko de har påtatt seg.
+
+880
+01:24:20,000 --> 01:24:27,539
+Og ofte så har man jo også litt hjelp av, hva skal vi si, entreprisen eller det som er gjort da.
+
+881
+01:24:27,539 --> 01:24:34,680
+Når det blir bygd så vet man hva det har kostet, og så får man ha den dialogen med underretter, at her har vi tenkt sånn og sånn.
+
+882
+01:24:34,680 --> 01:24:38,439
+Og fullverdig grunnlaget gjør jo, gir også ...
+
+883
+01:24:38,439 --> 01:24:54,680
+Eller takst og indeks og skjema-vurderingen gir oss jo noe veiledning på at man kan gjøre, hva skal vi si, tillegg eller fradrag eller forklare hvordan man har tenkt da.
+
+884
+01:24:54,680 --> 01:24:55,439
+Riktig.
+
+885
+01:24:56,439 --> 01:25:06,439
+Som, og til det på en måte etiske sånn, det er jo, vi kan komme i mange problemstillinger, men akkurat det tror jeg ikke er noe vanskelig å gjøre.
+
+886
+01:25:06,439 --> 01:25:08,439
+Men akkurat det tror jeg ikke er noe vanskelig å gjøre.
+
+887
+01:25:08,439 --> 01:25:28,439
+Det er mer kanskje vanskelig der hvor vi i en behovsanalyse og i et oppdrag da, blir for opptatt av å spare kunden for penger, finne en bedre premie enn det han hadde.
+
+888
+01:25:28,439 --> 01:25:36,439
+Hvis det blir hovedfokuset i det vi skal gjøre, da er vi liksom på feil, da er vi veldig fort på feil vei.
+
+889
+01:25:36,439 --> 01:25:38,439
+Veldig, dette er veldig spennende.
+
+890
+01:25:38,439 --> 01:25:48,439
+Tiden går Frodo, men det er et par ting jeg tror vi skal komme innom som jeg har lyst til å belyse, som har aktualisert seg spesielt i senårene.
+
+891
+01:25:48,439 --> 01:25:56,439
+Først ved pandemien og også da i forhold til inflasjon som har kommet.
+
+892
+01:25:56,439 --> 01:26:05,439
+Dette med ansvarstiden for avbruddsforsikringer, altså hvor lenge skal det en avbruddsforsikring i erstatning etter at en skade har inntroffet?
+
+893
+01:26:06,439 --> 01:26:16,439
+Jeg har jobbet med noen større skader de senårene, og jeg kan jo nevne parkeringshuset til av i nord på Sola.
+
+894
+01:26:16,439 --> 01:26:23,439
+Det tok mer enn tre år å bygge opp igjen det parkeringshuset fra det brant til det var ferdig.
+
+895
+01:26:23,439 --> 01:26:27,439
+Nå ble det riktig nok gjenoppbygget i pandemien som forsinket det.
+
+896
+01:26:27,439 --> 01:26:33,439
+Men for meg er det en tankevekker hvor lang tid det tar å komme i gang med drift igjen etter en skade.
+
+897
+01:26:33,439 --> 01:26:35,439
+Har du noe erfaring med det som vi skal dele?
+
+898
+01:26:35,439 --> 01:26:49,439
+Vi hører fra forsikringsselskapene at ting tar lengre tid enn det man kanskje hadde forutsatt.
+
+899
+01:26:49,439 --> 01:26:53,439
+Avbruddsstapene blir større på en del av de store skadene.
+
+900
+01:26:53,439 --> 01:27:03,439
+Så det å vurdere avbrudds-lengden og ansvarstiden er viktig.
+
+901
+01:27:03,439 --> 01:27:09,439
+For noen kunder er det kanskje sånn at en totalskade så kommer man liksom ikke i gang igjen.
+
+902
+01:27:09,439 --> 01:27:13,439
+Det kan være slutten på virksomheten, og det kan være kanskje andre løsninger.
+
+903
+01:27:13,439 --> 01:27:21,439
+Men hvis utgangspunktet er at man skal fortsette innenfor samme bransje, og det er jo ofte utgangspunktet,
+
+904
+01:27:21,439 --> 01:27:33,439
+så må man liksom se litt på, ja, da er vi over i litt den der worst case-tenkningen igjen, og tilbake til den business continuity plan.
+
+905
+01:27:33,439 --> 01:27:44,439
+Hva kan skje? Hvilke alternativer har vi? Har vi en lokasjon? Har vi flere? Hvor mange leverandører? Og så videre.
+
+906
+01:27:44,439 --> 01:27:57,439
+Og vi ser vel at man bør i hvert fall ha et bevisst forhold til ansvarstiden og gjøre den øvelsen grunnig.
+
+907
+01:27:57,439 --> 01:28:03,819
+Standard vilkår på husleietap.
+
+908
+01:28:03,819 --> 01:28:16,819
+På husleietap i bransjen har i mange år vært 24 måneder og 10% av fullverdissummen som en slags norm som du får uten at du ber om noe spesielt.
+
+909
+01:28:16,819 --> 01:28:23,819
+Og så ser vi at for noen år siden begynte Jensidie å innføre standard på 36 måneder, fordi de erfarte at det tok lengre tid.
+
+910
+01:28:23,819 --> 01:28:31,819
+Og det ser vi jo også. Det er jo mye. Først så skal man jo etterforske. Byggeplassen er stengt. Bygningen er stengt.
+
+911
+01:28:31,819 --> 01:28:32,819
+Det er farlig å være der.
+
+912
+01:28:32,819 --> 01:28:33,819
+Det er farlig å være der.
+
+913
+01:28:33,819 --> 01:28:37,819
+Og brandpolitiet skal gjøre ferdig sine etterforskninger.
+
+914
+01:28:37,819 --> 01:28:40,819
+Og så skal man rive og sanere.
+
+915
+01:28:40,819 --> 01:28:42,819
+Og så skal man...
+
+916
+01:28:42,819 --> 01:28:45,819
+Så begynner man jo helt på nytt igjen.
+
+917
+01:28:45,819 --> 01:28:48,819
+Fordi hele byggesaken må jo startes fra null.
+
+918
+01:28:48,819 --> 01:28:51,819
+Så man må jo bestemme hva man skal gjennomføre.
+
+919
+01:28:51,819 --> 01:28:54,819
+Og hele byggesaksprosessen.
+
+920
+01:28:54,819 --> 01:28:58,819
+Så det kan være at det tar lengre tid.
+
+921
+01:28:58,819 --> 01:29:02,819
+Og kanskje i pandemien så så vi jo en del andre ting også.
+
+922
+01:29:02,819 --> 01:29:06,819
+Som mange er blitt mer oppmerksom på med hensyn til supply chain.
+
+923
+01:29:06,819 --> 01:29:09,819
+Og at det tar lengre tid å få tak i ting.
+
+924
+01:29:09,819 --> 01:29:12,819
+Nå har nok mange av de flokene blitt løst.
+
+925
+01:29:12,819 --> 01:29:17,819
+Men vi har jo noen problemstillinger fremdeles da.
+
+926
+01:29:17,819 --> 01:29:21,819
+Vi var jo borte i Suezkanalen også for noen år siden.
+
+927
+01:29:21,819 --> 01:29:24,819
+Hvor et stort skip blokkerte Suezkanalen.
+
+928
+01:29:24,819 --> 01:29:26,819
+Og når vareflytten gjennom Suez står.
+
+929
+01:29:26,819 --> 01:29:29,819
+Nå har det jo vært krig og krigshandlinger i Rødehavet.
+
+930
+01:29:29,819 --> 01:29:31,819
+Som også gjør at seilingstiden rundt.
+
+931
+01:29:31,819 --> 01:29:35,819
+Afrika gjør at vareleveranser også tar lengre tid.
+
+932
+01:29:35,819 --> 01:29:37,819
+Det er mye å huske på her.
+
+933
+01:29:37,819 --> 01:29:41,819
+Og det er klart det er ikke intuitivt for kunden å tenke på.
+
+934
+01:29:41,819 --> 01:29:46,819
+Og det er klart hvor mye skal du legge inn i sikkerhetsmargen.
+
+935
+01:29:46,819 --> 01:29:50,819
+Skal du tenke på at ja det kan jo bli stengt i Suezkanalen igjen.
+
+936
+01:29:50,819 --> 01:29:52,819
+Det får bli litt opp til kunden.
+
+937
+01:29:52,819 --> 01:29:56,819
+Men det er viktig å i hvert fall ha den diskusjonen.
+
+938
+01:29:56,819 --> 01:30:01,439
+så ser man jo at det koster forholdsvis lite å kjøpe noe lenger avbrudstid.
+
+939
+01:30:02,380 --> 01:30:05,920
+Mens konsekvensene av å ha for lite, det kan bli veldig stort.
+
+940
+01:30:06,059 --> 01:30:07,500
+Og så får det bli opp til kundens valg,
+
+941
+01:30:07,559 --> 01:30:11,319
+men det er veldig viktig at kunden har et bevisst valg,
+
+942
+01:30:11,319 --> 01:30:16,139
+og at han vet hva han har valgt bort,
+
+943
+01:30:16,139 --> 01:30:27,639
+og at han kanskje har også fundamentert dette hos sine eiere,
+
+944
+01:30:27,920 --> 01:30:30,639
+og de han representerer og jobber på vegne av.
+
+945
+01:30:32,880 --> 01:30:33,899
+Det er også viktig.
+
+946
+01:30:35,899 --> 01:30:40,439
+Dette med nye lokasjoner, eiendomsselskaper, mekaniske verksteder,
+
+947
+01:30:40,439 --> 01:30:42,199
+som ekspanderer.
+
+948
+01:30:42,399 --> 01:30:46,819
+De kjøper nye eiendommer, de utvider virksomheten sin,
+
+949
+01:30:46,819 --> 01:30:49,759
+de flytter og etablerer seg i et nytt sted,
+
+950
+01:30:49,759 --> 01:30:51,759
+i tillegg til der hvor de kanskje er før.
+
+951
+01:30:52,059 --> 01:30:57,659
+Og så har vi jo opplevd at de glemmer å melde fra til oss om de nye lokasjonene.
+
+952
+01:30:58,159 --> 01:31:00,759
+Hva kan vi gjøre da, Frode, hvis noe sånt nå skulle skje?
+
+953
+01:31:02,059 --> 01:31:06,859
+Ja, det er jo sånn med det at, igjen tilbake til underwriter,
+
+954
+01:31:06,859 --> 01:31:12,859
+han har forsikret det, og han vil ikke ha noe usikkerhet.
+
+955
+01:31:13,859 --> 01:31:15,859
+Sånn, det er det verste de vet, tror jeg.
+
+956
+01:31:16,319 --> 01:31:16,819
+Så...
+
+957
+01:31:16,819 --> 01:31:25,819
+Så spørsmålet er, hvor gode rutiner har kunden?
+
+958
+01:31:26,000 --> 01:31:31,019
+Det er det ene, for å forstå han konsekvensene og ikke si ifra.
+
+959
+01:31:31,659 --> 01:31:32,559
+Han har jo forsikring.
+
+960
+01:31:34,519 --> 01:31:38,579
+Men i utgangspunktet så er jo bare de nevnte lokasjonene dekket.
+
+961
+01:31:40,500 --> 01:31:44,359
+Og sånn tenker forsikring på det.
+
+962
+01:31:46,819 --> 01:31:48,119
+Det må kunden forstå.
+
+963
+01:31:48,299 --> 01:31:52,340
+Så har vi noen sånne, tilbake til beltebuksesæler igjen.
+
+964
+01:31:53,399 --> 01:32:01,859
+Vi får av og til kjøpt sånne forsikringer for det som du kan glemme.
+
+965
+01:32:02,439 --> 01:32:05,279
+Altså feilvurdering, ute glemt.
+
+966
+01:32:05,279 --> 01:32:09,439
+Du legger inn en sikkerhetsmargin i forsikringsavtalen for disse tingene?
+
+967
+01:32:09,899 --> 01:32:11,399
+Jeg foreslår det i hvert fall.
+
+968
+01:32:11,519 --> 01:32:15,340
+Det er hvor jeg ser at det er en kompleks bedrift.
+
+969
+01:32:15,500 --> 01:32:16,779
+Har mange lokaliseringer.
+
+970
+01:32:16,819 --> 01:32:17,380
+Informasjoner.
+
+971
+01:32:17,659 --> 01:32:19,319
+Har mange folk som er involvert.
+
+972
+01:32:19,399 --> 01:32:23,639
+Og det er ikke sikkert at den informasjonen flyter oppover til den som skal rapportere til oss.
+
+973
+01:32:23,719 --> 01:32:25,899
+Og som sitter med ansvar for forsikringen.
+
+974
+01:32:26,719 --> 01:32:31,659
+Og da kan det være greit å løse.
+
+975
+01:32:32,840 --> 01:32:34,619
+En grei måte å løse det på.
+
+976
+01:32:34,619 --> 01:32:40,159
+De fleste selskaper tar det.
+
+977
+01:32:41,039 --> 01:32:42,279
+Ikke sånn veldig.
+
+978
+01:32:43,000 --> 01:32:44,920
+Ikke med veldig.
+
+979
+01:32:45,460 --> 01:32:45,960
+Hva skal vi si.
+
+980
+01:32:46,599 --> 01:32:47,799
+De er ikke veldig glad for det.
+
+981
+01:32:48,259 --> 01:32:50,599
+For de mener at kunden må ha kontroll på risikoen.
+
+982
+01:32:51,039 --> 01:32:54,479
+Men så vet vi jo at verden er litt annerledes.
+
+983
+01:32:54,939 --> 01:32:57,259
+Og vi vet at det er noen som tilbyr det.
+
+984
+01:32:57,659 --> 01:32:59,599
+Så jeg synes det er en god ting å ha med seg.
+
+985
+01:33:00,119 --> 01:33:02,219
+Og man betaler forholdsvis lite for det.
+
+986
+01:33:02,219 --> 01:33:06,179
+Og man kan få kjøpt dette for en del millioner.
+
+987
+01:33:07,059 --> 01:33:08,460
+Som en sånn.
+
+988
+01:33:08,979 --> 01:33:10,219
+Et sikkerhetsnett.
+
+989
+01:33:10,239 --> 01:33:10,859
+Et sikkerhetsnett.
+
+990
+01:33:11,119 --> 01:33:11,979
+I forsikringsavtalen.
+
+991
+01:33:12,319 --> 01:33:13,439
+Det var et godt tips å ta med seg.
+
+992
+01:33:15,139 --> 01:33:18,199
+Da er vi mot slutten av det vi hadde tenkt å snakke om.
+
+993
+01:33:18,259 --> 01:33:18,880
+I dag, Frode.
+
+994
+01:33:19,420 --> 01:33:22,859
+Og da bør vi vel oppsummere litt om det som er viktig.
+
+995
+01:33:23,079 --> 01:33:25,759
+I en god behovsanalyse og en kartleggingssamtale.
+
+996
+01:33:26,279 --> 01:33:27,960
+For å avdekke forsikringsbehovet til kunden.
+
+997
+01:33:29,340 --> 01:33:29,519
+Ja.
+
+998
+01:33:30,519 --> 01:33:32,979
+Og da sa du et sånt nøkkelord.
+
+999
+01:33:32,979 --> 01:33:34,920
+En oppsummering.
+
+1000
+01:33:35,639 --> 01:33:40,639
+Den vil kunne fungere på en god måte.
+
+1001
+01:33:40,699 --> 01:33:42,920
+For å dokumentere hva vi har vært gjennom.
+
+1002
+01:33:44,059 --> 01:33:46,239
+Og du ber kunden.
+
+1003
+01:33:46,779 --> 01:33:47,979
+Kanskje om.
+
+1004
+01:33:48,259 --> 01:33:50,500
+En aksept på oppsummeringen.
+
+1005
+01:33:50,500 --> 01:33:53,119
+Dette er det jeg har forstått at vi er enige om.
+
+1006
+01:33:53,119 --> 01:33:55,619
+Dette er det du har valgt bort.
+
+1007
+01:33:59,119 --> 01:34:03,579
+Men før vi skriver på en måte referatet eller gjør oppsummeringen.
+
+1008
+01:34:03,579 --> 01:34:06,139
+Så tenker jeg at det er en veldig god metode.
+
+1009
+01:34:08,059 --> 01:34:11,819
+Det er å gå gjennom unntaket i forsikringsavtalen.
+
+1010
+01:34:12,259 --> 01:34:15,739
+De standard unntakene som vi vet de aller fleste selskapene har.
+
+1011
+01:34:16,639 --> 01:34:18,219
+Og kanskje særlig på ansvars.
+
+1012
+01:34:18,259 --> 01:34:18,880
+Ved produktet.
+
+1013
+01:34:19,500 --> 01:34:22,199
+Fordi da vil du få opp en del ting.
+
+1014
+01:34:23,019 --> 01:34:24,259
+Som rett og slett.
+
+1015
+01:34:24,340 --> 01:34:25,199
+Ja, men det gjør vi jo.
+
+1016
+01:34:25,599 --> 01:34:26,599
+Har jeg opplevd å høre.
+
+1017
+01:34:27,519 --> 01:34:30,019
+Fra noen i virksomheten.
+
+1018
+01:34:32,039 --> 01:34:37,279
+Og igjen til det med forventning og forventningsstyring.
+
+1019
+01:34:37,500 --> 01:34:41,799
+Så ser vi en del av unntakene som du kanskje ramser opp.
+
+1020
+01:34:41,899 --> 01:34:43,819
+Er kanskje ting han hadde tenkt.
+
+1021
+01:34:44,960 --> 01:34:46,319
+Er mulig å forsikre.
+
+1022
+01:34:46,539 --> 01:34:48,239
+Eller at ansvarsforsikringen tar inn.
+
+1023
+01:34:48,259 --> 01:34:49,699
+Men den faktisk ikke gjør.
+
+1024
+01:34:49,779 --> 01:34:51,559
+Og det er kanskje ikke mulig å forsikre det.
+
+1025
+01:34:52,119 --> 01:34:55,259
+For eksempel å gå gjennom litt kontraktsunntakene.
+
+1026
+01:34:56,000 --> 01:34:58,119
+Og hva som er mulig å forsikre.
+
+1027
+01:34:59,500 --> 01:35:01,399
+Kontraktsansvaret er generelt unntak for.
+
+1028
+01:35:01,619 --> 01:35:02,420
+Og med god grunn.
+
+1029
+01:35:03,299 --> 01:35:05,079
+Og da.
+
+1030
+01:35:07,779 --> 01:35:12,019
+Ha det også fundamentert hos kunden.
+
+1031
+01:35:13,019 --> 01:35:15,259
+Det er også med på å.
+
+1032
+01:35:15,259 --> 01:35:15,340
+Å.
+
+1033
+01:35:17,139 --> 01:35:18,119
+Hva skal vi si.
+
+1034
+01:35:18,259 --> 01:35:21,559
+Gjør kunden mer oppmerksom på.
+
+1035
+01:35:22,880 --> 01:35:28,340
+Den risiko eksponeringen som han selv står og som kanskje gjør at han blir enda mer opptatt av å gjøre ting riktig.
+
+1036
+01:35:29,399 --> 01:35:32,019
+For det er faktisk en del som.
+
+1037
+01:35:32,799 --> 01:35:36,380
+Det er ikke det er ikke sånn at forsikring kan løse alt som er vondt vondt og vanskelig.
+
+1038
+01:35:36,880 --> 01:35:37,500
+Nesten alt.
+
+1039
+01:35:39,399 --> 01:35:39,859
+Ikke helt.
+
+1040
+01:35:40,159 --> 01:35:40,659
+Ikke helt.
+
+1041
+01:35:41,899 --> 01:35:43,159
+Så dette med et referat.
+
+1042
+01:35:43,219 --> 01:35:46,939
+Det er viktig påpeke hva man ikke ønsker å forsikre.
+
+1043
+01:35:46,939 --> 01:35:52,979
+Og du sier også Frode at du ber at styret behandler forsikringsstrategien.
+
+1044
+01:35:53,399 --> 01:36:05,479
+Ja jeg tenker at det er relevant fordi vi vi representerer jo vårt selskap som forsikringsmengder og vi skal vareta kundens behov.
+
+1045
+01:36:06,920 --> 01:36:07,420
+Så.
+
+1046
+01:36:08,819 --> 01:36:16,759
+Han vi snakker med eller de vi snakker med hos bedriften er jo av og til eieren men av og til ikke.
+
+1047
+01:36:16,759 --> 01:36:32,559
+Og de representerer da eierne og jeg tenker at det er veldig smart av vedkommende å få en hva skal vi si en godkjenning på den prosessen som har vært og de valgene som har gjort.
+
+1048
+01:36:32,939 --> 01:36:35,899
+Ikke minst hvorfor har man ikke valgt å forsikre.
+
+1049
+01:36:37,099 --> 01:36:40,219
+Hvorfor har man valgt å ikke få tegne cyberforsikring for eksempel.
+
+1050
+01:36:40,639 --> 01:36:44,779
+Dette er jo etter hvert et sånt hot topic og som styre.
+
+1051
+01:36:46,139 --> 01:36:46,639
+Kanskje.
+
+1052
+01:36:46,759 --> 01:36:49,219
+Er er opptatt av har vi sett en del sånne.
+
+1053
+01:36:52,399 --> 01:37:00,019
+Undersøkelser på hva som styre medlemmer er opptatt av for tiden og og det å da ha.
+
+1054
+01:37:02,699 --> 01:37:15,679
+Skal vi si fundamentert det helt til topps er smart for det kan hende de har en forventning om at de har kjøpt mer i risiko overlastning enn det som faktisk har gjort så det er en viktig avklaring.
+
+1055
+01:37:16,099 --> 01:37:16,340
+Fra.
+
+1056
+01:37:16,759 --> 01:37:23,019
+Ja, og så kan vi tenke avslutningsvis også da det dette med.
+
+1057
+01:37:25,880 --> 01:37:26,719
+Når du har.
+
+1058
+01:37:26,719 --> 01:37:36,899
+Ha kanskje en løsning som du tenker hvor dette det sånn sånn vil jeg løse det eller du er kanskje i tvil om hvordan du skal løse det.
+
+1059
+01:37:37,979 --> 01:37:46,000
+Diskutere med en kollega en som kjenner bransjen og få en til å se på dette case her er det hvordan ville du sett på dette.
+
+1060
+01:37:46,000 --> 01:37:46,599
+Er det hvordan ville du sett på dette.
+
+1061
+01:37:46,599 --> 01:37:46,699
+Er det hvordan ville du sett på dette case her.
+
+1062
+01:37:46,699 --> 01:37:50,779
+dette. Få kanskje ta det inn i kollegiumet og
+
+1063
+01:37:50,779 --> 01:37:53,340
+drodle litt rundt det, særlig hvis det er litt
+
+1064
+01:37:53,340 --> 01:37:59,059
+komplekst. Så flere syn, flere øyne er ofte en
+
+1065
+01:37:59,059 --> 01:38:04,880
+veldig god metode for å både finne løsninger og
+
+1066
+01:38:04,880 --> 01:38:09,139
+for å bekrefte at det du har tenkt er bra. Og da
+
+1067
+01:38:09,139 --> 01:38:14,420
+får du også denne, hva skal vi si, kvalitetssikringen
+
+1068
+01:38:14,420 --> 01:38:19,159
+internt på profesjonsutøvelsen din.
+
+1069
+01:38:21,859 --> 01:38:25,460
+Så du mener her at det er ikke lurt å drive et
+
+1070
+01:38:25,460 --> 01:38:28,699
+one man band her, det er lurt å drøfte og
+
+1071
+01:38:28,699 --> 01:38:32,239
+diskutere med gode kollegaer for å få gode
+
+1072
+01:38:32,239 --> 01:38:32,699
+innspill?
+
+1073
+01:38:33,260 --> 01:38:38,519
+Absolutt. Jeg tror kanskje at forsikringsmeglerbransjen
+
+1074
+01:38:38,519 --> 01:38:41,719
+har vært, at det historisk har vært litt sånn
+
+1075
+01:38:41,779 --> 01:38:45,199
+lone wolves her og der.
+
+1076
+01:38:45,199 --> 01:38:51,679
+Og det tror jeg er uheldig. Det er høy risiko.
+
+1077
+01:38:52,019 --> 01:38:56,719
+Det er mennesker, vi gjør feil, og det å få flere
+
+1078
+01:38:56,719 --> 01:39:00,679
+øyne på en sak, det gir både bedre løsninger og
+
+1079
+01:39:00,679 --> 01:39:05,779
+reduserer risiko. Så det er absolutt en ting som
+
+1080
+01:39:05,840 --> 01:39:08,000
+bør inn i metodikken, på hvordan man jobber.
+
+1081
+01:39:10,279 --> 01:39:13,779
+Fint, da er vel vi ved veis ende, om det ikke er noe
+
+1082
+01:39:13,779 --> 01:39:15,340
+flere spørsmål fra salen.
+
+1083
+01:39:15,340 --> 01:39:27,619
+Det ser ikke ut til å være det, Frode. Da benytter vi anledningen til å takke for oss og ønske lykke til i en sprennende bransje i fremtiden.
+
+1084
+01:39:28,559 --> 01:39:29,019
+Takk for oss.
+

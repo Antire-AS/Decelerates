@@ -30,6 +30,7 @@ from api.routers import (
     broker,
     sla,
     utils,
+    video,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -55,3 +56,4 @@ app.include_router(knowledge.router)
 app.include_router(broker.router)
 app.include_router(sla.router)
 app.include_router(utils.router)
+app.include_router(video.router)

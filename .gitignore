@@ -6,3 +6,7 @@ __pycache__/
 sample_offers/
 .idea/
 .venv/
+
+# Large media files — store manually on Azure Blob Storage
+*.mp4
+*.wav

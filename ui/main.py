@@ -7,6 +7,7 @@ from ui.views.portfolio import render_portfolio_tab
 from ui.views.documents import render_documents_tab
 from ui.views.sla import render_sla_tab
 from ui.views.knowledge import render_knowledge_tab
+from ui.views.kurs import render_kurs_tab
 
 # ── Language toggle (must happen before any output) ──────────────────────────
 if "lang" not in st.session_state:
@@ -41,8 +42,8 @@ with _btn_col:
         st.session_state["forsikringstilbud_pdf"] = None
         st.rerun()
 
-tab_search, tab_portfolio, tab_docs, tab_sla, tab_knowledge = st.tabs(
-    ["Selskapsøk", "Portefølje", "Dokumenter", "Avtaler", "Kunnskapsbase"]
+tab_search, tab_portfolio, tab_docs, tab_sla, tab_knowledge, tab_kurs = st.tabs(
+    ["Selskapsøk", "Portefølje", "Dokumenter", "Avtaler", "Kunnskapsbase", "Kursvideoer"]
 )
 
 with tab_search:
@@ -59,3 +60,6 @@ with tab_sla:
 
 with tab_knowledge:
     render_knowledge_tab()
+
+with tab_kurs:
+    render_kurs_tab()

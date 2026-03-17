@@ -1,0 +1,6440 @@
+1
+00:00:00,500 --> 00:00:19,859
+Da sier jeg velkommen til modul 3, da vi tar for oss forsikringsmeglerrollen.
+
+2
+00:00:19,859 --> 00:00:24,039
+Dere har jo vært innom ulike temaer i modul 3 tidligere.
+
+3
+00:00:24,320 --> 00:00:31,859
+I dag skal vi ha en forhåpentligvis litt mer praktisk tilnærming til forsikringsmeglerrollen.
+
+4
+00:00:32,979 --> 00:00:39,039
+Litt iblanda henvisninger til litt lov og regelverk.
+
+5
+00:00:39,039 --> 00:00:47,039
+Det jeg har tenkt å ta for meg i dag er først å snakke litt om forsikringsmeglerrollen.
+
+6
+00:00:47,039 --> 00:00:51,039
+Altså en introduksjon til forsikringsmeglerrollen.
+
+7
+00:00:51,039 --> 00:00:56,039
+Litt om hva en forsikringsmegler er for noe, og hva den gjør.
+
+8
+00:00:56,039 --> 00:01:07,040
+I del 2 har jeg til hensikt å gjøre et forsøk på å koble forsikringsmeglerrollen med etikk.
+
+9
+00:01:07,040 --> 00:01:17,040
+I del 3 har jeg med meg Otto, og da skal vi snakke litt sammen om interessekonflikter.
+
+10
+00:01:17,040 --> 00:01:32,040
+Og til slutt i denne forelesningen skal vi touche innom par 3-4 viktige temaer når det gjelder forsikringsmegling og forsikringsmeglerrollen.
+
+11
+00:01:32,040 --> 00:01:35,040
+Når det gjelder forsikringsmegling, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+12
+00:01:35,040 --> 00:01:37,040
+Når det gjelder forsikringsmegling, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+13
+00:01:37,040 --> 00:01:38,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+14
+00:01:38,040 --> 00:01:39,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+15
+00:01:39,040 --> 00:01:40,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+16
+00:01:40,040 --> 00:01:41,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+17
+00:01:41,040 --> 00:01:42,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+18
+00:01:42,040 --> 00:01:43,040
+Når det gjelder forsikringsmeglerrollen, så er det så klart slik at det gjelder forsikringsmeglerrollen.
+
+19
+00:02:07,040 --> 00:02:11,680
+Det er mange oppfatninger om det, både riktige og gale.
+
+20
+00:02:12,919 --> 00:02:20,879
+Bare som en liten øvelse tok jeg oss og så på hva det store norske leksikon sier en forsikringsmegler er for noe.
+
+21
+00:02:22,060 --> 00:02:32,259
+Kort sagt, som dere ser her på presentasjonen selv, så innleder han her med å si at forsikringsmegler er en profesjonell innkjøper av forsikring.
+
+22
+00:02:32,259 --> 00:02:40,580
+Og videre da at han forhandler med flere forsikringsselskap på vegne av en forsikringskjøper.
+
+23
+00:02:41,819 --> 00:02:45,500
+Wikipedia har også sin definisjon.
+
+24
+00:02:45,900 --> 00:02:54,259
+Forsikringsmegleren er en uavhengig part som fremforhandler forsikringsløsninger for forsikringstagere i det åpne forsikringsmarkedet.
+
+25
+00:02:56,580 --> 00:03:02,259
+En litt annerledes definisjon, i hvert fall når vi ser på ordbruksmessig.
+
+26
+00:03:02,259 --> 00:03:11,259
+Forsikringsformidlingsloven sier i utgangspunktet at en forsikringsmegler er en forsikringsformidler.
+
+27
+00:03:13,259 --> 00:03:27,919
+Men spesifisert skal du drive med forsikringsmegling, så består det i å gi kunden råd ut fra en analyse av et så stort antall av de på markedet disponible forsikringsløsninger som mulig.
+
+28
+00:03:27,919 --> 00:03:31,919
+Eller å presentere kunden for forsikringsløsninger.
+
+29
+00:03:32,259 --> 00:03:42,259
+Fra ett eller flere forsikringsforetak, uten at du har en foregående avtale med noen av de forsikringsselskapene.
+
+30
+00:03:43,259 --> 00:03:49,259
+Litt teknisk, litt vanskelig, så jeg har forsøkt meg på en egen definisjon.
+
+31
+00:03:50,259 --> 00:03:54,259
+Dette er en litt klassisk tilnærming til forsikringsmegling.
+
+32
+00:03:55,259 --> 00:04:01,259
+Det jeg sier her er at en forsikringsmegler er en profesjonell mellommann.
+
+33
+00:04:01,259 --> 00:04:02,259
+Mellom mann.
+
+34
+00:04:02,259 --> 00:04:04,259
+Mellom forsikringsselskaper og kunder.
+
+35
+00:04:04,259 --> 00:04:08,259
+Meglene jobber etter full makt på vegene av kunden.
+
+36
+00:04:08,259 --> 00:04:14,259
+Meglene har inngående kunnskap om forsikringsmarkedet og de ulike forsikringsprodukter som tilbys.
+
+37
+00:04:14,259 --> 00:04:23,259
+Og forsikringsmegler skal hjelpe med å evaluere kundens risiko og forsikringsbehov sammenlignet forskjellige forsikringsalternativer.
+
+38
+00:04:23,259 --> 00:04:31,259
+Og å bistå kunden med å velge den beste og riktige rekningen tilpasset kundens behov og økonomi.
+
+39
+00:04:32,259 --> 00:04:39,259
+Nå leser jeg ganske mye opp her, men dette er på en måte min definisjon av den tekniske forsikringsmeglingsbiten.
+
+40
+00:04:40,259 --> 00:04:41,259
+Videre.
+
+41
+00:04:41,259 --> 00:04:46,259
+En forsikringsmegler har ansvar for å forhandle med forsikringsselskaper på vegne av kunden.
+
+42
+00:04:46,259 --> 00:04:54,259
+Det inkluderer å få tilbud, vurdere vilkår og betingelser for å sikre at kunden får en adekvat forsikringsdekning til en konkurranseriktig pris.
+
+43
+00:04:55,259 --> 00:04:59,259
+Og han skal da, som alle andre har sagt i tidligere definisjoner også,
+
+44
+00:04:59,259 --> 00:05:03,259
+være uavhengig av forsikringsselskapet.
+
+45
+00:05:03,259 --> 00:05:09,259
+Og han har også et juridisk ansvar for å handle i kundens beste interesse.
+
+46
+00:05:09,259 --> 00:05:15,259
+Så det er litt sånn den tekniske definisjonen, men så er det jo sånn, etter mitt skjønn,
+
+47
+00:05:15,259 --> 00:05:26,259
+at gjennom de siste årene, 10-20 årene, så har forsikringsmeglerrollen endret seg ganske betydelig.
+
+48
+00:05:26,259 --> 00:05:28,259
+Jeg vil si at den definisjonen er veldig viktig.
+
+49
+00:05:28,259 --> 00:05:32,259
+Den definisjonen og beskrivelsen som vi nå har sett på,
+
+50
+00:05:32,259 --> 00:05:37,259
+det er mer litt den tradisjonelle forsikringsmeglerrollen.
+
+51
+00:05:37,259 --> 00:05:40,259
+Men det vi har sett gjennom de siste årene,
+
+52
+00:05:40,259 --> 00:05:43,259
+det er jo at forsikringsmeglere, kort sagt,
+
+53
+00:05:43,259 --> 00:05:50,259
+også blir mer og mer rådgivere og konsulenter for sine kunder.
+
+54
+00:05:50,259 --> 00:05:53,259
+Og det har jo sammenheng med flere forhold.
+
+55
+00:05:53,259 --> 00:05:58,259
+En ting er jo at det er et større og større fokus,
+
+56
+00:05:58,259 --> 00:06:03,259
+fra kunderne, på at de er spesielle, har spesielle behov,
+
+57
+00:06:03,259 --> 00:06:08,259
+og har behov for særskilte løsninger som er tilpasset deres virksomhet,
+
+58
+00:06:08,259 --> 00:06:11,259
+og den risikoen som de håndterer.
+
+59
+00:06:11,259 --> 00:06:15,259
+Videre så er jo verden i endring.
+
+60
+00:06:15,259 --> 00:06:17,259
+Det vet vi alle, det merker vi alle.
+
+61
+00:06:17,259 --> 00:06:21,259
+Vi har miljøendringer i klima,
+
+62
+00:06:21,259 --> 00:06:24,259
+helsebildet endrer seg,
+
+63
+00:06:24,259 --> 00:06:27,259
+vi har uroligheter og konflikter i verden.
+
+64
+00:06:27,259 --> 00:06:32,259
+Og det er klart, det her påvirker både risikoappetitt og risikoaversjon,
+
+65
+00:06:32,259 --> 00:06:39,259
+og det påvirker hvordan kunderne må håndtere risiko rundt om i verden.
+
+66
+00:06:39,259 --> 00:06:44,259
+Og det her har jo gitt et voldsomt økt fokus på risikostyring.
+
+67
+00:06:44,259 --> 00:06:46,259
+Når vi snakker om forsikring,
+
+68
+00:06:46,259 --> 00:06:51,259
+så snakker vi veldig ofte om det som skjer når skaden først har skjedd.
+
+69
+00:06:51,259 --> 00:06:55,259
+Men jeg oppfatter at vi i større og større grad
+
+70
+00:06:55,259 --> 00:07:01,259
+også begynner å snakke om hvordan du skal håndtere ting før en skade skjer,
+
+71
+00:07:01,259 --> 00:07:05,259
+faktisk i håp da om å unngå skader.
+
+72
+00:07:05,259 --> 00:07:07,259
+Nå snakker jeg som om det her er noe helt nytt.
+
+73
+00:07:07,259 --> 00:07:09,259
+Det er det jo selvfølgelig ikke.
+
+74
+00:07:09,259 --> 00:07:11,259
+Det her har jo en gjort i alle tider og så videre.
+
+75
+00:07:11,259 --> 00:07:16,259
+Men det jeg forsøker å si er at etter min observasjon,
+
+76
+00:07:16,259 --> 00:07:19,259
+så er det et økt fokus på det her.
+
+77
+00:07:19,259 --> 00:07:21,259
+Økt fokus på rådgivning.
+
+78
+00:07:21,259 --> 00:07:23,259
+Økt fokus på å se på mer enn bare selve forskjellen.
+
+79
+00:07:23,259 --> 00:07:24,259
+Økt fokus på å se på mer enn bare selve forskjellen.
+
+80
+00:07:24,259 --> 00:07:26,259
+Økt fokus på å se på mer enn bare selve forskjellen.
+
+81
+00:07:26,259 --> 00:07:30,259
+Når det gjelder risikobilde og risikorådgivning.
+
+82
+00:07:30,259 --> 00:07:37,259
+Og Meglerhuset har jo svart opp det her med å utvide sitt tjenestetilbud.
+
+83
+00:07:37,259 --> 00:07:40,259
+Det er Meglerhuset som jeg representerer.
+
+84
+00:07:40,259 --> 00:07:46,259
+Vi jobber jo også ganske ekstensivt i forhold til det med å hjelpe kunder
+
+85
+00:07:46,259 --> 00:07:52,259
+med å se på risikoen og hva du skal gjøre i forkant av at du faktisk får skade.
+
+86
+00:07:52,259 --> 00:07:53,259
+med å se på risikoen og hva du skal gjøre i forkant av at du faktisk får skade.
+
+87
+00:07:53,259 --> 00:07:54,259
+med å se på risikoen og hva du skal gjøre i forkant av at du faktisk får skade.
+
+88
+00:07:54,259 --> 00:07:59,259
+For eksempel på helsesiden når det gjelder ansatte,
+
+89
+00:07:59,259 --> 00:08:03,259
+så har det vært en ganske stor utvikling i det gjennom de siste årene.
+
+90
+00:08:03,259 --> 00:08:06,259
+Og for de fleste som jobber innenfor forsikringsmegling,
+
+91
+00:08:06,259 --> 00:08:14,259
+så har jeg nok merket de siste årene at fokuset på well-being, ansattegoder,
+
+92
+00:08:14,259 --> 00:08:18,259
+det å ta vare på ansattes økonomisk og finansielle helse,
+
+93
+00:08:18,259 --> 00:08:22,259
+at det er noe som det i veldig stor grad, internasjonalt i hvert fall,
+
+94
+00:08:22,259 --> 00:08:23,259
+har blitt veldig mye større forhold til.
+
+95
+00:08:23,259 --> 00:08:25,259
+har blitt veldig mye større forhold til.
+
+96
+00:08:25,259 --> 00:08:27,259
+gjennom de siste årene.
+
+97
+00:08:27,259 --> 00:08:31,259
+Så det er et eksempel på det som jeg forsøker å skissere her.
+
+98
+00:08:31,259 --> 00:08:35,259
+Sammen med dette har vi også teknologisk utvikling, digitalisering,
+
+99
+00:08:35,259 --> 00:08:39,259
+informasjonsløsninger, kunstig intelligens,
+
+100
+00:08:39,259 --> 00:08:43,259
+vil jo også påvirke vår bransje ganske betydelig.
+
+101
+00:08:43,259 --> 00:08:48,259
+Har allerede begynt å påvirke oss og vil påvirke oss betydelig i fremtiden.
+
+102
+00:08:48,259 --> 00:08:52,259
+Og så har verden blitt mer og mer internasjonal.
+
+103
+00:08:52,259 --> 00:08:54,259
+Våre kunder blir mer og mer internasjonale.
+
+104
+00:08:54,259 --> 00:08:59,259
+Enten det velger seg at vi håndterer døtterselskaper av internasjonale kunder,
+
+105
+00:08:59,259 --> 00:09:05,259
+eller norske morselskaper som har internasjonale døtre og enheter.
+
+106
+00:09:05,259 --> 00:09:09,259
+Eller ansatte som jobber ute i verden.
+
+107
+00:09:09,259 --> 00:09:19,259
+Så det er mer enn bare denne tekniske definisjonen av å være forsikringsmegler.
+
+108
+00:09:19,259 --> 00:09:20,259
+Så det er mer enn bare denne tekniske definisjonen av å være forsikringsmegler.
+
+109
+00:09:20,259 --> 00:09:27,259
+Da tenker jeg at vi skal se litt på sentrale oppgaver i rollen som forsikringsmegler.
+
+110
+00:09:27,259 --> 00:09:32,259
+Og den oversikten her, den er jo på ingen måte uttømmende og tar for seg alt.
+
+111
+00:09:32,259 --> 00:09:42,259
+Men det her er en opplisting av en del ganske sentrale arbeidsoppgaver som du vil ha som forsikringsmegler.
+
+112
+00:09:42,259 --> 00:09:45,259
+Og jeg nevnte jo innledningsvis at dette skal være en praktisk tilnærming.
+
+113
+00:09:45,259 --> 00:09:48,259
+Så da tenker jeg at det kan være greit at vi snakker litt sammen om det.
+
+114
+00:09:48,259 --> 00:09:49,259
+Så da tenker jeg at det kan være greit at vi snakker litt sammen om det.
+
+115
+00:09:49,259 --> 00:09:51,259
+Så da tenker jeg at det kan være greit at vi snakker litt sammen om det.
+
+116
+00:09:51,259 --> 00:09:56,259
+Og det her er jo i veldig stor grad basert på mine erfaringer.
+
+117
+00:09:56,259 --> 00:10:02,259
+Og det er jo årene jeg har jobbet med forsikringsmegling sammen med kollegaer på andre områder også.
+
+118
+00:10:02,259 --> 00:10:07,259
+Og jeg tenker at det nok er ganske dekkende for alle bransjer.
+
+119
+00:10:07,259 --> 00:10:17,259
+Og en ting som jeg har notert meg, det er jo det at i veldig stor grad så går jobben ut på å samle informasjon.
+
+120
+00:10:17,259 --> 00:10:18,259
+Og en ting som jeg har notert meg, det er jo det at i veldig stor grad så går jobben ut på å samle informasjon.
+
+121
+00:10:18,259 --> 00:10:27,259
+Altså å rett og slett øke sin kunnskapsbase om for eksempel en spesifikk kunde,
+
+122
+00:10:27,259 --> 00:10:41,259
+få all informasjon som du trenger for å kunne gjøre en god jobb i forhold til det, og gi råd om hvordan man skal håndtere risikoen.
+
+123
+00:10:41,259 --> 00:10:46,259
+Og når du har den informasjonen her så må du jo bearbeide den.
+
+124
+00:10:46,259 --> 00:10:47,259
+Og når du har den informasjonen her så må du jo bearbeide den.
+
+125
+00:10:47,259 --> 00:10:48,259
+Og når du har den informasjonen her så må du jo bearbeide den.
+
+126
+00:10:48,259 --> 00:10:56,700
+Det betyr at du må analysere det du har, validere hvilken informasjon som er adekvat og hvilken informasjon som ikke er adekvat,
+
+127
+00:10:57,519 --> 00:11:08,220
+og bruke den til å gjøre en del vurderinger, som igjen munner ut i en rådgivning til kunden.
+
+128
+00:11:09,179 --> 00:11:12,620
+Det er mange forskjellige måter å gi råd på.
+
+129
+00:11:12,620 --> 00:11:23,519
+Men min betraktning er at den beste måten å gi råd på er at du gjør det samtidig med at du øker kompetansen til kunden.
+
+130
+00:11:24,240 --> 00:11:35,259
+Jeg har alltid tenkt at det er større grad enn kunde har kompetanse om det vi snakker om, desto lettere er det å gi gode og adekvate råd.
+
+131
+00:11:35,259 --> 00:11:42,259
+Det er å bruke en del ressurser og energi på å sørge for at kunden ikke bare hører,
+
+132
+00:11:42,620 --> 00:11:50,559
+men forstår det du sier, det tenker jeg er ganske uvurderlig når du skal jobbe som megler.
+
+133
+00:11:51,000 --> 00:11:59,600
+Resultatet blir bedre, du blir mer effektiv i rådgivningen, og kunden får en veldig mye bedre opplevelse.
+
+134
+00:12:00,019 --> 00:12:09,360
+Det går jo også på det her med at kunden i større grad behersker det som han skal gjøre i forhold til å håndtere og vurdere risiko.
+
+135
+00:12:10,159 --> 00:12:12,360
+Så har vi jo selvfølgelig...
+
+136
+00:12:13,299 --> 00:12:16,500
+Litt tilbake til denne tradisjonelle megler-tanggangen.
+
+137
+00:12:16,940 --> 00:12:19,279
+Vi skal jo også være rene megler.
+
+138
+00:12:19,279 --> 00:12:28,700
+Det betyr jo at vi skal ta forsikringsløsningene ut på markedet, konkurransutsettere, eventuelt kjøre benchmarker,
+
+139
+00:12:29,299 --> 00:12:38,480
+og sørge for at vi klarer å hente inn de beste vilkårene, de beste priserne og de beste løsningene for kunderne.
+
+140
+00:12:39,019 --> 00:12:42,279
+Når vi da har hentet inn tilbud i markedet,
+
+141
+00:12:43,299 --> 00:12:46,559
+så må vi jo da få et eller annet evaluering av det vi har fått inn,
+
+142
+00:12:47,360 --> 00:12:49,759
+gi en innstilling til kunden,
+
+143
+00:12:50,399 --> 00:12:54,779
+og også hjelpe deg i beslutningsprosessen.
+
+144
+00:12:55,320 --> 00:12:57,059
+Selv om jeg da har vært flink på opplæring,
+
+145
+00:12:57,460 --> 00:13:06,919
+så er det jo veldig meget mulig at kunden har behov for at du støtter deg i de ulike beslutningsforholdene internt i bedriften.
+
+146
+00:13:07,480 --> 00:13:12,100
+Og det er også en viktig del av rådgivningen,
+
+147
+00:13:12,100 --> 00:13:22,700
+fordi at du må jo forsøke å følge hele prosessen fram slik at kunden da velger det som er den beste løsningen for deg.
+
+148
+00:13:24,080 --> 00:13:29,879
+Når kundene har valgt, så starter jo selvfølgelig jobben med den konkrete plasseringen,
+
+149
+00:13:30,399 --> 00:13:37,019
+og i det løpende da kjører fornyelsesprosesser på de her forsikringene.
+
+150
+00:13:37,019 --> 00:13:42,019
+Det er ikke bare sånn at det er ved konkurransutsetting at du forhandler,
+
+151
+00:13:42,100 --> 00:13:45,919
+og har dialog med forsikringsselskapet om prisingen.
+
+152
+00:13:45,919 --> 00:13:50,919
+Det gjør du hvert år i forbindelse med fornyelser.
+
+153
+00:13:50,919 --> 00:13:53,919
+Foretar vurderinger av skader,
+
+154
+00:13:53,919 --> 00:13:57,919
+foretar vurderinger av pris i forhold til det som foreligger i markedet,
+
+155
+00:13:57,919 --> 00:14:03,919
+vurderer om du skal anbefale kundene og konkurransutsettere dette på nytt eller ikke,
+
+156
+00:14:03,919 --> 00:14:11,919
+og da forhandler med selskapet for å forsøke å fortsatt beholde gode priser og vilkår.
+
+157
+00:14:12,100 --> 00:14:19,919
+Videre er det en ganske stor masse av informasjon og dokumentasjon du skal håndtere for kunden
+
+158
+00:14:19,919 --> 00:14:25,919
+i forbindelse både med plassering og fornyelsesprosessene.
+
+159
+00:14:25,919 --> 00:14:30,919
+Her vil en veldig ofte jobbe i team sammen med andre enn bare forsikringsmegler,
+
+160
+00:14:30,919 --> 00:14:35,919
+med assisterende meglere og annet støttepersonell.
+
+161
+00:14:35,919 --> 00:14:41,919
+Men det er jo megler som har ansvaret, og det er en viktig del av
+
+162
+00:14:41,919 --> 00:14:46,919
+megleroppdraget å sørge for at formalitetene er i orden,
+
+163
+00:14:46,919 --> 00:14:52,919
+og sørge for at kunden har all den informasjonen vedkommende skal ha.
+
+164
+00:14:52,919 --> 00:14:59,919
+Så er det jo slik at i løpet av forsikringsåret så vil du
+
+165
+00:14:59,919 --> 00:15:10,959
+Som regel opplever vi ved mange anledninger at kunden tar kontakt med deg, har behov for bistand i forbindelse med de ordningene som de har.
+
+166
+00:15:11,919 --> 00:15:25,519
+Det kan være alt fra å informere ansatte til å være med på befaring i forbindelse med skadeforsikringer.
+
+167
+00:15:25,519 --> 00:15:32,879
+Så gjennom året er det også et ganske massivt stykke med arbeid som skal gjøres.
+
+168
+00:15:33,319 --> 00:15:45,319
+Når du har plassert forsikringer, så starter for så vidt neste år ved at du må begynne å forberede deg på det kommende års fornyelsesprosesser.
+
+169
+00:15:46,620 --> 00:15:52,159
+Det er også slik at forsikringsmegler og meglerhus gir bistand ved skader.
+
+170
+00:15:52,159 --> 00:15:55,279
+Det vil jo variere veldig i forhold til hvilken type forsikring.
+
+171
+00:15:55,519 --> 00:16:01,159
+Hvilket apparat den håndterer, og hvilket apparat den har til å håndtere det.
+
+172
+00:16:02,339 --> 00:16:12,099
+I tillegg har den også en del typisk interne prosesser som jeg har lyst til å nevne kort.
+
+173
+00:16:13,099 --> 00:16:25,240
+For det er noen gang sann at den driver en forretningsvirksomhet, og som forsikringsmegler vil du også normalt sett bli bedt om å delta på å selge.
+
+174
+00:16:25,519 --> 00:16:28,379
+Medlemmer i forretningsmøtet vil være en myk i høy avsikt på du sure tjeneste som tjenester.
+
+175
+00:16:29,819 --> 00:16:41,199
+Du kan da bidra i nysalg og i meiersalg når det gjelder deg tjenestene som meglerhuset tilbyr.
+
+176
+00:16:42,059 --> 00:16:45,319
+Det er ikke gitt at alle nødvendigvis gjør det.
+
+177
+00:16:45,319 --> 00:16:54,079
+Men det er hvertfall en oppgave som man må påregne som forsikringsmegler.
+
+178
+00:16:55,519 --> 00:17:04,920
+Også ha ansvaret for å følge opp kunder, og i det så ligger det jo for så vidt også et ansvar for kundelønnsomhet.
+
+179
+00:17:05,579 --> 00:17:14,000
+I og med at meglerhuset driver butikk, så skal en også tjene penger, i hvert fall ikke tape penger, det er i hvert fall ikke en målsetning for noen av de meglerhuset jeg kjenner til.
+
+180
+00:17:14,000 --> 00:17:25,000
+Og det er klart at det å få ta vurderinger av kundelønnsomhet og bidra til kundelønnsomhet er en viktig del av meglerjobben.
+
+181
+00:17:25,519 --> 00:17:42,179
+Og er en i en situasjon der en har kunder som ikke bidrar til lønnsomhet, i hvert fall på lang sikt, så vil det jo være naturlig at den blir involvert i eller tar ansvar for reforhandling av avtaler.
+
+182
+00:17:42,339 --> 00:17:55,179
+Og uansett om det ikke skulle være bakgrunn for reforhandling av avtaler, så er det jo gjerne sånn at avtaler har jo ofte en utløpsdato, og da må avtaler reforhandles.
+
+183
+00:17:55,519 --> 00:18:04,740
+Og som forsikringsmegler, så tenker jeg at det er relativt klart at du vil bli involvert i den typen prosesser.
+
+184
+00:18:05,839 --> 00:18:12,819
+Videre så ligger det jo også en ledelsesjobb i det å være forsikringsmegler.
+
+185
+00:18:12,819 --> 00:18:24,819
+Du skal måtte legge til grunn at du kommer til å måtte lede prosjekter og lede kundeteam for kunderne.
+
+186
+00:18:25,519 --> 00:18:26,519
+Du skal måtte legge til grunn at du kommer til å måtte lede prosjekter og lede kunderne.
+
+187
+00:18:26,679 --> 00:18:35,759
+I de fleste tilfellene så vil megglerhuset ha team som følger opp de enkelte kunderne, slik at du som forsikringsmegler er en del av et team.
+
+188
+00:18:36,159 --> 00:18:43,259
+Og veldig ofte så vil du måtte forvente å sitte i spissen for et sånt kundeteam.
+
+189
+00:18:44,039 --> 00:18:51,679
+Du har en rekke oppgaver innen det, altså dele informasjon og rapportere.
+
+190
+00:18:51,839 --> 00:18:52,399
+Du har en rekke oppgaver innen det, altså dele informasjon og rapportere.
+
+191
+00:18:52,399 --> 00:18:53,819
+Sørge for at compliance moddler.
+
+192
+00:18:53,819 --> 00:18:54,839
+Sørge for at compliance moddler.
+
+193
+00:18:54,839 --> 00:18:55,519
+Sørge for at compliance moddler.
+
+194
+00:18:55,519 --> 00:19:01,799
+blir overholdt, både i forhold til interne retningslinjer i meglerhuset,
+
+195
+00:19:01,899 --> 00:19:06,079
+men også i forhold til lovgivning.
+
+196
+00:19:09,429 --> 00:19:13,929
+Når vi snakker om lov, så tenkte jeg at det skulle gå litt inn på
+
+197
+00:19:13,929 --> 00:19:16,809
+lov om forsikringsformidling,
+
+198
+00:19:17,429 --> 00:19:25,309
+og det den loven sier rundt det her med krav til det å være megler.
+
+199
+00:19:25,309 --> 00:19:31,230
+Jeg starter med ledelsen i forsikringsmeglingsforetaket.
+
+200
+00:19:31,609 --> 00:19:34,109
+Som dere ser, er det ganske mye tekst på bildet her,
+
+201
+00:19:34,170 --> 00:19:36,230
+så jeg har ikke til hensikt å lese opp all den teksten,
+
+202
+00:19:36,369 --> 00:19:38,809
+men fokuserer litt på det som er grønt.
+
+203
+00:19:40,470 --> 00:19:43,650
+I forsikringsformidlingslovens paragraf 6.1,
+
+204
+00:19:44,069 --> 00:19:52,769
+som omhandler kvalifikasjonskrav for ledelsen i meglerhuset,
+
+205
+00:19:52,769 --> 00:20:01,049
+så sier loven at de som sitter i ledelsen skal ha nødvendige kvalifikasjoner
+
+206
+00:20:01,049 --> 00:20:07,230
+og nødvendig yrkeserfaring til å utøve stillingen eller vervet.
+
+207
+00:20:07,809 --> 00:20:11,789
+Så det lovgiver her sier at en skal velge folk som har greier på det her
+
+208
+00:20:11,789 --> 00:20:16,829
+for å kunne lede eller ta ledelsen i meglerhuset.
+
+209
+00:20:16,990 --> 00:20:20,789
+Jeg skal ikke gå så veldig mye i detaljer her, så jeg tar litt overordnet.
+
+210
+00:20:21,069 --> 00:20:22,670
+Det er også viktig.
+
+211
+00:20:22,769 --> 00:20:30,470
+Det merker seg at her er et krav til å gjennomføre løpende etterutdanning,
+
+212
+00:20:31,170 --> 00:20:36,789
+også for dagligleder og de som sitter i den faktiske ledelsen
+
+213
+00:20:36,789 --> 00:20:38,589
+av forsikringsformidlingsvirksomheten.
+
+214
+00:20:39,289 --> 00:20:44,369
+15 timer i året, og det her er jo en etterutdanning
+
+215
+00:20:44,369 --> 00:20:52,269
+som forsikringsformidlingsskolen har tilbytt til alle meglerhuset.
+
+216
+00:20:52,769 --> 00:21:00,069
+Hvis vi ser på kvalifikasjonskrav for forsikringsmegler,
+
+217
+00:21:01,129 --> 00:21:09,150
+så sier loven at en megler skal til en hvertid ha kunnskapen og kompetansen
+
+218
+00:21:09,150 --> 00:21:15,210
+som er nødvendig for forsikringsmeglingsforetakets virksomhet.
+
+219
+00:21:17,650 --> 00:21:24,170
+Også her er det slik at det stilles krav om en løpende etterutdanning,
+
+220
+00:21:24,429 --> 00:21:29,230
+på minst 15 timer i året.
+
+221
+00:21:29,869 --> 00:21:32,809
+Og igjen tilbake til forsikringsformidlingsskolen,
+
+222
+00:21:32,809 --> 00:21:39,250
+de bidrar til at den har tilgang til slike etterutdanninger.
+
+223
+00:21:40,449 --> 00:21:46,049
+Men det som er viktig å merke seg, det er at en stiller som et kvalifikasjonskrav,
+
+224
+00:21:46,049 --> 00:21:53,049
+at du må ha den kompetansen som er nødvendig for å utøve den virksomheten som du skal gjøre.
+
+225
+00:21:54,429 --> 00:21:58,929
+Det er også noen formalia-krav i forhold til hvem du er.
+
+226
+00:22:00,750 --> 00:22:03,429
+Det er krav om hederlig vandel.
+
+227
+00:22:03,589 --> 00:22:07,909
+En skal ikke være dømt for et straffbart forhold.
+
+228
+00:22:08,369 --> 00:22:14,629
+Man skal heller ikke være i konkursbehandling, konkurskarantene eller gjeldsforhandling.
+
+229
+00:22:15,789 --> 00:22:20,289
+Og det er jo helt vanlig at når en blir ansatt som megler i et meglerhus,
+
+230
+00:22:20,289 --> 00:22:24,289
+så må en forevise en deltaker.
+
+231
+00:22:24,429 --> 00:22:31,569
+En politiattest og en bekreftelse fra Brønnesund på at du ikke da er under konkursbehandling,
+
+232
+00:22:31,569 --> 00:22:35,529
+konkurskarantene eller gjeldsforhandling.
+
+233
+00:22:38,909 --> 00:22:45,210
+Det er også slik at forskikringsmegler rett og slett er en beskyttet tittel i Norge.
+
+234
+00:22:45,389 --> 00:22:51,049
+Det er ikke hvem som helst som har anledning til å kalle seg forskikringsmegler,
+
+235
+00:22:51,049 --> 00:22:55,069
+eller å jobbe som forskikringsmegler.
+
+236
+00:22:55,629 --> 00:22:56,750
+Og i forskriften til forskikringsmegler,
+
+237
+00:22:56,750 --> 00:22:57,449
+Og i forskriften til forskikringsmegler,
+
+238
+00:22:57,470 --> 00:23:02,690
+forsikringsformidlingsloven, det her sto tidligere i loven, men er nå flyttet til forskriften,
+
+239
+00:23:03,269 --> 00:23:10,670
+så står det da hva som skal til for å kvalifisere for at du skal være forsikringsmegler.
+
+240
+00:23:11,470 --> 00:23:13,829
+Det er tre alternativer for det.
+
+241
+00:23:14,409 --> 00:23:21,190
+Det ene er at du har en tilfredsstillende utdannelse og tre års praksis fra forsikring
+
+242
+00:23:21,190 --> 00:23:26,409
+som er relevant for forsikringsmegleringsforetakets virksomhet.
+
+243
+00:23:26,409 --> 00:23:29,889
+Det er den ene måten du kan være forsikringsmegler på.
+
+244
+00:23:32,089 --> 00:23:40,170
+Den andre er at du har relevant praksis fra fem sammenhengende år i et forsikringsformidlingsforetak
+
+245
+00:23:40,170 --> 00:23:42,049
+eller et forsikringsforetak.
+
+246
+00:23:43,589 --> 00:23:49,389
+Det tredje alternativet, og det er veldig relatert til årsaken til at vi er her i dag,
+
+247
+00:23:49,389 --> 00:23:55,130
+er at forsikringsmegler er autorisert forsikringsmegler
+
+248
+00:23:55,130 --> 00:23:56,389
+i medhold av forsikringsformidlingsforetak.
+
+249
+00:23:56,409 --> 00:24:02,650
+Det er bestemmelser om autorisasjon fra bransje, organisasjon eller utdannelsesinstitusjon
+
+250
+00:24:02,650 --> 00:24:04,409
+godkjent av Finansinsynet.
+
+251
+00:24:06,170 --> 00:24:09,969
+Det er jo det som dere deltar på nå.
+
+252
+00:24:11,769 --> 00:24:17,409
+En sier også her at opparbeidet praksis gjennom til første ledd
+
+253
+00:24:18,250 --> 00:24:24,589
+den må ikke være avsluttet mer enn fem år før det begynte som forsikringsmegler.
+
+254
+00:24:26,409 --> 00:24:34,750
+Fyller ikke du enten A, B eller C her, så kan du faktisk ikke jobbe som forsikringsmegler.
+
+255
+00:24:37,769 --> 00:24:44,529
+Forskriften har også en del generelle krav til faglige kvalifikasjoner.
+
+256
+00:24:46,329 --> 00:24:51,009
+Nå er det jo ikke sånn at den setter noen karakterkrav på noen eksamener og sånne ting,
+
+257
+00:24:51,569 --> 00:24:57,110
+men en skjeme med en bestemmelse som sier at skal du være forsikringsmegler,
+
+258
+00:24:57,769 --> 00:24:58,490
+så må du være forsikringsmegler.
+
+259
+00:24:58,490 --> 00:25:02,509
+Du må ha relevant kunnskap om forsikringene som du skal megle eller formidle,
+
+260
+00:25:03,269 --> 00:25:12,110
+og det skal minst utgjøre kunnskap om vilkår og betingelser som gjelder for forsikringen,
+
+261
+00:25:12,949 --> 00:25:18,490
+behandling av krav under forsikringen, klage og håndtering,
+
+262
+00:25:20,610 --> 00:25:25,490
+hvilke forhold det er relevant å avdekke om en kundes forsikringsbehov.
+
+263
+00:25:25,490 --> 00:25:28,490
+Her er vi jo inne på risikorådgivning.
+
+264
+00:25:28,490 --> 00:25:37,309
+Jeg sier at jo, du skal faktisk ha kunnskap om å kunne drive risikorådgivning.
+
+265
+00:25:39,630 --> 00:25:41,690
+Håndtering av interessekonflikter,
+
+266
+00:25:42,949 --> 00:25:49,990
+og det skal vi komme litt tilbake til senere i dag, når jeg og Otto skal ta en prat om det.
+
+267
+00:25:52,650 --> 00:25:56,289
+Forsikringsmarkedet, naturligvis, det er jo en del selvfølgeligheter her,
+
+268
+00:25:56,289 --> 00:25:58,289
+og relevante regelverk og relevanser.
+
+269
+00:25:58,490 --> 00:26:01,490
+Det er jo en del av det relevante bransjestandardet her.
+
+270
+00:26:01,490 --> 00:26:09,490
+I tillegg så er det slik at for deg som jobber på livsida og pensjonsområdet,
+
+271
+00:26:09,490 --> 00:26:13,490
+hvilket for så vidt er også mitt fagområde,
+
+272
+00:26:13,490 --> 00:26:18,490
+så skal en også ha kunnskap om premiefassetting,
+
+273
+00:26:18,490 --> 00:26:21,490
+egenskapen ved de ulike produktene,
+
+274
+00:26:21,490 --> 00:26:25,490
+og fordeler og ulemper ved forskjellige investeringsvalg,
+
+275
+00:26:25,490 --> 00:26:27,490
+og kunnskap om sikkerhet.
+
+276
+00:26:28,490 --> 00:26:31,490
+Det er jo ganske bredt krav.
+
+277
+00:26:32,490 --> 00:26:42,490
+For uten det så må uansett en forsikringsmegler kunne godtgjøre å ha kunnskap om økonomi og finans.
+
+278
+00:26:43,490 --> 00:26:51,490
+Her har jeg forsøkt å liste opp litt av den nødvendige kjernekompetansen til en megler.
+
+279
+00:26:51,490 --> 00:26:56,490
+Det her er jo for så vidt litt basert, eller ikke bare litt, men veldig basert på det her.
+
+280
+00:26:56,490 --> 00:27:02,490
+Men her har jeg lyst til å utdype litt.
+
+281
+00:27:02,490 --> 00:27:08,490
+For det første, kunnskap om forsikringsgivere og forsikringsmarkedet.
+
+282
+00:27:08,490 --> 00:27:16,490
+Det trenger nok ikke noe veldig lang forklaring det at det er nødvendig kjernekompetanse for en forsikringsmegler.
+
+283
+00:27:16,490 --> 00:27:24,490
+Men det er klart det at skal du operere i dette markedet, så må du vite hvilke forsikringsgivere som er der ute.
+
+284
+00:27:24,490 --> 00:27:25,490
+Og ikke bare det.
+
+285
+00:27:25,490 --> 00:27:32,490
+Og ikke bare hvilke det er, men du må jo også ha kjennskap til hva som er de kvalitative gode sidene og dårlige sidene,
+
+286
+00:27:32,490 --> 00:27:36,490
+hvis det finnes noen, hos de ulike forsikringsgiverne.
+
+287
+00:27:36,490 --> 00:27:39,490
+Hva er de gode på? Hva er de ikke gode på?
+
+288
+00:27:39,490 --> 00:27:45,490
+Du skal jo forsøke å finne den beste løsningen for dine kunder.
+
+289
+00:27:46,490 --> 00:27:49,490
+Og ikke bare forsikringsgivere, men også i forhold til markedet.
+
+290
+00:27:49,490 --> 00:27:54,490
+Kanskje det er slik at for å skaffe den best mulige forsikringen som en spesiell kunde trenger,
+
+291
+00:27:54,490 --> 00:28:01,490
+så må du snu deg utover landegrensene og se etter et forsikringsselskap i utlandet.
+
+292
+00:28:01,490 --> 00:28:08,490
+Så du må også ha en feeling med de markedene som man opererer i.
+
+293
+00:28:08,490 --> 00:28:15,490
+Og jeg skal nevne litt om internasjonal eller forsikring internasjonalt senere i dag,
+
+294
+00:28:15,490 --> 00:28:19,490
+og det henger også litt sammen med det her.
+
+295
+00:28:19,490 --> 00:28:23,490
+Videre så, en ting jeg har kunnskap om forsikringsprodukter,
+
+296
+00:28:23,490 --> 00:28:26,490
+og det her med håndtering av risiko,
+
+297
+00:28:26,490 --> 00:28:32,490
+men det er klart at kunnskapen om forsikringsprodukter må være ganske djup.
+
+298
+00:28:32,490 --> 00:28:38,490
+Du må jo være i stand til å vite om det produktet her, slik det er innrettet,
+
+299
+00:28:38,490 --> 00:28:43,490
+faktisk vil bidra til å håndtere risiko på den måten som den kunden her har behov for.
+
+300
+00:28:43,490 --> 00:28:47,490
+Og hvis ikke, så må du se om det er andre aktuelle produkter,
+
+301
+00:28:47,490 --> 00:28:51,490
+eller diskutere innholdet i de respektive produktene med forsikringsgiver,
+
+302
+00:28:51,490 --> 00:28:59,490
+for å finne en løsning som faktisk er adekvat for din kunde.
+
+303
+00:28:59,490 --> 00:29:03,490
+Så vi snakket i utgangspunktet her om ganske djup kunnskap,
+
+304
+00:29:03,490 --> 00:29:08,490
+samtidig så er det sånn at du kan ikke ha alt i høyde, du kan ikke kunne alt,
+
+305
+00:29:08,490 --> 00:29:14,490
+så det her dreier seg jo også i veldig stor grad om evnen til å kunne vurdere og analysere
+
+306
+00:29:14,490 --> 00:29:19,490
+den typen vilkår som forsikringsselskaper faktisk produserer,
+
+307
+00:29:19,490 --> 00:29:20,490
+for å vurdere det.
+
+308
+00:29:20,490 --> 00:29:25,490
+For å vurdere da om det her er adekvat for kunden.
+
+309
+00:29:25,490 --> 00:29:30,490
+Det med lov- og avtaleverktøy, det sier jo seg selv.
+
+310
+00:29:30,490 --> 00:29:34,490
+Vi vet jo alle at vi må følge loven og reglene i Norge.
+
+311
+00:29:34,490 --> 00:29:38,490
+Men skal du følge det, så må du vite hva det dreier seg om.
+
+312
+00:29:38,490 --> 00:29:42,490
+Så du må jo ha kunnskapen om det.
+
+313
+00:29:42,490 --> 00:29:48,490
+Når det gjelder det her med premie, faststeltelse, priser, vilkår og klagehåndtering,
+
+314
+00:29:48,490 --> 00:29:53,490
+loven har jo sagt klart at, eller forskriften har jo sagt klart at
+
+315
+00:29:53,490 --> 00:29:56,490
+det er noe som du skal ha kunnskap om.
+
+316
+00:29:56,490 --> 00:30:00,490
+Men det er jo klart at skal du være forsikringsmegler,
+
+317
+00:30:00,490 --> 00:30:03,549
+Skal du hjelpe en kunde til å få de beste vilkårene,
+
+318
+00:30:03,690 --> 00:30:06,269
+få de beste priserne i markedet,
+
+319
+00:30:06,730 --> 00:30:12,069
+så må du jo ha litt greie på hvordan de økonomiske prosessene er,
+
+320
+00:30:12,069 --> 00:30:16,509
+hvordan er det prisingen er, hvor er det du kan oppnå gode priser.
+
+321
+00:30:17,349 --> 00:30:25,029
+Og ikke minst, du må også kunne vurdere om de priserne som blir gitt er bærekraftige.
+
+322
+00:30:25,630 --> 00:30:30,410
+For vi ser jo i en del tilfeller at tilbydere av forsikring
+
+323
+00:30:30,410 --> 00:30:36,750
+kan produsere priser som, i hvert fall vi som har vært i bransjen en stund,
+
+324
+00:30:37,289 --> 00:30:39,509
+ser at det her holder ikke mål.
+
+325
+00:30:39,509 --> 00:30:44,390
+Altså, ok, en får den prisen i år og sparer kanskje penger det første året,
+
+326
+00:30:44,730 --> 00:30:46,509
+men man må se det her på litt lengre skikt,
+
+327
+00:30:46,750 --> 00:30:50,269
+hva er det som skjer et eller to år lenger fremme.
+
+328
+00:30:51,390 --> 00:30:54,890
+Så det er også en viktig del av det å være megler,
+
+329
+00:30:54,990 --> 00:31:00,390
+og faktisk vurdere seriøsiteten eller bærekraften,
+
+330
+00:31:00,410 --> 00:31:04,490
+i de økonomiske tilbudene som en får.
+
+331
+00:31:06,289 --> 00:31:09,509
+Når det gjelder det her med kunder og bransjer,
+
+332
+00:31:10,650 --> 00:31:13,890
+så det står ikke så mye om det i lovgivningen,
+
+333
+00:31:14,009 --> 00:31:20,670
+men det er klart at skal du gå ut og gi råd til en bedrift,
+
+334
+00:31:21,110 --> 00:31:24,490
+som for eksempel driver med renovasjon,
+
+335
+00:31:25,130 --> 00:31:26,910
+altså skal du hjelpe deg å håndtere risiko,
+
+336
+00:31:26,910 --> 00:31:30,390
+så er det jo veldig greit om du faktisk,
+
+337
+00:31:30,410 --> 00:31:33,610
+har inngående kjennskap til hva er det de driver med,
+
+338
+00:31:33,610 --> 00:31:37,289
+hvordan er det de jobber, hvordan er prosessene der da.
+
+339
+00:31:37,289 --> 00:31:44,089
+Altså, du kan ikke hjelpe deg med å vurdere risikoen hvis du ikke skjønner hva de driver med.
+
+340
+00:31:44,089 --> 00:31:46,089
+Og desto bedre du kjenner en kunde,
+
+341
+00:31:46,089 --> 00:31:48,089
+desto bedre du kjenner en kundes virksomhet,
+
+342
+00:31:48,089 --> 00:31:54,470
+desto lettere kan du være med på å avdekke risikoene som forligger hos den kunden,
+
+343
+00:31:54,470 --> 00:31:59,849
+og hjelpe deg da med å vurdere om det da skal forsikringsmessig dekkes eller ikke.
+
+344
+00:31:59,849 --> 00:32:03,849
+For det er jo ikke alt som skal forsikringsmessig dekkes,
+
+345
+00:32:03,849 --> 00:32:05,849
+og det er heller ikke alt som kan forsikringsmessig dekkes.
+
+346
+00:32:05,849 --> 00:32:09,849
+Og da må en, litt sånn som vi var inne på i sted,
+
+347
+00:32:09,849 --> 00:32:15,849
+på rådgivningssiden, se på om det er noe en kan gjøre her for å redusere muligheten for skader.
+
+348
+00:32:17,849 --> 00:32:19,849
+Kunnskap om økonomi og finans,
+
+349
+00:32:19,849 --> 00:32:22,849
+det tenker jeg også, det ligger jo i korta.
+
+350
+00:32:22,849 --> 00:32:28,849
+Skal du vurdere økonomiske tilbud, så må du jo ha en viss begrep om økonomi.
+
+351
+00:32:28,849 --> 00:32:33,849
+Og så har jeg vært inne på det her som går på liv og pensjon,
+
+352
+00:32:33,849 --> 00:32:38,849
+og er veldig knyttet til pensjon når det gjelder det her med sparing.
+
+353
+00:32:38,849 --> 00:32:43,849
+Så jeg skal ikke si noe mer om det nå.
+
+354
+00:32:43,849 --> 00:32:47,849
+Men det jeg har lyst til å legge litt vekt på,
+
+355
+00:32:47,849 --> 00:32:55,849
+det er at en må ha kunnskap om meglerhutsets rutiner og prosedyrer.
+
+356
+00:32:55,849 --> 00:32:58,849
+For det er jo veldig nært knyttet opp mot kompleks.
+
+357
+00:32:58,849 --> 00:33:00,849
+Og at du skal gjøre ting på en riktig måte,
+
+358
+00:33:00,849 --> 00:33:03,849
+at du skal dokumentere ting på en riktig måte.
+
+359
+00:33:03,849 --> 00:33:09,849
+For det å dokumentere det en gjør, er særdeles viktig innenfor meglerbransjen.
+
+360
+00:33:09,849 --> 00:33:13,849
+Sørge for at du kan dokumentere de prosessene du har hatt med kunderne,
+
+361
+00:33:13,849 --> 00:33:16,849
+dokumentere at du har gitt deg adekvate råd,
+
+362
+00:33:16,849 --> 00:33:22,849
+dokumentere at du har sørget for at du har fått den typen forsikringsdekning som du skal ha,
+
+363
+00:33:22,849 --> 00:33:27,849
+og dokumentere at kunden har foretatt egne valg basert på gode råd.
+
+364
+00:33:28,849 --> 00:33:35,849
+Og der vil jo meglerhusets interne instrukser være særdeles viktig,
+
+365
+00:33:35,849 --> 00:33:43,849
+for de vil fortelle deg hvordan du faktisk skal sørge for at den dokumentasjonen tas vare på.
+
+366
+00:33:43,849 --> 00:33:49,849
+Videre så går dette også på forhold knyttet til hvitvasking,
+
+367
+00:33:49,849 --> 00:33:54,849
+og det går i forhold til etikk og moral.
+
+368
+00:33:54,849 --> 00:33:57,849
+Og det skal jeg komme litt tilbake til senere.
+
+369
+00:33:58,849 --> 00:34:06,849
+Og til slutt, litt for å gi en overgang til neste seanse,
+
+370
+00:34:06,849 --> 00:34:13,849
+en må også ha kunnskap om forsikringsmegling herunder god forretningsskikk,
+
+371
+00:34:13,849 --> 00:34:18,849
+som tidligere gjerne ble kalt for god meglerskikk.
+
+372
+00:34:18,849 --> 00:34:22,849
+Men akkurat det skal jeg komme tilbake til i neste runde.
+
+373
+00:34:22,849 --> 00:34:42,670
+Da skal vi snakke litt om forsikringsmegling og etikk.
+
+374
+00:34:43,670 --> 00:34:46,670
+Og etikk er viktig i alle livets sammenhenger,
+
+375
+00:34:46,670 --> 00:34:51,670
+men selvfølgelig også når det gjelder forsikringsmegling.
+
+376
+00:34:51,670 --> 00:34:59,670
+I tidligere år så har en på autorisasjonsutdanningen snakket mye om god meglerskikk.
+
+377
+00:34:59,670 --> 00:35:06,670
+Det begrepet har ikke samme status lenger som det hadde tidligere.
+
+378
+00:35:06,670 --> 00:35:13,670
+For i forbindelse med arbeidet med ny forsikringsformidlingslov,
+
+379
+00:35:13,670 --> 00:35:18,670
+så så en forseg at den skulle utvide begrepet litt,
+
+380
+00:35:18,670 --> 00:35:26,670
+tilpasse dette litt til øvrig finanslovgivning.
+
+381
+00:35:26,670 --> 00:35:35,670
+Så det som departementet sa i forkant av beslutningen av ny forsikringsformidlingslov,
+
+382
+00:35:35,670 --> 00:35:41,670
+det er at de foreslår at det er lov å festes et overordnet krav,
+
+383
+00:35:41,670 --> 00:35:47,670
+til god forretningsskikk i ny forsikringsformidlingslov.
+
+384
+00:35:47,670 --> 00:35:50,670
+Mens det tidligere sto god meglerskikk.
+
+385
+00:35:50,670 --> 00:35:55,670
+Og det jeg sier videre, det er at i god forretningsskikk,
+
+386
+00:35:55,670 --> 00:35:59,670
+så ligger det også det her med god meglerskikk.
+
+387
+00:35:59,670 --> 00:36:05,670
+Altså det er tatt opp og tatt inn i god forretningsskikk.
+
+388
+00:36:05,670 --> 00:36:07,670
+Det er jo for så vidt to sider av samme sak,
+
+389
+00:36:07,670 --> 00:36:09,670
+men god forretningsskikk spenner jo litt bredere,
+
+390
+00:36:09,670 --> 00:36:13,670
+enn bare god meglerskikk.
+
+391
+00:36:13,670 --> 00:36:15,670
+Og det er litt enklere det også,
+
+392
+00:36:15,670 --> 00:36:21,670
+når man bruker de samme begrepene i ulike lovgivninger.
+
+393
+00:36:21,670 --> 00:36:26,670
+Og så sier jeg videre at når man skal vurdere hva som er god forretningsskikk,
+
+394
+00:36:26,670 --> 00:36:31,670
+så må man se på hva som er den alminnelige bransjeoppfatningen,
+
+395
+00:36:31,670 --> 00:36:35,670
+og rettsoppfatningen i samfunnet.
+
+396
+00:36:35,670 --> 00:36:38,949
+Og jeg presiserer videre,
+
+397
+00:36:38,949 --> 00:36:40,949
+at i god forretningsskikk,
+
+398
+00:36:40,949 --> 00:36:44,949
+så ligger det her med at en skal utøve virksomheten i samsvar
+
+399
+00:36:44,949 --> 00:36:47,949
+med ansvarlighet og integritet omfor kunder,
+
+400
+00:36:47,949 --> 00:36:51,949
+andre aktører og omverden.
+
+401
+00:36:51,949 --> 00:36:56,949
+Når vi da ser på hva en har skrevet i loven om forsikringsformidling,
+
+402
+00:36:56,949 --> 00:36:59,949
+så er det ikke veldig utdypet i sånn måte.
+
+403
+00:36:59,949 --> 00:37:02,949
+Her står det da at forsikringsformidlingsforetak
+
+404
+00:37:02,949 --> 00:37:07,949
+skal utøve sin virksomhet i samsvar med god forretningsskikk.
+
+405
+00:37:07,949 --> 00:37:08,949
+Og så kan jo en leite litt da,
+
+406
+00:37:08,949 --> 00:37:13,949
+etter å finne ut hva god forretningsskikk er for noe.
+
+407
+00:37:13,949 --> 00:37:15,949
+Og i forhold til forsikringsmegling,
+
+408
+00:37:15,949 --> 00:37:18,949
+så skal jeg hjelpe dere litt på vei.
+
+409
+00:37:18,949 --> 00:37:22,949
+Fordi at Norske Forsikringsmeglersforening,
+
+410
+00:37:22,949 --> 00:37:27,949
+som da er en forening for forsikringsmeglingsforetak i Norge,
+
+411
+00:37:27,949 --> 00:37:35,949
+de har jo da i lang tid gjort en veldig god jobb i forhold til det her.
+
+412
+00:37:35,949 --> 00:37:37,949
+Og det vi skal se litt på nå,
+
+413
+00:37:37,949 --> 00:37:45,949
+det er forsikringsmeglernes etiske retningslinjer.
+
+414
+00:37:45,949 --> 00:37:49,949
+Som nevnt, så sa jo departementet i dag at
+
+415
+00:37:49,949 --> 00:37:55,949
+bransjeoppfatning i forhold til god forretningsskikk er viktig.
+
+416
+00:37:55,949 --> 00:38:00,949
+Og hvem andre enn Norske Forsikringsmeglersforening
+
+417
+00:38:00,949 --> 00:38:05,949
+er det som er best til å danne bransjeoppfatninger
+
+418
+00:38:05,949 --> 00:38:06,949
+når det gjelder forsikringsmegler?
+
+419
+00:38:06,949 --> 00:38:15,949
+Norske Forsikringsmeglersforening har utarbeidet etiske retningslinjer
+
+420
+00:38:15,949 --> 00:38:18,949
+for forsikringsmegling.
+
+421
+00:38:18,949 --> 00:38:23,949
+Vi skal se litt nærmere på de etiske retningslinjene nå.
+
+422
+00:38:23,949 --> 00:38:28,949
+De retningslinjene er sist revidert i 2016.
+
+423
+00:38:28,949 --> 00:38:34,949
+Det betyr jo at det har ikke tatt opp i seg de nye lovgivningene
+
+424
+00:38:34,949 --> 00:38:37,949
+i forsikringsformidlingsloven,
+
+425
+00:38:37,949 --> 00:38:43,949
+heller IDD-direktivet, som dere har fått informasjon om tidligere.
+
+426
+00:38:43,949 --> 00:38:47,949
+Så de retningslinjene vi nå skal se på,
+
+427
+00:38:47,949 --> 00:38:50,949
+de er jo under revisjon.
+
+428
+00:38:50,949 --> 00:38:52,949
+Men når det er sagt,
+
+429
+00:38:52,949 --> 00:38:56,949
+jeg har ikke tro på at når de nye retningslinjene forligger,
+
+430
+00:38:56,949 --> 00:39:02,949
+så vil det være store endringer i forhold til den etiske røde linja
+
+431
+00:39:02,949 --> 00:39:06,949
+som ligger i de eksisterende etiske retningslinjene.
+
+432
+00:39:06,949 --> 00:39:10,949
+Så jeg tenker at det likevel er veldig betimelig at vi går gjennom det,
+
+433
+00:39:10,949 --> 00:39:17,949
+selv om det da skal komme noen nye retningslinjer ganske snart.
+
+434
+00:39:17,949 --> 00:39:21,949
+Når det gjelder Norske Forsikringsmeglersforening,
+
+435
+00:39:21,949 --> 00:39:26,949
+så er det jo slik at de fleste meglerhus i Norge
+
+436
+00:39:26,949 --> 00:39:30,949
+er jo medlem i denne foreningen.
+
+437
+00:39:30,949 --> 00:39:32,949
+Og så er det noen som ikke er medlem.
+
+438
+00:39:32,949 --> 00:39:36,949
+Men det er jo klart at når det store flertallet er medlemmer i en forening,
+
+439
+00:39:36,949 --> 00:39:38,949
+i en bransjeforening på denne måten her,
+
+440
+00:39:38,949 --> 00:39:42,949
+og en bransjeforening setter et sett med etiske retningslinjer,
+
+441
+00:39:42,949 --> 00:39:48,949
+så vil det nok være slik at det vil være en klar,
+
+442
+00:39:48,949 --> 00:39:57,949
+nærmest definisjon av hvordan bransjen oppfatter de reglene.
+
+443
+00:39:57,949 --> 00:39:59,949
+Bare å si litt om foreningen.
+
+444
+00:39:59,949 --> 00:40:01,949
+Bare å si litt om foreningens formål først.
+
+445
+00:40:01,949 --> 00:40:05,949
+Altså Norske Forsikringsmeglersforening har som formål
+
+446
+00:40:05,949 --> 00:40:08,949
+at de skal arbeide for å fremme medlemmens interesse
+
+447
+00:40:08,949 --> 00:40:11,949
+i forhold til det offentlige,
+
+448
+00:40:11,949 --> 00:40:13,949
+i forhold til forsikringsselskapene,
+
+449
+00:40:13,949 --> 00:40:18,949
+samt å bidra til å høyne standarden hos medlemmene og bransjen
+
+450
+00:40:18,949 --> 00:40:21,949
+til det beste for kundene og samfunnet for øvrig.
+
+451
+00:40:21,949 --> 00:40:24,949
+Og så har den også ved tekstfestet i paragraf 4
+
+452
+00:40:24,949 --> 00:40:28,949
+at medlemsforetak er forpliktet til å overholde norsk lov.
+
+453
+00:40:28,949 --> 00:40:32,949
+Det hadde jo for så vidt ikke meglerforeningen trengt å forpliktet det til,
+
+454
+00:40:32,949 --> 00:40:34,949
+for det er det allerede forpliktet til.
+
+455
+00:40:34,949 --> 00:40:39,949
+Men også foreningens vedtekter og etiske retningslinjer.
+
+456
+00:40:39,949 --> 00:40:43,949
+Det betyr jo at de etiske retningslinjene som vi skal kikke litt nærmere på,
+
+457
+00:40:43,949 --> 00:40:47,949
+medlemsforetakene i Norske Forsikringsmeglersforening
+
+458
+00:40:47,949 --> 00:40:49,949
+er forpliktet til å følge dem.
+
+459
+00:40:49,949 --> 00:40:53,949
+Andre megler som ikke er medlemmer i Norske Forsikringsmeglersforening
+
+460
+00:40:53,949 --> 00:40:57,949
+vil nok bli vurdert utifra det.
+
+461
+00:40:58,949 --> 00:41:01,949
+Det er samme retningslinjene.
+
+462
+00:41:01,949 --> 00:41:04,949
+La oss si det skulle komme til en eller annen sak
+
+463
+00:41:04,949 --> 00:41:09,949
+der det skulle bli stilt spørsmål ved handlingen til et meglerforetak.
+
+464
+00:41:09,949 --> 00:41:12,949
+Da er det, uten at jeg er jurist,
+
+465
+00:41:12,949 --> 00:41:17,949
+men da er det nok naturlig å tenke seg at retten blir lagt vekt på
+
+466
+00:41:17,949 --> 00:41:23,949
+hvordan bransjeforeninger har satt opp sine etiske retningslinjer.
+
+467
+00:41:23,949 --> 00:41:27,949
+Det er for så vidt en uttalelse som står for min egen regning,
+
+468
+00:41:27,949 --> 00:41:37,349
+men jeg tror at de fleste vil være enige om at det er en rimelig betraktning.
+
+469
+00:41:37,349 --> 00:41:41,349
+Norske Forsikringsmeglersforening snakker om god meglerskikk.
+
+470
+00:41:41,349 --> 00:41:46,349
+Jeg har vært inne på at det nå kalles god forretningsskikk.
+
+471
+00:41:46,349 --> 00:41:49,349
+Bare ha det i minnet.
+
+472
+00:41:49,349 --> 00:41:58,349
+Foreningen sier litt tilbake til forrige seanse at forsikringsmegleren har rollen som uavhengig mellommann,
+
+473
+00:41:58,349 --> 00:42:02,349
+som yter assistanse til private og offentlige virksomheter.
+
+474
+00:42:02,349 --> 00:42:06,349
+For at du skal gjøre det, eller når du gjør det,
+
+475
+00:42:06,349 --> 00:42:16,349
+så mener foreningen at du som megler skal følge det høyeste moralske og etiske standardet.
+
+476
+00:42:16,349 --> 00:42:23,349
+Da går vi rett og slett over på retningslinjene.
+
+477
+00:42:23,349 --> 00:42:26,349
+Her er innholdsfortegnelsen.
+
+478
+00:42:26,349 --> 00:42:32,349
+Nå kommer jeg til å vise noen bilder med ganske mye tekst på,
+
+479
+00:42:32,349 --> 00:42:35,349
+men jeg skal prøve å la være å lese opp alt for mye fra den teksten.
+
+480
+00:42:35,349 --> 00:42:41,349
+Jeg har da gjort litt av teksten grønn for å fokusere på noen områder.
+
+481
+00:42:41,349 --> 00:42:48,349
+Jeg skal heller ikke, selv om jeg i begynnelsen går konkret inn på hver en av bestemmelsene,
+
+482
+00:42:48,349 --> 00:42:54,349
+jeg skal ikke gjøre det hele veien ut, bare så det er sagt innledningsvis.
+
+483
+00:42:54,349 --> 00:42:55,349
+Som dere ser,
+
+484
+00:42:55,349 --> 00:43:02,349
+så er det da sju kapitler i de etiske retningslinjene i dag.
+
+485
+00:43:04,349 --> 00:43:07,349
+La oss først se litt på formålet.
+
+486
+00:43:07,349 --> 00:43:11,349
+Dette, tenker jeg, er ganske viktig å merke seg i.
+
+487
+00:43:11,349 --> 00:43:18,349
+Vi har snakket veldig mye om at den skal handle i kundens beste interesse som forsikringsmegler.
+
+488
+00:43:18,349 --> 00:43:21,349
+Det er vi selvfølgelig helt enige i.
+
+489
+00:43:21,349 --> 00:43:24,349
+Det kommer dere til å se i retningslinjene senere.
+
+490
+00:43:24,349 --> 00:43:34,349
+Men det er faktisk særdeles viktig å legge seg på minnet at du som megler skal være profesjonell,
+
+491
+00:43:34,349 --> 00:43:46,349
+og du skal også sørge for at din virksomhet utøves på en sånn måte at alle parters interesse blir ivaretatt på en forsvarlig måte.
+
+492
+00:43:46,349 --> 00:43:50,349
+Altså, du skal ikke drive med kobber i virksomhet.
+
+493
+00:43:50,349 --> 00:43:58,349
+Du skal ha respekt for alle partene i forretningssamarbeidet,
+
+494
+00:43:58,349 --> 00:44:03,349
+og sørge for at alle blir håndtert på en adepat og riktig måte.
+
+495
+00:44:03,349 --> 00:44:12,349
+Det betyr at du skal ikke presse noen til å gjøre noe som en ikke kan stå for.
+
+496
+00:44:12,349 --> 00:44:15,349
+En skal ha respekt for forretningspartene.
+
+497
+00:44:15,349 --> 00:44:18,349
+En skal for eksempel ha respekt for at et forsikringsselskap
+
+498
+00:44:18,349 --> 00:44:23,349
+ikke skal gjennomgående tape penger.
+
+499
+00:44:23,349 --> 00:44:26,349
+Så du må ikke presse deg inn i en sånn situasjon.
+
+500
+00:44:26,349 --> 00:44:33,349
+Jeg som jobber på livssiden tenker at de som er sikre i en bedrift, altså ansatte,
+
+501
+00:44:33,349 --> 00:44:38,349
+er også en part som en må ha et profesjonellt forhold til,
+
+502
+00:44:38,349 --> 00:44:42,349
+og sørge for at deres interesser blir ivaretatt på en forsvarlig måte.
+
+503
+00:44:42,349 --> 00:44:47,349
+Det betyr at når jeg skal rådgi en kunde rundt benefits for det ansatte,
+
+504
+00:44:47,349 --> 00:44:51,349
+så må jeg også se dette fra det ansatte siden,
+
+505
+00:44:51,349 --> 00:44:59,139
+og sørge for at de blir ivaretatt på en adekvat måte.
+
+506
+00:44:59,139 --> 00:45:06,420
+men i retningslinjene lagt til grunn noen grunnprinsipper om profesjonell utøvelse.
+
+507
+00:45:06,420 --> 00:45:11,099
+Og igjen over til denne grønnfarge teksten.
+
+508
+00:45:11,739 --> 00:45:17,819
+Altså en skal opptre redelig, korrekt og lojalt.
+
+509
+00:45:18,299 --> 00:45:21,159
+I utgangspunktet den største selvfølge.
+
+510
+00:45:21,759 --> 00:45:24,460
+Men naturligvis når du skal sette opp et sett med retningslinjer,
+
+511
+00:45:24,779 --> 00:45:27,639
+så er det viktig å presisere det.
+
+512
+00:45:27,639 --> 00:45:33,519
+Men den sier også at det her er viktig med hensyn til god meglerskikk,
+
+513
+00:45:33,519 --> 00:45:34,420
+god forretningsskikk.
+
+514
+00:45:34,639 --> 00:45:40,519
+Altså det her er jo ganske grunnleggende i god forretningsskikk, spør det meg.
+
+515
+00:45:40,980 --> 00:45:47,400
+Men det her har også en relasjon til bransjens omdømme og integritet.
+
+516
+00:45:48,539 --> 00:45:53,500
+Og det er klart at vi er jo en bransje der en lett kan få et rykte på seg
+
+517
+00:45:53,500 --> 00:45:56,059
+for å springe litt for fort.
+
+518
+00:45:56,059 --> 00:46:04,059
+Og dermed så er det da viktig at den forholder seg slik som standarden sier her.
+
+519
+00:46:05,359 --> 00:46:07,279
+Og så, som jeg var inne på i sted,
+
+520
+00:46:08,819 --> 00:46:12,420
+en skal jo da handle i sine kunders interesse.
+
+521
+00:46:15,039 --> 00:46:18,699
+En skal også, og det her har vi jo vært inne på,
+
+522
+00:46:19,099 --> 00:46:20,500
+så her gjenspeiler jeg jo bare retningslinjerne,
+
+523
+00:46:21,199 --> 00:46:24,239
+det som følger av lovgivninger og sund fornuft for øvrig.
+
+524
+00:46:24,500 --> 00:46:27,119
+En skal utføre sin virksomhet,
+
+525
+00:46:27,119 --> 00:46:32,619
+med den kompetanse, omhu, interesse og hurtighet som er nødvendig.
+
+526
+00:46:33,739 --> 00:46:39,199
+Så her stiller den da krav om at den faktisk skal ha en nødvendig kompetanse,
+
+527
+00:46:40,000 --> 00:46:42,460
+og at den skal hjelpe kundene på en god måte,
+
+528
+00:46:42,980 --> 00:46:46,940
+og at den skal også gjøre det innen en rimelig tid.
+
+529
+00:46:47,779 --> 00:46:55,920
+Så en stiller også noen kvalitetskrav til den virksomheten som en driver med.
+
+530
+00:46:55,920 --> 00:46:56,000
+Ja.
+
+531
+00:46:57,119 --> 00:46:58,599
+Det finner vi også i neste punkt,
+
+532
+00:46:59,000 --> 00:47:02,279
+som sier at den så effektivt skal benytte de ressurser og fremgangsmåter
+
+533
+00:47:02,279 --> 00:47:06,159
+som er nødvendige for å kunne utøve virksomheten på en god måte.
+
+534
+00:47:06,900 --> 00:47:11,159
+Altså, den sier her da at du skal, som meglert foretak,
+
+535
+00:47:11,859 --> 00:47:15,099
+faktisk sørge for at du har tilstrekkelig ressurser
+
+536
+00:47:15,099 --> 00:47:20,759
+til å utføre den jobben for kundene som du skal gjøre.
+
+537
+00:47:23,460 --> 00:47:27,159
+Og her er vi litt tilbake på det som jeg nevnte i sted,
+
+538
+00:47:27,159 --> 00:47:28,659
+med å samle inn informasjon.
+
+539
+00:47:29,039 --> 00:47:36,339
+Jeg nevnte det at det var en av de viktigste oppgavene du har som forsikringsmegler,
+
+540
+00:47:36,339 --> 00:47:37,940
+og jeg hadde jo for så vidt satt det først.
+
+541
+00:47:37,940 --> 00:47:41,279
+Og det er jo både fordi at det er særdeles viktig,
+
+542
+00:47:41,279 --> 00:47:46,119
+og fordi at det er jo ganske grunnleggende å begynne å starte med å samle inn informasjon.
+
+543
+00:47:46,119 --> 00:47:48,719
+Men også i de etiske retningslinjene,
+
+544
+00:47:48,719 --> 00:47:53,539
+så sier en det at et medlemsforetak, les forsikringsmegler,
+
+545
+00:47:53,539 --> 00:47:56,819
+skal sørge for å få de opplysninger om sin kundes virksomhet som er relevante for utførelsen av megler,
+
+546
+00:47:56,819 --> 00:47:57,819
+som er relevante for utførelsen av megler,
+
+547
+00:47:57,819 --> 00:47:58,819
+som er relevante for utførelsen av megler,
+
+548
+00:47:58,819 --> 00:47:59,819
+og som er relevante for utførelsen av megleroppdragene.
+
+549
+00:47:59,819 --> 00:48:00,819
+og som er relevante for utførelsen av megleroppdragene.
+
+550
+00:48:00,819 --> 00:48:03,819
+Altså her stiller en jo en plikt til deg som megler,
+
+551
+00:48:03,819 --> 00:48:08,819
+på å sørge for at du får den informasjonen du trenger,
+
+552
+00:48:08,819 --> 00:48:10,819
+for å kunne gjøre en god jobb i forhold til kunden.
+
+553
+00:48:10,819 --> 00:48:13,289
+for å kunne gjøre en god jobb i forhold til kunden.
+
+554
+00:48:13,289 --> 00:48:18,289
+Du kan jo naturligvis ikke tvinge kunden til å gi deg all mulig informasjon,
+
+555
+00:48:18,289 --> 00:48:21,289
+men du må stille deg riktige spørsmål da,
+
+556
+00:48:21,289 --> 00:48:28,289
+du må kunne dokumentere at du har foresatt deg undersøkelsene som er påkøvd,
+
+557
+00:48:28,289 --> 00:48:29,289
+at du skal gjøre,
+
+558
+00:48:29,289 --> 00:48:33,289
+for å kunne utføre jobben på en god måte.
+
+559
+00:48:33,289 --> 00:48:40,819
+Videre, og dette går på et tema som vi skal komme litt tilbake til etterpå,
+
+560
+00:48:40,819 --> 00:48:44,819
+et medlemsforetak, herunder også det er forsikringsmegler,
+
+561
+00:48:44,819 --> 00:48:48,819
+skal bestreve seg på at det ikke oppstår interessekonflikter.
+
+562
+00:48:48,819 --> 00:48:52,819
+Interessekonflikter er ikke noe som er ulovlig.
+
+563
+00:48:52,819 --> 00:48:56,819
+Interessekonflikter, det skal vi snakke mer om etterpå,
+
+564
+00:48:56,819 --> 00:49:01,819
+det er jo noe som gjerne vil oppstå,
+
+565
+00:49:01,819 --> 00:49:07,819
+men en må kunne bestreve seg på å forsøke å forhindre at det oppstår
+
+566
+00:49:07,819 --> 00:49:09,819
+i så stor grad som mulig,
+
+567
+00:49:09,819 --> 00:49:16,819
+og en må naturligvis når det oppstår håndtere det.
+
+568
+00:49:16,819 --> 00:49:25,130
+Videre så sier punkt fem her at en skal sørge for at foretakets kunder
+
+569
+00:49:25,130 --> 00:49:28,130
+og kundenes forsikringsgivere behandles rimelig og korrekt
+
+570
+00:49:28,130 --> 00:49:32,130
+i forhold til regler og retningslinjer som gjelder for forsikringsmegling.
+
+571
+00:49:33,130 --> 00:49:36,130
+Det er også en selvfølgelighet i seg selv.
+
+572
+00:49:36,130 --> 00:49:41,130
+Så kommer vi til neste punkt som også er ganske selvfølgelig, spør du meg,
+
+573
+00:49:41,130 --> 00:49:47,130
+men her sier en at et medlemsforetak skal følge reglene om tausesplikt
+
+574
+00:49:47,130 --> 00:49:51,130
+som for forsikringsforetak i finansforetaksloven.
+
+575
+00:49:51,130 --> 00:49:55,130
+Det betyr at du har tausesplikt enkelt og greit.
+
+576
+00:49:55,130 --> 00:50:01,130
+Ikke røp noe om dine kunder til andre.
+
+577
+00:50:01,130 --> 00:50:06,130
+Kun de som rettmessig skal ha den typen informasjon,
+
+578
+00:50:06,130 --> 00:50:09,130
+og som har behov for den.
+
+579
+00:50:09,130 --> 00:50:15,599
+Så beveger vi litt vekk fra oss og leser opp fra hver enkelt paragraf,
+
+580
+00:50:15,599 --> 00:50:19,599
+og heller har tatt noen sitat som følger av de øvrige paragrafene
+
+581
+00:50:19,599 --> 00:50:22,599
+i de etiske retningslinjene.
+
+582
+00:50:22,599 --> 00:50:27,599
+Og igjen så har jeg liksom grønnet ut det som jeg tenker er stikkorda her.
+
+583
+00:50:27,599 --> 00:50:32,599
+Og igjen så er det jo sånn at det her blir jo litt sånn repetitivt,
+
+584
+00:50:32,599 --> 00:50:35,599
+i forhold til det vi har snakket om tidligere.
+
+585
+00:50:35,599 --> 00:50:38,599
+Men det er viktig å understreke gjennom det her,
+
+586
+00:50:38,599 --> 00:50:46,599
+at de etiske retningslinjene poengterer det som vi tidligere har snakket om.
+
+587
+00:50:46,599 --> 00:50:51,599
+Foretak har ansvar for at oppdraget kan dokumenteres fullt ut.
+
+588
+00:50:51,599 --> 00:50:56,599
+Og det her med dokumentasjon, det er jo for så vidt en mare for oss som forsikringsmeglere,
+
+589
+00:50:56,599 --> 00:51:02,599
+men det er så utrolig viktig at du hele tiden sørger for å dokumentere
+
+590
+00:51:02,599 --> 00:51:04,599
+det du har gjort.
+
+591
+00:51:04,599 --> 00:51:08,599
+Når du driver med rådgivning, når du skal dekke risiko,
+
+592
+00:51:08,599 --> 00:51:13,599
+altså risiko for at det skjer ting, for eksempel relativt katastrofale ting,
+
+593
+00:51:13,599 --> 00:51:18,599
+så må du passe på at når du først har gjort jobben,
+
+594
+00:51:18,599 --> 00:51:21,599
+at du også dokumenterer at du har gjort jobben.
+
+595
+00:51:21,599 --> 00:51:26,599
+For hvis ikke, så vil noen på et senere tidspunkt kunne si at du gjorde ikke jobben,
+
+596
+00:51:26,599 --> 00:51:28,599
+selv om du faktisk har gjort den.
+
+597
+00:51:28,599 --> 00:51:32,599
+Og da kan du havne i et ansvar som du i grunn,
+
+598
+00:51:32,599 --> 00:51:34,599
+ikke skulle havne i.
+
+599
+00:51:34,599 --> 00:51:37,599
+I hvert fall foretaket.
+
+600
+00:51:37,599 --> 00:51:45,599
+Videre så er det jo klinkende klart at det å i en hver jobb da oppnå
+
+601
+00:51:45,599 --> 00:51:49,599
+personlige økonomiske fordeler, det er utenfor.
+
+602
+00:51:49,599 --> 00:51:56,599
+Og det samme er poengtert her i retningslinjene til Meglerforeningen.
+
+603
+00:51:56,599 --> 00:52:01,599
+Megler må ikke forsøke å oppnå megleroppdrag gjennom å yte eller stille utsikt
+
+604
+00:52:01,599 --> 00:52:03,599
+personlige økonomiske fordeler,
+
+605
+00:52:03,599 --> 00:52:07,599
+eller lignende for personer som opptrer på vegne av kunde.
+
+606
+00:52:07,599 --> 00:52:10,599
+For de fleste så vil jo dette være ganske selvfølgelig,
+
+607
+00:52:10,599 --> 00:52:14,599
+fordi at det vil jo faktisk være borte mot det vi kaller korrupsjon,
+
+608
+00:52:14,599 --> 00:52:18,599
+dersom det var slik at en skulle gi noen en eller annen form for gevinst,
+
+609
+00:52:18,599 --> 00:52:20,599
+hvis en da skulle få en kunde.
+
+610
+00:52:20,599 --> 00:52:28,599
+Samtidig så er det klart at dette er et tema som en må ta inn i et settende etiske retningslinjer.
+
+611
+00:52:28,599 --> 00:52:30,599
+Jeg skal ikke gå så veldig mye mer inn på det,
+
+612
+00:52:30,599 --> 00:52:35,599
+men jeg tenker at det er helt åpenbart at en skal ikke betale noen
+
+613
+00:52:35,599 --> 00:52:39,599
+for at de skal inngå et kundeforhold med deg.
+
+614
+00:52:39,599 --> 00:52:48,599
+Hvis en tenker at det er greit, så tenker jeg at da er dere ikke på rett plass her i dag.
+
+615
+00:52:48,599 --> 00:52:54,599
+Videre, og dette går jo på det som vi snakket om i stedet for kompetanse,
+
+616
+00:52:54,599 --> 00:52:59,599
+altså de etiske retningslinjene sier det at du skal faktisk ikke,
+
+617
+00:52:59,599 --> 00:53:04,599
+påta deg oppdrag der du ikke har den nødvendige kompetansen.
+
+618
+00:53:04,599 --> 00:53:13,099
+Altså du skal være voksen nok til å si at det her kan vi dessverre ikke hjelpe deg med.
+
+619
+00:53:13,099 --> 00:53:21,099
+Hvis det er situasjonen, så er det det absolutt riktige å gjøre.
+
+620
+00:53:21,099 --> 00:53:27,099
+Du kan jo heller hjelpe den kunden, eller potensielle kunden,
+
+621
+00:53:27,099 --> 00:53:29,099
+til å få god hjelp et annet sted.
+
+622
+00:53:29,099 --> 00:53:34,099
+Det står seg, og neste gang kunden trenger hjelp til noe som du kanskje kan hjelpe deg med,
+
+623
+00:53:34,099 --> 00:53:40,099
+så vet jeg at du er til å stole på, og vil da kanskje ta kontakt med deg igjen.
+
+624
+00:53:40,099 --> 00:53:50,980
+Jeg har stilt et spørsmål fra salen her som gikk på det at
+
+625
+00:53:50,980 --> 00:53:54,980
+hvis du da allerede har en kunde som kommer i en situasjon
+
+626
+00:53:54,980 --> 00:54:01,980
+der du skal rådgive kunden rundt et område der du faktisk ikke har den nødvendige kompetansen,
+
+627
+00:54:01,980 --> 00:54:04,980
+og kommentaren var videre at
+
+628
+00:54:04,980 --> 00:54:10,980
+i slike tilfeller så har den som ga kommentaren vanskelig for å se for seg at
+
+629
+00:54:10,980 --> 00:54:16,980
+en vil sende den kunden videre til en konkurrent.
+
+630
+00:54:16,980 --> 00:54:18,980
+Og det er jeg for så vidt enig i.
+
+631
+00:54:18,980 --> 00:54:24,980
+Men da finnes jo noen andre måter å forsøke å løse dette på.
+
+632
+00:54:24,980 --> 00:54:29,980
+Hvis du ikke har den nødvendige kompetansen, så kan du forsøke å skaffe den.
+
+633
+00:54:29,980 --> 00:54:33,980
+Og så kan det jo være at du ikke klarer det i rimelig tid.
+
+634
+00:54:34,980 --> 00:54:37,980
+Ja, da kan du jo eventuelt gå til en tredjepart,
+
+635
+00:54:37,980 --> 00:54:44,980
+forsøke å utkontraktere dersom kunden aksepterer det.
+
+636
+00:54:44,980 --> 00:54:50,980
+Så det finnes jo måter å løse det på, så du må jo ikke nødvendigvis sende en kunde ut døra.
+
+637
+00:54:50,980 --> 00:55:00,980
+Så jeg tenker at det må en håndtere i den enkelte situasjonen ut ifra hva den faktiske situasjonen er.
+
+638
+00:55:00,980 --> 00:55:02,980
+Og så er det et annet poeng her også da.
+
+639
+00:55:02,980 --> 00:55:06,980
+Hvis du som megler er den rådgiveren som jeg tenker at du bør være,
+
+640
+00:55:06,980 --> 00:55:09,980
+så er ikke dette noe som dukker opp over natta.
+
+641
+00:55:09,980 --> 00:55:12,980
+Dette her er noe som du vil møte i dialogen med kunden,
+
+642
+00:55:12,980 --> 00:55:15,980
+og faktisk kanskje ha litt tid til å forberede deg på.
+
+643
+00:55:15,980 --> 00:55:23,980
+Og dermed setter jeg i stand til å yte den nødvendige bistanden med den nødvendige kompetansen.
+
+644
+00:55:23,980 --> 00:55:30,420
+Det vil vise seg hva dere vil oppleve i fremtiden av den typen ting.
+
+645
+00:55:30,420 --> 00:55:32,420
+Videre så har vi dette med medarbeid.
+
+646
+00:55:32,420 --> 00:55:35,420
+Videre så har vi dette med diskriminering.
+
+647
+00:55:35,420 --> 00:55:40,420
+En kan ikke avvise kunder på grunn av etnisitet, religion eller livssyn,
+
+648
+00:55:40,420 --> 00:55:44,420
+eller andre utenforliggende hensyn.
+
+649
+00:55:44,420 --> 00:55:48,420
+Nå er jeg ikke noen jurist, så jeg skal ikke gå inn på dette med andre utenforliggende hensyn,
+
+650
+00:55:48,420 --> 00:55:50,420
+og vurderinger rundt det.
+
+651
+00:55:50,420 --> 00:55:54,420
+Men i et moderne samfunn, åpent demokratisk samfunn,
+
+652
+00:55:54,420 --> 00:56:00,420
+så er det klart at diskriminering på grunn av etnisitet, religion eller livssyn,
+
+653
+00:56:00,420 --> 00:56:05,420
+det er noe som man normalt sett ikke aksepterer.
+
+654
+00:56:05,420 --> 00:56:11,420
+Og det vil da være relativt enkelt å forholde seg til dette.
+
+655
+00:56:11,420 --> 00:56:17,420
+Men man har jo eksempler på situasjoner der bedrifter har gjort det.
+
+656
+00:56:17,420 --> 00:56:25,420
+Jeg husker jeg leste om et bakeri i USA som ikke ville bake kake til et homofilt par som skulle ha bryllup.
+
+657
+00:56:25,420 --> 00:56:28,420
+Så det er jo relevant å ha det med.
+
+658
+00:56:28,420 --> 00:56:31,420
+I retningslinjene.
+
+659
+00:56:31,420 --> 00:56:33,420
+Jeg vet ikke om det var det beste eksempelet, det finnes sikkert andre,
+
+660
+00:56:33,420 --> 00:56:37,420
+men jeg tok det jeg klarte å huske.
+
+661
+00:56:40,420 --> 00:56:44,420
+Så over til det her med dekningsbevis.
+
+662
+00:56:44,420 --> 00:56:48,420
+For der har de etiske retningslinjene et godt råd.
+
+663
+00:56:50,420 --> 00:56:53,420
+En sier det at foretaket, altså mengler,
+
+664
+00:56:53,420 --> 00:56:56,420
+må ikke utstyre dekningsbevis før dekningen er bekreftet
+
+665
+00:56:56,420 --> 00:56:58,420
+på en rettslig bindende måte av forhold.
+
+666
+00:56:58,420 --> 00:57:03,420
+Altså i dag så foregår jo veldig mye på telefon.
+
+667
+00:57:03,420 --> 00:57:09,420
+Og jeg selv har jo vært i mange situasjoner der jeg har snakket med forsikringsselskap,
+
+668
+00:57:09,420 --> 00:57:15,420
+og vi har blitt enige om at ok, denne kunden skal være dekket av denne og denne forsikringen,
+
+669
+00:57:15,420 --> 00:57:18,420
+fra og med for eksempel i morgen.
+
+670
+00:57:18,420 --> 00:57:27,420
+Det retningslinjene her sier, det er at du skal ikke bekrefte om for kunden,
+
+671
+00:57:27,420 --> 00:57:30,420
+at det er forsikringsmessig dekket,
+
+672
+00:57:30,420 --> 00:57:36,420
+før du selv fysisk har dokumentasjon fra forsikringsgiver på det.
+
+673
+00:57:36,420 --> 00:57:41,420
+Og det er jo for at du ikke skal komme i en situasjon der det likevel,
+
+674
+00:57:41,420 --> 00:57:45,420
+eller der forsikringsgiver likevel kommer i en situasjon og sier at
+
+675
+00:57:45,420 --> 00:57:48,420
+en har ikke forsikringsmessig dekning.
+
+676
+00:57:48,420 --> 00:57:52,420
+Og i og med at du da ikke kan dokumentere det, den telefonsamtalen,
+
+677
+00:57:52,420 --> 00:57:55,420
+ja, så har du kanskje en utfordring.
+
+678
+00:57:55,420 --> 00:57:59,420
+Jeg har selv et eksempel som er relativt ferskt,
+
+679
+00:57:59,420 --> 00:58:07,420
+der det var slik at jeg hadde en kunde som drev innenfor en,
+
+680
+00:58:07,420 --> 00:58:14,420
+det vi vil kalle for high risk operations i sin virksomhet,
+
+681
+00:58:14,420 --> 00:58:18,420
+og jeg hadde da fått et tilbud fra et forsikringsselskap
+
+682
+00:58:18,420 --> 00:58:22,420
+på en forsikringsdekning for den virksomheten.
+
+683
+00:58:22,420 --> 00:58:24,420
+Og,
+
+684
+00:58:25,420 --> 00:58:29,420
+fikk da plutselig en telefon fra forsikringsselskapet,
+
+685
+00:58:29,420 --> 00:58:33,420
+som på en eller annen merkelig grunn da,
+
+686
+00:58:33,420 --> 00:58:39,420
+først da hadde oppdaget hva denne bedriften eller denne organisasjonen faktisk drev med.
+
+687
+00:58:39,420 --> 00:58:43,420
+Og så sier det til meg det at stemmer det at dere virkelig driver med det her?
+
+688
+00:58:43,420 --> 00:58:46,420
+Og så sier jeg ja, det er en del av hovedvirksomheten her da.
+
+689
+00:58:46,420 --> 00:58:54,420
+Og da følger selskapet opp med å si at det her er så langt fra vår risikoappetitt.
+
+690
+00:58:55,420 --> 00:58:59,420
+Vi har ikke gjenforsikring på den typen virksomhet,
+
+691
+00:58:59,420 --> 00:59:08,149
+og vårt konsern er ikke interessert i å forsikre det her.
+
+692
+00:59:08,149 --> 00:59:14,149
+Og da har du en utfordring, eller en potensiell utfordring i hvert fall.
+
+693
+00:59:14,149 --> 00:59:24,149
+Som en liten digresjon da, så kan jeg jo si det at en av de tingene som jeg da møtte forsikringsgiver med,
+
+694
+00:59:24,149 --> 00:59:25,149
+det var det at jeg mente at det er vurdert risikoer,
+
+695
+00:59:25,149 --> 00:59:26,149
+det var det at jeg mente at det er vurdert risikoer,
+
+696
+00:59:26,149 --> 00:59:28,149
+og jeg vurderte risikoen feil.
+
+697
+00:59:28,149 --> 00:59:35,149
+Fordi at driver du med high-risk operations, så har du også high-risk awareness.
+
+698
+00:59:35,149 --> 00:59:44,149
+Og jeg prøvde meg på et litt sånn banalt eksempel der jeg sa det at hvis du som kontoransatt i en relativt rolig bedrift,
+
+699
+00:59:44,149 --> 00:59:48,149
+for eksempel et forsikringsselskap eller et forsikringsmeglerforetak,
+
+700
+00:59:48,149 --> 00:59:56,149
+skal gå ut på gata og besøke en, ikke ut på gata da, men gå ut for å dra til en kund,
+
+701
+00:59:56,149 --> 00:59:59,149
+så er det ikke slik at du har instrukser for at
+
+702
+00:59:59,149 --> 01:00:03,509
+at du skal gå på Forsthauet, at du ikke skal lese på telefonen mens du går bortover,
+
+703
+01:00:03,869 --> 01:00:08,229
+at du skal passere veien ved å gå over et fotgjengerovergang,
+
+704
+01:00:08,609 --> 01:00:12,569
+at du må se til begge sider før du går over fotgjengerovergangen, og så videre.
+
+705
+01:00:13,189 --> 01:00:17,269
+Mens innenfor den typen virksomhet som den kunden her dreier med,
+
+706
+01:00:17,969 --> 01:00:25,289
+så ligger det jo faktisk like guidelines for de high-risk operations som de driver med.
+
+707
+01:00:25,289 --> 01:00:34,989
+Så jeg forsøkte å dokumentere at det ikke var så risikabelt som de måtte mene,
+
+708
+01:00:35,169 --> 01:00:39,249
+selv om det hørtes veldig ille ut, og til slutt så ordnet det seg.
+
+709
+01:00:39,649 --> 01:00:45,409
+Men likevel, et eksempel på en situasjon som er reell, eller kan være reell,
+
+710
+01:00:45,589 --> 01:00:50,749
+der du faktisk kan havne i et vakuum ved at forsikringsselskapet begynner å trekke seg
+
+711
+01:00:50,749 --> 01:00:52,529
+i forhold til det jeg har sagt tidligere.
+
+712
+01:00:53,489 --> 01:00:55,269
+I det tilfellet her så får du...
+
+713
+01:00:55,269 --> 01:00:56,409
+Det er jo også et tilbud, da.
+
+714
+01:00:57,249 --> 01:01:02,529
+Så sannsett så ga det hjelp til å finne en god løsning.
+
+715
+01:01:03,529 --> 01:01:06,029
+Men uansett, det viktige budskapet her er
+
+716
+01:01:06,029 --> 01:01:10,649
+ikke dokumentere noe om for andre før du selv har dokumentasjon.
+
+717
+01:01:11,449 --> 01:01:15,209
+Det er budskapet, og det er det som ligger i retningslinjene.
+
+718
+01:01:16,989 --> 01:01:20,749
+Videre, så sier det etiske retningslinjene,
+
+719
+01:01:21,069 --> 01:01:24,989
+og det her tenker jeg at det også vil fremstå som den største selvfølgeligheten
+
+720
+01:01:24,989 --> 01:01:25,249
+for dokumentasjon.
+
+721
+01:01:25,269 --> 01:01:27,689
+Det er jo ikke nå, i hvert fall etter så langt i dag,
+
+722
+01:01:28,249 --> 01:01:32,189
+at du skal gi objektive og upartiske råd.
+
+723
+01:01:32,969 --> 01:01:37,389
+Det som skal stå i fokus er at kundens forsikringsbehov blir best mulig
+
+724
+01:01:37,389 --> 01:01:40,889
+ivaretatt av forsikringsløsning og forsikringsselskap.
+
+725
+01:01:41,509 --> 01:01:46,369
+Selv om du skal ha respekt for alle parter i kundforholdet,
+
+726
+01:01:47,049 --> 01:01:52,269
+så skal du ikke ta hensyn til forsikringsgivers interesser
+
+727
+01:01:52,269 --> 01:01:54,269
+når du skal utforme forsikringsløsning.
+
+728
+01:01:55,269 --> 01:01:57,729
+Du skal ikke ta hensyn til forsikringsløsningen til din kunde.
+
+729
+01:01:58,169 --> 01:02:00,829
+Det er kundens interesse som skal stå i fokus.
+
+730
+01:02:00,949 --> 01:02:02,609
+Det er de interessene du skal sikre,
+
+731
+01:02:02,969 --> 01:02:07,309
+men du skal selvfølgelig gjøre det med en respekt for motparten.
+
+732
+01:02:08,909 --> 01:02:18,699
+Du skal heller ikke favorisere forsikringsgiver av noen som helst årsaker.
+
+733
+01:02:19,219 --> 01:02:22,359
+Det står her i retningslinjen på grunn av egne inntekter eller andre grunner.
+
+734
+01:02:22,359 --> 01:02:26,359
+Det er ingen grunn til at du på noen som helst måte skal favorisere
+
+735
+01:02:27,059 --> 01:02:28,239
+en forsikringsselskap.
+
+736
+01:02:28,959 --> 01:02:32,979
+Da mener jeg ikke at hvis det er slik at et forsikringsselskap
+
+737
+01:02:32,979 --> 01:02:36,559
+fremstår som objektivt sett best, og at du da velger deg,
+
+738
+01:02:37,179 --> 01:02:38,159
+det er jo ikke favorisering.
+
+739
+01:02:38,599 --> 01:02:44,799
+Å favorisere noen er jo å gi deg en fordel som de ikke objektivt sett
+
+740
+01:02:44,799 --> 01:02:45,819
+nødvendigvis fortjener.
+
+741
+01:02:50,289 --> 01:02:53,609
+Det videre er slik at de etiske retningslinjene sier at
+
+742
+01:02:53,609 --> 01:02:57,849
+foretak eller megler må ikke gi eller mottage av hver fordel
+
+743
+01:02:57,849 --> 01:03:00,009
+eller rabatter eller tjenester av en slik karakter
+
+744
+01:03:00,009 --> 01:03:04,809
+at det kan være egnet til å skape et uheldig avhengighetsforhold
+
+745
+01:03:04,809 --> 01:03:08,509
+mellom forsikringsselskapet, foretaket eller megler.
+
+746
+01:03:08,509 --> 01:03:15,969
+Det her er jo noe som jeg også skal snakke litt om etterpå,
+
+747
+01:03:15,969 --> 01:03:19,169
+men som har vært en del i endring også gjennom de siste årene,
+
+748
+01:03:19,169 --> 01:03:21,469
+i hvert fall de årene jeg har jobbet i forsikringsbransjen.
+
+749
+01:03:21,469 --> 01:03:31,369
+Det er jo mange som har det klassiske utsagnet med at det som var vanlig i 1995,
+
+750
+01:03:31,669 --> 01:03:34,269
+det kan du bli fengslet på nå.
+
+751
+01:03:35,349 --> 01:03:39,849
+Verden forandrer seg, ting forandrer seg, så her må en også følge med.
+
+752
+01:03:40,169 --> 01:03:43,449
+Men igjen, vi kommer litt tilbake til det temaet senere.
+
+753
+01:03:46,169 --> 01:03:50,829
+Retningslinjene sier også, og det her er jo noe som også i det offentlige
+
+754
+01:03:50,829 --> 01:03:56,669
+er nedfelt i innkjøpsregelverket, mens i meglerbransjen så er det da
+
+755
+01:03:56,669 --> 01:03:58,929
+nedfelt i de etiske retningslinjene.
+
+756
+01:04:01,669 --> 01:04:06,669
+Hvis du må håndtere ting og få tilbud i forsikringsmarkedet,
+
+757
+01:04:06,669 --> 01:04:11,669
+så er det slik at du må sørge for, og det er du forpliktet til i en av de retningslinjene,
+
+758
+01:04:11,669 --> 01:04:16,169
+at forsikringsgiverne får all relevant informasjon.
+
+759
+01:04:16,169 --> 01:04:20,169
+Du kan ikke gi ekstra informasjon til noen.
+
+760
+01:04:20,169 --> 01:04:27,169
+Alle forsikringsgiverne som skal gi tilbud, må få all relevant informasjon.
+
+761
+01:04:27,169 --> 01:04:31,169
+Og den informasjonen som de får, må være lik, altså de må motta det samme,
+
+762
+01:04:31,169 --> 01:04:36,169
+og du har ikke anledning da, som vi har vært inne på tidligere også,
+
+763
+01:04:36,169 --> 01:04:39,169
+til å favorisere noen av dem.
+
+764
+01:04:39,169 --> 01:04:46,169
+Din jobb er å sørge for at forsikringsselskapene har det samme utgangspunktet
+
+765
+01:04:46,169 --> 01:04:51,169
+når de skal gi et tilbud til å løse et forsikringsbehov for din kunde.
+
+766
+01:04:51,169 --> 01:05:03,389
+Da skal jeg bevege meg vekk fra det som er innholdet i hvordan du skal agere
+
+767
+01:05:03,389 --> 01:05:05,389
+i de etiske retningslinjene.
+
+768
+01:05:05,389 --> 01:05:10,389
+Og så skal jeg snakke veldig kort, og det her blir relativt kort,
+
+769
+01:05:10,389 --> 01:05:15,389
+for det her er ikke mitt hovedområde, men jeg skal snakke veldig kort om etiske råd.
+
+770
+01:05:15,389 --> 01:05:19,389
+Og litt av grunnen til at jeg også tar det veldig kort, er jo fordi at
+
+771
+01:05:19,389 --> 01:05:23,389
+det er jo ikke helt klart hvordan det her kommer til å se ut etter at
+
+772
+01:05:23,389 --> 01:05:29,389
+retningslinjene til Norske Forsikringsmeglersforening blir operatert.
+
+773
+01:05:29,389 --> 01:05:35,389
+Men per i dag da, så er det slik at en har et etisk råd som er oppnemt av
+
+774
+01:05:35,389 --> 01:05:38,389
+styret i Norske Forsikringsmeglersforening.
+
+775
+01:05:38,389 --> 01:05:41,389
+Det har fire medlemmer.
+
+776
+01:05:41,389 --> 01:05:45,389
+Leder skal ha juridisk kompetanse.
+
+777
+01:05:45,389 --> 01:05:53,389
+Og det er øvrige medlemmene, de skal ha brei erfaring fra forsikringsmegling.
+
+778
+01:05:53,389 --> 01:06:01,389
+Og da er det vist nok slik at da kan en plukke folk fra styret i
+
+779
+01:06:01,389 --> 01:06:03,389
+Norske Forsikringsmeglersforening.
+
+780
+01:06:03,389 --> 01:06:06,389
+For der sitter det folk med brei erfaring.
+
+781
+01:06:06,389 --> 01:06:15,389
+Og dersom en kunde har noe å utsette på et medlemsforetak i
+
+782
+01:06:15,389 --> 01:06:23,389
+Norske Forsikringsmeglersforening, så kan det da klage til foreningen.
+
+783
+01:06:23,389 --> 01:06:27,389
+Og klagen skal da rettes til sekretariatet.
+
+784
+01:06:27,389 --> 01:06:31,389
+Men det er da etisk råd som behandler en slik klage.
+
+785
+01:06:33,389 --> 01:06:35,389
+En har en klagefrist.
+
+786
+01:06:35,389 --> 01:06:37,389
+En sier rimelig tid.
+
+787
+01:06:37,389 --> 01:06:42,389
+Og så sier den at det skal være senest ett år fra at kunden fikk kunnskap om
+
+788
+01:06:42,389 --> 01:06:45,389
+det forholdet som de vil klage på.
+
+789
+01:06:47,389 --> 01:06:54,389
+Og så har jo de retningslinjene her noen behandlingsregler for brydd på
+
+790
+01:06:54,389 --> 01:06:57,389
+de etiske retningslinjene.
+
+791
+01:06:57,389 --> 01:07:03,389
+Og uten å gå i detalj, så er det slik at det er etisk råd som,
+
+792
+01:07:03,389 --> 01:07:10,389
+vil vurdere og tolke og se på forståelsen av de etiske retningslinjene
+
+793
+01:07:10,389 --> 01:07:18,389
+for å komme fram til om det foreligger et brydd på deg eller ikke.
+
+794
+01:07:18,389 --> 01:07:25,389
+Og også se hen til om norsk lovgivning er overholdt i
+
+795
+01:07:25,389 --> 01:07:31,389
+medlemsforetakets virksomhet som klagen omhandler.
+
+796
+01:07:35,819 --> 01:07:45,819
+Rådet kan også behandle klager mot medlemsforetak som ikke er medlem av foreningen.
+
+797
+01:07:45,819 --> 01:07:51,819
+Men da må i tilfelle det forholdet som det klages over,
+
+798
+01:07:51,819 --> 01:07:58,819
+ha skjedd på et tidspunkt der medlemsforetaket var medlem av foreningen.
+
+799
+01:07:58,819 --> 01:08:06,419
+Det er også slik at etisk råd kan ta opp saker,
+
+800
+01:08:06,419 --> 01:08:10,419
+selv om det ikke foreligger klager.
+
+801
+01:08:10,419 --> 01:08:15,419
+Når en sak har vært opp til etisk råd og blitt vurdert,
+
+802
+01:08:15,419 --> 01:08:20,420
+så er det et spørsmål om hva etisk råd kan gjøre.
+
+803
+01:08:20,420 --> 01:08:25,420
+En har en egen bestemmelse om sanksjoner.
+
+804
+01:08:25,420 --> 01:08:34,420
+De sier at dersom etisk råd vurderer hvithen til at et medlemsforetak
+
+805
+01:08:34,420 --> 01:08:40,420
+ikke har håndtert en sak i henhold til de etiske retningslinjene,
+
+806
+01:08:40,420 --> 01:08:44,420
+så kan rådet komme med kritikk.
+
+807
+01:08:44,420 --> 01:08:47,420
+Eller, hvis de mener at tilfellet er grovt,
+
+808
+01:08:47,420 --> 01:08:51,420
+så kan det faktisk gi medlemsforetaket en bot på opp til
+
+809
+01:08:51,420 --> 01:08:56,420
+to ganger den årlige medlemskontingenten.
+
+810
+01:08:58,420 --> 01:09:04,420
+De kan også oversende saker til Finanstilsynet,
+
+811
+01:09:04,420 --> 01:09:07,420
+for videre behandling og forening.
+
+812
+01:09:07,420 --> 01:09:13,019
+Dersom et medlemsforetak er klaget inn,
+
+813
+01:09:13,019 --> 01:09:15,019
+og det blir bedt om opplysninger,
+
+814
+01:09:15,019 --> 01:09:19,019
+altså dersom etisk råd eller foreningen da ber om opplysninger
+
+815
+01:09:19,019 --> 01:09:22,019
+knyttet til den saken,
+
+816
+01:09:22,019 --> 01:09:30,019
+og medlemsforetaket da ikke følger opp det
+
+817
+01:09:30,019 --> 01:09:34,019
+innen rimelig tid og innen gitt frist,
+
+818
+01:09:34,019 --> 01:09:40,019
+så kan faktisk en også bli ilagt en bot.
+
+819
+01:09:43,019 --> 01:09:46,019
+Hvis ting har gått skikkelig, skikkelig galt,
+
+820
+01:09:46,019 --> 01:09:51,019
+så kan også rådet foreslå,
+
+821
+01:09:51,019 --> 01:09:55,019
+forstyre i Forsikringsmedlemsforeningen
+
+822
+01:09:55,019 --> 01:10:00,019
+at medlemsforetaket ekskluderes.
+
+823
+01:10:00,019 --> 01:10:10,349
+Da skal jeg forsøke meg på en,
+
+824
+01:10:10,349 --> 01:10:12,349
+litt sånn oppsummering,
+
+825
+01:10:12,349 --> 01:10:15,349
+i forhold til forsikringsmegling og etikk,
+
+826
+01:10:15,349 --> 01:10:20,349
+og kanskje spesielt det med god forretningsskikk.
+
+827
+01:10:20,349 --> 01:10:26,349
+Det er jo ikke en egen lov som heter god forretningsskikk i Norge.
+
+828
+01:10:26,349 --> 01:10:29,349
+Det er ikke en egen bok.
+
+829
+01:10:29,349 --> 01:10:34,349
+Det er jo sånn at skal en vurdere hva som er god forretningsskikk,
+
+830
+01:10:34,349 --> 01:10:39,349
+så må en søke informasjon mange eller flere.
+
+831
+01:10:39,349 --> 01:10:44,349
+Og som jeg skriver her,
+
+832
+01:10:44,349 --> 01:10:48,349
+god forretningsskikk er ikke statisk og enhetlig nedfelt regelverk,
+
+833
+01:10:48,349 --> 01:10:51,349
+men kan betraktes som summen av,
+
+834
+01:10:51,349 --> 01:10:54,349
+eller, ja, la oss kalle det summen av,
+
+835
+01:10:54,349 --> 01:10:59,349
+krav i relevant lov og regelverk.
+
+836
+01:10:59,349 --> 01:11:02,349
+Og da mener jeg ikke nødvendigvis bare
+
+837
+01:11:02,349 --> 01:11:05,349
+Forsikringsformidlingsloven og tilhørende forskrifter,
+
+838
+01:11:05,349 --> 01:11:08,349
+men vi har jo såvidt vært inne på Finansforetaksloven,
+
+839
+01:11:08,349 --> 01:11:10,349
+tidligere,
+
+840
+01:11:10,349 --> 01:11:13,349
+og selvfølgelig annen lovgivning.
+
+841
+01:11:13,349 --> 01:11:19,349
+Så her er det avhengig av den omstendigheten som du er i.
+
+842
+01:11:19,349 --> 01:11:24,349
+Så har vi, som vi nettopp har sett litt nærmere på,
+
+843
+01:11:24,349 --> 01:11:28,349
+altså forsikringsmeglene etiske retningslinje,
+
+844
+01:11:28,349 --> 01:11:33,349
+som da inneholder en del spesifikke krav til hva som skal anses som,
+
+845
+01:11:33,349 --> 01:11:36,349
+eller kan anses som god forretningsskikk.
+
+846
+01:11:36,349 --> 01:11:39,349
+I hvert fall så har jeg hevdet at jeg mener det at
+
+847
+01:11:39,349 --> 01:11:44,349
+det her vil være utgangspunktet for en bransjestandard.
+
+848
+01:11:44,349 --> 01:11:48,349
+Og en bransjestandard vil ha veldig stor påvirkning
+
+849
+01:11:48,349 --> 01:11:51,349
+i forhold til hva som er rettsoppfatningen rundt
+
+850
+01:11:51,349 --> 01:11:54,349
+hvordan en skal agere, og hva som vil være god forretningsskikk
+
+851
+01:11:54,349 --> 01:11:56,349
+i den bransjen.
+
+852
+01:11:56,349 --> 01:12:02,629
+En må se på avgjørelser i domstolene,
+
+853
+01:12:02,629 --> 01:12:05,629
+altså tidligere saker som har vært oppe.
+
+854
+01:12:05,629 --> 01:12:06,629
+Statt?
+
+855
+01:12:06,629 --> 01:12:14,629
+De vil jo kunne definere noen bestemmelser.
+
+856
+01:12:14,629 --> 01:12:20,629
+Finanstilsynet, Finansdepartementet, Etisk Råd,
+
+857
+01:12:20,629 --> 01:12:22,629
+som vi nettopp snakket om,
+
+858
+01:12:22,629 --> 01:12:25,629
+andre offisielle instanser,
+
+859
+01:12:25,629 --> 01:12:30,629
+kan også ha kommet med vedtak, fortolkninger eller uttalelser
+
+860
+01:12:30,629 --> 01:12:34,629
+som det kan være betydelig å forholde seg til når en skal vurdere
+
+861
+01:12:34,629 --> 01:12:37,629
+hva som er god forretningsskikk.
+
+862
+01:12:40,629 --> 01:12:46,629
+Meglerforetakets egne retningslinjer og etiske prinsipper.
+
+863
+01:12:48,629 --> 01:12:52,629
+Jeg vil anta at i det aller aller aller aller fleste tilfeller
+
+864
+01:12:52,629 --> 01:12:55,629
+så vil det være fullt ut i samsvar med både lovgivning
+
+865
+01:12:55,629 --> 01:12:58,629
+og med de etiske retningslinjene som påligger
+
+866
+01:12:58,629 --> 01:13:01,629
+i Forsikringsmegleres forening.
+
+867
+01:13:01,629 --> 01:13:02,629
+Det vil også være veldig lett tilgjengelig for dere,
+
+868
+01:13:02,629 --> 01:13:05,629
+fordi at det finnes innomhus.
+
+869
+01:13:05,629 --> 01:13:12,629
+Og for de som er knyttet til store internasjonale meglerforetak,
+
+870
+01:13:12,629 --> 01:13:16,629
+så vil jeg legge til grunn at det alltid vil være
+
+871
+01:13:16,629 --> 01:13:19,629
+veldig stort fokus på det her.
+
+872
+01:13:19,629 --> 01:13:23,629
+Jeg har selv jobbet i to store internasjonale meglerforetak,
+
+873
+01:13:23,629 --> 01:13:25,629
+og i begge de meglerforetakene så har jeg oppfattet at
+
+874
+01:13:25,629 --> 01:13:27,629
+det her er det veldig stort fokus på,
+
+875
+01:13:27,629 --> 01:13:30,629
+ikke bare nasjonalt i Norge, men også internasjonalt,
+
+876
+01:13:30,629 --> 01:13:35,629
+og at jeg har fått ganske godt med informasjon om det her
+
+877
+01:13:35,629 --> 01:13:37,629
+i forbindelse med tiltredelser,
+
+878
+01:13:37,629 --> 01:13:40,629
+og også underløpende arbeidsforhold.
+
+879
+01:13:40,629 --> 01:13:43,629
+Og det tror jeg dere vil oppleve også.
+
+880
+01:13:43,629 --> 01:13:47,629
+Jeg vil bare anbefale dere at når dere da får den muligheten,
+
+881
+01:13:47,629 --> 01:13:50,629
+som det er til å være med på det her,
+
+882
+01:13:50,629 --> 01:13:52,629
+og mulighet til å lese om det,
+
+883
+01:13:52,629 --> 01:13:55,629
+at den faktisk gjør det, fordi at det her er viktig
+
+884
+01:13:55,629 --> 01:13:59,629
+for hvordan du skal opptre når du skal utføre
+
+885
+01:13:59,629 --> 01:14:02,629
+jobben din.
+
+886
+01:14:02,629 --> 01:14:04,629
+Og alminnelig bransjeoppfatning og rettsoppfatning,
+
+887
+01:14:04,629 --> 01:14:05,629
+det har vi jo vært litt innom,
+
+888
+01:14:05,629 --> 01:14:07,629
+og det henger jo for så vidt sammen med de punktene
+
+889
+01:14:07,629 --> 01:14:09,629
+som er over her også.
+
+890
+01:14:09,629 --> 01:14:15,629
+Og så tenker jeg at du kommer veldig langt
+
+891
+01:14:15,629 --> 01:14:17,629
+med sunn fornuft.
+
+892
+01:14:17,629 --> 01:14:21,629
+Bruk sunn fornuft i hverdagen.
+
+893
+01:14:21,629 --> 01:14:24,629
+Og så er det jo mange som har en liten leveregel
+
+894
+01:14:24,629 --> 01:14:28,629
+som går på at dersom du blir stilt om for en situasjon,
+
+895
+01:14:28,629 --> 01:14:31,629
+der du er i tvil om hva du skal gjøre,
+
+896
+01:14:31,629 --> 01:14:33,629
+om det er riktig å gjøre det eller ikke,
+
+897
+01:14:33,629 --> 01:14:37,629
+og du er i tvil om hva andre vil tenke rundt det du gjør,
+
+898
+01:14:37,629 --> 01:14:38,629
+om det er riktig eller ikke.
+
+899
+01:14:38,629 --> 01:14:42,629
+Altså i sånne tilfeller, hvis du har litt tvil,
+
+900
+01:14:42,629 --> 01:14:46,629
+så tenker jeg det at det er veldig fornuftig å la være.
+
+901
+01:14:46,629 --> 01:14:51,629
+I hvert fall inntil du har undersøkt hvordan du faktisk skal håndtere.
+
+902
+01:14:51,629 --> 01:14:54,629
+Så jeg tenker at når det gjelder god forretningsskikk,
+
+903
+01:14:54,629 --> 01:14:56,629
+så ikke ta noen sjanser,
+
+904
+01:14:56,629 --> 01:14:58,629
+men hva er sånn?
+
+905
+01:14:58,629 --> 01:15:04,629
+Bruk synd og fornuft, forholde deg til de reglene du kjenner til og så videre.
+
+906
+01:15:04,629 --> 01:15:06,629
+Og er du i tvil, så snakk med noen.
+
+907
+01:15:06,629 --> 01:15:14,629
+Snakk med din leder, snakk med compliance eller legal eller juridisk i din virksomhet.
+
+908
+01:15:14,629 --> 01:15:16,629
+De er der for å hjelpe deg.
+
+909
+01:15:16,629 --> 01:15:33,129
+Hei og velkommen til modul 3 i autorisasjonsutdanningen for forsikringsmeglere.
+
+910
+01:15:33,129 --> 01:15:37,129
+Mitt navn er Thor Olsen.
+
+911
+01:15:37,129 --> 01:15:45,129
+Jeg kommer fra Marsh McLennan AS, der jeg har jobbet som rådgiver og forsikringsmegler i ca. 10 år.
+
+912
+01:15:45,129 --> 01:15:52,129
+Tidligere har jeg også jobbet hos andre meglerforetak og hos forsikringsselskapet.
+
+913
+01:15:52,129 --> 01:15:55,129
+Og med meg har jeg Otto Færvik.
+
+914
+01:15:55,129 --> 01:16:03,129
+Jeg jobber også i Marsh McLennan Company som forsikringsmegler og kunderådgiver innenfor alle områder av skadeforsikring.
+
+915
+01:16:03,129 --> 01:16:06,129
+Det har jeg gjort nesten i 35 år.
+
+916
+01:16:06,129 --> 01:16:11,129
+Men har jobbet innenfor bransjer som marin, aviation og skadeforsikringer.
+
+917
+01:16:11,129 --> 01:16:16,129
+Det er det som mest er av mulighetene der. Og reossuranser på toppen av det hele.
+
+918
+01:16:16,129 --> 01:16:20,109
+Så det er min erfaring.
+
+919
+01:16:20,109 --> 01:16:28,109
+Det vi skal gjøre i dag, det er at vi skal forsøke å se litt praktisk på forsikringsmeglerrollen.
+
+920
+01:16:28,109 --> 01:16:33,109
+Vi skal snakke litt om hva en forsikringsmegler er for noe.
+
+921
+01:16:33,109 --> 01:16:37,109
+Og hva som må til for at du skal kunne drive med forsikringsmegler.
+
+922
+01:16:38,109 --> 01:16:46,109
+Vi skal se litt på den etiske siden av det å drive forsikringsmegling.
+
+923
+01:16:46,109 --> 01:16:54,109
+Jeg og Otto skal snakke litt sammen om mulige interessekonflikter.
+
+924
+01:16:54,109 --> 01:16:57,109
+Og hvordan man eventuelt kan håndtere det.
+
+925
+01:16:57,109 --> 01:17:04,109
+Og på slutten av dagen skal vi også ta for oss noen spesifikke temaer.
+
+926
+01:17:04,109 --> 01:17:14,109
+Relatert til det å være forsikringsmegler og håndtere kunder.
+
+927
+01:17:14,109 --> 01:17:21,709
+Da skal vi snakke litt mer om interessekonflikter.
+
+928
+01:17:21,709 --> 01:17:28,709
+Som rådgiver og forsikringsmegler i samhandling med kunder.
+
+929
+01:17:28,709 --> 01:17:33,709
+Og i samhandling med forsikringsselskap og eventuelt andre aktører.
+
+930
+01:17:33,709 --> 01:17:43,709
+Så er det slik at du vil helt sikkert oppleve interessekonflikter på den ene eller andre måten.
+
+931
+01:17:43,709 --> 01:17:50,709
+Og hvis vi skal forsøke oss på å si hva er i grunn av en interessekonflikt.
+
+932
+01:17:50,709 --> 01:17:56,709
+Så har vi et forsøk på definisjon på plansjen her.
+
+933
+01:17:56,709 --> 01:18:01,709
+Det er en situasjon der minst to interesser konkurrerer.
+
+934
+01:18:01,709 --> 01:18:04,709
+Eller kan konkurrere med hverandre.
+
+935
+01:18:04,709 --> 01:18:12,709
+Og der den ene av interessene helt eller delvis kan gå på bekostning av en annen interesse.
+
+936
+01:18:12,709 --> 01:18:19,409
+Når det gjelder forsikringsmegling så er det en typisk situasjon.
+
+937
+01:18:19,409 --> 01:18:26,409
+Det er jo der megler har en plikt til å handle i kundens beste interesse.
+
+938
+01:18:26,409 --> 01:18:32,409
+Men at det kanskje får ligge forhold som kan motivere.
+
+939
+01:18:32,409 --> 01:18:39,409
+Til at ikke alle handlinger nødvendigvis er i kundens beste interesse.
+
+940
+01:18:39,409 --> 01:18:47,749
+Forsikringsmeglere, foretak, er forpliktet til å jobbe med det her.
+
+941
+01:18:47,749 --> 01:18:51,749
+De skal identifisere og håndtere interessekonflikter som oppstår.
+
+942
+01:18:51,749 --> 01:18:58,749
+Eller som kan forventes å oppstå i forbindelse med forsikringsmeglingen.
+
+943
+01:18:58,749 --> 01:19:01,749
+Og det her er også.
+
+944
+01:19:01,749 --> 01:19:09,749
+Det her er også da spesifisert omtalt i lov om forsikringsformidling.
+
+945
+01:19:09,749 --> 01:19:17,749
+Og i paragraf 9.3 så har en bestemmelse om styring og håndtering av interessekonflikter.
+
+946
+01:19:17,749 --> 01:19:21,749
+Og interessekonflikter er jo ikke noe som er ulovlig.
+
+947
+01:19:21,749 --> 01:19:24,749
+Altså interessekonflikter er jo noe som kan oppstå.
+
+948
+01:19:24,749 --> 01:19:30,749
+Og ikke bare kan oppstå, men som erfaringsmessig vil oppstå fra tid til annet.
+
+949
+01:19:31,749 --> 01:19:34,749
+Og da er det jo et spørsmål om hvordan en skal.
+
+950
+01:19:34,749 --> 01:19:38,749
+For det første sørge for at det ikke oppstår så veldig ofte.
+
+951
+01:19:38,749 --> 01:19:42,749
+Og for det andre håndter det når det faktisk oppstår.
+
+952
+01:19:42,749 --> 01:19:55,749
+Og lovgiver har sagt at en skal være oppbygd og organisert slik at interessekonflikter begrenses til et minimum.
+
+953
+01:19:55,749 --> 01:20:00,749
+Han har også gjennom lovgivningen sagt at megleren.
+
+954
+01:20:00,749 --> 01:20:13,219
+Pliktet å treffe alle egnede tiltak for å identifisere eller håndtere interessekonflikter.
+
+955
+01:20:13,219 --> 01:20:18,219
+Og i den graden da er ikke nødvendigvis klar til å unngå det.
+
+956
+01:20:18,219 --> 01:20:22,219
+Eller nødvendigvis klar til å håndtere det på en supergod måte.
+
+957
+01:20:22,219 --> 01:20:29,219
+Ja, så har en forpliktelse i forhold til å informere kunden om mulige interessekonflikter.
+
+958
+01:20:29,219 --> 01:20:31,219
+Og om de tiltakene som en har.
+
+959
+01:20:32,219 --> 01:20:34,219
+Gjennomført.
+
+960
+01:20:34,219 --> 01:20:36,219
+Og myndighetene.
+
+961
+01:20:36,219 --> 01:20:43,219
+De kan komme inn og forespørre om hvordan meglerhuset har håndtert dette.
+
+962
+01:20:43,219 --> 01:20:51,219
+Og da må jo meglerhuset dokumentere hvilke mulige interessekonflikter de ser for seg.
+
+963
+01:20:51,219 --> 01:20:56,219
+Og hvilke tiltak en har gjennomført for å forebygge dette.
+
+964
+01:20:56,219 --> 01:21:00,219
+Og da forstår vi også hvordan en skal håndtere det.
+
+965
+01:21:00,219 --> 01:21:03,689
+Nå.
+
+966
+01:21:03,689 --> 01:21:14,689
+Nå skal jeg og Otto forsøke å ha en liten samtale om mulige og aktuelle interessekonflikter.
+
+967
+01:21:14,689 --> 01:21:23,689
+Og jeg kan si med en gang at dette blir jo ikke en samtale der vi liksom lister opp alle de interessekonfliktene du kan møte som megler.
+
+968
+01:21:23,689 --> 01:21:27,689
+Og kommer med en fasit på hvordan du skal løse det.
+
+969
+01:21:27,689 --> 01:21:31,689
+Dette er mer en løs samtale om noen eksempler.
+
+970
+01:21:31,689 --> 01:21:34,689
+Litt løse eksempler.
+
+971
+01:21:34,689 --> 01:21:41,689
+Og noen alternative måter å håndtere det på.
+
+972
+01:21:41,689 --> 01:21:48,689
+Og vi har valgt noen temaer som vi tenker kan være relevant i forhold til vår virksomhet.
+
+973
+01:21:48,689 --> 01:21:51,689
+Og det første, Otto.
+
+974
+01:21:51,689 --> 01:21:52,689
+Det er provisjon.
+
+975
+01:21:52,689 --> 01:21:53,689
+Det er provisjon.
+
+976
+01:21:53,689 --> 01:21:55,689
+Det er jo et, spesielt for Norge.
+
+977
+01:21:55,689 --> 01:21:59,689
+For Norge er et av de få land i verden som har innført et forbud mot provisjon på visse deler av formidlerne.
+
+978
+01:21:59,689 --> 01:22:00,689
+Det er jo et spesielt for Norge. For Norge er et av de få land i verden som har innført et forbud mot provisjon på visse deler av formidlerne.
+
+979
+01:22:00,689 --> 01:22:28,689
+Det er jo et spesielt for Norge.
+
+980
+01:22:28,689 --> 01:22:31,189
+veldig enkelt. Det er en håndteringsløsning
+
+981
+01:22:31,189 --> 01:22:33,209
+som enkelt er rett og slett informasjon.
+
+982
+01:22:33,549 --> 01:22:34,709
+Og det går igjennom alle
+
+983
+01:22:34,709 --> 01:22:37,069
+interessekonfliktene til å informere
+
+984
+01:22:37,069 --> 01:22:39,169
+sin kunde om hvorledes
+
+985
+01:22:39,169 --> 01:22:40,329
+markedet virker.
+
+986
+01:22:40,669 --> 01:22:42,849
+Hvor man har lov til å tjene kommisjon, og hvor man
+
+987
+01:22:42,849 --> 01:22:44,789
+ikke har lov. Og regulere det
+
+988
+01:22:44,789 --> 01:22:46,149
+i sine samarbeidsavtaler.
+
+989
+01:22:46,869 --> 01:22:48,749
+Da har man i grunnen, det er det du kan gjøre.
+
+990
+01:22:50,169 --> 01:22:51,009
+Så det du sier
+
+991
+01:22:51,009 --> 01:22:52,189
+er at en skal alltid
+
+992
+01:22:52,189 --> 01:22:54,629
+informere på forhånd?
+
+993
+01:22:54,789 --> 01:22:56,729
+Helst på forhånd, og helst i
+
+994
+01:22:56,729 --> 01:22:58,529
+en samarbeidsavtale som de fleste
+
+995
+01:22:58,529 --> 01:23:00,909
+meglere har, som regulerer det juridiske
+
+996
+01:23:00,909 --> 01:23:02,609
+mellom kunden og megleren.
+
+997
+01:23:03,329 --> 01:23:04,789
+Og det er jo klart at det er litt spesielt
+
+998
+01:23:04,789 --> 01:23:06,929
+dette med provisjoner, for det er jo
+
+999
+01:23:06,929 --> 01:23:08,889
+merkelig at forsikringsselskapene
+
+1000
+01:23:08,889 --> 01:23:10,489
+skal betale megleren for
+
+1001
+01:23:10,489 --> 01:23:11,789
+å rådgive kunden.
+
+1002
+01:23:12,609 --> 01:23:14,749
+Det er jo liksom motsatt. Og det har vært en av grunnene
+
+1003
+01:23:14,749 --> 01:23:16,549
+til at det ble innført provisjonsforbudet
+
+1004
+01:23:16,549 --> 01:23:18,789
+i sin tid i Norge. Bare for åpenhet
+
+1005
+01:23:18,789 --> 01:23:20,089
+og transparanse i
+
+1006
+01:23:20,089 --> 01:23:22,649
+markedet. Men dette er jo
+
+1007
+01:23:22,649 --> 01:23:24,649
+greit nok i Norge, men skal man være megler
+
+1008
+01:23:24,649 --> 01:23:26,469
+så skal man jo ut og eventuelt plassere
+
+1009
+01:23:26,469 --> 01:23:28,469
+forsikring i utlandet, og der vil jo man også kunne
+
+1010
+01:23:28,469 --> 01:23:30,509
+få kommisjoner, eller provisjoner
+
+1011
+01:23:30,509 --> 01:23:32,329
+som det heter. Så det hele tatt
+
+1012
+01:23:32,329 --> 01:23:34,409
+så går det ut på å informere kunden hvor
+
+1013
+01:23:34,409 --> 01:23:36,489
+tjener man, og har man avtale om
+
+1014
+01:23:36,489 --> 01:23:38,389
+å returnere kommisjonen, så gjør man jo det.
+
+1015
+01:23:39,009 --> 01:23:40,309
+Men det viktigste rett og slett er
+
+1016
+01:23:40,309 --> 01:23:42,609
+å få dette avklart på forhånd
+
+1017
+01:23:42,609 --> 01:23:44,389
+og så ta dialogen med kunden etter hvert
+
+1018
+01:23:44,389 --> 01:23:46,189
+som man er i markedet innhentet tilbud
+
+1019
+01:23:46,189 --> 01:23:48,309
+og belyse hvor man tjener og ikke tjener
+
+1020
+01:23:48,309 --> 01:23:57,679
+kommisjonen. Da har vi fått et spørsmål
+
+1021
+01:23:57,679 --> 01:23:59,599
+fra salen. Det har blitt
+
+1022
+01:23:59,599 --> 01:24:00,699
+bedt om en presisering.
+
+1023
+01:24:01,619 --> 01:24:03,479
+Er det riktig forstått at det er slik
+
+1024
+01:24:03,479 --> 01:24:05,559
+at det er et provisjonsforbud
+
+1025
+01:24:05,559 --> 01:24:07,379
+som hovedregel i Norge?
+
+1026
+01:24:07,879 --> 01:24:09,519
+Men hvis du plasserer en forsikring
+
+1027
+01:24:09,519 --> 01:24:11,559
+i et utenlandsk forsikringsselskap
+
+1028
+01:24:11,559 --> 01:24:13,179
+så
+
+1029
+01:24:13,179 --> 01:24:15,239
+er det faktisk mulig
+
+1030
+01:24:15,239 --> 01:24:17,579
+å også motta provisjon i Norge?
+
+1031
+01:24:18,219 --> 01:24:19,619
+Nei, faktisk det er det ikke.
+
+1032
+01:24:20,119 --> 01:24:21,419
+Plasserer du forsikringen i et
+
+1033
+01:24:21,419 --> 01:24:23,219
+utenlandsk forsikringsselskap direkte
+
+1034
+01:24:23,219 --> 01:24:25,499
+så har ikke du lov til å motta kommisjonen
+
+1035
+01:24:25,499 --> 01:24:27,439
+på den plasseringen heller. Med unntak
+
+1036
+01:24:27,439 --> 01:24:29,199
+dette er omfattet av
+
+1037
+01:24:29,199 --> 01:24:31,719
+det defineres som luftfart, eller marin
+
+1038
+01:24:31,719 --> 01:24:33,399
+energi, eller det er en
+
+1039
+01:24:33,399 --> 01:24:36,999
+reasseranseavtale. Så det må man
+
+1040
+01:24:36,999 --> 01:24:38,619
+være spesifikk på når man
+
+1041
+01:24:38,619 --> 01:24:40,759
+forhandler forsikringen på benet sine kunder.
+
+1042
+01:24:40,919 --> 01:24:42,819
+Det er jo når man går utenlands at man også
+
+1043
+01:24:42,819 --> 01:24:44,139
+følger de norske reglene.
+
+1044
+01:24:48,769 --> 01:24:50,629
+Da tenker jeg at vi kan ta for oss
+
+1045
+01:24:50,629 --> 01:24:52,649
+tematikken rundt noe som
+
+1046
+01:24:52,649 --> 01:24:54,329
+etter hvert har blitt ganske vanlig hos
+
+1047
+01:24:54,329 --> 01:24:55,609
+forsikringsmeglere.
+
+1048
+01:24:56,489 --> 01:24:58,829
+Og for så vidt også andre aktører i markedet.
+
+1049
+01:24:58,909 --> 01:25:00,349
+Men nå er det jo forsikringsmeglere vi skal
+
+1050
+01:25:00,349 --> 01:25:02,749
+fokusere på. Det her med bruk
+
+1051
+01:25:02,749 --> 01:25:04,769
+av innkjøpsfellesskap.
+
+1052
+01:25:06,769 --> 01:25:08,749
+Det er jo ikke så uvanlig,
+
+1053
+01:25:08,769 --> 01:25:09,489
+at vi også
+
+1054
+01:25:09,489 --> 01:25:13,169
+oppretter såkalt pre-broked solutions,
+
+1055
+01:25:13,349 --> 01:25:15,249
+altså ferdig forhandlet
+
+1056
+01:25:15,249 --> 01:25:16,989
+løsninger for
+
+1057
+01:25:16,989 --> 01:25:18,669
+meglerforetakets
+
+1058
+01:25:18,669 --> 01:25:20,629
+kunder. Det er en tiltredende
+
+1059
+01:25:20,629 --> 01:25:22,949
+portefølje som allerede er
+
+1060
+01:25:22,949 --> 01:25:24,409
+meglet.
+
+1061
+01:25:25,589 --> 01:25:26,089
+For å si det sånn.
+
+1062
+01:25:26,309 --> 01:25:27,929
+Og sånne løsninger vil jo
+
+1063
+01:25:27,929 --> 01:25:30,369
+i en del tilfeller
+
+1064
+01:25:30,369 --> 01:25:32,229
+faktisk kunne medføre
+
+1065
+01:25:32,229 --> 01:25:34,309
+noen inntekter til megler
+
+1066
+01:25:34,309 --> 01:25:36,269
+for å håndtere
+
+1067
+01:25:36,269 --> 01:25:38,269
+slike innkjøpsløsninger.
+
+1068
+01:25:38,769 --> 01:25:40,629
+Ser du for deg
+
+1069
+01:25:40,629 --> 01:25:42,709
+noen
+
+1070
+01:25:42,709 --> 01:25:44,989
+mulige
+
+1071
+01:25:44,989 --> 01:25:46,109
+interessekonflikter
+
+1072
+01:25:46,109 --> 01:25:48,169
+ved bruk av den typen
+
+1073
+01:25:48,169 --> 01:25:49,129
+innkjøpsløsninger?
+
+1074
+01:25:49,129 --> 01:25:51,409
+Ja, det er jo helt klart at hvis meglerne har
+
+1075
+01:25:51,409 --> 01:25:54,229
+fremforhandlet ferdige løsninger
+
+1076
+01:25:54,229 --> 01:25:55,729
+med enkelte forsikringsfellesskaper
+
+1077
+01:25:55,729 --> 01:25:58,209
+og mottar der, eller kan fakturere
+
+1078
+01:25:58,209 --> 01:25:59,529
+ekstra inntekter på
+
+1079
+01:25:59,529 --> 01:26:01,989
+å bruke de, så vil de jo klart måtte
+
+1080
+01:26:01,989 --> 01:26:03,789
+informere kunden om det når de
+
+1081
+01:26:03,789 --> 01:26:05,729
+tar et valg. Så det vil jo være
+
+1082
+01:26:05,729 --> 01:26:07,469
+normalt for en megler som har en
+
+1083
+01:26:07,469 --> 01:26:08,549
+fremforhandlet innkjøpsferdighet,
+
+1084
+01:26:08,769 --> 01:26:10,569
+eller en fasilitet, som det heter,
+
+1085
+01:26:11,149 --> 01:26:13,129
+at han vil måle
+
+1086
+01:26:13,129 --> 01:26:15,069
+dette tilbudet fra denne fasiliteten
+
+1087
+01:26:15,069 --> 01:26:16,949
+opp mot et markedstilbud.
+
+1088
+01:26:17,349 --> 01:26:19,009
+Slik at kunden kan komme med
+
+1089
+01:26:19,009 --> 01:26:21,449
+en rådgivning om hva som er
+
+1090
+01:26:21,449 --> 01:26:22,229
+best for kunden.
+
+1091
+01:26:23,089 --> 01:26:24,969
+Men også informere kunden om at
+
+1092
+01:26:24,969 --> 01:26:26,229
+på dette
+
+1093
+01:26:26,229 --> 01:26:28,869
+innkjøpsfellesskapet, så er det
+
+1094
+01:26:28,869 --> 01:26:31,029
+kostnader som blir dekket av
+
+1095
+01:26:31,029 --> 01:26:33,349
+forsikringsfellesskapet
+
+1096
+01:26:33,349 --> 01:26:35,089
+som kan komme til
+
+1097
+01:26:35,089 --> 01:26:36,169
+meglerens inntekt.
+
+1098
+01:26:37,529 --> 01:26:38,609
+Så det du sier,
+
+1099
+01:26:38,769 --> 01:26:40,749
+at jo, det er jo greit
+
+1100
+01:26:40,749 --> 01:26:42,729
+at den kan komme
+
+1101
+01:26:42,729 --> 01:26:45,169
+i en potensiell interessekonflikt,
+
+1102
+01:26:45,249 --> 01:26:46,249
+men løsningen på det
+
+1103
+01:26:46,249 --> 01:26:48,429
+er jo at den synliggjør
+
+1104
+01:26:48,429 --> 01:26:49,189
+alle økonomier.
+
+1105
+01:26:49,189 --> 01:26:51,109
+Nok en gang, informasjonsplikten er der,
+
+1106
+01:26:51,109 --> 01:26:52,289
+og det gjelder jo
+
+1107
+01:26:52,289 --> 01:26:55,389
+agenturer også. I Norge er det ikke
+
+1108
+01:26:55,389 --> 01:26:57,129
+lovlig at forsikringsmeglerne
+
+1109
+01:26:57,129 --> 01:26:59,189
+eier egne forsikringsfellesskap
+
+1110
+01:26:59,189 --> 01:27:00,489
+eller såkalt agenturer,
+
+1111
+01:27:01,029 --> 01:27:02,589
+men de er jo veldig normalt i utlandet.
+
+1112
+01:27:03,649 --> 01:27:05,169
+Og nok en gang, så er det jo bare
+
+1113
+01:27:05,169 --> 01:27:06,749
+å informere kunden om at
+
+1114
+01:27:06,749 --> 01:27:08,529
+ja, dette er et, et,
+
+1115
+01:27:08,769 --> 01:27:10,669
+et agentur, og eller dette er et,
+
+1116
+01:27:11,289 --> 01:27:12,889
+et, en fasilitet som er
+
+1117
+01:27:12,889 --> 01:27:15,309
+eid av megleren, og vanligvis
+
+1118
+01:27:15,309 --> 01:27:17,009
+så vil jo også kostnader
+
+1119
+01:27:17,009 --> 01:27:18,969
+som blir, når man benytter seg
+
+1120
+01:27:18,969 --> 01:27:20,469
+av disse agenturene, de vil jo også bli
+
+1121
+01:27:20,469 --> 01:27:22,869
+forelagt kunden slik at han kan måle
+
+1122
+01:27:22,869 --> 01:27:25,129
+dette opp mot et tilbud fra et vanlig
+
+1123
+01:27:25,129 --> 01:27:27,369
+markedsforsikringsfellesskap.
+
+1124
+01:27:28,109 --> 01:27:29,089
+La oss bevege
+
+1125
+01:27:29,089 --> 01:27:30,869
+oss litt over på et
+
+1126
+01:27:30,869 --> 01:27:33,369
+nytt, en ny potensiell
+
+1127
+01:27:33,369 --> 01:27:35,169
+interessekonflikt,
+
+1128
+01:27:35,569 --> 01:27:36,729
+Otto. Altså,
+
+1129
+01:27:37,329 --> 01:27:38,749
+Norge er jo et litt land, så, så,
+
+1130
+01:27:38,769 --> 01:27:40,449
+det her er jo noe som en lett kan,
+
+1131
+01:27:40,449 --> 01:27:42,689
+kan komme inn i. Altså, et
+
+1132
+01:27:42,689 --> 01:27:44,789
+meglerforetak kan jo ha flere kunder
+
+1133
+01:27:44,789 --> 01:27:46,669
+innenfor samme
+
+1134
+01:27:46,669 --> 01:27:48,829
+bransje. Og da
+
+1135
+01:27:48,829 --> 01:27:50,589
+kan en vel komme i den situasjonen
+
+1136
+01:27:50,589 --> 01:27:52,669
+av det arbeidet som en gjør i forhold til
+
+1137
+01:27:52,669 --> 01:27:53,809
+å løse
+
+1138
+01:27:53,809 --> 01:27:56,109
+forsikringsbehovet til en kunde,
+
+1139
+01:27:56,669 --> 01:27:58,429
+kan ha konkurransemessige
+
+1140
+01:27:58,429 --> 01:27:59,269
+konsekvenser
+
+1141
+01:27:59,269 --> 01:28:02,429
+i forhold til andre kunder som
+
+1142
+01:28:02,429 --> 01:28:03,329
+meglerforetaket har
+
+1143
+01:28:03,329 --> 01:28:05,809
+i samme
+
+1144
+01:28:05,809 --> 01:28:08,709
+bransje. Helt klart, for de fleste,
+
+1145
+01:28:08,769 --> 01:28:11,069
+forsikringsmeglere, de spesialiserer
+
+1146
+01:28:11,069 --> 01:28:13,129
+seg jo innenfor bransjene. Og det er jo klart
+
+1147
+01:28:13,129 --> 01:28:14,629
+at hvis man for eksempel
+
+1148
+01:28:14,629 --> 01:28:16,489
+fremforhandler for en av sine kunder
+
+1149
+01:28:16,489 --> 01:28:18,509
+kjempegode, skal vi si,
+
+1150
+01:28:18,589 --> 01:28:20,229
+forsikringsløsninger som gir
+
+1151
+01:28:20,229 --> 01:28:22,629
+denne kunden et konkurransefortrinn
+
+1152
+01:28:22,629 --> 01:28:24,669
+i det åpne markedet, så vil jo ikke denne
+
+1153
+01:28:24,669 --> 01:28:26,929
+kunden ønske at dette systemet
+
+1154
+01:28:26,929 --> 01:28:28,429
+eller denne løsningen blir tilgitt
+
+1155
+01:28:28,429 --> 01:28:30,729
+til andre som de konkurrerer
+
+1156
+01:28:30,729 --> 01:28:32,789
+med. For eksempel driver man
+
+1157
+01:28:32,789 --> 01:28:34,629
+og forsikrer to flyselskaper
+
+1158
+01:28:34,629 --> 01:28:36,269
+og man klarer for det ene flyselskapet
+
+1159
+01:28:36,269 --> 01:28:38,569
+å fremforhandle løsninger, forsikring som gir
+
+1160
+01:28:38,569 --> 01:28:40,629
+dem en stor besparelse, så vil
+
+1161
+01:28:40,629 --> 01:28:42,649
+jo kanskje ikke de løsningene, de vil jo ikke
+
+1162
+01:28:42,649 --> 01:28:44,709
+det at de tilfaller den andre konkurrenten.
+
+1163
+01:28:45,449 --> 01:28:46,989
+Hvordan løser man det? Jo, da må man
+
+1164
+01:28:46,989 --> 01:28:48,669
+overgjennet på det vi
+
+1165
+01:28:48,669 --> 01:28:50,629
+definerer som vi kaller Chinese Walls,
+
+1166
+01:28:51,049 --> 01:28:52,509
+man må rett og slett dele opp
+
+1167
+01:28:52,509 --> 01:28:54,629
+kundebehandlingen internt i forsikringsmeglerhuset
+
+1168
+01:28:56,069 --> 01:28:56,769
+og sørge for
+
+1169
+01:28:56,769 --> 01:28:58,529
+at ikke denne
+
+1170
+01:28:58,529 --> 01:29:00,689
+informasjonen flyter fra den ene
+
+1171
+01:29:00,689 --> 01:29:02,629
+til den andre. Alternativet
+
+1172
+01:29:02,629 --> 01:29:04,289
+har vi også sett i markedet at visse
+
+1173
+01:29:04,289 --> 01:29:06,349
+store bedrifter sier at
+
+1174
+01:29:06,349 --> 01:29:08,369
+hvis en megler å håndtere min
+
+1175
+01:29:08,569 --> 01:29:10,449
+forretning, så vil jeg ikke at dere skal håndtere
+
+1176
+01:29:10,449 --> 01:29:11,949
+mine konkurrenters forretning.
+
+1177
+01:29:12,989 --> 01:29:14,269
+Slik har vi sett det innenfor
+
+1178
+01:29:14,269 --> 01:29:16,449
+krusbransjen og aviationbransjen, at folk har
+
+1179
+01:29:16,449 --> 01:29:18,309
+valgt vekk. De sier at dere får
+
+1180
+01:29:18,309 --> 01:29:20,769
+representere oss, men derfor dere ikke representerer
+
+1181
+01:29:20,769 --> 01:29:21,649
+for eksempel noen andre.
+
+1182
+01:29:22,629 --> 01:29:24,429
+Det er en måte kunden faktisk har
+
+1183
+01:29:24,429 --> 01:29:26,309
+løst det for oss meglere på.
+
+1184
+01:29:26,589 --> 01:29:28,589
+Hvis ikke må man internt sørge
+
+1185
+01:29:28,589 --> 01:29:30,569
+for at man holder informasjonen
+
+1186
+01:29:31,589 --> 01:29:32,149
+for seg selv.
+
+1187
+01:29:32,629 --> 01:29:33,549
+Hvilket ikke er veldig lett.
+
+1188
+01:29:35,329 --> 01:29:36,669
+Du har jo også tilsvarende
+
+1189
+01:29:36,669 --> 01:29:38,129
+situasjoner kanskje når du er i
+
+1190
+01:29:38,569 --> 01:29:40,069
+byggensprosesser.
+
+1191
+01:29:41,649 --> 01:29:43,069
+La oss si at en bedrift skal
+
+1192
+01:29:43,069 --> 01:29:44,709
+kjøpe opp en annen, så skal man
+
+1193
+01:29:44,709 --> 01:29:46,949
+vurdere hvordan forsikring
+
+1194
+01:29:46,949 --> 01:29:49,109
+og pensjon og så videre er innrettet
+
+1195
+01:29:49,109 --> 01:29:51,569
+og hvilke forpliktelser
+
+1196
+01:29:51,569 --> 01:29:52,749
+som ligger i det.
+
+1197
+01:29:53,269 --> 01:29:53,789
+Hvis du da
+
+1198
+01:29:53,789 --> 01:29:56,949
+er megler for begge aktørene,
+
+1199
+01:29:57,629 --> 01:29:58,169
+så
+
+1200
+01:29:58,169 --> 01:30:01,329
+Kan det kanskje anbefales at den håndterer det?
+
+1201
+01:30:01,329 --> 01:30:04,129
+Har man ikke for eksempel internt i meglehuset
+
+1202
+01:30:04,129 --> 01:30:05,889
+forskjellige avdelinger som kan håndtere det,
+
+1203
+01:30:05,949 --> 01:30:07,309
+så må man av og til avslå oppdraget.
+
+1204
+01:30:07,789 --> 01:30:08,789
+Det er en løsning også.
+
+1205
+01:30:09,509 --> 01:30:10,669
+Det liker jo ingen å gjøre,
+
+1206
+01:30:11,089 --> 01:30:14,209
+men det er en mulighet å avslå oppdraget.
+
+1207
+01:30:15,249 --> 01:30:17,549
+Hvis man er stor nok som forsikringsmegler,
+
+1208
+01:30:17,629 --> 01:30:19,769
+så kan man delegere det oppdraget til en annen avdeling
+
+1209
+01:30:19,769 --> 01:30:21,709
+eller et annet selskap i et annet land,
+
+1210
+01:30:22,549 --> 01:30:23,269
+som ofte skjer.
+
+1211
+01:30:24,309 --> 01:30:26,229
+Meglerne jobber jo på kryss og tvers,
+
+1212
+01:30:26,229 --> 01:30:30,489
+og har jo denne daglige konflikten,
+
+1213
+01:30:30,809 --> 01:30:32,009
+interessekonflikten,
+
+1214
+01:30:32,489 --> 01:30:35,769
+og representerer flere som konkurrerer mot hverandre.
+
+1215
+01:30:36,829 --> 01:30:41,469
+Da er det viktig at man har interne retningslinjer
+
+1216
+01:30:41,469 --> 01:30:42,749
+for hvorledes man løser det.
+
+1217
+01:30:43,469 --> 01:30:44,669
+Det er ikke vanskelig,
+
+1218
+01:30:44,769 --> 01:30:46,329
+men det må legges til rette for det
+
+1219
+01:30:46,329 --> 01:30:47,489
+i hvert enkelt meglerhus.
+
+1220
+01:30:49,129 --> 01:30:50,649
+Og kanskje dokumentere sånn?
+
+1221
+01:30:50,789 --> 01:30:52,949
+Og dokumentere sånn for kun at man faktisk har
+
+1222
+01:30:53,669 --> 01:30:54,929
+muligheter for det vi kan kalle
+
+1223
+01:30:54,929 --> 01:30:57,829
+å ha systematisert Chinese Walls.
+
+1224
+01:30:58,769 --> 01:31:01,249
+Tidligere i dag så har vi jo snakket litt om det her
+
+1225
+01:31:01,249 --> 01:31:06,329
+med personlige økonomiske vinst og den typen ting.
+
+1226
+01:31:07,489 --> 01:31:08,589
+Og det er jo en grunn til det.
+
+1227
+01:31:09,029 --> 01:31:12,389
+Det er også en mulig interessekonflikt, Otto,
+
+1228
+01:31:12,549 --> 01:31:15,049
+altså, men hvor går grensen?
+
+1229
+01:31:15,289 --> 01:31:16,569
+Og det kan jo diskuteres lenge,
+
+1230
+01:31:16,789 --> 01:31:19,569
+men det er klart at personlige fordeler
+
+1231
+01:31:19,569 --> 01:31:20,989
+på den ene eller andre måten
+
+1232
+01:31:20,989 --> 01:31:23,989
+gir grovbund for potensielle interessekonflikter.
+
+1233
+01:31:24,929 --> 01:31:28,269
+Og som sagt, det her endrer seg over tid,
+
+1234
+01:31:28,789 --> 01:31:32,029
+men vi har jo det her typiske med wine and dine,
+
+1235
+01:31:32,209 --> 01:31:34,149
+deltakelse på sosiale arrangementer,
+
+1236
+01:31:34,389 --> 01:31:39,249
+gaver og premier, reiser, tilbud og så videre.
+
+1237
+01:31:40,809 --> 01:31:43,409
+Og ikke minst det her med at du faktisk
+
+1238
+01:31:43,409 --> 01:31:46,829
+gjennom kundforholdet kan få inside information.
+
+1239
+01:31:48,429 --> 01:31:51,389
+Hva bør meglerhus gjøre for å håndtere
+
+1240
+01:31:51,389 --> 01:31:54,709
+denne type potensielle interessekonflikter?
+
+1241
+01:31:54,929 --> 01:32:00,749
+Ja, det som vi har sagt om å motta gaver,
+
+1242
+01:32:00,749 --> 01:32:04,909
+motta fordeler eller som godt norsk heter smøringskulturen,
+
+1243
+01:32:04,909 --> 01:32:07,329
+har jo endret seg i bransjen de siste årene.
+
+1244
+01:32:07,329 --> 01:32:09,969
+Som vi sa tidligere her, at det du blir dømt for
+
+1245
+01:32:09,969 --> 01:32:14,429
+for ti år siden, eller det du blir dømt for i dag,
+
+1246
+01:32:14,429 --> 01:32:15,769
+blir du i hvert fall ikke dømt for
+
+1247
+01:32:15,769 --> 01:32:17,369
+for ti år siden i denne bransjen.
+
+1248
+01:32:17,369 --> 01:32:18,569
+Og det gjelder jo alle bransjer,
+
+1249
+01:32:18,569 --> 01:32:21,049
+det gjelder shipping-bransjen, det gjelder skipsmeglere,
+
+1250
+01:32:21,049 --> 01:32:23,749
+det gjelder ikke minst har vi sett på idrettsbransjen også,
+
+1251
+01:32:23,749 --> 01:32:24,749
+hvor man har faktisk fått en
+
+1252
+01:32:24,749 --> 01:32:28,829
+dom, hvor et menneske er blitt dømt i norsk rettssystem
+
+1253
+01:32:28,829 --> 01:32:32,569
+for å ha mottatt gaver og smøring som har påvirket valg.
+
+1254
+01:32:32,569 --> 01:32:34,749
+Og det gjelder akkurat det samme i forsikringsmegling.
+
+1255
+01:32:34,749 --> 01:32:38,189
+Her gjelder det å ha en klar retningslinje internt.
+
+1256
+01:32:38,189 --> 01:32:40,309
+Som vi sier, Gifts and Entertainment Guidelines
+
+1257
+01:32:40,309 --> 01:32:43,329
+på godt norsk og engelsk, det må bare legges ned.
+
+1258
+01:32:43,329 --> 01:32:45,709
+Og så må man rett og slett, som du har sagt tidligere,
+
+1259
+01:32:45,709 --> 01:32:49,829
+om interessekonflikter brukes unn fornuft.
+
+1260
+01:32:49,829 --> 01:32:54,449
+Så det er et problem, men jeg tror at
+
+1261
+01:32:54,749 --> 01:32:58,909
+i de fleste bransjer nå, så er dette ryddet ganske godt oppi,
+
+1262
+01:32:58,909 --> 01:33:02,269
+og folk forstår hvor grensene går.
+
+1263
+01:33:02,269 --> 01:33:08,869
+Ja, og er du i tvil, så snakk med din leder eller HR.
+
+1264
+01:33:08,869 --> 01:33:12,789
+Vi har noen andre potensielle konstellasjoner
+
+1265
+01:33:12,789 --> 01:33:14,669
+i forhold til interessekonflikter.
+
+1266
+01:33:14,669 --> 01:33:20,029
+Altså, det finnes jo innenfor vår bransje tilfeller
+
+1267
+01:33:20,029 --> 01:33:24,389
+der en megler faktisk kan representere både en kunde
+
+1268
+01:33:24,389 --> 01:33:26,549
+og et forsikringsselskap.
+
+1269
+01:33:26,549 --> 01:33:33,269
+Kan du si litt mer om hvilke type situasjoner det kan være?
+
+1270
+01:33:33,269 --> 01:33:37,869
+Kundene, altså meglerne, de vil da representere kunden
+
+1271
+01:33:37,869 --> 01:33:40,789
+for å kjøpe forsikring, og så samtidig representerer du
+
+1272
+01:33:40,789 --> 01:33:42,109
+forsikringsselskapet.
+
+1273
+01:33:42,109 --> 01:33:44,589
+Så du får jo klart din interessekonflikt.
+
+1274
+01:33:44,589 --> 01:33:47,469
+Da vil man på den ene siden gjerne at all forretning
+
+1275
+01:33:47,469 --> 01:33:49,469
+blir plassert med det forsikringsselskapet
+
+1276
+01:33:49,469 --> 01:33:51,229
+du som megler representerer.
+
+1277
+01:33:51,229 --> 01:33:54,309
+For det vil jo gi ekstra inntekter, og det vil gi inntekter.
+
+1278
+01:33:54,389 --> 01:33:58,789
+De fleste megler-selskap er jo strukturert slik at
+
+1279
+01:33:58,789 --> 01:34:02,669
+dette gjerne er to dataselskaper som kjører sine egne
+
+1280
+01:34:02,669 --> 01:34:08,949
+forretningshandler for seg selv, men vi ser av og til
+
+1281
+01:34:08,949 --> 01:34:14,269
+at på enkelt risikimarkedet så kan da altså den samme
+
+1282
+01:34:14,269 --> 01:34:17,469
+megler som håndterer kunden også håndtere det vi kaller
+
+1283
+01:34:17,469 --> 01:34:20,269
+en fakultativ reassuranse på risikoen.
+
+1284
+01:34:20,269 --> 01:34:23,509
+Risikoen er så stor at det enkelte selskapet ikke kan ta
+
+1285
+01:34:23,509 --> 01:34:24,349
+100 prosent.
+
+1286
+01:34:24,389 --> 01:34:29,229
+Man trenger faktisk å avlaste risikoen, så kan megleren
+
+1287
+01:34:29,229 --> 01:34:31,749
+gå ut og gjøre dette for ham, og da har vi en situasjon
+
+1288
+01:34:31,749 --> 01:34:36,109
+hvor faktisk megleren har lov til å tjene reassuransekommisjon
+
+1289
+01:34:36,109 --> 01:34:38,109
+ifølge loven og retningslinjene.
+
+1290
+01:34:38,109 --> 01:34:41,109
+Og igjen så er det jo bare å informere kunden om at nettopp
+
+1291
+01:34:41,109 --> 01:34:42,109
+dette skjer.
+
+1292
+01:34:42,109 --> 01:34:46,709
+Har man i avtalen med kunden ferdig forhandlet retningslinjer
+
+1293
+01:34:46,709 --> 01:34:50,109
+og måter megleren skal betales på, så er det greit.
+
+1294
+01:34:50,109 --> 01:34:52,909
+Men det viktigste er at man faktisk forteller kunden om at
+
+1295
+01:34:52,909 --> 01:34:54,229
+det er det som kan skje.
+
+1296
+01:34:54,389 --> 01:34:58,029
+Og det er det gjerne man ser på fakultativ reassuranse.
+
+1297
+01:34:58,029 --> 01:35:01,109
+Noe som blir mer og mer av fordi at færre og færre
+
+1298
+01:35:01,109 --> 01:35:03,669
+selskaper, i hvert fall i det nordiske markedet, er villige
+
+1299
+01:35:03,669 --> 01:35:06,229
+til å ta 100 prosent av store property risks.
+
+1300
+01:35:06,229 --> 01:35:12,389
+Igjen informerer kunden om det, være transparant.
+
+1301
+01:35:12,389 --> 01:35:15,269
+Vi ser også gjerne at de offentlige anbudet dette også
+
+1302
+01:35:15,269 --> 01:35:19,629
+en utfordring fordi at da er ikke dette spesielle, skal vi
+
+1303
+01:35:19,629 --> 01:35:23,509
+si, i form for måten å løse.
+
+1304
+01:35:23,509 --> 01:35:26,229
+Det er en avdekning på risiko å ta vare på.
+
+1305
+01:35:26,229 --> 01:35:32,059
+Når det gjelder andre typer relasjoner til forsikringsselskap
+
+1306
+01:35:32,059 --> 01:35:39,699
+enn det vi snakker om nå, altså en kan ha finansielle
+
+1307
+01:35:39,699 --> 01:35:44,099
+relasjoner til forsikringsgiveren, en kan også ha eksklusive
+
+1308
+01:35:44,099 --> 01:35:46,699
+avtaler med forsikringsgiveren.
+
+1309
+01:35:46,699 --> 01:35:53,979
+Kan du si litt om noen eksempler på det og også igjen tilbake til
+
+1310
+01:35:53,979 --> 01:35:58,859
+hvordan en potensiell interessekonflikt kan håndteres der?
+
+1311
+01:35:58,859 --> 01:36:02,099
+Det er klart at forsikringsselskapene har jo en interesse av å få mest
+
+1312
+01:36:02,099 --> 01:36:04,659
+mulig god forretning fra meglerne.
+
+1313
+01:36:04,659 --> 01:36:09,979
+Historisk har de betalt meglerne i form av provisjon for å komme
+
+1314
+01:36:09,979 --> 01:36:12,699
+med forretningen til dem.
+
+1315
+01:36:12,699 --> 01:36:17,819
+Det er klart at hvis du kan betale visse meglere mer provisjon for å
+
+1316
+01:36:17,819 --> 01:36:22,699
+få mer forretning, så får du en interessekonflikt i den forslaget at
+
+1317
+01:36:22,699 --> 01:36:26,459
+hadde megleren for en ekstra inntekt hvis han gir all forretningen,
+
+1318
+01:36:26,559 --> 01:36:29,419
+eller mest mulig forretning til forsikringsskap A eller B.
+
+1319
+01:36:30,619 --> 01:36:34,039
+Og det er jo klart at dette var et sterkt insentiv,
+
+1320
+01:36:34,399 --> 01:36:39,719
+gjerne før meglerprovisjonsforbudet kom til Norge i cirka omkring 2006,
+
+1321
+01:36:39,719 --> 01:36:47,619
+så hadde man en sak i USA hvor enkelte store forsikringsskaper betalte meglerne ekstra kommisjoner
+
+1322
+01:36:47,619 --> 01:36:52,179
+for å få mer og mer forretning, og denne informasjonen tilfløtte altså ikke kundene.
+
+1323
+01:36:52,699 --> 01:36:56,039
+Og det var den klassiske saken som heter Spitzer-saken i USA,
+
+1324
+01:36:56,179 --> 01:37:04,959
+hvor da de tre-fire største forsikringsmeglerne i USA måtte betale tilbake returkommisjoner til sine kunder.
+
+1325
+01:37:06,099 --> 01:37:08,599
+Det er vel den eneste konkrete saken vi har,
+
+1326
+01:37:08,719 --> 01:37:13,399
+men den satt jo helt klart standarden for det internasjonale forsikringsmarkedet,
+
+1327
+01:37:13,739 --> 01:37:17,319
+og hvor det deres forhold mellom megler og forsikringsskap egentlig bør være.
+
+1328
+01:37:18,839 --> 01:37:21,959
+En del megler er jo også engasjert.
+
+1329
+01:37:22,699 --> 01:37:24,299
+Innenfor skadehåndtering.
+
+1330
+01:37:25,879 --> 01:37:30,359
+Og det er også både sørget for at den får en forsikringsdekning,
+
+1331
+01:37:31,019 --> 01:37:36,099
+og deretter bidrar til at den faktisk får en utbetaling.
+
+1332
+01:37:36,999 --> 01:37:44,339
+I hvilke tilfeller ser du for deg at det at en megler også driver med skadehåndtering
+
+1333
+01:37:44,339 --> 01:37:48,279
+kan representere potensiell interessekonflikt?
+
+1334
+01:37:48,279 --> 01:37:52,679
+Nå skal jo meglerne i utgangspunktet med sin kunde representere kunden,
+
+1335
+01:37:52,699 --> 01:37:56,639
+både når det gjelder avdekning og ikke minst i skadesaker og skadehåndtering.
+
+1336
+01:37:56,639 --> 01:37:58,639
+Så representerer jo meglerne kunden.
+
+1337
+01:37:58,639 --> 01:38:03,139
+Og det er jo ikke greit i større, skal vi si i større for eksempel store byggerisikoprosjekter,
+
+1338
+01:38:03,139 --> 01:38:06,799
+hvor det er veldig mange involvert i et prosjekt.
+
+1339
+01:38:06,799 --> 01:38:12,259
+Og hvis da meglerne representerer flere av de som er involvert i et prosjekt og får med en skade,
+
+1340
+01:38:12,259 --> 01:38:17,919
+så er jo spørsmålet hvem skal man egentlig forsøke å rådgive best til å få den beste utbetalingen.
+
+1341
+01:38:17,919 --> 01:38:21,019
+For det ene vil gå på bekostning av den andre.
+
+1342
+01:38:21,019 --> 01:38:21,759
+For det ene vil gå på bekostning av den andre.
+
+1343
+01:38:21,759 --> 01:38:25,239
+Og løsningen på ofte det, hvis man har store kompliserte skader,
+
+1344
+01:38:25,239 --> 01:38:31,239
+det er at man kan trekke inn individuelle eller uavhengige skaderådgivere
+
+1345
+01:38:31,239 --> 01:38:37,239
+til å bistå i denne saken, i stedet for å sitte der med å representere for mange.
+
+1346
+01:38:37,239 --> 01:38:46,239
+Så det er, nå er det jo ofte slik at i skadeforsikring så har jo skadeforsikringsselskapene sine egne skadebehandlere,
+
+1347
+01:38:46,239 --> 01:38:51,239
+meglerne overfører gjerne skadebehandling til, i hvert fall til forsikringsselskapene,
+
+1348
+01:38:51,239 --> 01:38:56,719
+innenfor skadeforsikring og personforsikring, men innenfor da marin energi og aviation,
+
+1349
+01:38:56,719 --> 01:39:00,719
+så er det faktisk meglernes egne avdelinger som står for mye,
+
+1350
+01:39:00,719 --> 01:39:10,719
+og eller man har ferdig forhandlet at hvis det skjer store skader så bruker man et selvstendig skadehåndteringsselskap.
+
+1351
+01:39:10,719 --> 01:39:17,969
+Det er en grei måte på store komplekse kundforhold å trekke inn i en treiepart til å bistå i dette.
+
+1352
+01:39:17,969 --> 01:39:20,969
+Ja, Otto, da har vi, da har vi gått gjennom,
+
+1353
+01:39:22,489 --> 01:39:25,489
+litt om om noen mulige interessekonflikter.
+
+1354
+01:39:25,489 --> 01:39:31,489
+Har du en liten sånn oppsummering, en liten sånn, noen råd på tampen her?
+
+1355
+01:39:31,489 --> 01:39:35,489
+Ja, altså vi har forsøkt å i hvert fall sette opp fem punkter som er greit å ta med seg.
+
+1356
+01:39:35,489 --> 01:39:39,489
+Skal man forsøke å unngå interessekonflikter, men de er ikke til å unngå.
+
+1357
+01:39:39,489 --> 01:39:44,489
+Men det gjelder i hvert fall å få løst de så tidlig som mulig, hvis det kan komme.
+
+1358
+01:39:44,489 --> 01:39:52,489
+Og det er å kommunisere med sin kunde, og kommunisere internt om hvorledes man driver sin forsikringsmelding.
+
+1359
+01:39:52,489 --> 01:39:56,489
+Og jeg tror også loven sier at er det områder for interessekonflikter,
+
+1360
+01:39:56,489 --> 01:40:02,489
+så skal man faktisk få dette notert skriftlig internt i organisasjonen og få det med seg.
+
+1361
+01:40:02,489 --> 01:40:04,489
+Men det er også en del av å være uavhengig i rådgivning.
+
+1362
+01:40:04,489 --> 01:40:08,489
+Det er å forsøke å tenke til kundens beste hele tiden.
+
+1363
+01:40:08,489 --> 01:40:12,489
+Tenker man på kunden sin beste, så tenker man jo ikke på sitt eget beste.
+
+1364
+01:40:12,489 --> 01:40:17,489
+Og da har man jo i grunnen løst masse områder hvor det kan komme interessekonflikter.
+
+1365
+01:40:17,489 --> 01:40:20,489
+Transpareng i provisjoner og honorar.
+
+1366
+01:40:20,489 --> 01:40:24,489
+Spesielt i Norge kan man si at dette er mer en viktig enn andre land.
+
+1367
+01:40:24,489 --> 01:40:27,489
+For her er det klar lovgivning som ikke er i mange andre land.
+
+1368
+01:40:27,489 --> 01:40:30,489
+Nettopp hva som er tillatt og ikke tillatt.
+
+1369
+01:40:30,489 --> 01:40:34,489
+Og spesielt ved grensoverskridende megling så gjelder det å holde tungen rett i munnen.
+
+1370
+01:40:34,489 --> 01:40:36,489
+Hva man kan og ikke kan.
+
+1371
+01:40:36,489 --> 01:40:41,489
+Selvfølgelig er man en forsikringsmegler og forholder seg til en eller to-tre selskaper.
+
+1372
+01:40:41,489 --> 01:40:50,489
+Så for å være uavhengig så bør man ha så stort nedslagsfelt som mulig med valg av tilbydere.
+
+1373
+01:40:50,489 --> 01:40:59,489
+Så det gjelder å gå bredt ut og være profesjonell i å innhente sine tilbud og rådgive sine kunder.
+
+1374
+01:40:59,489 --> 01:41:07,489
+Og retningslinjer og bransjestandarder for forsikringsmeglere det finner man jo inne på forsikringsmeglerens hjemmeside.
+
+1375
+01:41:07,489 --> 01:41:12,489
+Og lovgivningen har sitt så det er jo å sette seg inn i lov og regler hva som egentlig styrer.
+
+1376
+01:41:12,489 --> 01:41:16,489
+Det er ikke enkelt område å manøvrere i.
+
+1377
+01:41:16,489 --> 01:41:18,489
+Som du Tor har sagt hele tiden.
+
+1378
+01:41:18,489 --> 01:41:23,469
+Sønn fornuft det kommer man langt med.
+
+1379
+01:41:23,469 --> 01:41:25,469
+Flott og takk for det Otto.
+
+1380
+01:41:25,469 --> 01:41:30,469
+Da skal vi ta en liten pause før vi går over til neste sjanse.
+
+1381
+01:41:30,469 --> 01:41:47,929
+Fint takk for det.
+
+1382
+01:41:47,929 --> 01:41:57,929
+Da har vi kommet til siste del i den delen som jeg er engasjert i her på autorisasjonsutdanningen.
+
+1383
+01:41:57,929 --> 01:42:03,929
+Det vi skal snakke litt om nå det er noen andre viktige ting.
+
+1384
+01:42:03,929 --> 01:42:11,929
+Det er noen andre viktige temaer for meglerhus og for forsikringsmeglere.
+
+1385
+01:42:11,929 --> 01:42:17,929
+Og jeg skal ikke gå sånn helt i dybden på det her.
+
+1386
+01:42:17,929 --> 01:42:25,929
+Jeg skal bare komme med noen betraktninger rundt det og litt om hva regelverket sier om litt om det.
+
+1387
+01:42:25,929 --> 01:42:29,929
+Eller faktisk omvendt jeg skal komme med litt om hva regelverket sier om noe.
+
+1388
+01:42:29,929 --> 01:42:32,929
+Og så skal jeg komme med noen betraktninger rundt noe annet.
+
+1389
+01:42:32,929 --> 01:42:42,929
+Og det første som jeg skal snakke litt om det er KYC kjendingkunde, know your customer.
+
+1390
+01:42:42,929 --> 01:42:51,929
+Og det her er noe som gjemler i det som vi populært sett kaller hvitvaskingsloven.
+
+1391
+01:42:51,929 --> 01:42:56,929
+Og er da naturligvis relatert til hvitvaskingsregler.
+
+1392
+01:42:56,929 --> 01:43:00,929
+Og den loven den pålegger finansforetak ganske strengt.
+
+1393
+01:43:00,929 --> 01:43:01,929
+Og den pålegger finansforetak ganske strengt.
+
+1394
+01:43:01,929 --> 01:43:08,929
+Ganske strenge plikter for å avdekke hvitvasking og terrorfinansiering.
+
+1395
+01:43:08,929 --> 01:43:13,929
+Som jeg har vært inne på tidligere så er det jo sånn at verden forandrer seg.
+
+1396
+01:43:13,929 --> 01:43:15,929
+Og ting skjer.
+
+1397
+01:43:15,929 --> 01:43:25,929
+Og det her er jo et veldig viktig tema innenfor finans.
+
+1398
+01:43:25,929 --> 01:43:29,929
+Og det det stilles krav om til finansforetaket.
+
+1399
+01:43:29,929 --> 01:43:36,929
+Finansforetaket det er at den skal blant andre ting gjennomføre såkalte kundetiltak.
+
+1400
+01:43:36,929 --> 01:43:43,929
+Og kundetiltak det er jo for så vidt noe som den har hatt lenge.
+
+1401
+01:43:43,929 --> 01:43:46,929
+Men den har gjerne også kalt det kundekontroll.
+
+1402
+01:43:46,929 --> 01:43:49,929
+Altså kontroll av kunde tidligere.
+
+1403
+01:43:49,929 --> 01:43:56,929
+Så dere kan forstå det slik at kundetiltak det er for så vidt litt det samme som kundekontroll.
+
+1404
+01:43:56,929 --> 01:43:57,929
+Så dere kan forstå det slik at kundetiltak det er for så vidt litt det samme som kundekontroll.
+
+1405
+01:43:57,929 --> 01:44:14,929
+Og finansforetaket må kunne dokumentere om for myndighetene at det faktisk gjennomfører og oppfyller det som er lovens krav i forbindelse med gjennomføring av kundetiltak.
+
+1406
+01:44:14,929 --> 01:44:24,929
+Og forsikringsmeglerforetak er omfattet av vidtvaskingsloven og regelverket som kommer derfra.
+
+1407
+01:44:24,929 --> 01:44:25,929
+Og forsikringsmeglerforetak er omfattet av vidtvaskingsloven og regelverket som kommer derfra.
+
+1408
+01:44:25,929 --> 01:44:36,339
+Formålet med kundetiltak er jo at finansforetaket skal kjenne sine kunder.
+
+1409
+01:44:36,339 --> 01:44:45,339
+Og loven den tar for seg da for så vidt tre forhold som dere mener er særlig viktige.
+
+1410
+01:44:45,339 --> 01:44:50,339
+Det er innholdet av kundeforholdet.
+
+1411
+01:44:50,339 --> 01:44:55,339
+Hvilke tjenester og produkter kunden benytter hos finansforetaket.
+
+1412
+01:44:55,339 --> 01:44:58,179
+omfanget av kundforholdet.
+
+1413
+01:44:58,179 --> 01:45:25,879
+Videre, at den skal kjenne kundens identitet og reelle rettighetshaver, altså hvem er det som in the bitter end får penger her, kundens formål og art, og hvis den gjør det, så kan jo da finansforetaket iverksette passende risikobaserste tiltak for å avdekke, eventuelt avdekke,
+
+1414
+01:45:25,879 --> 01:45:45,339
+men kanskje allermest for å forebygge da hvitvasking og terrorfinansiering. Og det her, det her kan jo høres litt sånn fjernt ut og sånn, men vi har jo lest i avisene at også i Norge så har det vært situasjoner som kan relateres til det her.
+
+1415
+01:45:47,999 --> 01:45:55,839
+Og her er et regelsett som går da på privatkunder. Nå er det jo sånn at forsikringsmeglere, de forholdsvis,
+
+1416
+01:45:55,879 --> 01:46:02,979
+de forholdsvis er til bedriftskunder, men jeg skal likevel si litt om privatkunder, jeg skal komme tilbake til hvorfor etterpå.
+
+1417
+01:46:04,159 --> 01:46:15,259
+Og den informasjonen som en da er forpliktet til å innhente, den må innhentes før kundeforholdet er etablert og en begynner å gjennomføre økonomiske transaksjoner.
+
+1418
+01:46:16,099 --> 01:46:24,099
+Og det er jo ikke alt som er så voldsomt komplisert, altså når det gjelder privatpersoner, så må en ha navn, en må ha fødselsnummer, eventuelt D-nummer, adresse,
+
+1419
+01:46:24,759 --> 01:46:25,259
+og så må en få...
+
+1420
+01:46:25,879 --> 01:46:31,339
+bekreftet identiteten med gyldig legitimasjon.
+
+1421
+01:46:32,139 --> 01:46:40,539
+Og noen av dere har jo kanskje fått med dere fra avisene om alle dette folket som har møtt opp i banken for å få bekreftet identiteten sin,
+
+1422
+01:46:40,639 --> 01:46:45,559
+eller som får det sperret av kontoen sin. Ja, det henger akkurat sammen med det her.
+
+1423
+01:46:46,739 --> 01:46:55,519
+Og tilsvarende krav gjelder jo da dersom det er andre personer enn kontohaver som kan disponere kontoen.
+
+1424
+01:46:55,879 --> 01:47:05,539
+Og også når det gjelder privatpersoner, så skal det innhentes informasjon om reell rettighetshaver og eventuelle politisk eksponerte personer,
+
+1425
+01:47:05,619 --> 01:47:10,139
+det skal jeg komme litt tilbake til etterpå, og kundeforholdets formål og art.
+
+1426
+01:47:13,679 --> 01:47:20,439
+For så vidt er det ikke så veldig ulikt i forhold til bedriftskunder, i hvert fall hvis du tenker på systematikken i det her.
+
+1427
+01:47:21,279 --> 01:47:26,839
+Også her er det sånn at informasjonen skal innhentes før kundeforholdet etableres,
+
+1428
+01:47:26,839 --> 01:47:29,139
+og transaksjoner gjennomføres.
+
+1429
+01:47:29,939 --> 01:47:36,979
+En må ha foretaksnavn, organisasjonsform, organisasjonsnummer, adresse, navnet på dagleder og styremedlemmer,
+
+1430
+01:47:37,339 --> 01:47:39,159
+eller personer i tilsvarende stilling.
+
+1431
+01:47:40,199 --> 01:47:45,839
+En må bekrefte opplysningene mot oppslag i offentlig register,
+
+1432
+01:47:46,239 --> 01:47:49,819
+eller firmatest som ikke er mer enn tre år gammel.
+
+1433
+01:47:50,819 --> 01:47:56,379
+Også skal det innhentes informasjon og dokumentasjon om hvilke fysiske personer,
+
+1434
+01:47:56,839 --> 01:48:01,839
+som handler på vegne av kunden, eller har disposisjonsrett på konto.
+
+1435
+01:48:02,239 --> 01:48:08,839
+Og her, for deg personene, så gjelder det samme reglene som vi nettopp har vært gjennom i forhold til privatkunder.
+
+1436
+01:48:12,709 --> 01:48:20,509
+Videre, så skal finansforetakene innhente informasjon og dokumentasjon om kundens eierskaps- og kontrollstruktur,
+
+1437
+01:48:20,809 --> 01:48:29,509
+reelle rettighetshaværet, om det er personer som handler på vegne av kunden er reelle rettighetshaværet,
+
+1438
+01:48:30,009 --> 01:48:33,009
+eller om man er en politisk eksponert person.
+
+1439
+01:48:33,509 --> 01:48:37,509
+Og igjen, kundforholdets formål og tilsekt i det alt.
+
+1440
+01:48:38,009 --> 01:48:43,509
+Dette er ting som, i hvert fall i større meglerhus, gjerne gjøres av en egen enhet,
+
+1441
+01:48:44,009 --> 01:48:47,509
+som håndterer dette for deg. Det er ikke nødvendigvis sånn at du som megler gjør dette selv,
+
+1442
+01:48:48,009 --> 01:48:55,509
+men du må bidra til informasjonsinnhentingen, og en har gjerne onboarding-prosesser der en håndterer det.
+
+1443
+01:48:56,009 --> 01:48:59,509
+Og nedenfor dette ser dere bare en forenklet tidslinje,
+
+1444
+01:49:00,009 --> 01:49:04,509
+av en sånn onboarding-prosess. På engelsk dessverre,
+
+1445
+01:49:05,009 --> 01:49:11,509
+men jeg antar at de fleste av dere forstår det som står der.
+
+1446
+01:49:12,009 --> 01:49:17,509
+Først registrerer han prospektet, så innhenter han informasjon om prospektet,
+
+1447
+01:49:18,009 --> 01:49:22,509
+og så må han da vurdere den informasjonen han har hatt og kontrollere den,
+
+1448
+01:49:23,009 --> 01:49:29,509
+og når alt dette er gjennomført, så kan han da putte kunden inn som kunde og begynne å håndtere den.
+
+1449
+01:49:31,639 --> 01:49:38,139
+Politisk eksponert person, og her kommer vi til å måtte lese opp litt fra foilen her,
+
+1450
+01:49:38,639 --> 01:49:44,139
+altså det er personer som har eller har hatt viktige offentlige verv,
+
+1451
+01:49:44,639 --> 01:49:50,139
+verv eller stilling på mellomnivå eller lavere nivå omfattes ikke.
+
+1452
+01:49:50,639 --> 01:49:56,139
+Og så kan departementet komme nærmere regler i forhold til dette.
+
+1453
+01:49:56,639 --> 01:50:00,139
+Men det som fremgår av lovgivningen,
+
+1454
+01:50:00,139 --> 01:50:04,639
+det er at de som regnes som politisk eksponerte personer,
+
+1455
+01:50:05,139 --> 01:50:06,639
+det er, som det står på liste her,
+
+1456
+01:50:07,139 --> 01:50:10,639
+statsoverhodet, regjeringssjef, minister eller assisterende minister,
+
+1457
+01:50:11,139 --> 01:50:15,639
+medlem av nasjonalforsamling, medlem av styrende organ i politiske parti,
+
+1458
+01:50:16,139 --> 01:50:22,639
+medlem av høyere rettsinstans hvis avgjørelser ikke kan anket annet enn under ekstraordinære omstendigheter,
+
+1459
+01:50:23,139 --> 01:50:28,639
+veldig teknisk, medlem av styret i riksrevisjon, revisjonsdomstol eller sentralbank,
+
+1460
+01:50:28,639 --> 01:50:33,139
+ambassadør, charge d'affaires eller militærofficer av høyere rangmiddel enn
+
+1461
+01:50:33,639 --> 01:50:37,139
+av administrert ledende eller kontrollerende organ i statlig foretak,
+
+1462
+01:50:37,639 --> 01:50:42,139
+direktør, styremedlem eller annen person i øverst ledelse i internasjonal organisasjon.
+
+1463
+01:50:42,639 --> 01:50:46,139
+Dette er ikke mitt spesialområde, det skal jeg ærlig innrømme,
+
+1464
+01:50:46,639 --> 01:50:52,139
+men det dere må notere, at hvis dere treffer noen som kan,
+
+1465
+01:50:52,639 --> 01:50:58,139
+eller får noen ansatte hos dere sine kunder som kan komme inn under dette,
+
+1466
+01:50:58,639 --> 01:51:01,139
+så må det ringe en bjelle.
+
+1467
+01:51:01,639 --> 01:51:06,139
+Og så er det jo også slik at, gjerne i dere sin interne dokumentasjon,
+
+1468
+01:51:06,639 --> 01:51:14,139
+så vil dere spørre kunden om det samme, spørre deg om det er politisk eksponerte personer.
+
+1469
+01:51:14,639 --> 01:51:22,139
+Og hva er det som skjer hvis en har politisk eksponerte personer inne i et kundeforhold?
+
+1470
+01:51:22,639 --> 01:51:28,139
+Ja, da skal du faktisk gjennomføre det som i lovgivningen blir kalt for
+
+1471
+01:51:28,139 --> 01:51:30,639
+sterkere kundetiltak.
+
+1472
+01:51:31,139 --> 01:51:37,639
+Og de skal gjennomføres når det er høy risiko på hvitvasking eller terrorfinansiering,
+
+1473
+01:51:38,139 --> 01:51:42,639
+og når det er personer som handler på vegne av kunden,
+
+1474
+01:51:43,139 --> 01:51:47,639
+eller reelle rettighetshavere som er en politisk eksponert person.
+
+1475
+01:51:48,139 --> 01:51:53,639
+Eller disse er nære familiemedlemmer til en kjent medarbeider,
+
+1476
+01:51:54,139 --> 01:51:57,639
+eller en kjent medarbeider til en politisk eksponert person.
+
+1477
+01:51:58,139 --> 01:52:02,639
+Så, kort sagt da, treffer du på en politisk eksponert person,
+
+1478
+01:52:03,139 --> 01:52:07,639
+så medfører det at du må gjennomføre noen forsterket kundetiltak.
+
+1479
+01:52:08,139 --> 01:52:14,639
+Loven å åpne også for at en kan ha forenklet kundetiltak.
+
+1480
+01:52:15,139 --> 01:52:23,639
+Og jeg ser jo for meg det at det er jo noe som kanskje en også kan definere seg innunder som
+
+1481
+01:52:24,139 --> 01:52:26,639
+innenfor forsikringsmegling, for eksempel.
+
+1482
+01:52:28,139 --> 01:52:35,639
+Så det er nok meget mulig at det er forsikringsmeglere som praktiserer forenklet kundetiltak.
+
+1483
+01:52:36,139 --> 01:52:40,639
+Og det kan gjøres når det er lav risiko på hvitvasking eller terrorfinansiering.
+
+1484
+01:52:41,139 --> 01:52:44,639
+Da kan en ha forenklet kundetiltak.
+
+1485
+01:52:45,139 --> 01:52:55,639
+Og det innebærer at det er litt lempinga i kravet til bekreftelse av reelle rettighetshaveres identitet,
+
+1486
+01:52:55,639 --> 01:53:06,139
+og også lempinga i kravet til å vurdere opplysninger om kundforholdets formål og tilsiktede art.
+
+1487
+01:53:06,639 --> 01:53:18,009
+I tillegg til at du må ha det her som en del av ombordingprosessen, altså når du får en ny kunde,
+
+1488
+01:53:18,509 --> 01:53:24,009
+så er det slik at lovgivningen stiller krav om at du skal ha en viss form for løpende oppfølging av det her,
+
+1489
+01:53:24,509 --> 01:53:28,009
+for ting kan jo forandre seg.
+
+1490
+01:53:29,509 --> 01:53:37,009
+Og så er det også slik at dersom kunden ikke bidrar til at du får gjennomført deg kundetiltaket her,
+
+1491
+01:53:37,509 --> 01:53:49,639
+så kan du som potensiell oppdragsgiver være forpliktet til å avvise det som også inngår i et kundforhold.
+
+1492
+01:53:50,139 --> 01:53:56,639
+Da tenkte jeg å ta litt om internasjonale kunder.
+
+1493
+01:53:57,139 --> 01:54:01,639
+For det er noen gang slik at det er ...
+
+1494
+01:54:02,139 --> 01:54:06,639
+noe som en som forsikringsmegler ganske sikkert kommer borti.
+
+1495
+01:54:07,139 --> 01:54:12,639
+Og i og med at her skal vi snakke litt om forsikringsmeglerrollen og ha en praktisk tilnærming,
+
+1496
+01:54:13,139 --> 01:54:17,639
+så er det noen ting som jeg har veldig lyst til å formidle i forbindelse med det.
+
+1497
+01:54:18,139 --> 01:54:21,639
+Dette går ikke veldig langt ned, jeg skal ikke gå i noen detaljer,
+
+1498
+01:54:22,139 --> 01:54:28,639
+men nå har jeg i to perioder jobbet hos en internasjonal megler med internasjonale kunder,
+
+1499
+01:54:29,139 --> 01:54:31,639
+og spesielt i mitt arbeidsforhold nå.
+
+1500
+01:54:32,139 --> 01:54:34,639
+Så jobber jeg ganske mye med internasjonale kunder.
+
+1501
+01:54:35,139 --> 01:54:43,639
+Og det gjelder både dataselskaper av utenlandske foretak,
+
+1502
+01:54:44,139 --> 01:54:45,639
+altså dataselskaper i Norge,
+
+1503
+01:54:46,139 --> 01:54:53,639
+men også da norske selskap som har internasjonal virksomhet på ulike måter.
+
+1504
+01:54:54,139 --> 01:55:00,639
+Og i forbindelse med det så tenker jeg at det er tre viktige ting
+
+1505
+01:55:00,639 --> 01:55:09,139
+som en må ta med seg når en skal være rådgiver og forsikringsmegler for den typen virksomheter.
+
+1506
+01:55:09,639 --> 01:55:14,139
+Og det ene går på det her med lovgivning,
+
+1507
+01:55:14,639 --> 01:55:27,139
+altså lovgivning, regulatoriske forhold rundt forsikring og ansattegoder i andre land.
+
+1508
+01:55:27,139 --> 01:55:35,639
+Det en må ha klart for seg er at lovgivninger kan variere ganske mye fra land til land.
+
+1509
+01:55:36,139 --> 01:55:41,639
+Og alltid når en skal forsikre noen i andre land eller noe i andre land,
+
+1510
+01:55:42,139 --> 01:55:52,639
+så må en avklare at det en gjør ikke er i strid med lokal lovgivning.
+
+1511
+01:55:52,639 --> 01:56:00,139
+Det er jo enkelte land der det sier at det er forsikringer som skal tegnes i det faktiske landet.
+
+1512
+01:56:00,639 --> 01:56:11,139
+Og det er også veldig mange land som har krav til for eksempel hvilke type forsikringer ansatte skal omfattes av.
+
+1513
+01:56:11,639 --> 01:56:20,139
+Og det er det veldig viktig å ha kontroll på når en skal rådgi internasjonal virksomhet.
+
+1514
+01:56:20,139 --> 01:56:23,639
+Så det er liksom den legale biten av det.
+
+1515
+01:56:24,139 --> 01:56:28,639
+Den andre biten av det, som jeg tenker kan være greit å minne om,
+
+1516
+01:56:29,139 --> 01:56:36,639
+er jo det at når en samhandler med andre land, så samhandler en gjerne ofte med andre kulturer.
+
+1517
+01:56:37,139 --> 01:56:42,639
+Også folk som da har ulikt språk.
+
+1518
+01:56:43,139 --> 01:56:49,639
+Og en skal ikke lenger inn til Sverige før en ser visse forskjeller i kulturen,
+
+1519
+01:56:50,139 --> 01:56:52,639
+i arbeidslivet, bare for å bruke det som et eksempel.
+
+1520
+01:56:53,139 --> 01:56:57,639
+For det er jo veldig nær oss og veldig like oss, men likevel så er det faktisk ganske store forskjeller.
+
+1521
+01:56:58,139 --> 01:57:02,639
+Beveger du deg mye lenger bort, ja, så kan det være enda større forskjeller.
+
+1522
+01:57:03,139 --> 01:57:06,639
+Og ikke minst større forskjeller i språk.
+
+1523
+01:57:07,139 --> 01:57:12,639
+Så det er noe som jeg tenker at en må være spesielt oppmerksom på,
+
+1524
+01:57:13,139 --> 01:57:18,639
+og være åpen for å forsøke å ikke nødvendigvis forstå folk på akkurat samme måten som du ville forstått
+
+1525
+01:57:18,639 --> 01:57:24,139
+en landsmann, for å si det sånn, i samme sammenheng.
+
+1526
+01:57:24,639 --> 01:57:33,139
+Reflekter over hvordan det kommuniseres, og prøv å forstå den kulturen du samhandler med.
+
+1527
+01:57:33,639 --> 01:57:41,139
+Opptre på en måte som kan passe inn i forhold til den kulturen.
+
+1528
+01:57:41,639 --> 01:57:48,139
+Og så er det jo også, det er ikke så veldig lenge siden jeg fikk til
+
+1529
+01:57:48,639 --> 01:57:57,139
+sendt forsikringsvilkår på arabisk, men heldigvis så var det i tillegg
+
+1530
+01:57:57,639 --> 01:58:03,139
+en verifisert oversettelse fra et translatørbyrå på engelsk til det.
+
+1531
+01:58:03,639 --> 01:58:10,139
+Men det her med at den opererer der det er andre språk, da er det veldig viktig å være bevisst på
+
+1532
+01:58:10,639 --> 01:58:18,139
+det at her er andre språk, og også at ting må oversettes med riktig
+
+1533
+01:58:18,639 --> 01:58:29,139
+kompetanse. Så sørg for å ha den typen kompetanse, eller søke den typen tjenester når det er behov for det.
+
+1534
+01:58:29,639 --> 01:58:43,419
+Og et siste element, det er jo det at i ulike land, i ulike kulturer, så kan en også vurdere risiko på ulike måter.
+
+1535
+01:58:43,919 --> 01:58:49,419
+Og det tenker jeg også, det er viktig at den har for seg at folk kan ha risiko.
+
+1536
+01:58:49,919 --> 01:58:54,419
+Det er viktig å ha litt andre perspektiver enn det du har.
+
+1537
+01:58:54,919 --> 01:58:59,419
+Jeg skal kanskje komme med noen gode eksempler på det, for det har jeg ...
+
+1538
+01:58:59,919 --> 01:59:03,419
+Jo, forresten, jeg har et bra eksempel, tenker jeg.
+
+1539
+01:59:03,919 --> 01:59:10,419
+Jeg var på reise i Vietnam en gang i Ho Chi Minh City, og da bodde jeg på et lite hotell,
+
+1540
+01:59:10,919 --> 01:59:18,419
+og så kunne jeg se over gata, da var det et hotell som het New World Hotel, et sånt flott luksushotell.
+
+1541
+01:59:19,919 --> 01:59:27,419
+Der var det sånn at den ene bokstaven var slokka. I logoen var det jo lys, men den ene bokstaven var slokka.
+
+1542
+01:59:27,919 --> 01:59:34,419
+Og neste dag så kikket jeg bort igjen, og da så jeg noe som for så vidt var litt overraskende.
+
+1543
+01:59:34,919 --> 01:59:44,419
+Da hang det en mann i et tau ved den bokstaven der lyset var slokka, og oppe på taket så lå det to mann holdt i tauen for å sikre ham.
+
+1544
+01:59:44,919 --> 01:59:48,419
+Jeg vet ikke om det er et godt eksempel, men det sier jo noe om at ...
+
+1545
+01:59:48,419 --> 01:59:57,919
+for eksempel hvordan en sikrer sine ansatte, og krav rundt det, kan jo da være litt forskjellig.
+
+1546
+01:59:57,919 --> 01:59:59,819
+i ulike land.
+
+1547
+02:00:00,219 --> 02:00:02,079
+Til slutt så har jeg lyst
+
+1548
+02:00:02,079 --> 02:00:04,119
+å bare kort nevne
+
+1549
+02:00:04,119 --> 02:00:05,499
+temaet sanksjoner.
+
+1550
+02:00:07,239 --> 02:00:08,039
+Sanksjoner
+
+1551
+02:00:08,039 --> 02:00:08,959
+er viktig.
+
+1552
+02:00:10,339 --> 02:00:11,819
+Det er slik at ulike myndigheter
+
+1553
+02:00:11,819 --> 02:00:13,939
+i ulike land, for eksempel
+
+1554
+02:00:13,939 --> 02:00:15,979
+USA, som er svært retningsgivende,
+
+1555
+02:00:16,399 --> 02:00:16,739
+EU,
+
+1556
+02:00:18,219 --> 02:00:19,259
+norske myndigheter kan,
+
+1557
+02:00:20,399 --> 02:00:21,799
+det er sanksjoner
+
+1558
+02:00:21,799 --> 02:00:24,159
+mot andre land,
+
+1559
+02:00:24,819 --> 02:00:25,859
+det er sanksjoner mot
+
+1560
+02:00:25,859 --> 02:00:27,819
+spesielle personer,
+
+1561
+02:00:27,919 --> 02:00:29,959
+i andre land. Det kan være sanksjoner
+
+1562
+02:00:29,959 --> 02:00:30,879
+som dreier seg om
+
+1563
+02:00:30,879 --> 02:00:33,699
+spesielle forhold,
+
+1564
+02:00:33,779 --> 02:00:35,159
+altså spesielle industrier,
+
+1565
+02:00:35,859 --> 02:00:37,979
+for eksempel effekter som kan brukes
+
+1566
+02:00:37,979 --> 02:00:40,179
+innenfor militærindustri.
+
+1567
+02:00:40,799 --> 02:00:41,919
+Det er forskjellige typer
+
+1568
+02:00:41,919 --> 02:00:42,459
+sanksjoner.
+
+1569
+02:00:45,359 --> 02:00:47,479
+Når du skal
+
+1570
+02:00:47,479 --> 02:00:49,519
+operere internasjonalt,
+
+1571
+02:00:49,979 --> 02:00:51,859
+så er det veldig viktig at du har
+
+1572
+02:00:51,859 --> 02:00:53,879
+et visst overblikk over det her,
+
+1573
+02:00:54,199 --> 02:00:55,799
+og sørger for at du ikke tråkker
+
+1574
+02:00:55,799 --> 02:00:57,679
+i vare. Fordi at
+
+1575
+02:00:57,679 --> 02:00:59,619
+i den graden skulle bevege seg inn
+
+1576
+02:00:59,619 --> 02:01:01,119
+i en situasjon der en
+
+1577
+02:01:01,119 --> 02:01:03,519
+foretar handlinger
+
+1578
+02:01:03,519 --> 02:01:05,959
+mot etablerte sanksjoner,
+
+1579
+02:01:06,299 --> 02:01:07,959
+så kan det få ganske store
+
+1580
+02:01:07,959 --> 02:01:09,199
+konsekvenser for
+
+1581
+02:01:09,199 --> 02:01:11,339
+meglerhuset.
+
+1582
+02:01:11,859 --> 02:01:13,719
+Både nasjonalt og internasjonalt.
+
+1583
+02:01:15,859 --> 02:01:17,719
+Så skal du handle internasjonalt,
+
+1584
+02:01:18,779 --> 02:01:19,899
+gjør det litt kjent med
+
+1585
+02:01:19,899 --> 02:01:21,819
+ikke bare litt, men gjør det kjent med
+
+1586
+02:01:21,819 --> 02:01:23,839
+hvilke land det er sanksjoner mot,
+
+1587
+02:01:23,839 --> 02:01:25,479
+og hvilke typer sanksjoner det er,
+
+1588
+02:01:25,919 --> 02:01:27,639
+slik at hvis det navnet har
+
+1589
+02:01:27,639 --> 02:01:29,919
+inn på lista di, på en eller annen måte,
+
+1590
+02:01:30,519 --> 02:01:32,059
+så ringer den
+
+1591
+02:01:32,059 --> 02:01:33,839
+bjellet med en gang, og så kan du
+
+1592
+02:01:33,839 --> 02:01:35,839
+snu det rundt og håndtere det
+
+1593
+02:01:35,839 --> 02:01:36,739
+på riktig måte.
+
+1594
+02:01:37,619 --> 02:01:40,219
+De fleste meglerforetak har jo rutiner
+
+1595
+02:01:40,219 --> 02:01:42,219
+for det her, og etablert løsninger
+
+1596
+02:01:42,219 --> 02:01:44,019
+og interninfrasjonsløsninger
+
+1597
+02:01:44,019 --> 02:01:44,979
+for det.
+
+1598
+02:01:46,099 --> 02:01:47,779
+Så jeg tenker at vi trenger ikke gå i
+
+1599
+02:01:47,779 --> 02:01:50,019
+detaljer, men det viktige er at du
+
+1600
+02:01:50,019 --> 02:01:52,199
+i hvert fall gjør det kjent
+
+1601
+02:01:52,199 --> 02:01:54,239
+med hvilke typer sanksjoner som finnes,
+
+1602
+02:01:54,739 --> 02:01:56,479
+og hvilke land
+
+1603
+02:01:56,479 --> 02:01:57,619
+det er,
+
+1604
+02:01:57,639 --> 02:01:59,259
+og hva som er omfattet av det her,
+
+1605
+02:01:59,599 --> 02:02:02,019
+slik at du kan reagere
+
+1606
+02:02:02,019 --> 02:02:04,359
+når det blir aktuelt.
+
+1607
+02:02:06,439 --> 02:02:07,439
+Da sier jeg
+
+1608
+02:02:07,439 --> 02:02:09,219
+takk for å følge
+
+1609
+02:02:09,219 --> 02:02:11,219
+for nå, så ses vi
+
+1610
+02:02:11,219 --> 02:02:12,879
+kanskje med en annen anledning.
+

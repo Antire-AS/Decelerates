@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(winget --version)",
+      "Bash(python -m venv .venv)",
+      "Bash(cmd /c \"del /f C:\\\\Users\\\\patri\\\\Documents\\\\GitHub\\\\Decelerates\\\\.git\\\\index.lock\")"
+    ]
+  }
+}
