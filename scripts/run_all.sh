@@ -9,12 +9,16 @@ cd "$SCRIPT_DIR/.."
 
 # ── Postgres ──────────────────────────────────────────────────────────────────
 echo "==> Ensuring Postgres is running (docker compose)..."
-docker compose up postgres -d --wait 2>/dev/null || {
-    echo "    Docker not available or postgres failed to start."
-    echo "    Make sure Docker Desktop is running, or set DATABASE_URL in .env"
-    echo "    to point to an existing database and re-run."
+if ! docker compose up postgres -d --wait --remove-orphans; then
+    echo ""
+    echo "    Failed to start Postgres. Common causes:"
+    echo "      - Docker Desktop not running (open it and wait for 'Engine running')"
+    echo "      - Port 5432 already in use by another Postgres instance"
+    echo "      - docker-compose.yml missing or malformed"
+    echo ""
+    echo "    Set DATABASE_URL in .env to point to an existing database as an alternative."
     exit 1
-}
+fi
 echo "    Postgres ready on localhost:5432"
 echo ""
 
