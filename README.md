@@ -45,15 +45,18 @@ API is at [http://localhost:8000](http://localhost:8000).
 ### Without Docker
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-playwright install chromium
+# One-time setup (installs uv + dependencies + Playwright)
+bash scripts/setup.sh
 
-# Start the API
-uvicorn api.main:app --reload
+# Start both API and UI
+bash scripts/run_all.sh
+```
 
-# Start the UI (separate terminal)
-streamlit run ui/main.py
+Or run them separately in two terminals:
+
+```bash
+bash scripts/run_api.sh   # FastAPI on http://localhost:8000
+bash scripts/run_ui.sh    # Streamlit on http://localhost:8501
 ```
 
 ---
