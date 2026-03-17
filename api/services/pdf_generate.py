@@ -336,6 +336,25 @@ def _add_risk_factors_table(pdf: Any, risk: dict, score: int, lbl: str) -> None:
     pdf.cell(115, 7, f"Total risikoscore: {score} ({lbl})", border=1, ln=True)
 
 
+class _RiskPDF(FPDF):
+    def __init__(self, navn: str, today: str) -> None:
+        super().__init__()
+        self.navn = navn
+        self.today = today
+
+    def header(self) -> None:
+        self.set_font("Helvetica", "B", 9)
+        self.set_text_color(120, 120, 120)
+        self.cell(0, 8, f"Risikovurdering — {self.navn}", align="L")
+        self.ln(0)
+
+    def footer(self) -> None:
+        self.set_y(-15)
+        self.set_font("Helvetica", "", 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 10, f"Side {self.page_no()} | Generert {self.today}", align="C")
+
+
 def generate_risk_report_pdf(
     orgnr: str,
     navn: str,
@@ -352,28 +371,15 @@ def generate_risk_report_pdf(
 ) -> bytes:
     """Build and return PDF bytes for a risk assessment report."""
     today = date.today().strftime("%d.%m.%Y")
-
-    class RiskPDF(FPDF):
-        def header(self):
-            self.set_font("Helvetica", "B", 9)
-            self.set_text_color(120, 120, 120)
-            self.cell(0, 8, f"Risikovurdering — {navn}", align="L")
-            self.ln(0)
-
-        def footer(self):
-            self.set_y(-15)
-            self.set_font("Helvetica", "", 8)
-            self.set_text_color(150, 150, 150)
-            self.cell(0, 10, f"Side {self.page_no()} | Generert {today}", align="C")
-
     s = risk["score"]
     lbl = _score_label(s)
-    pdf = RiskPDF()
+    pdf = _RiskPDF(navn, today)
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.set_margins(20, 20, 20)
     pdf.add_page()
     _add_risk_cover(pdf, navn, orgnr, today, s, lbl)
-    _add_risk_company_profile(pdf, navn, orgnr, organisasjonsform_kode, naeringskode1, naeringskode1_beskrivelse, kommune, stiftelsesdato)
+    _add_risk_company_profile(pdf, navn, orgnr, organisasjonsform_kode, naeringskode1,
+                              naeringskode1_beskrivelse, kommune, stiftelsesdato)
     _add_risk_financials(pdf, sum_driftsinntekter, sum_egenkapital, sum_eiendeler, regn, risk)
     _add_risk_factors_table(pdf, risk, s, lbl)
     return bytes(pdf.output())
@@ -440,12 +446,10 @@ def _build_tilbud_broker_header(
     pdf.cell(0, 7, f"Utarbeidet av {broker_name}", ln=True)
 
 
-def _build_tilbud_client_box(
+def _build_client_company_info(
     pdf: Any, navn: str, orgnr: str, org_form: Optional[str],
     nace: Optional[str], nace_desc: Optional[str], kommune: Optional[str],
-    today_str: str, valid_str: str, n_dekninger: int,
-    sammendrag: str, total_premie: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple, LIGHT_BLUE: tuple,
+    DARK_BLUE: tuple, LIGHT_BLUE: tuple,
 ) -> None:
     pdf.ln(8)
     pdf.set_fill_color(*LIGHT_BLUE)
@@ -463,6 +467,12 @@ def _build_tilbud_client_box(
     pdf.cell(0, 6, f"Bransje: {nace_desc or '–'} (NACE {nace or '–'})", ln=True)
     pdf.set_xy(22, pdf.get_y())
     pdf.cell(0, 6, f"Kommune: {kommune or '–'}  |  Form: {org_form or '–'}", ln=True)
+
+
+def _build_client_summary_and_premium(
+    pdf: Any, today_str: str, valid_str: str, n_dekninger: int,
+    sammendrag: str, total_premie: str, DARK_BLUE: tuple, MID_BLUE: tuple,
+) -> None:
     pdf.set_y(pdf.get_y() + 14)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(80, 80, 80)
@@ -489,6 +499,19 @@ def _build_tilbud_client_box(
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(120, 120, 120)
     pdf.cell(0, 5, "Alle premier er veiledende estimater og kan variere ved endelig tegning.", ln=True)
+
+
+def _build_tilbud_client_box(
+    pdf: Any, navn: str, orgnr: str, org_form: Optional[str],
+    nace: Optional[str], nace_desc: Optional[str], kommune: Optional[str],
+    today_str: str, valid_str: str, n_dekninger: int,
+    sammendrag: str, total_premie: str,
+    DARK_BLUE: tuple, MID_BLUE: tuple, LIGHT_BLUE: tuple,
+) -> None:
+    _build_client_company_info(pdf, navn, orgnr, org_form, nace, nace_desc, kommune,
+                               DARK_BLUE, LIGHT_BLUE)
+    _build_client_summary_and_premium(pdf, today_str, valid_str, n_dekninger,
+                                      sammendrag, total_premie, DARK_BLUE, MID_BLUE)
 
 
 def _build_tilbud_forside(
@@ -572,11 +595,9 @@ def _build_tilbud_offers_page(
     _build_offers_strengths_section(pdf, offer_summaries, DARK_BLUE, MID_BLUE)
 
 
-def _build_tilbud_coverage_table(
-    pdf: Any, navn: str, orgnr: str, anbefalinger: List[Dict[str, Any]],
-    total_premie: str, today_str: str, DARK_BLUE: tuple, priority_color: Any,
+def _build_coverage_table_header(
+    pdf: Any, navn: str, orgnr: str, today_str: str, DARK_BLUE: tuple,
 ) -> None:
-    pdf.add_page()
     pdf.set_text_color(*DARK_BLUE)
     pdf.set_font("Helvetica", "B", 16)
     pdf.cell(0, 10, "Forsikringsdekning — oversikt", ln=True)
@@ -591,6 +612,11 @@ def _build_tilbud_coverage_table(
     pdf.cell(22, 8, "Prioritet", border=0, fill=True)
     pdf.cell(40, 8, "Anbefalt sum", border=0, fill=True)
     pdf.cell(54, 8, "Begrunnelse (kort)", border=0, fill=True, ln=True)
+
+
+def _build_coverage_table_rows(
+    pdf: Any, anbefalinger: List[Dict[str, Any]], priority_color: Any,
+) -> None:
     for i, rec in enumerate(anbefalinger):
         fill = i % 2 == 0
         pdf.set_fill_color(245, 247, 252) if fill else pdf.set_fill_color(255, 255, 255)
@@ -607,6 +633,9 @@ def _build_tilbud_coverage_table(
         pdf.set_font("Helvetica", "", 9)
         pdf.cell(40, row_h, str(rec.get("anbefalt_sum") or "")[:25], border="TB", fill=fill)
         pdf.cell(54, row_h, beg, border="TB", fill=fill, ln=True)
+
+
+def _build_coverage_table_total(pdf: Any, total_premie: str, DARK_BLUE: tuple) -> None:
     pdf.set_fill_color(*DARK_BLUE)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 10)
@@ -616,24 +645,35 @@ def _build_tilbud_coverage_table(
     pdf.ln(6)
 
 
-def _build_tilbud_coverage_detail(
-    pdf: Any, rec: Dict[str, Any], MID_BLUE: tuple, priority_color: Any,
+def _build_tilbud_coverage_table(
+    pdf: Any, navn: str, orgnr: str, anbefalinger: List[Dict[str, Any]],
+    total_premie: str, today_str: str, DARK_BLUE: tuple, priority_color: Any,
 ) -> None:
     pdf.add_page()
+    _build_coverage_table_header(pdf, navn, orgnr, today_str, DARK_BLUE)
+    _build_coverage_table_rows(pdf, anbefalinger, priority_color)
+    _build_coverage_table_total(pdf, total_premie, DARK_BLUE)
+
+
+def _build_detail_header(
+    pdf: Any, rec: Dict[str, Any], MID_BLUE: tuple, priority_color: Any,
+) -> None:
     pri = str(rec.get("prioritet") or "")
-    pri_color = priority_color(pri)
     pdf.set_fill_color(*MID_BLUE)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 14)
     pdf.cell(0, 12, f"  {rec.get('type', '')}", fill=True, ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(4)
-    pdf.set_fill_color(*pri_color)
+    pdf.set_fill_color(*priority_color(pri))
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 9)
     pdf.cell(35, 7, f"  {pri}", fill=True)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(8)
+
+
+def _build_detail_content(pdf: Any, rec: Dict[str, Any]) -> None:
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(60, 60, 100)
     pdf.cell(52, 7, "Dekningssum:")
@@ -660,16 +700,15 @@ def _build_tilbud_coverage_detail(
     )
 
 
-def _build_tilbud_terms_page(
-    pdf: Any, navn: str, orgnr: str, broker_name: str,
-    broker_contact: str, broker_phone: str, today_str: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple,
+def _build_tilbud_coverage_detail(
+    pdf: Any, rec: Dict[str, Any], MID_BLUE: tuple, priority_color: Any,
 ) -> None:
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.set_text_color(*DARK_BLUE)
-    pdf.cell(0, 10, "Betingelser og gyldighet", ln=True)
-    pdf.ln(3)
+    _build_detail_header(pdf, rec, MID_BLUE, priority_color)
+    _build_detail_content(pdf, rec)
+
+
+def _build_terms_bullets(pdf: Any, broker_name: str, today_str: str) -> None:
     terms = [
         f"Dette tilbudet er utarbeidet av {broker_name} og er gyldig i 30 dager fra tilbudsdato ({today_str}).",
         "Tilbudet er basert på opplysninger hentet fra offentlige registre (Brønnøysundregisteret, BRREG Regnskapsregisteret) og risikoscoring utarbeidet av megler.",
@@ -683,6 +722,19 @@ def _build_tilbud_terms_page(
         pdf.cell(5, 5, "•")
         pdf.multi_cell(0, 5, t)
         pdf.ln(1)
+
+
+def _build_tilbud_terms_page(
+    pdf: Any, navn: str, orgnr: str, broker_name: str,
+    broker_contact: str, broker_phone: str, today_str: str,
+    DARK_BLUE: tuple, MID_BLUE: tuple,
+) -> None:
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.set_text_color(*DARK_BLUE)
+    pdf.cell(0, 10, "Betingelser og gyldighet", ln=True)
+    pdf.ln(3)
+    _build_terms_bullets(pdf, broker_name, today_str)
     pdf.ln(10)
     pdf.set_draw_color(*MID_BLUE)
     pdf.set_line_width(0.4)

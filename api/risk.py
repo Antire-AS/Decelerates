@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 # ── Thresholds ────────────────────────────────────────────────────────────────
 VERY_HIGH_TURNOVER_THRESHOLD = 1_000_000_000  # 1 BNOK
@@ -18,6 +18,8 @@ CATEGORY_COLORS = {
     "Historikk":      "🔵",
     "Eksponering":    "🟣",
 }
+
+_AddFn = Callable[[str, int, str, str], None]
 
 
 def _nace_section(nace_code: Optional[str]) -> Optional[str]:
@@ -55,7 +57,7 @@ def _nace_section(nace_code: Optional[str]) -> Optional[str]:
     return prefixes.get(prefix)
 
 
-def _check_company_status(org: Dict[str, Any], add) -> None:
+def _check_company_status(org: Dict[str, Any], add: _AddFn) -> None:
     """Risk factors from company registry status and legal form."""
     if org.get("konkurs") or org.get("under_konkursbehandling"):
         add("Konkursbehandling", 5, "Selskapsstatus", "Selskapet er under konkursbehandling")
@@ -71,9 +73,7 @@ def _check_company_status(org: Dict[str, Any], add) -> None:
             f"Registrert i: {org.get('land')}")
 
 
-def _check_financial_health(regn: Dict[str, Any], add) -> Optional[float]:
-    """Risk factors from financial statements. Returns computed equity_ratio or None."""
-    driftsinntekter = regn.get("sum_driftsinntekter") or 0
+def _check_turnover(driftsinntekter: float, add: _AddFn) -> None:
     if driftsinntekter > VERY_HIGH_TURNOVER_THRESHOLD:
         add("Svært stor virksomhet (>1 MNOK)", 2, "Økonomi",
             f"Omsetning: {driftsinntekter/1e9:.1f} BNOK")
@@ -84,31 +84,35 @@ def _check_financial_health(regn: Dict[str, Any], add) -> Optional[float]:
         add("Middels omsetning (>10 MNOK)", 1, "Økonomi",
             f"Omsetning: {driftsinntekter/1e6:.1f} MNOK")
 
-    egenkapital  = regn.get("sum_egenkapital") or 0
-    sum_eiendeler = regn.get("sum_eiendeler") or 0
-    eq_ratio: Optional[float] = None
-    if sum_eiendeler:
-        eq_ratio = egenkapital / sum_eiendeler
-        if eq_ratio < -0.20:
-            add("Kraftig negativ egenkapital (<-20%)", 4, "Økonomi",
-                f"Egenkapitalandel: {eq_ratio*100:.1f}%")
-        elif eq_ratio < 0:
-            add("Negativ egenkapital", 2, "Økonomi",
-                f"Egenkapitalandel: {eq_ratio*100:.1f}%")
-        elif eq_ratio < MIN_EQUITY_RATIO:
-            add("Lav egenkapitalandel (<20%)", 1, "Økonomi",
-                f"Egenkapitalandel: {eq_ratio*100:.1f}%")
 
+def _check_equity_ratio(egenkapital: float, sum_eiendeler: float, add: _AddFn) -> Optional[float]:
+    if not sum_eiendeler:
+        return None
+    eq_ratio = egenkapital / sum_eiendeler
+    if eq_ratio < -0.20:
+        add("Kraftig negativ egenkapital (<-20%)", 4, "Økonomi",
+            f"Egenkapitalandel: {eq_ratio*100:.1f}%")
+    elif eq_ratio < 0:
+        add("Negativ egenkapital", 2, "Økonomi",
+            f"Egenkapitalandel: {eq_ratio*100:.1f}%")
+    elif eq_ratio < MIN_EQUITY_RATIO:
+        add("Lav egenkapitalandel (<20%)", 1, "Økonomi",
+            f"Egenkapitalandel: {eq_ratio*100:.1f}%")
+    return eq_ratio
+
+
+def _check_profit(regn: Dict[str, Any], driftsinntekter: float, add: _AddFn) -> None:
     aarsresultat = regn.get("aarsresultat")
     if aarsresultat is not None and aarsresultat < 0:
         add("Negativt årsresultat", 1, "Økonomi",
             f"Årsresultat: {aarsresultat/1e6:.1f} MNOK")
-
     driftsresultat = regn.get("driftsresultat")
     if driftsresultat is not None and driftsresultat < 0 and driftsinntekter > 0:
         add("Negativt driftsresultat (EBIT)", 1, "Økonomi",
             f"Driftsresultat: {driftsresultat/1e6:.1f} MNOK")
 
+
+def _check_debt_ratio(regn: Dict[str, Any], sum_eiendeler: float, add: _AddFn) -> None:
     sum_gjeld = regn.get("sum_gjeld")
     if sum_gjeld is not None and sum_eiendeler:
         gjeldsgrad = sum_gjeld / sum_eiendeler
@@ -119,13 +123,22 @@ def _check_financial_health(regn: Dict[str, Any], add) -> Optional[float]:
             add("Høy gjeldsgrad (>60%)", 1, "Økonomi",
                 f"Gjeldsgrad: {gjeldsgrad*100:.0f}%")
 
+
+def _check_financial_health(regn: Dict[str, Any], add: _AddFn) -> Optional[float]:
+    """Risk factors from financial statements. Returns computed equity_ratio or None."""
+    driftsinntekter = regn.get("sum_driftsinntekter") or 0
+    _check_turnover(driftsinntekter, add)
+    eq_ratio = _check_equity_ratio(
+        regn.get("sum_egenkapital") or 0,
+        regn.get("sum_eiendeler") or 0,
+        add,
+    )
+    _check_profit(regn, driftsinntekter, add)
+    _check_debt_ratio(regn, regn.get("sum_eiendeler") or 0, add)
     return eq_ratio
 
 
-def _check_industry_age_exposure(
-    org: Dict[str, Any], regn: Dict[str, Any], pep: Optional[Dict[str, Any]], add
-) -> None:
-    """Risk factors from industry classification, company age, size, and PEP screening."""
+def _check_nace_risk(org: Dict[str, Any], add: _AddFn) -> None:
     nace_section = _nace_section(org.get("naeringskode1"))
     nace_desc    = org.get("naeringskode1_beskrivelse", "")
     if nace_section in HIGH_RISK_NACE:
@@ -135,23 +148,25 @@ def _check_industry_age_exposure(
         add("Moderat bransjerisiko", 1, "Bransje",
             f"NACE-seksjon {nace_section}: {nace_desc}")
 
-    stiftelsesdato = org.get("stiftelsesdato")
-    if stiftelsesdato:
-        try:
-            founded   = datetime.strptime(str(stiftelsesdato)[:10], "%Y-%m-%d").date()
-            age_years = (date.today() - founded).days / 365.25
-            if age_years < 1:
-                add("Svært nystartet selskap (<1 år)", 4, "Historikk",
-                    f"Stiftet: {stiftelsesdato}")
-            elif age_years < 2:
-                add("Nystartet selskap (<2 år)", 3, "Historikk",
-                    f"Stiftet: {stiftelsesdato}")
-            elif age_years < 5:
-                add("Relativt nytt selskap (<5 år)", 1, "Historikk",
-                    f"Stiftet: {stiftelsesdato}")
-        except Exception:
-            pass
 
+def _check_company_age(org: Dict[str, Any], add: _AddFn) -> None:
+    stiftelsesdato = org.get("stiftelsesdato")
+    if not stiftelsesdato:
+        return
+    try:
+        founded   = datetime.strptime(str(stiftelsesdato)[:10], "%Y-%m-%d").date()
+        age_years = (date.today() - founded).days / 365.25
+        if age_years < 1:
+            add("Svært nystartet selskap (<1 år)", 4, "Historikk", f"Stiftet: {stiftelsesdato}")
+        elif age_years < 2:
+            add("Nystartet selskap (<2 år)", 3, "Historikk", f"Stiftet: {stiftelsesdato}")
+        elif age_years < 5:
+            add("Relativt nytt selskap (<5 år)", 1, "Historikk", f"Stiftet: {stiftelsesdato}")
+    except Exception:
+        pass
+
+
+def _check_employee_exposure(regn: Dict[str, Any], add: _AddFn) -> None:
     antall_ansatte = regn.get("antall_ansatte")
     if antall_ansatte:
         if antall_ansatte > 1000:
@@ -161,10 +176,21 @@ def _check_industry_age_exposure(
             add("Høy arbeidsgiveransvar-eksponering (>200 ansatte)", 1, "Eksponering",
                 f"Antall ansatte: {antall_ansatte}")
 
+
+def _check_pep_exposure(pep: Optional[Dict[str, Any]], add: _AddFn) -> None:
     pep_hits = (pep or {}).get("hit_count", 0)
     if pep_hits and pep_hits > 0:
-        add("PEP/sanksjoner funnet", 2, "Eksponering",
-            f"{pep_hits} treff i OpenSanctions")
+        add("PEP/sanksjoner funnet", 2, "Eksponering", f"{pep_hits} treff i OpenSanctions")
+
+
+def _check_industry_age_exposure(
+    org: Dict[str, Any], regn: Dict[str, Any], pep: Optional[Dict[str, Any]], add: _AddFn
+) -> None:
+    """Risk factors from industry classification, company age, size, and PEP screening."""
+    _check_nace_risk(org, add)
+    _check_company_age(org, add)
+    _check_employee_exposure(regn, add)
+    _check_pep_exposure(pep, add)
 
 
 def derive_simple_risk(
