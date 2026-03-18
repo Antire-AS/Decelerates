@@ -9,6 +9,13 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  RG: rg-broker-accelerator-prod
+  ACR: crantireshared
+  CAE: cae-broker-accelerator-prod
+  LOCATION: norwayeast
+  RUNTIME_IDENTITY: /subscriptions/6c73d6c8-9e92-47f0-a3d3-ed681a1209aa/resourceGroups/rg-broker-accelerator-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-runtime-broker-accelerator-prod
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -23,11 +30,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Log in to ACR
+        run: az acr login --name ${{ env.ACR }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
 
       - name: Build and push API image
         uses: docker/build-push-action@v5
@@ -36,8 +43,8 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ${{ secrets.ACR_NAME }}.azurecr.io/broker-api:${{ github.sha }}
-            ${{ secrets.ACR_NAME }}.azurecr.io/broker-api:latest
+            ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
+            ${{ env.ACR }}.azurecr.io/broker-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -48,49 +55,78 @@ jobs:
           file: docker/Dockerfile.ui
           push: true
           tags: |
-            ${{ secrets.ACR_NAME }}.azurecr.io/broker-ui:${{ github.sha }}
-            ${{ secrets.ACR_NAME }}.azurecr.io/broker-ui:latest
+            ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
+            ${{ env.ACR }}.azurecr.io/broker-ui:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform init
-        run: terraform -chdir=infra/terraform init
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_USE_OIDC: "true"
-
-      - name: Terraform apply
+      - name: Ensure Container Apps Environment
         run: |
-          terraform -chdir=infra/terraform apply -auto-approve \
-            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -var="github_repo=${{ github.repository }}" \
-            -var="api_image_tag=${{ github.sha }}" \
-            -var="ui_image_tag=${{ github.sha }}" \
-            -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
-            -var="anthropic_api_key=${{ secrets.ANTHROPIC_API_KEY }}" \
-            -var="gemini_api_key=${{ secrets.GEMINI_API_KEY }}" \
-            -var="gemini_api_key_2=${{ secrets.GEMINI_API_KEY_2 }}" \
-            -var="gemini_api_key_3=${{ secrets.GEMINI_API_KEY_3 }}" \
-            -var="voyage_api_key=${{ secrets.VOYAGE_API_KEY }}"
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_USE_OIDC: "true"
+          az containerapp env show \
+            --name ${{ env.CAE }} \
+            --resource-group ${{ env.RG }} \
+            --output none 2>/dev/null \
+          || az containerapp env create \
+            --name ${{ env.CAE }} \
+            --resource-group ${{ env.RG }} \
+            --location ${{ env.LOCATION }}
+
+      - name: Deploy API
+        run: |
+          az containerapp create \
+            --name ca-api \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.CAE }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
+            --registry-server ${{ env.ACR }}.azurecr.io \
+            --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
+            --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
+            --target-port 8000 \
+            --ingress external \
+            --min-replicas 1 \
+            --max-replicas 3 \
+            --env-vars \
+              "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+              "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" \
+              "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}" \
+              "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}" \
+              "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" \
+              "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" \
+          2>/dev/null \
+          || az containerapp update \
+            --name ca-api \
+            --resource-group ${{ env.RG }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
+
+      - name: Get API URL
+        id: api
+        run: |
+          FQDN=$(az containerapp show \
+            --name ca-api \
+            --resource-group ${{ env.RG }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+
+      - name: Deploy UI
+        run: |
+          az containerapp create \
+            --name ca-ui \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.CAE }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }} \
+            --registry-server ${{ env.ACR }}.azurecr.io \
+            --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
+            --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
+            --target-port 8501 \
+            --ingress external \
+            --min-replicas 1 \
+            --max-replicas 2 \
+            --env-vars "API_BASE_URL=${{ steps.api.outputs.url }}" \
+          2>/dev/null \
+          || az containerapp update \
+            --name ca-ui \
+            --resource-group ${{ env.RG }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
 
       - name: Smoke test — API /ping
-        run: |
-          API_URL=$(terraform -chdir=infra/terraform output -raw api_url)
-          curl --fail --retry 5 --retry-delay 5 "${API_URL}/ping"
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_USE_OIDC: "true"
+        run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"
