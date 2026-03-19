@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from api.db import Company, CompanyNote, CompanyChunk
 from api.rag_chain import chunk_text, embed_chunks
 from api.services.llm import _embed, _fmt_nok
+from api.services.search_service import SearchService
 
 
 def _build_company_context(db_obj: Company, relevant_notes: List) -> str:
@@ -65,6 +66,7 @@ class RagService:
         chunks = chunk_text(text, source)
         embedded = embed_chunks(chunks, _embed)
         now = datetime.now(timezone.utc).isoformat()
+        search_svc = SearchService()
         count = 0
         for chunk_text_val, src, vector in embedded:
             c = CompanyChunk(
@@ -75,6 +77,8 @@ class RagService:
                 created_at=now,
             )
             self.db.add(c)
+            if search_svc.is_configured() and vector:
+                search_svc.index_chunk(orgnr, src, chunk_text_val, vector)
             count += 1
         self.db.commit()
         return count
@@ -82,6 +86,15 @@ class RagService:
     def retrieve_chunks(self, orgnr: str, question: str, limit: int = 5) -> list[str]:
         """Retrieve the most relevant CompanyChunk texts for *question* via cosine distance."""
         q_emb = _embed(question)
+        search_svc = SearchService()
+        if search_svc.is_configured() and q_emb:
+            results = search_svc.search_chunks(orgnr, q_emb, limit)
+            if results:
+                return results
+        return self._pgvector_retrieve(orgnr, q_emb, limit)
+
+    def _pgvector_retrieve(self, orgnr: str, q_emb, limit: int) -> list[str]:
+        """Fallback: retrieve chunks from pgvector."""
         if q_emb:
             rows = (
                 self.db.query(CompanyChunk)

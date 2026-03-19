@@ -18,6 +18,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
 from api.services import _seed_pdf_sources
+from api.services.search_service import SearchService
 from api.dependencies import get_db
 
 from api.routers import (
@@ -38,6 +39,7 @@ app = FastAPI(title="Broker Accelerator API")
 @app.on_event("startup")
 def on_startup():
     init_db()
+    SearchService().ensure_index()
     db = next(get_db())
     try:
         _seed_pdf_sources(db)

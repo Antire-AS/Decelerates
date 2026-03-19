@@ -66,6 +66,30 @@ _azure_core_creds_stub = MagicMock()
 _azure_core_creds_stub.AzureKeyCredential = MagicMock
 sys.modules.setdefault("azure.core", MagicMock())
 sys.modules.setdefault("azure.core.credentials", _azure_core_creds_stub)
+sys.modules.setdefault("azure.core.exceptions", MagicMock())
+
+# azure.search.documents — search_service.py
+_azure_search_stub = MagicMock()
+_azure_search_stub.SearchClient = MagicMock
+sys.modules.setdefault("azure.search", MagicMock())
+sys.modules.setdefault("azure.search.documents", _azure_search_stub)
+sys.modules.setdefault("azure.search.documents.models", MagicMock())
+
+_azure_search_indexes_stub = MagicMock()
+_azure_search_indexes_stub.SearchIndexClient = MagicMock
+sys.modules.setdefault("azure.search.documents.indexes", _azure_search_indexes_stub)
+
+_azure_search_indexes_models_stub = MagicMock()
+for _cls in ("SearchIndex", "SimpleField", "SearchableField", "SearchField",
+             "VectorSearch", "HnswAlgorithmConfiguration", "VectorSearchProfile"):
+    setattr(_azure_search_indexes_models_stub, _cls, MagicMock)
+sys.modules.setdefault("azure.search.documents.indexes.models", _azure_search_indexes_models_stub)
+
+# azure.communication.email — notification_service.py
+_azure_comm_email_stub = MagicMock()
+_azure_comm_email_stub.EmailClient = MagicMock
+sys.modules.setdefault("azure.communication", MagicMock())
+sys.modules.setdefault("azure.communication.email", _azure_comm_email_stub)
 
 # fpdf2 / fpdf — services/pdf_generate.py
 sys.modules.setdefault("fpdf", MagicMock())

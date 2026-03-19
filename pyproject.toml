@@ -26,6 +26,8 @@ dependencies = [
     "azure-ai-documentintelligence>=1.0.0",
     "azure-storage-blob>=12.19.0",
     "azure-identity>=1.15.0",
+    "azure-search-documents>=11.4.0",
+    "azure-communication-email>=1.0.0",
 ]
 
 [build-system]

@@ -1,14 +1,18 @@
 import io
+import logging
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from api.db import SlaAgreement
+from api.db import SlaAgreement, BrokerSettings
 from api.services import _generate_sla_pdf
 from api.services.sla_service import SlaService
+from api.services.notification_service import NotificationService
 from api.schemas import SlaIn
 from api.dependencies import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,8 +22,15 @@ def _get_sla_service(db: Session = Depends(get_db)) -> SlaService:
 
 
 @router.post("/sla")
-def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service)):
+def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Session = Depends(get_db)):
     agreement = svc.create_agreement(body)
+    try:
+        broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+        broker_email = broker_row.contact_email if broker_row else None
+        if broker_email:
+            NotificationService().send_sla_generated(broker_email, agreement.client_navn or "")
+    except Exception as exc:
+        logger.warning("SLA notification failed — %s", exc)
     return {"id": agreement.id, "created_at": agreement.created_at}
 
 

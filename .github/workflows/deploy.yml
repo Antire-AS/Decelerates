@@ -98,6 +98,10 @@ jobs:
               "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}" \
               "AZURE_DOCUMENT_INTELLIGENCE_KEY=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}" \
               "AZURE_BLOB_ENDPOINT=${{ secrets.AZURE_BLOB_ENDPOINT }}" \
+              "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
+              "AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }}" \
+              "AZURE_SEARCH_INDEX_NAME=company-chunks" \
+              "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
           2>/dev/null \
           || az containerapp update \
             --name ca-api \
