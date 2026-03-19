@@ -6,6 +6,7 @@ from typing import List, Optional
 import pdfplumber
 from sqlalchemy.orm import Session
 
+from api.constants import LLM_DOCUMENT_CHAR_LIMIT, LLM_TEXT_CHAR_LIMIT, PDF_PAGE_LIMIT_LAYOUT
 from api.db import InsuranceDocument, InsuranceOffer
 from api.domain.exceptions import LlmUnavailableError
 from api.services.llm import (
@@ -33,10 +34,10 @@ _KEYPOINTS_PROMPT = (
 
 
 def _pdf_bytes_to_text(pdf_bytes: bytes) -> str:
-    """Extract text from raw PDF bytes using pdfplumber (up to 40 pages)."""
+    """Extract text from raw PDF bytes using pdfplumber (up to PDF_PAGE_LIMIT_LAYOUT pages)."""
     try:
         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            return "\n".join(p.extract_text() or "" for p in pdf.pages[:40])
+            return "\n".join(p.extract_text() or "" for p in pdf.pages[:PDF_PAGE_LIMIT_LAYOUT])
     except Exception:
         return ""
 
@@ -63,6 +64,95 @@ def _build_compare_prompt(a: InsuranceDocument, b: InsuranceDocument) -> str:
         f'Inkluder i comparison: Dekningsomfang, Selvrisiko, Forsikringssum, Unntak/begrensninger, '
         f'Særlige vilkår, Forsikringsperiode. winner=A betyr A er bedre, B=B er bedre, Lik=ingen vesentlig forskjell.'
     )
+
+
+class DocumentAnalysisService:
+    """Stateless LLM-backed document analysis — no DB session required."""
+
+    def get_document_keypoints(self, doc: InsuranceDocument) -> dict:
+        """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
+        from api.services.document_intelligence import DocumentIntelligenceService
+        di = DocumentIntelligenceService()
+        if di.is_configured():
+            text_from_di = di.analyze_pdf(bytes(doc.pdf_content))
+            if text_from_di and len(text_from_di) > 200:
+                raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text_from_di[:LLM_DOCUMENT_CHAR_LIMIT]}")
+                if raw:
+                    parsed = _parse_json_from_llm_response(raw)
+                    if parsed:
+                        return parsed
+
+        text = doc.extracted_text or ""
+        if len(text) > 500:
+            raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}")
+            if raw:
+                parsed = _parse_json_from_llm_response(raw)
+                if parsed:
+                    return parsed
+
+        raw = _analyze_document_with_gemini(doc.pdf_content, _KEYPOINTS_PROMPT)
+        if raw:
+            parsed = _parse_json_from_llm_response(raw)
+            if parsed:
+                return parsed
+
+        return {
+            "sammendrag": (text[:400] + "…") if text else "Ingen tekstinnhold tilgjengelig",
+            "viktige_vilkaar": [],
+            "unntak": [],
+        }
+
+    def answer_document_question(self, doc: InsuranceDocument, question: str) -> str:
+        """Answer a question about an InsuranceDocument. Raises LlmUnavailableError if no LLM."""
+        prompt = (
+            f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
+            f"Svar kun basert på innholdet i dette forsikringsdokumentet. "
+            f"Vær presis og konkret. Oppgi sidetall eller avsnitt hvis relevant.\n\n"
+            f"Spørsmål: {question}"
+        )
+        answer = _analyze_document_with_gemini(doc.pdf_content, prompt)
+        if answer:
+            return answer
+
+        if doc.extracted_text is not None:
+            fallback = (
+                f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
+                f"Svar kun basert på dette forsikringsdokumentets innhold:\n\n"
+                f"{doc.extracted_text[:LLM_DOCUMENT_CHAR_LIMIT]}\n\nSpørsmål: {question}"
+            )
+            answer = _llm_answer_raw(fallback)
+            if answer:
+                return answer
+
+        raise LlmUnavailableError("Ingen LLM tilgjengelig")
+
+    def compare_two_documents(self, a: InsuranceDocument, b: InsuranceDocument) -> dict:
+        """Compare two InsuranceDocuments using Gemini or text LLM. Raises LlmUnavailableError if no result."""
+        prompt = _build_compare_prompt(a, b)
+        text_a = str(a.extracted_text) if a.extracted_text else ""
+        text_b = str(b.extracted_text) if b.extracted_text else ""
+
+        if text_a and text_b:
+            raw = _llm_answer_raw(
+                f"{prompt}\n\n--- DOKUMENT A: {a.title} ---\n{text_a[:LLM_DOCUMENT_CHAR_LIMIT]}\n\n--- DOKUMENT B: {b.title} ---\n{text_b[:LLM_DOCUMENT_CHAR_LIMIT]}"
+            )
+            if raw:
+                return _parse_json_from_llm_response(raw) or {"raw_text": raw}
+
+        raw = _compare_documents_with_gemini(a.pdf_content, b.pdf_content, prompt)
+        if raw:
+            return _parse_json_from_llm_response(raw) or {"raw_text": raw}
+
+        if text_a or text_b:
+            raw = _llm_answer_raw(
+                f"{prompt}\n\n--- DOKUMENT A: {a.title} ---\n{text_a[:LLM_TEXT_CHAR_LIMIT]}\n\n--- DOKUMENT B: {b.title} ---\n{text_b[:LLM_TEXT_CHAR_LIMIT]}"
+            )
+            if raw:
+                return _parse_json_from_llm_response(raw) or {"raw_text": raw}
+
+        raise LlmUnavailableError(
+            "Ingen LLM tilgjengelig — legg til GEMINI_API_KEY eller ANTHROPIC_API_KEY i .env og restart appen"
+        )
 
 
 class DocumentService:
@@ -109,91 +199,6 @@ class DocumentService:
         self.db.delete(doc)
         self.db.commit()
         return True
-
-    def get_document_keypoints(self, doc: InsuranceDocument) -> dict:
-        """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
-        from api.services.document_intelligence import DocumentIntelligenceService
-        di = DocumentIntelligenceService()
-        if di.is_configured():
-            text_from_di = di.analyze_pdf(bytes(doc.pdf_content))
-            if text_from_di and len(text_from_di) > 200:
-                raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text_from_di[:12000]}")
-                if raw:
-                    parsed = _parse_json_from_llm_response(raw)
-                    if parsed:
-                        return parsed
-
-        text = doc.extracted_text or ""
-        if len(text) > 500:
-            raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:12000]}")
-            if raw:
-                parsed = _parse_json_from_llm_response(raw)
-                if parsed:
-                    return parsed
-
-        raw = _analyze_document_with_gemini(doc.pdf_content, _KEYPOINTS_PROMPT)
-        if raw:
-            parsed = _parse_json_from_llm_response(raw)
-            if parsed:
-                return parsed
-
-        return {
-            "sammendrag": (text[:400] + "…") if text else "Ingen tekstinnhold tilgjengelig",
-            "viktige_vilkaar": [],
-            "unntak": [],
-        }
-
-    def answer_document_question(self, doc: InsuranceDocument, question: str) -> str:
-        """Answer a question about an InsuranceDocument. Raises LlmUnavailableError if no LLM."""
-        prompt = (
-            f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
-            f"Svar kun basert på innholdet i dette forsikringsdokumentet. "
-            f"Vær presis og konkret. Oppgi sidetall eller avsnitt hvis relevant.\n\n"
-            f"Spørsmål: {question}"
-        )
-        answer = _analyze_document_with_gemini(doc.pdf_content, prompt)
-        if answer:
-            return answer
-
-        if doc.extracted_text is not None:
-            fallback = (
-                f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
-                f"Svar kun basert på dette forsikringsdokumentets innhold:\n\n"
-                f"{doc.extracted_text[:12000]}\n\nSpørsmål: {question}"
-            )
-            answer = _llm_answer_raw(fallback)
-            if answer:
-                return answer
-
-        raise LlmUnavailableError("Ingen LLM tilgjengelig")
-
-    def compare_two_documents(self, a: InsuranceDocument, b: InsuranceDocument) -> dict:
-        """Compare two InsuranceDocuments using Gemini or text LLM. Raises LlmUnavailableError if no result."""
-        prompt = _build_compare_prompt(a, b)
-        text_a = str(a.extracted_text) if a.extracted_text else ""
-        text_b = str(b.extracted_text) if b.extracted_text else ""
-
-        if text_a and text_b:
-            raw = _llm_answer_raw(
-                f"{prompt}\n\n--- DOKUMENT A: {a.title} ---\n{text_a[:10000]}\n\n--- DOKUMENT B: {b.title} ---\n{text_b[:10000]}"
-            )
-            if raw:
-                return _parse_json_from_llm_response(raw) or {"raw_text": raw}
-
-        raw = _compare_documents_with_gemini(a.pdf_content, b.pdf_content, prompt)
-        if raw:
-            return _parse_json_from_llm_response(raw) or {"raw_text": raw}
-
-        if text_a or text_b:
-            raw = _llm_answer_raw(
-                f"{prompt}\n\n--- DOKUMENT A: {a.title} ---\n{text_a[:8000]}\n\n--- DOKUMENT B: {b.title} ---\n{text_b[:8000]}"
-            )
-            if raw:
-                return _parse_json_from_llm_response(raw) or {"raw_text": raw}
-
-        raise LlmUnavailableError(
-            "Ingen LLM tilgjengelig — legg til GEMINI_API_KEY eller ANTHROPIC_API_KEY i .env og restart appen"
-        )
 
     # ── InsuranceOffer ─────────────────────────────────────────────────────────
 
@@ -249,16 +254,15 @@ def remove_insurance_document(doc_id: int, db: Session) -> bool:
 
 
 def get_document_keypoints(doc: InsuranceDocument) -> dict:
-    # No DB needed for read-only keypoint extraction; pass a no-op session
-    return DocumentService(None).get_document_keypoints(doc)  # type: ignore[arg-type]
+    return DocumentAnalysisService().get_document_keypoints(doc)
 
 
 def answer_document_question(doc: InsuranceDocument, question: str) -> str:
-    return DocumentService(None).answer_document_question(doc, question)  # type: ignore[arg-type]
+    return DocumentAnalysisService().answer_document_question(doc, question)
 
 
 def compare_two_documents(a: InsuranceDocument, b: InsuranceDocument) -> dict:
-    return DocumentService(None).compare_two_documents(a, b)  # type: ignore[arg-type]
+    return DocumentAnalysisService().compare_two_documents(a, b)
 
 
 def save_insurance_offers(orgnr: str, offer_data: List[dict], db: Session) -> List[dict]:

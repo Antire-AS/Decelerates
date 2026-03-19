@@ -4,7 +4,8 @@ Service classes (inject via FastAPI Depends()):
   BrokerService      — broker settings + notes CRUD
   SlaService         — SLA agreement creation
   PdfSourcesService  — CompanyPdfSource upsert/delete
-  DocumentService    — InsuranceDocument + InsuranceOffer CRUD + LLM analysis
+  DocumentService         — InsuranceDocument + InsuranceOffer storage CRUD
+  DocumentAnalysisService — stateless LLM document analysis (no DB required)
   RagService         — chunk, embed, store, retrieve for chat
   LlmService         — embed, answer, compare offers
   ExternalApiService — BRREG/SSB/NB/Kartverket/PEP/Finanstilsynet
@@ -30,7 +31,7 @@ Sub-modules:
 from api.services.broker import BrokerService  # noqa: F401
 from api.services.sla_service import SlaService  # noqa: F401
 from api.services.pdf_sources import PdfSourcesService  # noqa: F401
-from api.services.documents import DocumentService  # noqa: F401
+from api.services.documents import DocumentService, DocumentAnalysisService  # noqa: F401
 from api.services.rag import RagService  # noqa: F401
 from api.services.llm import LlmService  # noqa: F401
 from api.services.external_apis import ExternalApiService  # noqa: F401

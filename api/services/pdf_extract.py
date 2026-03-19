@@ -16,7 +16,13 @@ from google import genai as google_genai
 from google.genai import types as genai_types
 from sqlalchemy.orm import Session
 
-from api.constants import GEMINI_PDF_MODELS
+from api.constants import (
+    GEMINI_PDF_MODELS,
+    GEMINI_FILES_API_THRESHOLD,
+    LLM_DOCUMENT_CHAR_LIMIT,
+    PDF_PAGE_LIMIT_EXTRACT,
+    PDF_URL_LIMIT,
+)
 from api.db import CompanyHistory, CompanyPdfSource, SessionLocal
 from api.domain.exceptions import PdfExtractionError
 from api.prompts import FINANCIALS_PROMPT, IR_DISCOVERY_PROMPT_TEMPLATE
@@ -44,20 +50,20 @@ def _parse_json_financials(raw: str) -> Optional[Dict[str, Any]]:
 
 
 def _extract_pdf_text(pdf_url: str) -> str:
-    """Download a PDF and extract all text using pdfplumber (up to 60 pages)."""
+    """Download a PDF and extract all text using pdfplumber (up to PDF_PAGE_LIMIT_EXTRACT pages)."""
     resp = requests.get(
         pdf_url, timeout=60, headers={"User-Agent": "BrokerAccelerator/1.0"}
     )
     resp.raise_for_status()
     with pdfplumber.open(io.BytesIO(resp.content)) as pdf:
-        return "\n".join(p.extract_text() or "" for p in pdf.pages[:60])
+        return "\n".join(p.extract_text() or "" for p in pdf.pages[:PDF_PAGE_LIMIT_EXTRACT])
 
 
 def _parse_financials_from_text(
     text: str, orgnr: str, year: int
 ) -> Optional[Dict[str, Any]]:
     """Ask LLM to extract key financial figures from annual report text."""
-    prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year) + f"\n\nAnnual report text (first portion):\n{text[:12000]}"
+    prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year) + f"\n\nAnnual report text (first portion):\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}"
     raw = _llm_answer_raw(prompt)
     if not raw:
         return None
@@ -118,7 +124,7 @@ def _gemini_api_keys() -> List[str]:
 def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
     """Try all Gemini API keys × all PDF models; return raw text or None on quota/failure."""
     prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
-    use_files_api = len(pdf_bytes) > 18 * 1024 * 1024
+    use_files_api = len(pdf_bytes) > GEMINI_FILES_API_THRESHOLD
 
     for api_key in _gemini_api_keys():
         client = google_genai.Client(api_key=api_key)
@@ -160,23 +166,26 @@ def _sanity_check_financials(data: Dict[str, Any]) -> bool:
     return True
 
 
-def _parse_financials_from_pdf(
-    pdf_url: str, orgnr: str, year: int
-) -> Optional[Dict[str, Any]]:
-    """Extract key financials from an annual report PDF.
-
-    Primary: Gemini native PDF understanding (table-aware, no page cap).
-    Fallback: pdfplumber text extraction + text-based LLM.
-    Sanity-checks each attempt; retries once on failure before accepting.
-    """
+def _download_pdf_bytes(pdf_url: str) -> Optional[bytes]:
+    """Download a PDF from *pdf_url* and return raw bytes, or None on failure."""
     try:
         resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": _DDG_UA})
         resp.raise_for_status()
-        pdf_bytes = resp.content
-    except Exception:
-        return None
+        return resp.content
+    except requests.Timeout:
+        logger.warning("[extract] Timeout downloading PDF %s — skipping", pdf_url)
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 404:
+            logger.warning("[extract] PDF not found (404): %s", pdf_url)
+        else:
+            logger.error("[extract] HTTP error downloading %s: %s", pdf_url, exc)
+    except Exception as exc:
+        logger.error("[extract] Unexpected error downloading %s: %s", pdf_url, exc)
+    return None
 
-    # Gemini — up to 2 attempts (sanity check may reject first result)
+
+def _try_gemini_with_retry(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
+    """Try Gemini PDF extraction up to 2 times, sanity-checking each result."""
     for attempt in range(2):
         raw = _try_gemini(pdf_bytes, orgnr, year)
         if raw:
@@ -187,19 +196,39 @@ def _parse_financials_from_pdf(
                 logger.warning("[extract] Attempt 1 failed sanity check for %s year %d — retrying", orgnr, year)
                 continue
         break
+    return None
 
-    # Fallback: pdfplumber text → text LLM
+
+def _pdfplumber_fallback(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
+    """Extract financials via pdfplumber text extraction + text LLM."""
     try:
         text = "\n".join(
             p.extract_text() or ""
-            for p in pdfplumber.open(io.BytesIO(pdf_bytes)).pages[:60]
+            for p in pdfplumber.open(io.BytesIO(pdf_bytes)).pages[:PDF_PAGE_LIMIT_EXTRACT]
         )
         result = _parse_financials_from_text(text, orgnr, year)
         if result and _sanity_check_financials(result):
             return result
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error("[extract] pdfplumber fallback failed for %s year %d: %s", orgnr, year, exc)
     return None
+
+
+def _parse_financials_from_pdf(
+    pdf_url: str, orgnr: str, year: int
+) -> Optional[Dict[str, Any]]:
+    """Extract key financials from an annual report PDF.
+
+    Primary: Gemini native PDF understanding (table-aware, no page cap).
+    Fallback: pdfplumber text extraction + text-based LLM.
+    """
+    pdf_bytes = _download_pdf_bytes(pdf_url)
+    if pdf_bytes is None:
+        return None
+    result = _try_gemini_with_retry(pdf_bytes, orgnr, year)
+    if result:
+        return result
+    return _pdfplumber_fallback(pdf_bytes, orgnr, year)
 
 
 def _upsert_history_row(existing: Any, parsed: Dict[str, Any], pdf_url: str) -> None:
@@ -322,7 +351,14 @@ def _ddg_query(query: str) -> List[str]:
             timeout=15,
         )
         return _extract_pdfs_from_html(resp.text)
-    except Exception:
+    except requests.Timeout:
+        logger.warning("[ddg] Timeout querying DuckDuckGo for %r", query)
+        return []
+    except requests.HTTPError as exc:
+        logger.warning("[ddg] HTTP error querying DuckDuckGo for %r: %s", query, exc)
+        return []
+    except Exception as exc:
+        logger.error("[ddg] Unexpected error for query %r: %s", query, exc)
         return []
 
 
@@ -336,12 +372,12 @@ def _search_for_pdfs(navn: str, hjemmeside: Optional[str], year: int) -> List[st
 
     all_urls: List[str] = []
     for query in queries:
-        if len(all_urls) >= 8:
+        if len(all_urls) >= PDF_URL_LIMIT:
             break
         all_urls += _ddg_query(query)
         all_urls = list(dict.fromkeys(all_urls))
 
-    return all_urls[:8]
+    return all_urls[:PDF_URL_LIMIT]
 
 
 def _search_all_annual_pdfs(navn: str, hjemmeside: Optional[str]) -> List[str]:
@@ -378,7 +414,14 @@ def _ddg_search_results(query: str) -> List[Dict[str, Any]]:
             timeout=15,
         )
         html = resp.text
-    except Exception:
+    except requests.Timeout:
+        logger.warning("[ddg] Timeout on general search for %r", query)
+        return []
+    except requests.HTTPError as exc:
+        logger.warning("[ddg] HTTP error on general search for %r: %s", query, exc)
+        return []
+    except Exception as exc:
+        logger.error("[ddg] Unexpected error on general search for %r: %s", query, exc)
         return []
 
     results = []
@@ -416,6 +459,27 @@ def _fetch_url_content(url: str) -> Dict[str, Any]:
     return _parse_html_for_agent(html, url)
 
 
+def _fetch_html_requests(url: str) -> Optional[str]:
+    """Requests fallback for _fetch_html when Playwright is unavailable."""
+    try:
+        resp = requests.get(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; BrokerAccelerator/1.0)"},
+            timeout=12,
+        )
+        return resp.text
+    except requests.Timeout:
+        logger.warning("[fetch_html] Timeout fetching %s", url)
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 404:
+            logger.warning("[fetch_html] Not found (404): %s", url)
+        else:
+            logger.error("[fetch_html] HTTP error fetching %s: %s", url, exc)
+    except Exception as exc:
+        logger.error("[fetch_html] Unexpected error fetching %s: %s", url, exc)
+    return None
+
+
 def _fetch_html(url: str) -> Optional[str]:
     """Fetch raw HTML — Playwright first, requests fallback."""
     try:
@@ -442,17 +506,7 @@ def _fetch_html(url: str) -> Optional[str]:
         pass  # Playwright not installed
     except Exception:
         pass  # Playwright failed (e.g. Chromium not downloaded yet)
-
-    # Plain requests fallback
-    try:
-        resp = requests.get(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; BrokerAccelerator/1.0)"},
-            timeout=12,
-        )
-        return resp.text
-    except Exception:
-        return None
+    return _fetch_html_requests(url)
 
 
 def _parse_html_for_agent(html: str, base_url: str) -> Dict[str, Any]:

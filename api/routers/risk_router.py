@@ -6,25 +6,24 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
+import os
+
 from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings
 from api.domain.exceptions import LlmUnavailableError, QuotaError
-from api.services import (
-    fetch_ssb_benchmark,
-    _llm_answer_raw,
-    _save_to_rag,
-    fetch_board_members,
-    _generate_risk_narrative,
-    _fmt_nok,
+from api.services.llm import _llm_answer_raw, _fmt_nok, _parse_json_from_llm_response
+from api.services.rag import _save_to_rag
+from api.services.company import _generate_risk_narrative
+from api.services.external_apis import fetch_ssb_benchmark, fetch_board_members
+from api.services.pdf_generate import (
     _extract_offer_summary,
+    generate_risk_report_pdf,
+    generate_forsikringstilbud_pdf,
 )
-from api.services.llm import _parse_json_from_llm_response
-from api.services.pdf_generate import generate_risk_report_pdf, generate_forsikringstilbud_pdf
 from api.services.pdf_sources import save_insurance_document
 from api.schemas import ForsikringstilbudRequest
 from api.dependencies import get_db
 from api.risk import derive_simple_risk
 from api.prompts import RISK_OFFER_PROMPT, RISK_OFFER_PROMPT_EN
-import os
 
 router = APIRouter()
 

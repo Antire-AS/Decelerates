@@ -164,6 +164,14 @@ NACE_BENCHMARKS: Dict[str, Dict[str, Any]] = {
     "S": {"industry": "Other Service Activities",               "eq_ratio_min": 0.25, "eq_ratio_max": 0.45, "margin_min": 0.03, "margin_max": 0.09},
 }
 
+# ── LLM / analysis limits ─────────────────────────────────────────────────────
+LLM_DOCUMENT_CHAR_LIMIT = 12_000   # max chars sent to LLM for document analysis
+LLM_TEXT_CHAR_LIMIT = 8_000        # max chars for text-based LLM fallback
+GEMINI_FILES_API_THRESHOLD = 18 * 1024 * 1024  # 18 MB — use Files API above this
+PDF_PAGE_LIMIT_EXTRACT = 60        # max pages for pdfplumber extraction
+PDF_PAGE_LIMIT_LAYOUT = 40         # max pages for layout analysis
+PDF_URL_LIMIT = 8                  # max PDF URLs to validate per discovery run
+
 _NACE_SECTION_MAP: List[tuple] = [
     (range(1, 4),   "A"),
     (range(5, 10),  "B"),
