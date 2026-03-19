@@ -22,7 +22,7 @@ def _get_sla_service(db: Session = Depends(get_db)) -> SlaService:
 
 
 @router.post("/sla")
-def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Session = Depends(get_db)):
+def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Session = Depends(get_db)) -> dict:
     agreement = svc.create_agreement(body)
     try:
         broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
@@ -35,7 +35,7 @@ def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Ses
 
 
 @router.get("/sla")
-def list_slas(db: Session = Depends(get_db)):
+def list_slas(db: Session = Depends(get_db)) -> list:
     rows = db.query(SlaAgreement).order_by(SlaAgreement.id.desc()).all()
     return [
         {
@@ -52,7 +52,7 @@ def list_slas(db: Session = Depends(get_db)):
 
 
 @router.get("/sla/{sla_id}")
-def get_sla(sla_id: int, db: Session = Depends(get_db)):
+def get_sla(sla_id: int, db: Session = Depends(get_db)) -> dict:
     row = db.query(SlaAgreement).filter(SlaAgreement.id == sla_id).first()
     if not row:
         raise HTTPException(status_code=404, detail="SLA not found")

@@ -41,6 +41,7 @@ def render_documents_tab() -> None:
                 up_insurer = st.text_input("Forsikringsselskap", placeholder="If, Gjensidige...")
                 up_year = st.number_input("År", min_value=2000, max_value=2100, value=2026, step=1)
                 up_period = st.radio("Periode", ["aktiv", "historisk"], horizontal=True)
+                up_tags = st.text_input("Tagger (kommaseparert)", placeholder="cyber, ansvar, eiendom")
 
             if st.button("Last opp", disabled=up_file is None or not up_title) and up_file is not None:
                 try:
@@ -53,6 +54,7 @@ def render_documents_tab() -> None:
                             "insurer": up_insurer,
                             "year": str(up_year),
                             "period": up_period,
+                            "tags": up_tags or "",
                         },
                         timeout=30,
                     )
@@ -92,9 +94,18 @@ def render_documents_tab() -> None:
             for d in filtered_docs:
                 is_open = st.session_state["doc_open_id"] == d["id"]
                 period_badge = "🟢" if d.get("period") == "aktiv" else "⬜"
+                tags_list = [t.strip() for t in (d.get("tags") or "").split(",") if t.strip()]
+                tags_html = "".join(
+                    f"<span style='background:#E8F0FB;color:#1565C0;font-size:11px;padding:2px 7px;"
+                    f"border-radius:10px;margin-right:4px'>{t}</span>"
+                    for t in tags_list
+                )
                 c1, c2, c3, c4 = st.columns([5, 3, 1, 1])
                 with c1:
-                    st.markdown(f"**{d['title']}**")
+                    title_html = f"**{d['title']}**"
+                    st.markdown(title_html)
+                    if tags_html:
+                        st.markdown(tags_html, unsafe_allow_html=True)
                 with c2:
                     st.caption(f"{d.get('insurer', '')} · {d.get('year', '')} · {period_badge} {d.get('period', '')}")
                 with c3:
@@ -283,6 +294,55 @@ def render_documents_tab() -> None:
                                         st.error(chat_resp.text)
                                 except Exception as e:
                                     st.error(str(e))
+
+                        st.markdown("---")
+                        st.markdown("#### Lignende dokumenter")
+                        try:
+                            sim_resp = requests.get(
+                                f"{API_BASE}/insurance-documents/{d['id']}/similar",
+                                timeout=30,
+                            )
+                            similar = sim_resp.json() if sim_resp.ok else []
+                        except Exception:
+                            similar = []
+                        if similar:
+                            for s in similar:
+                                st.caption(f"**{s['title']}** — likhet: {s.get('similarity', 0):.2%}")
+                        else:
+                            st.caption("Ingen lignende dokumenter funnet.")
+
+    # ── Video section ──────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### Videoer")
+    with st.expander("Last opp video", expanded=False):
+        vid_file = st.file_uploader("Velg videofil", type=["mp4", "mov", "avi"], key="video_upload")
+        if st.button("Last opp video", disabled=vid_file is None) and vid_file is not None:
+            try:
+                resp = requests.post(
+                    f"{API_BASE}/videos/upload",
+                    files={"file": (vid_file.name, vid_file.getvalue(), vid_file.type)},
+                    timeout=120,
+                )
+                if resp.ok:
+                    st.success(f"Video lastet opp: {resp.json().get('filename')}")
+                    st.rerun()
+                else:
+                    st.error(f"Feil: {resp.text}")
+            except Exception as e:
+                st.error(str(e))
+
+    try:
+        videos_resp = requests.get(f"{API_BASE}/videos", timeout=10)
+        videos = videos_resp.json() if videos_resp.ok else []
+    except Exception:
+        videos = []
+
+    if not videos:
+        st.caption("Ingen videoer lastet opp ennå.")
+    else:
+        for vid in videos:
+            st.markdown(f"**{vid.get('blob_name', 'Video')}**")
+            st.video(vid["url"])
 
     with docs_sub_cmp:
         st.subheader("Sammenlign vilkår")

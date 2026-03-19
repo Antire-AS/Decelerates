@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi import APIRouter, Query, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 
 from api.db import Company, CompanyNote, CompanyChunk, CompanyHistory, InsuranceOffer
@@ -17,6 +17,7 @@ from api.services.rag import save_qa_note
 from api.rag_chain import build_rag_chain
 from api.schemas import ChatRequest, IngestKnowledgeRequest
 from api.dependencies import get_db
+from api.limiter import limiter
 from api.prompts import CHAT_SYSTEM_PROMPT
 
 router = APIRouter()
@@ -69,7 +70,8 @@ def _answer_with_rag_or_notes(orgnr: str, question: str, db_obj: Company, db: Se
 
 
 @router.post("/org/{orgnr}/chat")
-def chat_about_org(orgnr: str, body: ChatRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def chat_about_org(request: Request, orgnr: str, body: ChatRequest, db: Session = Depends(get_db)):
     from api.rag_chain import build_rag_chain
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
@@ -91,7 +93,7 @@ def chat_about_org(orgnr: str, body: ChatRequest, db: Session = Depends(get_db))
 
 
 @router.post("/org/{orgnr}/ingest-knowledge")
-def ingest_knowledge(orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)):
+def ingest_knowledge(orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)) -> dict:
     """Manually chunk and embed text into the company's knowledge base."""
     if not body.text.strip():
         raise HTTPException(status_code=422, detail="text must not be empty")
@@ -104,7 +106,7 @@ def search_knowledge(
     query: str = Query(..., min_length=1),
     limit: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
-):
+) -> list:
     """Full-knowledge search: find the most relevant chunks across ALL companies."""
     q_emb = _embed(query)
     if q_emb:
@@ -138,7 +140,7 @@ def get_chat_history(
     orgnr: str,
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-):
+) -> list:
     notes = (
         db.query(CompanyNote)
         .filter(CompanyNote.orgnr == orgnr)

@@ -10,8 +10,11 @@ See CLAUDE.md for architecture reference; live API docs at /docs.
 import logging
 
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from api.db import init_db
+from api.limiter import limiter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,6 +37,8 @@ from api.routers import (
 )
 
 app = FastAPI(title="Broker Accelerator API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.on_event("startup")
@@ -57,3 +62,5 @@ app.include_router(knowledge.router)
 app.include_router(broker.router)
 app.include_router(sla.router)
 app.include_router(utils.router)
+
+__all__ = ["app", "limiter"]

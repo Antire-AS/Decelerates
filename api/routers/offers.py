@@ -95,7 +95,7 @@ async def save_offers(
 
 
 @router.get("/org/{orgnr}/offers")
-def list_offers(orgnr: str, db: Session = Depends(get_db)):
+def list_offers(orgnr: str, db: Session = Depends(get_db)) -> list:
     """List stored offer PDFs for a company."""
     rows = db.query(InsuranceOffer).filter(InsuranceOffer.orgnr == orgnr).order_by(InsuranceOffer.id).all()
     return [
@@ -111,7 +111,7 @@ def list_offers(orgnr: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/org/{orgnr}/offers/{offer_id}")
-def delete_offer(orgnr: str, offer_id: int, db: Session = Depends(get_db)):
+def delete_offer(orgnr: str, offer_id: int, db: Session = Depends(get_db)) -> dict:
     if not remove_insurance_offer(offer_id, orgnr, db):
         raise HTTPException(status_code=404, detail="Offer not found")
     return {"deleted": offer_id}

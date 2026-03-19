@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/org/{orgnr}/roles")
-def get_org_roles(orgnr: str):
+def get_org_roles(orgnr: str) -> dict:
     try:
         members = fetch_board_members(orgnr)
     except requests.HTTPError as e:
@@ -25,7 +25,7 @@ def get_org_roles(orgnr: str):
 
 
 @router.get("/org/{orgnr}/estimate")
-def get_synthetic_estimate(orgnr: str):
+def get_synthetic_estimate(orgnr: str) -> dict:
     org_data = fetch_enhet_by_orgnr(orgnr)
     if not org_data:
         raise HTTPException(status_code=404, detail="Organisation not found")
@@ -39,7 +39,7 @@ def get_synthetic_estimate(orgnr: str):
 
 
 @router.get("/org/{orgnr}/bankruptcy")
-def get_bankruptcy_status(orgnr: str):
+def get_bankruptcy_status(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
@@ -52,7 +52,7 @@ def get_bankruptcy_status(orgnr: str):
 
 
 @router.get("/org/{orgnr}/koordinater")
-def get_koordinater(orgnr: str):
+def get_koordinater(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
@@ -61,13 +61,13 @@ def get_koordinater(orgnr: str):
 
 
 @router.get("/org/{orgnr}/losore")
-def get_losore(orgnr: str):
+def get_losore(orgnr: str) -> dict:
     result = fetch_losore(orgnr)
     return {"orgnr": orgnr, **result}
 
 
 @router.get("/org/{orgnr}/benchmark")
-def get_benchmark(orgnr: str):
+def get_benchmark(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
@@ -77,13 +77,13 @@ def get_benchmark(orgnr: str):
 
 
 @router.get("/org/{orgnr}/struktur")
-def get_company_struktur(orgnr: str):
+def get_company_struktur(orgnr: str) -> dict:
     """Return parent company and sub-units from BRREG (open, no auth)."""
     return {"orgnr": orgnr, **fetch_company_struktur(orgnr)}
 
 
 @router.get("/norgesbank/rate/{currency}")
-def get_norgesbank_rate(currency: str):
+def get_norgesbank_rate(currency: str) -> dict:
     """Return current NOK exchange rate for the given currency (Norges Bank open API)."""
     rate = fetch_norgesbank_rate(currency.upper())
     return {

@@ -1,17 +1,18 @@
 from typing import Optional
 
 import requests
-from fastapi import APIRouter, Query, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, Query, HTTPException, Depends, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 
 from api.services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, _auto_extract_pdf_sources, list_companies as _list_companies
 from api.dependencies import get_db
+from api.limiter import limiter
 
 router = APIRouter()
 
 
 @router.get("/ping")
-def ping():
+def ping() -> dict:
     return {"status": "ok"}
 
 
@@ -20,7 +21,7 @@ def search_orgs(
     name: str = Query(..., min_length=2),
     kommunenummer: Optional[str] = None,
     size: int = Query(20, ge=1, le=100),
-):
+) -> list:
     try:
         return fetch_enhetsregisteret(name=name, kommunenummer=kommunenummer, size=size)
     except requests.HTTPError as e:
@@ -28,7 +29,9 @@ def search_orgs(
 
 
 @router.get("/org/{orgnr}")
+@limiter.limit("10/minute")
 def get_org_profile(
+    request: Request,
     orgnr: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -50,7 +53,7 @@ def get_org_profile(
 
 
 @router.get("/org/{orgnr}/licenses")
-def get_org_licenses(orgnr: str):
+def get_org_licenses(orgnr: str) -> dict:
     try:
         licenses = fetch_finanstilsynet_licenses(orgnr)
     except requests.HTTPError as e:
@@ -64,7 +67,7 @@ def list_companies(
     limit: int = Query(50, ge=1, le=500),
     kommune: Optional[str] = None,
     db: Session = Depends(get_db),
-):
+) -> list:
     return _list_companies(limit, kommune, db)
 
 

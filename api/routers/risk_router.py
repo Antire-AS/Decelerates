@@ -94,7 +94,7 @@ def _save_offer_recommendation_to_rag(orgnr: str, result: dict, db) -> None:
 
 
 @router.post("/org/{orgnr}/risk-offer")
-def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
+def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
     """Generate LLM-based insurance recommendations from the company's risk profile."""
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
@@ -174,7 +174,7 @@ def _save_gap_to_rag(orgnr: str, result: dict, db) -> None:
 
 
 @router.post("/org/{orgnr}/coverage-gap")
-def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
+def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
     """Compare uploaded insurance offers against the company's risk profile to identify coverage gaps."""
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
@@ -296,7 +296,7 @@ def download_forsikringstilbud(
 
 
 @router.post("/org/{orgnr}/narrative")
-def generate_narrative(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)):
+def generate_narrative(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
         raise HTTPException(

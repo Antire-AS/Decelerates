@@ -12,13 +12,13 @@ router = APIRouter()
 
 
 @router.get("/org/{orgnr}/history")
-def get_org_history(orgnr: str, db: Session = Depends(get_db)):
+def get_org_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     history = _get_full_history(orgnr, db)
     return {"orgnr": orgnr, "years": history}
 
 
 @router.post("/org/{orgnr}/pdf-history")
-def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(get_db)):
+def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(get_db)) -> dict:
     """Add a PDF annual report URL for an org, extract financials, store in DB."""
     upsert_pdf_source(orgnr, body.year, body.pdf_url, body.label, db)
     try:
@@ -31,7 +31,7 @@ def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(g
 
 
 @router.get("/org/{orgnr}/pdf-sources")
-def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)):
+def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """List known PDF annual report sources for an org."""
     sources = (
         db.query(CompanyPdfSource)
@@ -49,7 +49,7 @@ def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/org/{orgnr}/history")
-def reset_history(orgnr: str, db: Session = Depends(get_db)):
+def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Delete all company_history rows for this org so extraction re-runs on next load."""
     deleted = delete_history_year(orgnr, db)
     return {"orgnr": orgnr, "deleted_rows": deleted}

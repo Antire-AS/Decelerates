@@ -154,6 +154,7 @@ class InsuranceDocument(Base):
     pdf_content    = Column(LargeBinary, nullable=False)
     extracted_text = Column(String)          # cached pdfplumber extraction
     uploaded_at    = Column(String, nullable=False)
+    tags           = Column(String, nullable=True)  # comma-separated tags
 
 
 class BrokerNote(Base):

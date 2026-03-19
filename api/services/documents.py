@@ -42,6 +42,17 @@ def _pdf_bytes_to_text(pdf_bytes: bytes) -> str:
         return ""
 
 
+def _validate_pdf(pdf_bytes: bytes) -> bool:
+    """Return True if pdf_bytes is a valid, non-empty PDF."""
+    if not pdf_bytes or pdf_bytes[:5] != b"%PDF-":
+        return False
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            return len(pdf.pages) > 0
+    except Exception:
+        return False
+
+
 def _build_compare_prompt(a: InsuranceDocument, b: InsuranceDocument) -> str:
     return (
         f"Du er en norsk forsikringsrådgiver som sammenligner to forsikringsdokumenter. "
@@ -171,8 +182,11 @@ class DocumentService:
         year: Optional[int],
         period: str,
         orgnr: Optional[str],
+        tags: Optional[str] = None,
     ) -> InsuranceDocument:
         """Create and persist an InsuranceDocument. Returns the saved ORM row."""
+        if not _validate_pdf(pdf_bytes):
+            raise ValueError("Ugyldig PDF-fil")
         extracted = _pdf_bytes_to_text(pdf_bytes)
         doc = InsuranceDocument(
             title=title,
@@ -185,6 +199,7 @@ class DocumentService:
             pdf_content=pdf_bytes,
             extracted_text=extracted or None,
             uploaded_at=datetime.utcnow().isoformat(),
+            tags=tags or None,
         )
         self.db.add(doc)
         self.db.commit()
@@ -245,8 +260,9 @@ class DocumentService:
 def store_insurance_document(
     pdf_bytes: bytes, filename: str, title: str, category: str, insurer: str,
     year: Optional[int], period: str, orgnr: Optional[str], db: Session,
+    tags: Optional[str] = None,
 ) -> InsuranceDocument:
-    return DocumentService(db).store_document(pdf_bytes, filename, title, category, insurer, year, period, orgnr)
+    return DocumentService(db).store_document(pdf_bytes, filename, title, category, insurer, year, period, orgnr, tags)
 
 
 def remove_insurance_document(doc_id: int, db: Session) -> bool:
