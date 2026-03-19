@@ -1,4 +1,5 @@
 import io
+import os
 import uuid
 
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
@@ -21,7 +22,7 @@ from api.schemas import DocChatRequest, DocCompareRequest
 from api.dependencies import get_db
 
 _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
-_VIDEOS_CONTAINER = "videos"
+_VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 
 router = APIRouter()
 

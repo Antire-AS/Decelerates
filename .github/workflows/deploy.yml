@@ -118,6 +118,7 @@ jobs:
               "AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }}" \
               "AZURE_SEARCH_INDEX_NAME=company-chunks" \
               "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
+              "AZURE_VIDEO_CONTAINER=transksrt" \
           2>/dev/null \
           || az containerapp update \
             --name ${{ steps.config.outputs.api_app }} \
