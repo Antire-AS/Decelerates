@@ -112,6 +112,17 @@ class DocumentService:
 
     def get_document_keypoints(self, doc: InsuranceDocument) -> dict:
         """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
+        from api.services.document_intelligence import DocumentIntelligenceService
+        di = DocumentIntelligenceService()
+        if di.is_configured():
+            text_from_di = di.analyze_pdf(bytes(doc.pdf_content))
+            if text_from_di and len(text_from_di) > 200:
+                raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text_from_di[:12000]}")
+                if raw:
+                    parsed = _parse_json_from_llm_response(raw)
+                    if parsed:
+                        return parsed
+
         text = doc.extracted_text or ""
         if len(text) > 500:
             raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:12000]}")

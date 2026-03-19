@@ -36,7 +36,46 @@ def _is_key_set(key: Optional[str]) -> bool:
     return bool(key) and key != "your_key_here"
 
 
+def _azure_openai_embed(text: str) -> Optional[List[float]]:
+    """Return embeddings from Azure OpenAI text-embedding-3-large (dim=512), or None."""
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    key = os.getenv("AZURE_OPENAI_API_KEY")
+    if not (_is_key_set(endpoint) and _is_key_set(key)):
+        return None
+    try:
+        from openai import AzureOpenAI
+        client = AzureOpenAI(api_key=key, azure_endpoint=endpoint, api_version="2024-02-01")
+        resp = client.embeddings.create(model="text-embedding-3-large", input=text, dimensions=512)
+        return resp.data[0].embedding
+    except Exception:
+        return None
+
+
+def _azure_openai_answer(prompt: str) -> Optional[str]:
+    """Call Azure OpenAI gpt-4o chat completion. Returns text or None."""
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    key = os.getenv("AZURE_OPENAI_API_KEY")
+    if not (_is_key_set(endpoint) and _is_key_set(key)):
+        return None
+    try:
+        from openai import AzureOpenAI
+        deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+        client = AzureOpenAI(api_key=key, azure_endpoint=endpoint, api_version="2024-02-01")
+        resp = client.chat.completions.create(
+            model=deployment,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+        )
+        return resp.choices[0].message.content
+    except Exception:
+        return None
+
+
 def _embed(text: str) -> List[float]:
+    result = _azure_openai_embed(text)
+    if result is not None:
+        return result
+
     voyage_key = os.getenv("VOYAGE_API_KEY")
     if _is_key_set(voyage_key):
         try:
@@ -73,6 +112,10 @@ def _fmt_nok(value) -> str:
 
 def _llm_answer_raw(prompt: str) -> Optional[str]:
     """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
+    result = _azure_openai_answer(prompt)
+    if result is not None:
+        return result
+
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if _is_key_set(anthropic_key):
         client = anthropic.Anthropic(api_key=anthropic_key)

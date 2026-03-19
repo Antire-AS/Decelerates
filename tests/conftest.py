@@ -38,6 +38,35 @@ sys.modules.setdefault("anthropic", MagicMock())
 # pdfplumber — services/pdf_extract.py
 sys.modules.setdefault("pdfplumber", MagicMock())
 
+# openai — services/llm.py (AzureOpenAI)
+_openai_stub = MagicMock()
+_openai_stub.AzureOpenAI = MagicMock
+sys.modules.setdefault("openai", _openai_stub)
+
+# azure.identity — blob_storage.py, document_intelligence.py
+_azure_identity_stub = MagicMock()
+_azure_identity_stub.DefaultAzureCredential = MagicMock
+sys.modules.setdefault("azure", MagicMock())
+sys.modules.setdefault("azure.identity", _azure_identity_stub)
+
+# azure.storage.blob — blob_storage.py
+_azure_blob_stub = MagicMock()
+_azure_blob_stub.BlobServiceClient = MagicMock
+sys.modules.setdefault("azure.storage", MagicMock())
+sys.modules.setdefault("azure.storage.blob", _azure_blob_stub)
+
+# azure.ai.documentintelligence — document_intelligence.py
+_azure_di_stub = MagicMock()
+_azure_di_stub.DocumentIntelligenceClient = MagicMock
+sys.modules.setdefault("azure.ai", MagicMock())
+sys.modules.setdefault("azure.ai.documentintelligence", _azure_di_stub)
+
+# azure.core.credentials — document_intelligence.py (AzureKeyCredential)
+_azure_core_creds_stub = MagicMock()
+_azure_core_creds_stub.AzureKeyCredential = MagicMock
+sys.modules.setdefault("azure.core", MagicMock())
+sys.modules.setdefault("azure.core.credentials", _azure_core_creds_stub)
+
 # fpdf2 / fpdf — services/pdf_generate.py
 sys.modules.setdefault("fpdf", MagicMock())
 

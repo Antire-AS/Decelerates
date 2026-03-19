@@ -92,6 +92,12 @@ jobs:
               "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}" \
               "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" \
               "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" \
+              "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+              "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" \
+              "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o" \
+              "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}" \
+              "AZURE_DOCUMENT_INTELLIGENCE_KEY=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}" \
+              "AZURE_BLOB_ENDPOINT=${{ secrets.AZURE_BLOB_ENDPOINT }}" \
           2>/dev/null \
           || az containerapp update \
             --name ca-api \
