@@ -1,3 +1,5 @@
+import os
+
 import requests
 from fastapi import APIRouter, HTTPException
 
@@ -90,4 +92,67 @@ def get_norgesbank_rate(currency: str) -> dict:
         "currency": currency.upper(),
         "nok_rate": rate,
         "source": "Norges Bank Data API (data.norges-bank.no)",
+    }
+
+
+@router.get("/debug/status")
+def debug_status() -> dict:
+    """Diagnostic endpoint — returns blob storage health and DB migration state."""
+    from api.services.blob_storage import BlobStorageService
+    from api.db import engine
+    from sqlalchemy import text
+
+    # --- Blob storage ---
+    azure_client_id = os.getenv("AZURE_CLIENT_ID", "")
+    azure_blob_endpoint = os.getenv("AZURE_BLOB_ENDPOINT", "")
+    svc = BlobStorageService()
+    blob_error = None
+    blob_count = None
+    blob_sample = []
+    try:
+        blobs = svc.list_blobs("transksrt")
+        blob_count = len(blobs)
+        blob_sample = blobs[:5]
+    except Exception as exc:
+        blob_error = str(exc)
+
+    # --- DB migration state ---
+    alembic_version = None
+    alembic_error = None
+    tables = []
+    try:
+        with engine.connect() as conn:
+            alembic_version = conn.execute(
+                text("SELECT version_num FROM alembic_version LIMIT 1")
+            ).scalar()
+            rows = conn.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema='public' ORDER BY table_name"
+                )
+            ).fetchall()
+            tables = [r[0] for r in rows]
+            # Check if tags column exists
+            tags_col = conn.execute(
+                text(
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name='insurance_documents' AND column_name='tags')"
+                )
+            ).scalar()
+    except Exception as exc:
+        alembic_error = str(exc)
+        tags_col = None
+
+    return {
+        "azure_client_id_set": bool(azure_client_id),
+        "azure_client_id_prefix": azure_client_id[:8] + "..." if azure_client_id else None,
+        "azure_blob_endpoint_set": bool(azure_blob_endpoint),
+        "blob_client_init": svc._client is not None,
+        "blob_count": blob_count,
+        "blob_sample": blob_sample,
+        "blob_error": blob_error,
+        "alembic_version": alembic_version,
+        "alembic_error": alembic_error,
+        "tags_column_exists": tags_col,
+        "public_tables": tables,
     }
