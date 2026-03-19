@@ -119,6 +119,7 @@ jobs:
               "AZURE_SEARCH_INDEX_NAME=company-chunks" \
               "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
               "AZURE_VIDEO_CONTAINER=transksrt" \
+              "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b" \
           2>/dev/null \
           || az containerapp update \
             --name ${{ steps.config.outputs.api_app }} \
