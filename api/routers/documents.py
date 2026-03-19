@@ -218,6 +218,14 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
     return {"blob_name": blob_name, "url": url, "filename": file.filename}
 
 
+_VIDEO_SECTIONS_MAP = {
+    "ffs080524": ("ffsformidler", "Formidler"),
+    "ffs100624": ("ffskunde", "Kunde"),
+    "ffs220824": ("ffslære", "Lær"),
+    "ffs290824": ("ffspraktisk", "Praktisk"),
+}
+
+
 @router.get("/videos")
 def list_videos() -> list:
     """List MP4 videos with chapter metadata. Blobs may be in subdirectories."""
@@ -232,14 +240,18 @@ def list_videos() -> list:
         directory = posixpath.dirname(mp4)
         fname = posixpath.basename(mp4)[:-4]          # e.g. ffs080524_subs
         fname_clean = fname.removesuffix("_subs")     # e.g. ffs080524
-        display_name = fname_clean.replace("_", " ")
 
-        # Sections: look for {fname}.json, {fname}_sections.json in same dir
+        sections_prefix, display_name = _VIDEO_SECTIONS_MAP.get(fname_clean, (fname_clean, fname_clean.replace("_", " ")))
+
+        # Sections: use known mapping first, then fall back to name-based search
         sections = None
         base = mp4[:-4]
-        for cand in [f"{base}.json", f"{base}_sections.json", f"{base}_timeline.json",
-                     f"{directory}/{fname_clean}_sections.json",
-                     f"{directory}/{fname_clean}_timeline.json"]:
+        candidates = [
+            f"{directory}/{sections_prefix}_sections.json",
+            f"{directory}/{sections_prefix}_timeline.json",
+            f"{base}.json", f"{base}_sections.json",
+        ]
+        for cand in candidates:
             if cand in all_blobs:
                 sections = svc.download_json(_VIDEOS_CONTAINER, cand)
                 break
