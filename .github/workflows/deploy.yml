@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
 
 # Required for GitHub OIDC token exchange with Azure
 permissions:
@@ -12,7 +12,6 @@ permissions:
 env:
   RG: rg-broker-accelerator-prod
   ACR: crantireshared
-  CAE: cae-broker-accelerator-prod
   LOCATION: norwayeast
   RUNTIME_IDENTITY: /subscriptions/6c73d6c8-9e92-47f0-a3d3-ed681a1209aa/resourceGroups/rg-broker-accelerator-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-runtime-broker-accelerator-prod
 
@@ -22,6 +21,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set environment config
+        id: config
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "env=prod" >> $GITHUB_OUTPUT
+            echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
+            echo "api_app=ca-api" >> $GITHUB_OUTPUT
+            echo "ui_app=ca-ui" >> $GITHUB_OUTPUT
+            echo "db_url=${{ secrets.DATABASE_URL }}" >> $GITHUB_OUTPUT
+          else
+            echo "env=staging" >> $GITHUB_OUTPUT
+            echo "cae=cae-broker-accelerator-staging" >> $GITHUB_OUTPUT
+            echo "api_app=ca-api-staging" >> $GITHUB_OUTPUT
+            echo "ui_app=ca-ui-staging" >> $GITHUB_OUTPUT
+            echo "db_url=${{ secrets.STAGING_DATABASE_URL }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Azure login (OIDC — no stored secrets)
         uses: azure/login@v2
@@ -44,7 +60,7 @@ jobs:
           push: true
           tags: |
             ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
-            ${{ env.ACR }}.azurecr.io/broker-api:latest
+            ${{ env.ACR }}.azurecr.io/broker-api:${{ steps.config.outputs.env }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -56,27 +72,27 @@ jobs:
           push: true
           tags: |
             ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
-            ${{ env.ACR }}.azurecr.io/broker-ui:latest
+            ${{ env.ACR }}.azurecr.io/broker-ui:${{ steps.config.outputs.env }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Ensure Container Apps Environment
         run: |
           az containerapp env show \
-            --name ${{ env.CAE }} \
+            --name ${{ steps.config.outputs.cae }} \
             --resource-group ${{ env.RG }} \
             --output none 2>/dev/null \
           || az containerapp env create \
-            --name ${{ env.CAE }} \
+            --name ${{ steps.config.outputs.cae }} \
             --resource-group ${{ env.RG }} \
             --location ${{ env.LOCATION }}
 
       - name: Deploy API
         run: |
           az containerapp create \
-            --name ca-api \
+            --name ${{ steps.config.outputs.api_app }} \
             --resource-group ${{ env.RG }} \
-            --environment ${{ env.CAE }} \
+            --environment ${{ steps.config.outputs.cae }} \
             --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
             --registry-server ${{ env.ACR }}.azurecr.io \
             --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
@@ -86,7 +102,7 @@ jobs:
             --min-replicas 1 \
             --max-replicas 3 \
             --env-vars \
-              "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+              "DATABASE_URL=${{ steps.config.outputs.db_url }}" \
               "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" \
               "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}" \
               "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}" \
@@ -104,7 +120,7 @@ jobs:
               "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
           2>/dev/null \
           || az containerapp update \
-            --name ca-api \
+            --name ${{ steps.config.outputs.api_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
 
@@ -112,7 +128,7 @@ jobs:
         id: api
         run: |
           FQDN=$(az containerapp show \
-            --name ca-api \
+            --name ${{ steps.config.outputs.api_app }} \
             --resource-group ${{ env.RG }} \
             --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "url=https://$FQDN" >> $GITHUB_OUTPUT
@@ -120,9 +136,9 @@ jobs:
       - name: Deploy UI
         run: |
           az containerapp create \
-            --name ca-ui \
+            --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
-            --environment ${{ env.CAE }} \
+            --environment ${{ steps.config.outputs.cae }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }} \
             --registry-server ${{ env.ACR }}.azurecr.io \
             --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
@@ -134,7 +150,7 @@ jobs:
             --env-vars "API_BASE_URL=${{ steps.api.outputs.url }}" \
           2>/dev/null \
           || az containerapp update \
-            --name ca-ui \
+            --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
 

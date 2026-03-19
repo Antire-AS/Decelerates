@@ -100,7 +100,7 @@ def test_no_function_exceeds_40_lines():
     """Every production function must be ≤ 40 lines unless explicitly justified."""
     violations = []
     for path in ROOT.rglob("*.py"):
-        if any(part in {".venv", "__pycache__", ".git", "tests"} for part in path.parts):
+        if any(part in {".venv", "__pycache__", ".git", "tests", "alembic"} for part in path.parts):
             continue
         if path.name in _EXCLUDED_FILES:
             continue

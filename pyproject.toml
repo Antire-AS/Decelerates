@@ -30,6 +30,7 @@ dependencies = [
     "azure-communication-email>=1.0.0",
     "pyasn1>=0.6.3",
     "slowapi>=0.1.9",
+    "alembic>=1.13.0",
 ]
 
 [build-system]
