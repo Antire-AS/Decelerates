@@ -137,7 +137,7 @@ def render_documents_tab() -> None:
                             has_any = any(kp.get(k) for k in ["om_dokumentet", "sammendrag", "hva_dekkes", "viktige_vilkaar", "unntak", "forsikringssum"])
 
                             if not has_any:
-                                st.caption("Nøkkelpunkter ikke tilgjengelig — Gemini API-nøkkel kreves.")
+                                st.caption("Nøkkelpunkter ikke tilgjengelig — AI-tjenesten er midlertidig overbelastet. Prøv igjen om litt.")
                             else:
                                 om_dok = kp.get("om_dokumentet") or kp.get("sammendrag", "")
                                 if om_dok:
