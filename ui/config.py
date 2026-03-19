@@ -3,10 +3,12 @@ import json
 import pathlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import os
+
 import requests
 import streamlit as st
 
-API_BASE = "http://127.0.0.1:8000"
+API_BASE = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 _TRANSLATIONS = json.loads(pathlib.Path("ui/translations.json").read_text(encoding="utf-8"))
 
