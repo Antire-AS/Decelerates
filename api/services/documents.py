@@ -111,20 +111,20 @@ class DocumentService:
         return True
 
     def get_document_keypoints(self, doc: InsuranceDocument) -> dict:
-        """Extract key points from an InsuranceDocument via Gemini PDF or text LLM fallback."""
+        """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
+        text = doc.extracted_text or ""
+        if len(text) > 500:
+            raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:12000]}")
+            if raw:
+                parsed = _parse_json_from_llm_response(raw)
+                if parsed:
+                    return parsed
+
         raw = _analyze_document_with_gemini(doc.pdf_content, _KEYPOINTS_PROMPT)
         if raw:
             parsed = _parse_json_from_llm_response(raw)
             if parsed:
                 return parsed
-
-        text = doc.extracted_text or ""
-        if text:
-            raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:8000]}")
-            if raw:
-                parsed = _parse_json_from_llm_response(raw)
-                if parsed:
-                    return parsed
 
         return {
             "sammendrag": (text[:400] + "…") if text else "Ingen tekstinnhold tilgjengelig",
