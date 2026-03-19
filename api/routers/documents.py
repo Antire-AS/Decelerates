@@ -220,7 +220,8 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
 
 @router.get("/videos")
 def list_videos() -> list:
-    """List MP4 videos with chapter metadata. Thumbnails use SAS URLs when available."""
+    """List MP4 videos with chapter metadata. Blobs may be in subdirectories."""
+    import posixpath
     svc = BlobStorageService()
     if not svc.is_configured():
         return []
@@ -228,16 +229,29 @@ def list_videos() -> list:
     mp4s = sorted(b for b in all_blobs if b.lower().endswith(".mp4"))
     results = []
     for mp4 in mp4s:
-        base = mp4[:-4]
+        directory = posixpath.dirname(mp4)
+        fname = posixpath.basename(mp4)[:-4]          # e.g. ffs080524_subs
+        fname_clean = fname.removesuffix("_subs")     # e.g. ffs080524
+        display_name = fname_clean.replace("_", " ")
+
+        # Sections: look for {fname}.json, {fname}_sections.json in same dir
         sections = None
-        for cand in [f"{base}.json", f"{base}_sections.json", f"{base}_timeline.json"]:
+        base = mp4[:-4]
+        for cand in [f"{base}.json", f"{base}_sections.json", f"{base}_timeline.json",
+                     f"{directory}/{fname_clean}_sections.json",
+                     f"{directory}/{fname_clean}_timeline.json"]:
             if cand in all_blobs:
                 sections = svc.download_json(_VIDEOS_CONTAINER, cand)
                 break
-        thumb_candidates = [f"{base}.jpg", f"{base}_thumbnail.jpg", f"{base}.png"]
+
+        # Thumbnail: look for sprite jpg in thumbnails/ subdir or same dir
+        thumb_candidates = [
+            f"{directory}/thumbnails/{fname}_sprite.jpg",
+            f"{directory}/thumbnails/{fname}.jpg",
+            f"{base}.jpg",
+        ]
         thumb_blob = next((c for c in thumb_candidates if c in all_blobs), None)
         thumbnail_url = svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
-        display_name = mp4.split("_", 1)[-1][:-4] if "_" in mp4 else base
         results.append({
             "blob_name": mp4,
             "filename": display_name,
@@ -247,13 +261,13 @@ def list_videos() -> list:
     return results
 
 
-@router.get("/videos/{blob_name:path}/stream")
-async def stream_video(blob_name: str, request: Request):
-    """Stream a video blob with HTTP range request support for seeking."""
+@router.get("/videos/stream")
+async def stream_video(blob: str, request: Request):
+    """Stream a video blob with HTTP range request support. blob= query param is the blob name."""
     svc = BlobStorageService()
     if not svc.is_configured():
         raise HTTPException(status_code=503, detail="Blob Storage ikke konfigurert")
-    file_size = svc.get_blob_size(_VIDEOS_CONTAINER, blob_name)
+    file_size = svc.get_blob_size(_VIDEOS_CONTAINER, blob)
     if file_size is None:
         raise HTTPException(status_code=404, detail="Video ikke funnet")
     range_header = request.headers.get("range")
@@ -262,7 +276,7 @@ async def stream_video(blob_name: str, request: Request):
         start = int(m.group(1)) if m and m.group(1) else 0
         end = int(m.group(2)) if m and m.group(2) else file_size - 1
         length = end - start + 1
-        chunks = svc.stream_range(_VIDEOS_CONTAINER, blob_name, offset=start, length=length)
+        chunks = svc.stream_range(_VIDEOS_CONTAINER, blob, offset=start, length=length)
         if chunks is None:
             raise HTTPException(status_code=502)
         return StreamingResponse(
@@ -273,7 +287,7 @@ async def stream_video(blob_name: str, request: Request):
                 "Content-Length": str(length),
             },
         )
-    chunks = svc.stream_range(_VIDEOS_CONTAINER, blob_name)
+    chunks = svc.stream_range(_VIDEOS_CONTAINER, blob)
     if chunks is None:
         raise HTTPException(status_code=502)
     return StreamingResponse(

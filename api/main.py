@@ -51,9 +51,39 @@ app.add_middleware(
 )
 
 
+def _stamp_existing_db_if_needed(alembic_cfg) -> None:
+    """If the DB has tables but Alembic hasn't tracked them, stamp the initial revision.
+
+    Handles the case where data was migrated before Alembic was introduced:
+    tables exist but alembic_version does not, causing CREATE TABLE to fail.
+    After stamping, upgrade() will only apply new migrations (e.g. add_tags).
+    """
+    import os
+    from sqlalchemy import create_engine, text
+
+    db_url = os.getenv("DATABASE_URL", "postgresql://tharusan@localhost:5432/brokerdb")
+    engine = create_engine(db_url)
+    try:
+        with engine.connect() as conn:
+            has_version_table = conn.execute(text(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                "WHERE table_name = 'alembic_version')"
+            )).scalar()
+            if not has_version_table:
+                has_companies = conn.execute(text(
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                    "WHERE table_name = 'companies')"
+                )).scalar()
+                if has_companies:
+                    alembic_command.stamp(alembic_cfg, "4fa17f9b251a")
+    finally:
+        engine.dispose()
+
+
 @app.on_event("startup")
 def on_startup():
     alembic_cfg = AlembicConfig("alembic.ini")
+    _stamp_existing_db_if_needed(alembic_cfg)
     alembic_command.upgrade(alembic_cfg, "head")
     init_db()
     SearchService().ensure_index()

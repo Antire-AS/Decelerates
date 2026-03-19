@@ -48,7 +48,7 @@ def _render_video_player(vid: dict, compact: bool = False) -> None:
     filename = vid.get("filename") or blob_name
     sections = _parse_sections(vid.get("sections"))
     thumbnail_url = vid.get("thumbnail_url") or ""
-    proxy_url = f"{API_BASE}/videos/{urllib.parse.quote(blob_name, safe='')}/stream"
+    proxy_url = f"{API_BASE}/videos/stream?blob={urllib.parse.quote(blob_name)}"
 
     poster = f'poster="{thumbnail_url}"' if thumbnail_url else ""
     chapter_btns = "".join(
