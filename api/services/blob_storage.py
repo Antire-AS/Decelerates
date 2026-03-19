@@ -59,3 +59,73 @@ class BlobStorageService:
             return True
         except Exception:
             return False
+
+    def list_blobs(self, container: str) -> list:
+        """Return a list of all blob names in a container."""
+        if not self.is_configured() or self._client is None:
+            return []
+        try:
+            return [b.name for b in self._client.get_container_client(container).list_blobs()]
+        except Exception:
+            return []
+
+    def generate_sas_url(self, container: str, blob_name: str, hours: int = 2) -> Optional[str]:
+        """Generate a user-delegation SAS URL valid for `hours`. Requires Storage Blob Delegator role."""
+        if not self.is_configured() or self._client is None:
+            return None
+        try:
+            from datetime import datetime, timedelta, timezone
+            from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+            now = datetime.now(timezone.utc)
+            expiry = now + timedelta(hours=hours)
+            udk = self._client.get_user_delegation_key(
+                key_start_time=now - timedelta(minutes=5), key_expiry_time=expiry
+            )
+            endpoint = _blob_endpoint() or ""
+            account_name = endpoint.split("//")[-1].split(".")[0]
+            token = generate_blob_sas(
+                account_name=account_name,
+                container_name=container,
+                blob_name=blob_name,
+                user_delegation_key=udk,
+                permission=BlobSasPermissions(read=True),
+                expiry=expiry,
+            )
+            return f"{endpoint}/{container}/{blob_name}?{token}"
+        except Exception:
+            return None
+
+    def download_json(self, container: str, blob_name: str) -> Optional[dict]:
+        """Download and JSON-parse a blob. Returns None if not found or not valid JSON."""
+        data = self.download(container, blob_name)
+        if not data:
+            return None
+        try:
+            import json
+            return json.loads(data.decode("utf-8"))
+        except Exception:
+            return None
+
+    def get_blob_size(self, container: str, blob_name: str) -> Optional[int]:
+        """Return the byte size of a blob, or None if not found."""
+        if not self.is_configured() or self._client is None:
+            return None
+        try:
+            return self._client.get_blob_client(
+                container=container, blob=blob_name
+            ).get_blob_properties().size
+        except Exception:
+            return None
+
+    def stream_range(self, container: str, blob_name: str, offset: int = 0, length: Optional[int] = None):
+        """Yield byte chunks of a blob range. Returns None on failure."""
+        if not self.is_configured() or self._client is None:
+            return None
+        try:
+            blob = self._client.get_blob_client(container=container, blob=blob_name)
+            kw: dict = {"offset": offset}
+            if length is not None:
+                kw["length"] = length
+            return blob.download_blob(**kw).chunks()
+        except Exception:
+            return None

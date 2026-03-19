@@ -87,6 +87,7 @@ _JUSTIFIED = {
     "render_profile_core",
     "render_profile_financials",
     "render_portfolio_tab",
+    "_render_video_player",
     "render_documents_tab",
     "render_sla_tab",
     "render_knowledge_tab",
