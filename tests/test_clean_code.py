@@ -89,6 +89,7 @@ _JUSTIFIED = {
     "render_portfolio_tab",
     "render_videos_tab",
     "_render_video_player",
+    "list_videos",
     "render_documents_tab",
     "render_sla_tab",
     "render_knowledge_tab",
