@@ -42,59 +42,83 @@ def _source_label(source: str) -> str:
     return source
 
 
-def _render_knowledge_chat() -> None:
-    st.caption("Chat direkte med AI om innholdet i kursvideoene og forsikringsdokumentene.")
+@st.cache_data(ttl=300)
+def _fetch_videos() -> list:
+    try:
+        resp = requests.get(f"{API_BASE}/videos", timeout=15)
+        return resp.json() if resp.ok else []
+    except Exception:
+        return []
 
+
+def _render_inline_player(dl: dict) -> None:
+    from ui.views.videos import _render_video_player
+    videos = _fetch_videos()
+    vid = next((v for v in videos if v.get("filename") == dl["display_name"]), None)
+    if vid:
+        _render_video_player(vid, compact=True, autoplay_at=float(dl["start_seconds"]))
+    else:
+        st.info(f"Video ikke funnet: {dl['display_name']}")
+
+
+def _render_knowledge_chat() -> None:
     if "kb_messages" not in st.session_state:
         st.session_state["kb_messages"] = []
 
-    for msg_idx, msg in enumerate(st.session_state["kb_messages"]):
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            if msg.get("sources"):
-                with st.expander(f"Kilder ({len(msg['sources'])})", expanded=False):
-                    for src_idx, src in enumerate(msg["sources"]):
-                        st.caption(_source_label(src))
-                        if src.startswith("video::"):
-                            parts = src.split("::")
-                            if len(parts) == 4:
-                                _, dname, start_s, chapter = parts
-                                ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
-                                btn_key = f"dl_{msg_idx}_{src_idx}"
-                                if st.button(f"▶ Se i video ({ts})", key=btn_key):
-                                    st.session_state["video_deeplink"] = {
-                                        "display_name": dname,
-                                        "start_seconds": int(start_s) if start_s.isdigit() else 0,
-                                    }
-                                    st.info(f"Gå til **Videoer**-fanen for å se klippet: \"{chapter}\" ({ts})")
+    chat_col, video_col = st.columns([3, 2], gap="large")
 
-    question = st.chat_input("Still et spørsmål om videoer eller dokumenter…")
-    if question:
-        st.session_state["kb_messages"].append({"role": "user", "content": question, "sources": []})
-        with st.spinner("Søker i kunnskapsbasen…"):
-            try:
-                resp = requests.post(
-                    f"{API_BASE}/knowledge/chat",
-                    json={"question": question},
-                    timeout=60,
-                )
-                if resp.ok:
-                    data = resp.json()
-                    answer = data["answer"]
+    with chat_col:
+        st.caption("Chat direkte med AI om innholdet i kursvideoene og forsikringsdokumentene.")
+        for msg_idx, msg in enumerate(st.session_state["kb_messages"]):
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg.get("sources"):
+                    with st.expander(f"Kilder ({len(msg['sources'])})", expanded=False):
+                        for src_idx, src in enumerate(msg["sources"]):
+                            st.caption(_source_label(src))
+                            if src.startswith("video::"):
+                                parts = src.split("::")
+                                if len(parts) == 4:
+                                    _, dname, start_s, chapter = parts
+                                    ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
+                                    if st.button(f"▶ Se i video ({ts})", key=f"dl_{msg_idx}_{src_idx}"):
+                                        st.session_state["kb_video_player"] = {
+                                            "display_name": dname,
+                                            "start_seconds": int(start_s) if start_s.isdigit() else 0,
+                                            "chapter": chapter,
+                                        }
+                                        st.rerun()
+
+        question = st.chat_input("Still et spørsmål om videoer eller dokumenter…")
+        if question:
+            st.session_state["kb_messages"].append({"role": "user", "content": question, "sources": []})
+            with st.spinner("Søker i kunnskapsbasen…"):
+                try:
+                    resp = requests.post(f"{API_BASE}/knowledge/chat", json={"question": question}, timeout=60)
+                    data = resp.json() if resp.ok else {}
+                    answer = data.get("answer") or f"Feil: {resp.status_code}"
                     sources = data.get("sources", [])
-                else:
-                    answer = f"Feil fra API: {resp.status_code} — {resp.text}"
-                    sources = []
-            except Exception as e:
-                answer = f"Kunne ikke kontakte API: {e}"
-                sources = []
-        st.session_state["kb_messages"].append({"role": "assistant", "content": answer, "sources": sources})
-        st.rerun()
-
-    if st.session_state["kb_messages"]:
-        if st.button("Tøm samtale", key="kb_clear"):
-            st.session_state["kb_messages"] = []
+                except Exception as e:
+                    answer, sources = f"Kunne ikke kontakte API: {e}", []
+            st.session_state["kb_messages"].append({"role": "assistant", "content": answer, "sources": sources})
             st.rerun()
+
+        if st.session_state["kb_messages"] and st.button("Tøm samtale", key="kb_clear"):
+            st.session_state["kb_messages"] = []
+            st.session_state.pop("kb_video_player", None)
+            st.rerun()
+
+    with video_col:
+        dl = st.session_state.get("kb_video_player")
+        if dl:
+            hdr, close_btn = st.columns([5, 1])
+            hdr.caption(f"🎬 **{dl['display_name']}** — {dl['chapter']}")
+            if close_btn.button("✕", key="kb_close_player"):
+                st.session_state.pop("kb_video_player", None)
+                st.rerun()
+            _render_inline_player(dl)
+        else:
+            st.caption("Trykk **▶ Se i video** på en kilde for å spille av her.")
 
 
 def _render_knowledge_search() -> None:
