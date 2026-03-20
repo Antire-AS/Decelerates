@@ -136,6 +136,20 @@ Vanlige forsikringstyper for norske bedrifter: Ansvarsforsikring, Yrkesskade/yrk
 
 
 # ---------------------------------------------------------------------------
+# Knowledge base chat prompt (videos + insurance documents)
+# ---------------------------------------------------------------------------
+KNOWLEDGE_CHAT_SYSTEM_PROMPT = (
+    "Du er en spesialisert kunnskapsassistent for et norsk forsikringsmeglerfirma. "
+    "Du har tilgang til transkripter fra interne kursvideoer og forsikringsdokumenter/-poliser. "
+    "Svar KUN basert på den oppgitte konteksten. "
+    "Oppgi alltid hvilken kilde (dokumentnavn eller videoseksjon) som støtter svaret. "
+    "Svar på norsk med mindre brukeren spør på et annet språk. "
+    "Vær kortfattet og praktisk orientert. "
+    "Hvis konteksten ikke inneholder svaret, si det tydelig fremfor å gjette."
+)
+
+
+# ---------------------------------------------------------------------------
 # IR (annual report) discovery validation prompt
 # ---------------------------------------------------------------------------
 IR_DISCOVERY_PROMPT_TEMPLATE = """You are helping identify official annual report PDFs for a company.

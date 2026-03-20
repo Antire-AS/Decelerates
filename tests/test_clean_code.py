@@ -83,6 +83,11 @@ _JUSTIFIED = {
     "_build_company_context",
     # Diagnostic endpoint — long but intentionally so to surface many fields in one call
     "debug_status",
+    # Knowledge index — blob iteration + per-section transcript assembly; can't be split
+    "index_video_transcripts",
+    # Knowledge UI — Streamlit chat + spinner + state management; tightly coupled flow
+    "_render_knowledge_chat",
+    "_render_knowledge_manage",
     # UI render functions — Streamlit's imperative API requires one call per widget;
     # these cannot be decomposed without losing cohesion (each section is tightly coupled)
     "render_search_tab",

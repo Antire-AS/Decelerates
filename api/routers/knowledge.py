@@ -18,7 +18,7 @@ from api.rag_chain import build_rag_chain
 from api.schemas import ChatRequest, IngestKnowledgeRequest
 from api.dependencies import get_db
 from api.limiter import limiter
-from api.prompts import CHAT_SYSTEM_PROMPT
+from api.prompts import CHAT_SYSTEM_PROMPT, KNOWLEDGE_CHAT_SYSTEM_PROMPT
 
 router = APIRouter()
 
@@ -157,3 +157,69 @@ def get_chat_history(
         }
         for n in notes
     ]
+
+
+# ── Knowledge base chat (videos + insurance docs) ─────────────────────────────
+
+def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 6) -> list:
+    """Return [{text, source}] from the knowledge namespace, ordered by relevance."""
+    from api.services.knowledge_index import KNOWLEDGE_ORG
+    q_emb = _embed(question)
+    if q_emb:
+        rows = (
+            db.query(CompanyChunk)
+            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.embedding.isnot(None))
+            .order_by(CompanyChunk.embedding.cosine_distance(q_emb))
+            .limit(limit)
+            .all()
+        )
+    else:
+        rows = (
+            db.query(CompanyChunk)
+            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
+            .order_by(CompanyChunk.id.desc())
+            .limit(limit)
+            .all()
+        )
+    return [{"text": r.chunk_text, "source": r.source} for r in rows]
+
+
+@router.post("/knowledge/chat")
+@limiter.limit("10/minute")
+def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(get_db)):
+    """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
+    from api.services.knowledge_index import KNOWLEDGE_ORG, index_all
+    if not db.query(CompanyChunk).filter(CompanyChunk.orgnr == KNOWLEDGE_ORG).first():
+        index_all(db)
+    chunks = _retrieve_knowledge_chunks(body.question, db)
+    if not chunks:
+        return {
+            "question": body.question,
+            "answer": "Ingen kunnskap er indeksert ennå. Gå til Administrer-fanen og klikk 'Indekser kunnskap'.",
+            "sources": [],
+        }
+    context = "\n\n---\n\n".join(f"[Kilde: {c['source']}]\n{c['text']}" for c in chunks)
+    sources = list(dict.fromkeys(c["source"] for c in chunks))
+    try:
+        answer = _llm_answer_raw(context, body.question, KNOWLEDGE_CHAT_SYSTEM_PROMPT)
+    except LlmUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except QuotaError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    return {"question": body.question, "answer": answer, "sources": sources}
+
+
+@router.post("/knowledge/index")
+def trigger_knowledge_index(db: Session = Depends(get_db)) -> dict:
+    """Trigger (re-)indexing of all video transcripts and insurance documents."""
+    from api.services.knowledge_index import index_all, get_stats
+    result = index_all(db)
+    stats = get_stats(db)
+    return {**result, "total_new_chunks": result["docs_chunks"] + result["video_chunks"], "index_stats": stats}
+
+
+@router.get("/knowledge/index/stats")
+def knowledge_index_stats(db: Session = Depends(get_db)) -> dict:
+    """Return current knowledge index statistics."""
+    from api.services.knowledge_index import get_stats
+    return get_stats(db)
