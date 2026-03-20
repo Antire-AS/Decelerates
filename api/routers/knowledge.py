@@ -229,9 +229,6 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
 @limiter.limit("10/minute")
 def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(get_db)):
     """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
-    from api.services.knowledge_index import KNOWLEDGE_ORG, index_all
-    if not db.query(CompanyChunk).filter(CompanyChunk.orgnr == KNOWLEDGE_ORG).first():
-        index_all(db)
     chunks = _retrieve_knowledge_chunks(body.question, db)
     if not chunks:
         return {

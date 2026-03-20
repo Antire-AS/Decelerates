@@ -102,7 +102,7 @@ def _render_knowledge_chat() -> None:
             st.session_state["kb_messages"].append({"role": "user", "content": question, "sources": []})
             with st.spinner("Søker i kunnskapsbasen…"):
                 try:
-                    resp = requests.post(f"{API_BASE}/knowledge/chat", json={"question": question}, timeout=60)
+                    resp = requests.post(f"{API_BASE}/knowledge/chat", json={"question": question}, timeout=120)
                     data = resp.json() if resp.ok else {}
                     answer = data.get("answer") or f"Feil: {resp.status_code}"
                     sources = data.get("sources", [])
