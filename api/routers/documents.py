@@ -264,11 +264,13 @@ def list_videos() -> list:
         ]
         thumb_blob = next((c for c in thumb_candidates if c in all_blobs), None)
         thumbnail_url = svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
+        video_url = svc.generate_sas_url(_VIDEOS_CONTAINER, mp4, hours=4)
         results.append({
             "blob_name": mp4,
             "filename": display_name,
             "sections": sections,
             "thumbnail_url": thumbnail_url,
+            "video_url": video_url,
         })
     return results
 

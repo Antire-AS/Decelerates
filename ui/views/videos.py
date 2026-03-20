@@ -88,6 +88,7 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
     sections = _parse_sections(raw_sections)
     thumbnail_url = vid.get("thumbnail_url") or ""
     proxy_url = f"{API_BASE}/videos/stream?blob={urllib.parse.quote(blob_name)}"
+    video_src = vid.get("video_url") or proxy_url
 
     # Build subtitle track from transcript entries
     vtt_content = _build_vtt(raw_sections if isinstance(raw_sections, list) else [])
@@ -136,7 +137,7 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
         '<div class="card">'
         f'<div class="hdr">{filename}</div>'
         f'<video id="vp" controls preload="metadata" {poster}>'
-        f'<source src="{proxy_url}" type="video/mp4">'
+        f'<source src="{video_src}" type="video/mp4">'
         f'{track_el}'
         'Nettleseren din støtter ikke video-avspilling.</video>'
         + chapters_block
