@@ -12,9 +12,12 @@ def _fmt_time(s: int) -> str:
 
 def _source_label(source: str) -> str:
     """Convert a raw source key to a human-readable label."""
-    # New format: video::{display_name}::{start_seconds}::{chapter_title}
+    # New format: video::{display_name}::{start_seconds}::{chapter_title}[::N]
     if source.startswith("video::"):
         parts = source.split("::")
+        # Strip trailing sub-chunk index (::2, ::3, …)
+        if len(parts) == 5 and parts[4].isdigit():
+            parts = parts[:4]
         if len(parts) == 4:
             _, name, start_s, chapter = parts
             ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
@@ -81,6 +84,8 @@ def _render_knowledge_chat() -> None:
                                 st.caption(f"_{snippet}_")
                             if src.startswith("video::"):
                                 parts = src.split("::")
+                                if len(parts) == 5 and parts[4].isdigit():
+                                    parts = parts[:4]
                                 if len(parts) == 4:
                                     _, dname, start_s, chapter = parts
                                     ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s

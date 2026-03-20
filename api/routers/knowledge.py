@@ -173,6 +173,8 @@ def _readable_source(source: str) -> str:
     """Return a human-readable citation label for LLM context."""
     if source.startswith("video::"):
         parts = source.split("::")
+        if len(parts) == 5 and parts[4].isdigit():
+            parts = parts[:4]
         if len(parts) == 4:
             _, name, start_s, chapter = parts
             try:

@@ -30,6 +30,21 @@ def _fmt_time(s: float) -> str:
     return f"{h}:{m:02d}:{int(s) % 60:02d}" if h else f"{m}:{int(s) % 60:02d}"
 
 
+_CHUNK_SIZE = 1800
+_CHUNK_OVERLAP = 200
+
+
+def _split_text(text: str) -> list[str]:
+    """Split long text into overlapping windows that fit embedding limits."""
+    if len(text) <= _CHUNK_SIZE:
+        return [text]
+    parts, start = [], 0
+    while start < len(text):
+        parts.append(text[start:start + _CHUNK_SIZE])
+        start += _CHUNK_SIZE - _CHUNK_OVERLAP
+    return parts
+
+
 def _store_chunk(orgnr: str, source: str, text: str, db: Session) -> None:
     """Embed and store a single chunk directly (bypasses LangChain splitter)."""
     from api.services.llm import _embed
@@ -115,6 +130,8 @@ def index_video_transcripts(db: Session) -> int:
 
             for sec in sections:
                 chapter_title = (sec.get("title") or "").strip()
+                if not chapter_title:
+                    continue  # skip untitled intro entries
                 start_s = int(sec.get("start_seconds") or 0)
                 source = f"video::{display_name}::{start_s}::{chapter_title}"
 
@@ -122,24 +139,28 @@ def index_video_transcripts(db: Session) -> int:
                     continue
 
                 # Build self-describing chunk: header + description + transcript lines
-                lines = [
+                header = "\n".join([
                     f"Video: {display_name}",
                     f"Kapittel: {chapter_title}",
                     f"Tid: {_fmt_time(start_s)}",
-                ]
+                ])
+                body_lines = []
                 if sec.get("description"):
-                    lines += ["", sec["description"]]
+                    body_lines.append(sec["description"])
                 for entry in (sec.get("entries") or []):
                     t = (entry.get("text") or "").strip()
                     if t:
-                        lines.append(t)
+                        body_lines.append(t)
 
-                text = "\n".join(lines).strip()
-                if len(text) < 30:
+                body = "\n".join(body_lines).strip()
+                if len(body) < 10:
                     continue
 
-                _store_chunk(KNOWLEDGE_ORG, source, text[:3000], db)
-                total += 1
+                # Split long sections into sub-chunks; first chunk gets base source key
+                for i, part in enumerate(_split_text(body)):
+                    chunk_source = source if i == 0 else f"{source}::{i + 1}"
+                    _store_chunk(KNOWLEDGE_ORG, chunk_source, f"{header}\n\n{part}", db)
+                    total += 1
 
         logger.info("Knowledge index: %d new video section chunks", total)
     except Exception as exc:
