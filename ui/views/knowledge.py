@@ -148,18 +148,22 @@ def _render_knowledge_manage() -> None:
 
     st.markdown("---")
     st.markdown("### Indekser kunnskap")
+    force = st.toggle("Tving full re-indeksering (sletter eksisterende)", key="kb_force_toggle")
     st.caption(
-        "Kjør dette for å indeksere alle forsikringsdokumenter og videotranskripter. "
+        "Sletter alle eksisterende kunnskapsbiter og bygger opp indeksen på nytt fra scratch."
+        if force else
         "Kun nye kilder indekseres — allerede indeksert innhold hoppes over."
     )
     if st.button("Indekser kunnskap", key="kb_index_btn", type="primary"):
         with st.spinner("Indekserer dokumenter og videoer… dette kan ta noen minutter."):
             try:
-                r = requests.post(f"{API_BASE}/knowledge/index", timeout=300)
+                r = requests.post(f"{API_BASE}/knowledge/index", params={"force": "true" if force else "false"}, timeout=300)
                 if r.ok:
                     data = r.json()
+                    cleared = data.get("cleared_chunks", 0)
                     st.success(
-                        f"Ferdig! {data.get('total_new_chunks', 0)} nye biter lagt til "
+                        f"{'Slettet ' + str(cleared) + ' gamle biter. ' if cleared else ''}"
+                        f"{data.get('total_new_chunks', 0)} nye biter lagt til "
                         f"({data.get('docs_chunks', 0)} fra dokumenter, "
                         f"{data.get('video_chunks', 0)} fra videoer)."
                     )
