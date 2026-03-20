@@ -190,27 +190,39 @@ def _readable_source(source: str) -> str:
     return source
 
 
-def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 6) -> list:
-    """Return [{text, source}] from the knowledge namespace, ordered by relevance."""
+def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> list:
+    """Hybrid retrieval: vector similarity + source-key keyword match."""
     from api.services.knowledge_index import KNOWLEDGE_ORG
     q_emb = _embed(question)
+    seen: set[int] = set()
+    results = []
+
+    # 1. Vector similarity
     if q_emb:
-        rows = (
+        for r in (
             db.query(CompanyChunk)
             .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.embedding.isnot(None))
             .order_by(CompanyChunk.embedding.cosine_distance(q_emb))
             .limit(limit)
             .all()
-        )
-    else:
-        rows = (
+        ):
+            results.append(r)
+            seen.add(r.id)
+
+    # 2. Keyword match on source key (catches exact chapter-title hits the vector misses)
+    keywords = [w for w in question.lower().split() if len(w) > 3]
+    for kw in keywords[:4]:
+        for r in (
             db.query(CompanyChunk)
-            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
-            .order_by(CompanyChunk.id.desc())
-            .limit(limit)
+            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.source.ilike(f"%{kw}%"))
+            .limit(4)
             .all()
-        )
-    return [{"text": r.chunk_text, "source": r.source} for r in rows]
+        ):
+            if r.id not in seen:
+                results.append(r)
+                seen.add(r.id)
+
+    return [{"text": r.chunk_text, "source": r.source} for r in results[:limit + 4]]
 
 
 @router.post("/knowledge/chat")
