@@ -200,8 +200,14 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
         }
     context = "\n\n---\n\n".join(f"[Kilde: {c['source']}]\n{c['text']}" for c in chunks)
     sources = list(dict.fromkeys(c["source"] for c in chunks))
+    # _llm_answer_raw takes a single pre-formatted prompt string
+    prompt = (
+        f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}\n\n"
+        f"Kontekst:\n{context}\n\n"
+        f"[SPØRSMÅL]: {body.question}"
+    )
     try:
-        answer = _llm_answer_raw(context, body.question, KNOWLEDGE_CHAT_SYSTEM_PROMPT)
+        answer = _llm_answer_raw(prompt) or "Beklager, fikk ikke svar fra AI-tjenesten."
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except QuotaError as e:
@@ -210,12 +216,22 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
 
 
 @router.post("/knowledge/index")
-def trigger_knowledge_index(db: Session = Depends(get_db)) -> dict:
-    """Trigger (re-)indexing of all video transcripts and insurance documents."""
-    from api.services.knowledge_index import index_all, get_stats
+def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) -> dict:
+    """Trigger (re-)indexing of all video transcripts and insurance documents.
+    Set force=true to wipe existing knowledge chunks before re-indexing."""
+    from api.services.knowledge_index import index_all, get_stats, clear_knowledge
+    if force:
+        cleared = clear_knowledge(db)
+    else:
+        cleared = 0
     result = index_all(db)
     stats = get_stats(db)
-    return {**result, "total_new_chunks": result["docs_chunks"] + result["video_chunks"], "index_stats": stats}
+    return {
+        **result,
+        "cleared_chunks": cleared,
+        "total_new_chunks": result["docs_chunks"] + result["video_chunks"],
+        "index_stats": stats,
+    }
 
 
 @router.get("/knowledge/index/stats")

@@ -5,17 +5,38 @@ import streamlit as st
 from ui.config import API_BASE
 
 
+def _fmt_time(s: int) -> str:
+    h, m = s // 3600, (s % 3600) // 60
+    return f"{h}:{m:02d}:{s % 60:02d}" if h else f"{m}:{s % 60:02d}"
+
+
 def _source_label(source: str) -> str:
     """Convert a raw source key to a human-readable label."""
+    # New format: video::{display_name}::{start_seconds}::{chapter_title}
+    if source.startswith("video::"):
+        parts = source.split("::")
+        if len(parts) == 4:
+            _, name, start_s, chapter = parts
+            ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
+            return f"🎬 {name} — \"{chapter}\" ({ts})"
+        return f"🎬 {source.removeprefix('video::')}"
+    # New format: doc::{id}::{title}::{insurer}::{year}
+    if source.startswith("doc::"):
+        parts = source.split("::")
+        if len(parts) >= 3:
+            title = parts[2] if parts[2] != "-" else "ukjent tittel"
+            insurer = parts[3] if len(parts) > 3 and parts[3] != "-" else ""
+            year = parts[4] if len(parts) > 4 and parts[4] != "-" else ""
+            suffix = f" ({', '.join(x for x in [insurer, year] if x)})" if insurer or year else ""
+            return f"📄 {title}{suffix}"
+        return f"📄 {source.removeprefix('doc::')}"
+    # Legacy formats
     if source.startswith("doc_"):
         return f"📄 Forsikringsdokument (ID {source.removeprefix('doc_')})"
     if source.startswith("video_"):
         slug = (
-            source
-            .removeprefix("video_whisper_input_Videosubtime_")
-            .removesuffix("_sections_json")
-            .removesuffix("_timeline_json")
-            .replace("_", " ")
+            source.removeprefix("video_whisper_input_Videosubtime_")
+            .removesuffix("_sections_json").removesuffix("_timeline_json").replace("_", " ")
         )
         return f"🎬 Video: {slug}"
     return source
