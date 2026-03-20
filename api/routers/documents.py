@@ -219,10 +219,10 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
 
 
 _VIDEO_SECTIONS_MAP = {
-    "ffs080524": ("ffsformidler", "Formidler"),
-    "ffs100624": ("ffskunde", "Kunde"),
-    "ffs220824": ("ffslære", "Lær"),
-    "ffs290824": ("ffspraktisk", "Praktisk"),
+    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis"),
+    "ffs100624": ("ffskunde", "Kundeorientering og rådgivning"),
+    "ffs220824": ("ffslære", "Fagkunnskap og regelverk"),
+    "ffs290824": ("ffspraktisk", "Praktisk forsikringsrådgivning"),
 }
 
 

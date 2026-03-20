@@ -1,4 +1,5 @@
 """Dedicated video player tab with chapter navigation."""
+import base64
 import urllib.parse
 
 import requests
@@ -20,7 +21,15 @@ def _parse_sections(raw) -> list:
         if not isinstance(item, dict):
             continue
         title = str(item.get("title") or item.get("label") or item.get("name") or item.get("text") or "")
-        start = item.get("start") or item.get("time") or item.get("timestamp") or item.get("startTime") or 0
+        # sections JSON uses start_seconds; fall back to other common field names
+        start = (
+            item.get("start_seconds")
+            or item.get("start")
+            or item.get("time")
+            or item.get("timestamp")
+            or item.get("startTime")
+            or 0
+        )
         if isinstance(start, str):
             parts = start.split(":")
             try:
@@ -42,13 +51,53 @@ def _fmt_time(seconds: float) -> str:
     return f"{h}:{m:02d}:{s % 60:02d}" if h else f"{m}:{s % 60:02d}"
 
 
+def _vtt_timestamp(s: float) -> str:
+    h = int(s) // 3600
+    m = (int(s) % 3600) // 60
+    sec = int(s) % 60
+    ms = int((s - int(s)) * 1000)
+    return f"{h:02d}:{m:02d}:{sec:02d}.{ms:03d}"
+
+
+def _build_vtt(raw_sections) -> str:
+    """Build WebVTT subtitle content from sections entries list."""
+    if not raw_sections or not isinstance(raw_sections, list):
+        return ""
+    all_entries = []
+    for sec in raw_sections:
+        for entry in (sec.get("entries") or []):
+            secs = entry.get("seconds") or entry.get("start_seconds") or 0
+            text = (entry.get("text") or "").strip()
+            if text:
+                all_entries.append({"s": float(secs), "text": text})
+    if not all_entries:
+        return ""
+    all_entries.sort(key=lambda x: x["s"])
+    lines = ["WEBVTT", ""]
+    for i, e in enumerate(all_entries):
+        end = all_entries[i + 1]["s"] if i + 1 < len(all_entries) else e["s"] + 5.0
+        lines += [f"{_vtt_timestamp(e['s'])} --> {_vtt_timestamp(end)}", e["text"], ""]
+    return "\n".join(lines)
+
+
 def _render_video_player(vid: dict, compact: bool = False) -> None:
-    """Render an HTML5 video player card with chapter buttons."""
+    """Render an HTML5 video player card with chapter buttons and subtitle track."""
     blob_name = vid.get("blob_name", "")
     filename = vid.get("filename") or blob_name
-    sections = _parse_sections(vid.get("sections"))
+    raw_sections = vid.get("sections") or []
+    sections = _parse_sections(raw_sections)
     thumbnail_url = vid.get("thumbnail_url") or ""
     proxy_url = f"{API_BASE}/videos/stream?blob={urllib.parse.quote(blob_name)}"
+
+    # Build subtitle track from transcript entries
+    vtt_content = _build_vtt(raw_sections if isinstance(raw_sections, list) else [])
+    track_el = ""
+    if vtt_content:
+        vtt_b64 = base64.b64encode(vtt_content.encode("utf-8")).decode()
+        track_el = (
+            f'<track kind="subtitles" src="data:text/vtt;base64,{vtt_b64}" '
+            'srclang="no" label="Norsk" default>'
+        )
 
     poster = f'poster="{thumbnail_url}"' if thumbnail_url else ""
     chapter_btns = "".join(
@@ -85,12 +134,21 @@ def _render_video_player(vid: dict, compact: bool = False) -> None:
         f'<div class="hdr">{filename}</div>'
         f'<video id="vp" controls preload="metadata" {poster}>'
         f'<source src="{proxy_url}" type="video/mp4">'
+        f'{track_el}'
         'Nettleseren din støtter ikke video-avspilling.</video>'
         + chapters_block
         + '</div><script>function s(t){var v=document.getElementById("vp");'
         "v.currentTime=t;v.play();}</script></body></html>"
     )
     st.components.v1.html(html, height=height)
+
+
+def _video_description(raw_sections) -> str:
+    """Extract a short description from the first section's description field."""
+    if not isinstance(raw_sections, list) or not raw_sections:
+        return ""
+    desc = raw_sections[0].get("description") or ""
+    return desc[:80] + ("…" if len(desc) > 80 else "")
 
 
 def render_videos_tab() -> None:
@@ -110,16 +168,20 @@ def render_videos_tab() -> None:
     nav_col, player_col = st.columns([1, 3], gap="medium")
 
     with nav_col:
-        st.markdown("#### Velg video")
+        st.markdown("#### Kursvideoer")
         for i, vid in enumerate(videos):
             label = vid.get("filename") or vid.get("blob_name", f"Video {i + 1}")
-            has_chapters = bool(vid.get("sections"))
-            suffix = "  📑" if has_chapters else ""
+            raw_sections = vid.get("sections") or []
+            chapter_count = len(_parse_sections(raw_sections))
+            desc = _video_description(raw_sections if isinstance(raw_sections, list) else [])
+
             is_active = i == st.session_state["selected_video_idx"]
             btn_type = "primary" if is_active else "secondary"
-            if st.button(f"{label}{suffix}", key=f"vid_nav_{i}", type=btn_type, use_container_width=True):
+            if st.button(label, key=f"vid_nav_{i}", type=btn_type, use_container_width=True):
                 st.session_state["selected_video_idx"] = i
                 st.rerun()
+            if chapter_count:
+                st.caption(f"{chapter_count} kapitler{' · ' + desc if desc else ''}")
 
         st.markdown("---")
         with st.expander("Last opp video", expanded=False):

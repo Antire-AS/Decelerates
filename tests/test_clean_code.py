@@ -81,6 +81,8 @@ _JUSTIFIED = {
     "_build_narrative_prompt",
     # RAG context builder — long field list
     "_build_company_context",
+    # Diagnostic endpoint — long but intentionally so to surface many fields in one call
+    "debug_status",
     # UI render functions — Streamlit's imperative API requires one call per widget;
     # these cannot be decomposed without losing cohesion (each section is tightly coupled)
     "render_search_tab",
