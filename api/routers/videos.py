@@ -40,42 +40,63 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
     return {"blob_name": blob_name, "url": url, "filename": file.filename}
 
 
+def _sections_key(fname: str) -> str:
+    """Map a filename stem to a _VIDEO_SECTIONS_MAP key by prefix match."""
+    clean = fname.removesuffix("_subs").removesuffix("_fast")
+    return next((k for k in _VIDEO_SECTIONS_MAP if clean == k or clean.startswith(k)), clean)
+
+
 @router.get("/videos")
 def list_videos() -> list:
-    """List MP4 videos with chapter metadata. Blobs may be in subdirectories."""
+    """List MP4 videos with chapter metadata, preferring _fast (faststart) over _subs."""
     svc = BlobStorageService()
     if not svc.is_configured():
         return []
     all_blobs = set(svc.list_blobs(_VIDEOS_CONTAINER))
     mp4s = sorted(b for b in all_blobs if b.lower().endswith(".mp4"))
-    results = []
+
+    # De-duplicate per sections key: prefer _fast over _subs; shortest name wins among ties
+    best: dict[str, str] = {}
     for mp4 in mp4s:
+        fname = posixpath.basename(mp4)[:-4]
+        key = _sections_key(fname)
+        is_fast = "_fast" in fname
+        existing = best.get(key)
+        if existing is None:
+            best[key] = mp4
+        else:
+            existing_fast = "_fast" in posixpath.basename(existing)
+            if is_fast and not existing_fast:
+                best[key] = mp4
+            elif is_fast == existing_fast and len(mp4) < len(existing):
+                best[key] = mp4
+
+    results = []
+    for key in sorted(best):
+        mp4 = best[key]
         directory = posixpath.dirname(mp4)
-        fname = posixpath.basename(mp4)[:-4]           # e.g. ffs080524_subs
-        fname_clean = fname.removesuffix("_subs")      # e.g. ffs080524
-
+        fname = posixpath.basename(mp4)[:-4]
         sections_prefix, display_name = _VIDEO_SECTIONS_MAP.get(
-            fname_clean, (fname_clean, fname_clean.replace("_", " "))
+            key, (key, key.replace("_", " "))
         )
-
         sections = None
         base = mp4[:-4]
-        candidates = [
+        for cand in [
             f"{directory}/{sections_prefix}_sections.json",
             f"{directory}/{sections_prefix}_timeline.json",
             f"{base}.json", f"{base}_sections.json",
-        ]
-        for cand in candidates:
+        ]:
             if cand in all_blobs:
                 sections = svc.download_json(_VIDEOS_CONTAINER, cand)
                 break
 
-        thumb_candidates = [
-            f"{directory}/thumbnails/{fname}_sprite.jpg",
-            f"{directory}/thumbnails/{fname}.jpg",
-            f"{base}.jpg",
-        ]
-        thumb_blob = next((c for c in thumb_candidates if c in all_blobs), None)
+        thumb_blob = next((
+            c for c in [
+                f"{directory}/thumbnails/{fname}_sprite.jpg",
+                f"{directory}/thumbnails/{fname}.jpg",
+                f"{base}.jpg",
+            ] if c in all_blobs
+        ), None)
         thumbnail_url = svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
         video_url = svc.generate_sas_url(_VIDEOS_CONTAINER, mp4, hours=4)
         results.append({
