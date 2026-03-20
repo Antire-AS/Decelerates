@@ -161,6 +161,25 @@ def get_chat_history(
 
 # ── Knowledge base chat (videos + insurance docs) ─────────────────────────────
 
+def _readable_source(source: str) -> str:
+    """Return a human-readable citation label for LLM context."""
+    if source.startswith("video::"):
+        parts = source.split("::")
+        if len(parts) == 4:
+            _, name, start_s, chapter = parts
+            try:
+                s = int(start_s)
+                h, m = s // 3600, (s % 3600) // 60
+                ts = f"{h}:{m:02d}:{s % 60:02d}" if h else f"{m}:{s % 60:02d}"
+            except ValueError:
+                ts = start_s
+            return f"{name} — {chapter} ({ts})"
+    if source.startswith("doc::"):
+        parts = source.split("::")
+        return parts[2] if len(parts) >= 3 and parts[2] != "-" else source
+    return source
+
+
 def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 6) -> list:
     """Return [{text, source}] from the knowledge namespace, ordered by relevance."""
     from api.services.knowledge_index import KNOWLEDGE_ORG
@@ -198,7 +217,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
             "answer": "Ingen kunnskap er indeksert ennå. Gå til Administrer-fanen og klikk 'Indekser kunnskap'.",
             "sources": [],
         }
-    context = "\n\n---\n\n".join(f"[Kilde: {c['source']}]\n{c['text']}" for c in chunks)
+    context = "\n\n---\n\n".join(f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks)
     sources = list(dict.fromkeys(c["source"] for c in chunks))
     # _llm_answer_raw takes a single pre-formatted prompt string
     prompt = (

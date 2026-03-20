@@ -48,13 +48,25 @@ def _render_knowledge_chat() -> None:
     if "kb_messages" not in st.session_state:
         st.session_state["kb_messages"] = []
 
-    for msg in st.session_state["kb_messages"]:
+    for msg_idx, msg in enumerate(st.session_state["kb_messages"]):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             if msg.get("sources"):
                 with st.expander(f"Kilder ({len(msg['sources'])})", expanded=False):
-                    for src in msg["sources"]:
+                    for src_idx, src in enumerate(msg["sources"]):
                         st.caption(_source_label(src))
+                        if src.startswith("video::"):
+                            parts = src.split("::")
+                            if len(parts) == 4:
+                                _, dname, start_s, chapter = parts
+                                ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
+                                btn_key = f"dl_{msg_idx}_{src_idx}"
+                                if st.button(f"▶ Se i video ({ts})", key=btn_key):
+                                    st.session_state["video_deeplink"] = {
+                                        "display_name": dname,
+                                        "start_seconds": int(start_s) if start_s.isdigit() else 0,
+                                    }
+                                    st.info(f"Gå til **Videoer**-fanen for å se klippet: \"{chapter}\" ({ts})")
 
     question = st.chat_input("Still et spørsmål om videoer eller dokumenter…")
     if question:

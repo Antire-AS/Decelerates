@@ -80,7 +80,7 @@ def _build_vtt(raw_sections) -> str:
     return "\n".join(lines)
 
 
-def _render_video_player(vid: dict, compact: bool = False) -> None:
+def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | None = None) -> None:
     """Render an HTML5 video player card with chapter buttons and subtitle track."""
     blob_name = vid.get("blob_name", "")
     filename = vid.get("filename") or blob_name
@@ -128,6 +128,9 @@ def _render_video_player(vid: dict, compact: bool = False) -> None:
         ".ts{font-size:.7rem;color:#8A7F74;background:#EDEAE6;padding:1px 4px;border-radius:3px;"
         "font-variant-numeric:tabular-nums}"
     )
+    autoplay_js = (
+        f"v.currentTime={autoplay_at};v.play();" if autoplay_at is not None else ""
+    )
     html = (
         '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + css + '</style></head><body>'
         '<div class="card">'
@@ -138,7 +141,9 @@ def _render_video_player(vid: dict, compact: bool = False) -> None:
         'Nettleseren din støtter ikke video-avspilling.</video>'
         + chapters_block
         + '</div><script>function s(t){var v=document.getElementById("vp");'
-        "v.currentTime=t;v.play();}</script></body></html>"
+        f"v.currentTime=t;v.play();}}var v=document.getElementById('vp');"
+        f"v.addEventListener('loadedmetadata',function(){{{autoplay_js}}});"
+        "</script></body></html>"
     )
     st.components.v1.html(html, height=height)
 
@@ -202,5 +207,13 @@ def render_videos_tab() -> None:
                     st.error(str(e))
 
     with player_col:
+        deeplink = st.session_state.pop("video_deeplink", None)
+        if deeplink:
+            target_name = deeplink["display_name"]
+            for i, v in enumerate(videos):
+                if v.get("filename") == target_name:
+                    st.session_state["selected_video_idx"] = i
+                    break
         idx = min(st.session_state["selected_video_idx"], len(videos) - 1)
-        _render_video_player(videos[idx], compact=False)
+        autoplay_at = float(deeplink["start_seconds"]) if deeplink else None
+        _render_video_player(videos[idx], compact=False, autoplay_at=autoplay_at)
