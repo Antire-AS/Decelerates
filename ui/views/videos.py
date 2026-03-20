@@ -144,6 +144,9 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
         + '</div><script>function s(t){var v=document.getElementById("vp");'
         f"v.currentTime=t;v.play();}}var v=document.getElementById('vp');"
         f"v.addEventListener('loadedmetadata',function(){{{autoplay_js}}});"
+        "v.addEventListener('error',function(){"
+        "var e=v.error,m=e?['','Ukjent feil','Nettverksfeil','Dekodefeil (ugyldig format)','Format ikke støttet'][e.code]||'Feil':(v.networkState===3?'Videofil ikke funnet':'Kan ikke spille av');"
+        "v.outerHTML='<div style=\"padding:16px;color:#c0392b;font-size:.85rem\">⚠ Kan ikke spille av video: '+m+'.<br>Videofilen kan mangle faststart-flagg (moov atom). Kjør: <code>ffmpeg -i input.mp4 -c copy -movflags +faststart output.mp4</code></div>';});"
         "</script></body></html>"
     )
     st.components.v1.html(html, height=height)

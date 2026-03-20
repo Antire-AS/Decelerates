@@ -95,9 +95,25 @@ def get_norgesbank_rate(currency: str) -> dict:
     }
 
 
+def _has_mp4_faststart(data: bytes):
+    """Return True if moov box precedes mdat in the first chunk, False if not, None if inconclusive."""
+    pos = 0
+    while pos + 8 <= len(data):
+        size = int.from_bytes(data[pos:pos + 4], "big")
+        box_type = data[pos + 4:pos + 8].decode("ascii", errors="replace")
+        if box_type == "moov":
+            return True
+        if box_type == "mdat":
+            return False
+        if size < 8 or pos + size > len(data):
+            break
+        pos += size
+    return None
+
+
 @router.get("/debug/status")
 def debug_status() -> dict:
-    """Diagnostic endpoint — returns blob storage health and DB migration state."""
+    """Diagnostic endpoint — returns blob storage health, DB state, and video moov-atom status."""
     from api.services.blob_storage import BlobStorageService
     from api.db import engine
     from sqlalchemy import text
@@ -143,6 +159,29 @@ def debug_status() -> dict:
         alembic_error = str(exc)
         tags_col = None
 
+    # --- Video moov-atom check ---
+    video_info = {}
+    sas_url_works = None
+    if svc._client:
+        try:
+            mp4_blobs = [b for b in svc.list_blobs("transksrt") if b.endswith(".mp4")]
+            for mp4 in mp4_blobs:
+                try:
+                    chunks = svc.stream_range("transksrt", mp4, offset=0, length=256)
+                    header = b"".join(chunks) if chunks else b""
+                    sas_url = svc.generate_sas_url("transksrt", mp4, hours=1)
+                    if sas_url_works is None:
+                        sas_url_works = sas_url is not None
+                    video_info[mp4] = {
+                        "size_mb": round((svc.get_blob_size("transksrt", mp4) or 0) / 1e6),
+                        "faststart": _has_mp4_faststart(header),
+                        "sas_url_generated": sas_url is not None,
+                    }
+                except Exception as exc:
+                    video_info[mp4] = {"error": str(exc)}
+        except Exception:
+            pass
+
     return {
         "azure_client_id_set": bool(azure_client_id),
         "azure_client_id_prefix": azure_client_id[:8] + "..." if azure_client_id else None,
@@ -151,6 +190,8 @@ def debug_status() -> dict:
         "blob_count": blob_count,
         "blob_sample": blob_sample,
         "blob_error": blob_error,
+        "sas_url_works": sas_url_works,
+        "video_info": video_info,
         "alembic_version": alembic_version,
         "alembic_error": alembic_error,
         "tags_column_exists": tags_col,
