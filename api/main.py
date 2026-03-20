@@ -33,6 +33,7 @@ from api.routers import (
     risk_router,
     offers,
     documents,
+    videos,
     knowledge,
     broker,
     sla,
@@ -95,6 +96,7 @@ app.include_router(financials.router)
 app.include_router(risk_router.router)
 app.include_router(offers.router)
 app.include_router(documents.router)
+app.include_router(videos.router)
 app.include_router(knowledge.router)
 app.include_router(broker.router)
 app.include_router(sla.router)

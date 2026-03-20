@@ -167,6 +167,7 @@ NACE_BENCHMARKS: Dict[str, Dict[str, Any]] = {
 # ── LLM / analysis limits ─────────────────────────────────────────────────────
 LLM_DOCUMENT_CHAR_LIMIT = 12_000   # max chars sent to LLM for document analysis
 LLM_TEXT_CHAR_LIMIT = 8_000        # max chars for text-based LLM fallback
+TEXT_EMBED_CHAR_LIMIT = 2_000      # max chars sent to the embedding model
 GEMINI_FILES_API_THRESHOLD = 18 * 1024 * 1024  # 18 MB — use Files API above this
 PDF_PAGE_LIMIT_EXTRACT = 60        # max pages for pdfplumber extraction
 PDF_PAGE_LIMIT_LAYOUT = 40         # max pages for layout analysis

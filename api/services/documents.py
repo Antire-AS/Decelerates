@@ -6,12 +6,13 @@ from typing import List, Optional
 import pdfplumber
 from sqlalchemy.orm import Session
 
-from api.constants import LLM_DOCUMENT_CHAR_LIMIT, LLM_TEXT_CHAR_LIMIT, PDF_PAGE_LIMIT_LAYOUT
+from api.constants import LLM_DOCUMENT_CHAR_LIMIT, LLM_TEXT_CHAR_LIMIT, PDF_PAGE_LIMIT_LAYOUT, TEXT_EMBED_CHAR_LIMIT
 from api.db import InsuranceDocument, InsuranceOffer
 from api.domain.exceptions import LlmUnavailableError
 from api.services.llm import (
     _analyze_document_with_gemini,
     _compare_documents_with_gemini,
+    _embed,
     _llm_answer_raw,
     _parse_json_from_llm_response,
 )
@@ -31,6 +32,14 @@ _KEYPOINTS_PROMPT = (
     '  "sammendrag": "3-4 setninger som beskriver hva dokumentet dekker, hvem det gjelder for, og viktigste betingelser"\n'
     '}'
 )
+
+
+def _cosine_similarity(a: list, b: list) -> float:
+    """Return cosine similarity in [0, 1] between two embedding vectors."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    return dot / (norm_a * norm_b) if norm_a and norm_b else 0.0
 
 
 def _pdf_bytes_to_text(pdf_bytes: bytes) -> str:
@@ -215,6 +224,27 @@ class DocumentService:
         self.db.commit()
         return True
 
+    def find_similar(self, doc: InsuranceDocument, limit: int = 3) -> list:
+        """Return up to `limit` documents most similar to doc by embedding cosine distance."""
+        text = (doc.extracted_text or "")[:TEXT_EMBED_CHAR_LIMIT]
+        if not text:
+            return []
+        embedding = _embed(text)
+        if not embedding:
+            return []
+        others = (
+            self.db.query(InsuranceDocument)
+            .filter(InsuranceDocument.id != doc.id, InsuranceDocument.extracted_text.isnot(None))
+            .all()
+        )
+        scored = []
+        for other in others:
+            other_emb = _embed((other.extracted_text or "")[:TEXT_EMBED_CHAR_LIMIT])
+            if other_emb:
+                sim = _cosine_similarity(embedding, other_emb)
+                scored.append({"id": other.id, "title": other.title, "similarity": round(sim, 4)})
+        return sorted(scored, key=lambda x: x["similarity"], reverse=True)[:limit]
+
     # ── InsuranceOffer ─────────────────────────────────────────────────────────
 
     def save_offers(self, orgnr: str, offer_data: List[dict]) -> List[dict]:
@@ -287,3 +317,7 @@ def save_insurance_offers(orgnr: str, offer_data: List[dict], db: Session) -> Li
 
 def remove_insurance_offer(offer_id: int, orgnr: str, db: Session) -> bool:
     return DocumentService(db).remove_offer(offer_id, orgnr)
+
+
+def find_similar_documents(doc: InsuranceDocument, db: Session, limit: int = 3) -> list:
+    return DocumentService(db).find_similar(doc, limit)

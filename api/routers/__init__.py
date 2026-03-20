@@ -6,6 +6,7 @@ from api.routers import (  # noqa: F401
     risk_router,
     offers,
     documents,
+    videos,
     knowledge,
     broker,
     sla,
