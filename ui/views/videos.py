@@ -143,7 +143,7 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
         + chapters_block
         + '</div><script>function s(t){var v=document.getElementById("vp");'
         f"v.currentTime=t;v.play();}}var v=document.getElementById('vp');"
-        f"v.addEventListener('loadedmetadata',function(){{{autoplay_js}}});"
+        f"v.addEventListener('loadedmetadata',function(){{{autoplay_js}if(v.textTracks.length>0)v.textTracks[0].mode='showing';}});"
         "v.addEventListener('error',function(){"
         "var e=v.error,m=e?['','Ukjent feil','Nettverksfeil','Dekodefeil (ugyldig format)','Format ikke støttet'][e.code]||'Feil':(v.networkState===3?'Videofil ikke funnet':'Kan ikke spille av');"
         "v.outerHTML='<div style=\"padding:16px;color:#c0392b;font-size:.85rem\">⚠ Kan ikke spille av video: '+m+'.<br>Videofilen kan mangle faststart-flagg (moov atom). Kjør: <code>ffmpeg -i input.mp4 -c copy -movflags +faststart output.mp4</code></div>';});"
@@ -181,7 +181,8 @@ def render_videos_tab() -> None:
         for i, vid in enumerate(videos):
             label = vid.get("filename") or vid.get("blob_name", f"Video {i + 1}")
             raw_sections = vid.get("sections") or []
-            chapter_count = len(_parse_sections(raw_sections))
+            sections = _parse_sections(raw_sections)
+            chapter_count = len(sections)
             desc = _video_description(raw_sections if isinstance(raw_sections, list) else [])
 
             is_active = i == st.session_state["selected_video_idx"]
@@ -189,8 +190,21 @@ def render_videos_tab() -> None:
             if st.button(label, key=f"vid_nav_{i}", type=btn_type, use_container_width=True):
                 st.session_state["selected_video_idx"] = i
                 st.rerun()
-            if chapter_count:
+            if sections:
                 st.caption(f"{chapter_count} kapitler{' · ' + desc if desc else ''}")
+                if is_active:
+                    for j, ch in enumerate(sections):
+                        ts = _fmt_time(ch["start"])
+                        if st.button(
+                            f"{ts}  {ch['title'] or '–'}",
+                            key=f"ch_{i}_{j}",
+                            use_container_width=True,
+                        ):
+                            st.session_state["video_deeplink"] = {
+                                "display_name": label,
+                                "start_seconds": ch["start"],
+                            }
+                            st.rerun()
 
         st.markdown("---")
         with st.expander("Last opp video", expanded=False):
