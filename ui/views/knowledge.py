@@ -76,6 +76,9 @@ def _render_knowledge_chat() -> None:
                     with st.expander(f"Kilder ({len(msg['sources'])})", expanded=False):
                         for src_idx, src in enumerate(msg["sources"]):
                             st.caption(_source_label(src))
+                            snippet = msg.get("source_snippets", {}).get(src, "")
+                            if snippet:
+                                st.caption(f"_{snippet}_")
                             if src.startswith("video::"):
                                 parts = src.split("::")
                                 if len(parts) == 4:
@@ -98,9 +101,10 @@ def _render_knowledge_chat() -> None:
                     data = resp.json() if resp.ok else {}
                     answer = data.get("answer") or f"Feil: {resp.status_code}"
                     sources = data.get("sources", [])
+                    source_snippets = data.get("source_snippets", {})
                 except Exception as e:
-                    answer, sources = f"Kunne ikke kontakte API: {e}", []
-            st.session_state["kb_messages"].append({"role": "assistant", "content": answer, "sources": sources})
+                    answer, sources, source_snippets = f"Kunne ikke kontakte API: {e}", [], {}
+            st.session_state["kb_messages"].append({"role": "assistant", "content": answer, "sources": sources, "source_snippets": source_snippets})
             st.rerun()
 
         if st.session_state["kb_messages"] and st.button("Tøm samtale", key="kb_clear"):

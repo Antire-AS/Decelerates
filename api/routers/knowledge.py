@@ -161,6 +161,14 @@ def get_chat_history(
 
 # ── Knowledge base chat (videos + insurance docs) ─────────────────────────────
 
+def _chunk_snippet(text: str, max_len: int = 140) -> str:
+    """Return the first meaningful sentence from a chunk, skipping header lines."""
+    _HEADERS = ("Video:", "Kapittel:", "Tid:", "Dokument:", "Forsikringsselskap:", "År:", "Kategori:")
+    lines = [l.strip() for l in text.splitlines() if l.strip() and not any(l.startswith(h) for h in _HEADERS)]
+    snippet = " ".join(lines)[:max_len]
+    return snippet + "…" if len(" ".join(lines)) > max_len else snippet
+
+
 def _readable_source(source: str) -> str:
     """Return a human-readable citation label for LLM context."""
     if source.startswith("video::"):
@@ -219,6 +227,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
         }
     context = "\n\n---\n\n".join(f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks)
     sources = list(dict.fromkeys(c["source"] for c in chunks))
+    source_snippets = {c["source"]: _chunk_snippet(c["text"]) for c in chunks}
     # _llm_answer_raw takes a single pre-formatted prompt string
     prompt = (
         f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}\n\n"
@@ -231,7 +240,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
         raise HTTPException(status_code=503, detail=str(e))
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
-    return {"question": body.question, "answer": answer, "sources": sources}
+    return {"question": body.question, "answer": answer, "sources": sources, "source_snippets": source_snippets}
 
 
 @router.post("/knowledge/index")
