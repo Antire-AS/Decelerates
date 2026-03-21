@@ -192,18 +192,6 @@ def render_videos_tab() -> None:
                 st.rerun()
             if sections:
                 st.caption(f"{chapter_count} kapitler{' · ' + desc if desc else ''}")
-                if is_active:
-                    for j, ch in enumerate(sections):
-                        if st.button(
-                            ch['title'] or '–',
-                            key=f"ch_{i}_{j}",
-                            use_container_width=True,
-                        ):
-                            st.session_state["video_deeplink"] = {
-                                "display_name": label,
-                                "start_seconds": ch["start"],
-                            }
-                            st.rerun()
 
         st.markdown("---")
         with st.expander("Last opp video", expanded=False):
