@@ -162,6 +162,7 @@ jobs:
 
       - name: Terraform apply (infrastructure)
         if: github.ref_name == 'main'
+        continue-on-error: true   # backend storage must be bootstrapped first (scripts/bootstrap-tf-backend.sh)
         working-directory: infra/terraform
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
