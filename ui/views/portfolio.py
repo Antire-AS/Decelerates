@@ -169,6 +169,87 @@ def _render_portfolio_selector() -> int | None:
     return selected_id
 
 
+def _render_seed_norway(portfolio_id: int) -> None:
+    """One-click: stream BRREG lookups for Norway's Top 100 companies live."""
+    with st.expander("🇳🇴 Seed med Norges topp 100 selskaper", expanded=False):
+        st.caption(
+            "Søker opp ~100 av Norges største selskaper (Equinor, DNB, Mowi, Telenor, Yara, osv.) "
+            "direkte fra BRREG og legger dem til porteføljen — live."
+        )
+        if st.button("▶ Start live seeding", key=f"seed_norway_{portfolio_id}", type="primary"):
+            added, skipped, not_found = 0, 0, 0
+            with st.status("Søker opp Norges topp 100 selskaper...", expanded=True) as status:
+                try:
+                    with requests.get(
+                        f"{API_BASE}/portfolio/{portfolio_id}/seed-norway/stream",
+                        stream=True, timeout=300,
+                    ) as resp:
+                        for raw_line in resp.iter_lines():
+                            if not raw_line:
+                                continue
+                            try:
+                                ev = json.loads(raw_line)
+                            except Exception:
+                                continue
+                            etype = ev.get("type")
+                            name = ev.get("name", "")
+                            idx, total = ev.get("index", ""), ev.get("total", "")
+                            if etype == "start":
+                                status.write(f"Starter oppslag av **{total}** selskaper i BRREG...")
+                            elif etype == "searching":
+                                status.write(f"🔍 `{idx}/{total}` &nbsp; Søker: **{name}**...")
+                            elif etype == "added":
+                                status.write(f"✅ `{idx}/{total}` &nbsp; **{ev.get('name')}** ({ev.get('orgnr')})")
+                                added += 1
+                            elif etype == "skipped":
+                                status.write(f"⏭ `{idx}/{total}` &nbsp; {name} — allerede i portefølje")
+                                skipped += 1
+                            elif etype == "not_found":
+                                status.write(f"⚠️ `{idx}/{total}` &nbsp; {name} — ikke funnet i BRREG")
+                                not_found += 1
+                            elif etype == "error":
+                                status.write(f"❌ `{idx}/{total}` &nbsp; {name} — {ev.get('error', 'feil')}")
+                                not_found += 1
+                            elif etype == "complete":
+                                status.update(
+                                    label=f"✅ Ferdig — {added} lagt til, {skipped} allerede i portefølje, {not_found} ikke funnet",
+                                    state="complete",
+                                )
+                except Exception as exc:
+                    status.update(label=f"Feil: {exc}", state="error")
+            st.rerun()
+
+
+def _render_pdf_enrichment(portfolio_id: int, rows: list) -> None:
+    """Trigger background 5-year PDF annual report discovery for the whole portfolio."""
+    covered = sum(1 for r in rows if r.get("revenue") is not None)
+    missing_pdf = len(rows) - covered
+
+    st.markdown("#### 📄 PDF-årsrapporter (5-årig historikk)")
+    st.caption(
+        f"{covered}/{len(rows)} selskaper har regnskapsdata. "
+        f"Klikk nedenfor for å starte automatisk søk etter årsrapport-PDF-er fra nettet for alle selskaper. "
+        "Dette kjører i bakgrunnen og kan ta 30–90 minutter for en full portefølje."
+    )
+
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        if st.button(
+            f"🗂 Start PDF-innhenting for 5-årig historikk ({len(rows)} selskaper)",
+            key=f"enrich_pdfs_{portfolio_id}",
+        ):
+            result = _post(f"/portfolio/{portfolio_id}/enrich-pdfs", {})
+            if result:
+                st.success(
+                    f"✅ PDF-innhenting startet for **{result.get('queued', 0)}** selskaper i bakgrunnen. "
+                    "Kom tilbake om 30–90 min for oppdaterte tall."
+                )
+            else:
+                st.error("Kunne ikke starte PDF-innhenting.")
+    with col2:
+        st.caption("Bruker Claude + Gemini til å finne og lese PDF-er fra selskapenes investor relations-sider.")
+
+
 def _render_add_company(portfolio_id: int, existing_orgnrs: set) -> None:
     with st.expander("Legg til selskap", expanded=False):
         all_companies = _fetch("/companies", params={"limit": 500})
@@ -410,10 +491,15 @@ def render_portfolio_tab() -> None:
 
         rows = _render_risk_table(portfolio_id)
         existing_orgnrs = {r["orgnr"] for r in rows}
+
+        # Seed + add companies
+        _render_seed_norway(portfolio_id)
         _render_add_company(portfolio_id, existing_orgnrs)
 
         if rows:
             _render_charts(rows)
+            st.markdown("---")
+            _render_pdf_enrichment(portfolio_id, rows)
             _render_portfolio_chat(portfolio_id)
 
         st.markdown("---")

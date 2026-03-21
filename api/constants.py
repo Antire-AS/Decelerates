@@ -119,6 +119,55 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
 }
 
 # ======================
+# Norway Top 100 companies — names used to seed a portfolio via BRREG name search.
+# Covers the largest Norwegian companies by revenue across all major sectors.
+# ======================
+TOP_100_NO_NAMES: List[str] = [
+    # Energy & Oil
+    "Equinor ASA", "Aker BP ASA", "Var Energi AS", "Norsk Hydro ASA",
+    "Yara International ASA", "Gassco AS", "Aker Solutions ASA",
+    "Statkraft SF", "Lyse Energi AS", "BKK AS", "Hafslund E-CO AS",
+    "Agder Energi AS", "Skagerak Energi AS", "Glitre Energi AS",
+    "Eidsiva Energi AS", "Statnett SF", "TechnipFMC Norway AS",
+    "Aker ASA", "Elkem ASA", "Borregaard ASA", "Scatec ASA", "NEL ASA",
+    "REC Silicon ASA", "Tomra Systems ASA",
+    # Telecom & Tech
+    "Telenor ASA", "Telia Norge AS", "Nordic Semiconductor ASA",
+    "Atea ASA", "Crayon Group Holding ASA", "Bouvet ASA", "Adevinta ASA",
+    "Opera Software AS", "Schibsted ASA", "Komplett ASA",
+    # Finance & Insurance
+    "DNB Bank ASA", "Storebrand ASA", "Gjensidige Forsikring ASA",
+    "SpareBank 1 SR-Bank ASA", "SpareBank 1 SMN", "SpareBank 1 Østlandet",
+    "KLP", "Santander Consumer Bank AS", "Fremtind Forsikring AS",
+    "Instabank ASA",
+    # Retail & Consumer
+    "NorgesGruppen ASA", "Coop Norge SA", "Rema 1000 AS",
+    "Reitan Servicehandel AS", "XXL ASA", "Power International AS",
+    "Elkjøp Nordic AS", "H&M Hennes & Mauritz AS", "Varner AS",
+    # Industry & Manufacturing
+    "Kongsberg Gruppen ASA", "Akastor ASA",
+    # Seafood & Food
+    "Mowi ASA", "SalMar ASA", "Lerøy Seafood Group ASA",
+    "Grieg Seafood ASA", "Cermaq Group AS", "Orkla ASA", "Tine SA",
+    "Nortura SA",
+    # Shipping & Transport
+    "Wallenius Wilhelmsen ASA", "Odfjell SE", "Frontline ASA",
+    "Golden Ocean Group AS", "Stolt-Nielsen ASA",
+    "Posten Norge AS", "Bring Logistics AS",
+    # Construction
+    "Veidekke ASA", "AF Gruppen ASA", "Skanska Norge AS",
+    "NCC Norge AS", "Norconsult AS", "Multiconsult ASA",
+    "Sweco Norge AS", "Rambøll Norway AS",
+    # Healthcare & Public
+    "Helse Sør-Øst RHF", "Helse Vest RHF",
+    "Helse Midt-Norge RHF", "Helse Nord RHF",
+    # Property & Infrastructure
+    "Entra ASA", "Obos BBL", "Selvaag Bolig ASA", "Avinor AS",
+    # Other
+    "Norske Skog ASA", "Peterson AS",
+]
+
+# ======================
 # External API URLs
 # ======================
 

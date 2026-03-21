@@ -133,6 +133,73 @@ def stream_ingest_portfolio(portfolio_id: int):
     return StreamingResponse(generate(), media_type="application/x-ndjson")
 
 
+@router.get("/portfolio/{portfolio_id}/seed-norway/stream")
+def stream_seed_norway(portfolio_id: int):
+    """Stream live progress while seeding the portfolio with Norway's Top 100 companies.
+
+    Looks each company up in BRREG by name as it goes, yielding NDJSON events.
+    """
+    def generate():
+        from api.constants import TOP_100_NO_NAMES
+        from api.services.external_apis import fetch_enhetsregisteret
+
+        db = SessionLocal()
+        try:
+            existing = {
+                pc.orgnr for pc in
+                db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+            }
+            total = len(TOP_100_NO_NAMES)
+            yield json.dumps({"type": "start", "total": total}) + "\n"
+
+            added, skipped, not_found = 0, 0, 0
+            for i, name in enumerate(TOP_100_NO_NAMES):
+                yield json.dumps({"type": "searching", "name": name, "index": i + 1, "total": total}) + "\n"
+                try:
+                    results = fetch_enhetsregisteret(name, size=1)
+                    if not results:
+                        yield json.dumps({"type": "not_found", "name": name, "index": i + 1, "total": total}) + "\n"
+                        not_found += 1
+                        continue
+                    orgnr = results[0]["orgnr"]
+                    found_name = results[0]["navn"]
+                    if orgnr in existing:
+                        yield json.dumps({"type": "skipped", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                        skipped += 1
+                        continue
+                    from datetime import datetime, timezone
+                    db.add(PortfolioCompany(
+                        portfolio_id=portfolio_id,
+                        orgnr=orgnr,
+                        added_at=datetime.now(timezone.utc).isoformat(),
+                    ))
+                    db.commit()
+                    existing.add(orgnr)
+                    yield json.dumps({"type": "added", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                    added += 1
+                except Exception as exc:
+                    yield json.dumps({"type": "error", "name": name, "error": str(exc)[:100], "index": i + 1, "total": total}) + "\n"
+                    not_found += 1
+
+            yield json.dumps({"type": "complete", "added": added, "skipped": skipped, "not_found": not_found}) + "\n"
+        finally:
+            db.close()
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
+
+
+@router.post("/portfolio/{portfolio_id}/enrich-pdfs")
+def enrich_pdfs(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -> dict:
+    """Trigger background PDF discovery + 5-year extraction for all companies in the portfolio.
+
+    Returns immediately. Check /portfolio/{id}/risk for progress as data populates.
+    """
+    try:
+        return svc.enrich_pdfs_background(portfolio_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.post("/portfolio/{portfolio_id}/chat")
 @limiter.limit("10/minute")
 def portfolio_chat(
