@@ -27,3 +27,13 @@ output "db_fqdn" {
   description = "PostgreSQL Flexible Server fully-qualified domain name"
   value       = azurerm_postgresql_flexible_server.main.fqdn
 }
+
+output "entra_app_client_id" {
+  description = "Entra ID app client ID — set as ENTRA_CLIENT_ID in GitHub secrets if needed"
+  value       = azuread_application.broker_ui.client_id
+}
+
+output "entra_tenant_id" {
+  description = "Azure AD Tenant ID"
+  value       = data.azuread_client_config.current.tenant_id
+}

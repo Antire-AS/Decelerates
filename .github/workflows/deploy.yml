@@ -156,5 +156,16 @@ jobs:
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
 
+      - name: Terraform apply (infrastructure)
+        if: github.ref_name == 'main'
+        working-directory: infra/terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -var="github_repo=${{ github.repository }}" \
+            -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
+            -var="entra_tenant_id=${{ secrets.AZURE_TENANT_ID }}"
+
       - name: Smoke test — API /ping
         run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"

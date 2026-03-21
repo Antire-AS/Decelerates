@@ -2,6 +2,7 @@ import pathlib
 import streamlit as st
 
 from ui.config import T
+from ui.auth import render_user_badge
 from ui.views.search import render_search_tab
 from ui.views.portfolio import render_portfolio_tab
 from ui.views.documents import render_documents_tab
@@ -20,6 +21,7 @@ st.set_page_config(
 )
 
 st.markdown(f"<style>{pathlib.Path('ui/styles.css').read_text()}</style>", unsafe_allow_html=True)
+render_user_badge()
 st.markdown("""
 <div class="broker-header">
     <div class="broker-header-icon">⚖️</div>

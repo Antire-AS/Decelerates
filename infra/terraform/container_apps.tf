@@ -81,6 +81,11 @@ resource "azurerm_container_app" "ui" {
     identity = azurerm_user_assigned_identity.container_apps.id
   }
 
+  secret {
+    name  = "microsoft-provider-authentication-secret"
+    value = azuread_application_password.broker_ui.value
+  }
+
   template {
     min_replicas = 1
     max_replicas = 2
@@ -95,6 +100,8 @@ resource "azurerm_container_app" "ui" {
         name  = "API_BASE_URL"
         value = "https://${azurerm_container_app.api.latest_revision_fqdn}"
       }
+      env { name = "ENTRA_CLIENT_ID"; value = azuread_application.broker_ui.client_id }
+      env { name = "ENTRA_TENANT_ID"; value = data.azuread_client_config.current.tenant_id }
     }
   }
 

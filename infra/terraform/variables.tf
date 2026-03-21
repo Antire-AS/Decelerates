@@ -73,3 +73,9 @@ variable "voyage_api_key" {
   sensitive   = true
   default     = ""
 }
+
+variable "entra_tenant_id" {
+  description = "Azure AD Tenant ID — passed from AZURE_TENANT_ID GitHub secret"
+  type        = string
+  default     = ""
+}

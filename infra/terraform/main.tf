@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/azuread"
       version = "~> 2.53"
     }
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 1.15"
+    }
   }
 
   backend "azurerm" {
@@ -26,6 +30,8 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+provider "azapi" {}
 
 resource "azurerm_resource_group" "main" {
   name     = "rg-${var.env}-brokeraccelerator"
