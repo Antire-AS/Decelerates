@@ -194,9 +194,8 @@ def render_videos_tab() -> None:
                 st.caption(f"{chapter_count} kapitler{' · ' + desc if desc else ''}")
                 if is_active:
                     for j, ch in enumerate(sections):
-                        ts = _fmt_time(ch["start"])
                         if st.button(
-                            f"{ts}  {ch['title'] or '–'}",
+                            ch['title'] or '–',
                             key=f"ch_{i}_{j}",
                             use_container_width=True,
                         ):
