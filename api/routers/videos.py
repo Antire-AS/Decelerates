@@ -13,10 +13,15 @@ _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
 _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 
 # Maps MP4 file stem → (sections_json_prefix, display_name)
+# Display names derived from descriptive filenames uploaded to Azure:
+#   ffs080524forsikringsformidlingipraksis_fast.mp4
+#   ffs100624møtemedkundenbehovsanalysogrådgivning_fast.mp4
+#   ffs220824forsikringsmeglerrollen-hvakanvilære_fast.mp4
+#   ffs290824_fast.mp4
 _VIDEO_SECTIONS_MAP = {
     "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis"),
-    "ffs100624": ("ffskunde", "Kundeorientering og rådgivning"),
-    "ffs220824": ("ffslære", "Fagkunnskap og regelverk"),
+    "ffs100624": ("ffskunde", "Møte med kunden, behovsanalyse og rådgivning"),
+    "ffs220824": ("ffslære", "Forsikringsmeglerrollen – hva kan vi lære?"),
     "ffs290824": ("ffspraktisk", "Praktisk forsikringsrådgivning"),
 }
 
