@@ -307,3 +307,90 @@ def admin_demo(db: Session = Depends(get_db)) -> dict:
         "skipped": skipped,
         "pdf_extraction": "started in background",
     }
+
+
+@router.post("/admin/seed-norway-top100")
+def admin_seed_norway_top100(db: Session = Depends(get_db)) -> dict:
+    """Look up Norway's Top 100 companies in BRREG, fetch their profiles, and run
+    the PDF web-search agent (Claude/Gemini) to extract 5-year financial history.
+
+    Returns immediately — all work runs in background threads (3 workers).
+    Check /portfolio/{id}/risk for progress as data populates.
+    """
+    from datetime import datetime, timezone
+    from concurrent.futures import ThreadPoolExecutor
+    from api.constants import TOP_100_NO_NAMES
+    from api.db import Portfolio, PortfolioCompany, SessionLocal
+    from api.services.external_apis import fetch_enhetsregisteret, fetch_enhet_by_orgnr
+    from api.services.company import fetch_org_profile
+    from api.services.pdf_extract import _auto_extract_pdf_sources
+
+    # Create or reuse "Norges Topp 100" portfolio
+    portfolio = db.query(Portfolio).filter(Portfolio.name == "Norges Topp 100").first()
+    if not portfolio:
+        portfolio = Portfolio(
+            name="Norges Topp 100",
+            description="Norges 100 største selskaper — automatisk innhentet",
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        db.add(portfolio)
+        db.commit()
+        db.refresh(portfolio)
+
+    existing_orgnrs = {
+        pc.orgnr for pc in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio.id).all()
+    }
+
+    # Phase 1 (synchronous, fast): BRREG name lookup + profile fetch for all 100
+    resolved_orgnrs = list(existing_orgnrs)
+    lookup_added, lookup_failed = 0, 0
+    for name in TOP_100_NO_NAMES:
+        try:
+            results = fetch_enhetsregisteret(name, size=1)
+            if not results:
+                lookup_failed += 1
+                continue
+            orgnr = results[0]["orgnr"]
+            if orgnr not in existing_orgnrs:
+                db.add(PortfolioCompany(
+                    portfolio_id=portfolio.id,
+                    orgnr=orgnr,
+                    added_at=datetime.now(timezone.utc).isoformat(),
+                ))
+                existing_orgnrs.add(orgnr)
+                lookup_added += 1
+            if orgnr not in resolved_orgnrs:
+                resolved_orgnrs.append(orgnr)
+            try:
+                fetch_org_profile(orgnr, db)
+            except Exception as exc:
+                _log.warning("Top100 profile fetch failed for %s: %s", orgnr, exc)
+        except Exception as exc:
+            _log.warning("Top100 BRREG lookup failed for '%s': %s", name, exc)
+            lookup_failed += 1
+    db.commit()
+
+    # Phase 2 (background): web-search agent finds annual/quarterly PDFs per company
+    def _run_pdf(orgnr: str) -> None:
+        try:
+            org = fetch_enhet_by_orgnr(orgnr) or {}
+            _auto_extract_pdf_sources(orgnr, org, db_factory=SessionLocal)
+        except Exception as exc:
+            _log.warning("Top100 PDF agent failed for %s: %s", orgnr, exc)
+
+    executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="top100_pdf")
+    for orgnr in resolved_orgnrs:
+        executor.submit(_run_pdf, orgnr)
+    executor.shutdown(wait=False)
+
+    return {
+        "portfolio_id": portfolio.id,
+        "portfolio_name": portfolio.name,
+        "total_names": len(TOP_100_NO_NAMES),
+        "added_to_portfolio": lookup_added,
+        "already_present": len(existing_orgnrs) - lookup_added,
+        "lookup_failed": lookup_failed,
+        "pdf_agent_queued": len(resolved_orgnrs),
+        "message": "PDF-innhenting via nett kjører i bakgrunnen (3 samtidige). Sjekk portefølje for fremgang.",
+    }

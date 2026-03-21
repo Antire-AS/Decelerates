@@ -520,6 +520,28 @@ def _render_admin_controls() -> None:
                 else:
                     st.error("Kunne ikke laste demo-data.")
 
+        st.markdown("---")
+        st.markdown("**🇳🇴 Norges Topp 100 — full finansiell innhenting**")
+        st.caption(
+            "Slår opp alle ~100 største norske selskaper i BRREG, henter profiler og risikoscore, "
+            "og kjører AI-agenten (Claude/Gemini) for å finne årsrapport- og kvartalsrapport-PDF-er "
+            "fra hvert selskaps investor relations-side. Ekstraksjon av 5-årig historikk kjører "
+            "i bakgrunnen — tar 30–90 minutter totalt."
+        )
+        if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100", use_container_width=True, type="primary"):
+            with st.spinner("Slår opp selskaper i BRREG og starter PDF-agent..."):
+                result = _post("/admin/seed-norway-top100", {})
+            if result:
+                st.success(
+                    f"✅ Startet — {result.get('pdf_agent_queued')} selskaper i kø for PDF-innhenting. "
+                    f"Portefølje: '{result.get('portfolio_name')}' (id {result.get('portfolio_id')}). "
+                    f"{result.get('lookup_failed', 0)} ikke funnet i BRREG."
+                )
+                st.session_state["selected_portfolio_id"] = result.get("portfolio_id")
+                st.rerun()
+            else:
+                st.error("Kunne ikke starte innhenting.")
+
         with col_reset:
             st.markdown("**Start innsamling på nytt**")
             st.caption(
