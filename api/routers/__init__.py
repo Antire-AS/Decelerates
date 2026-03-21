@@ -11,4 +11,5 @@ from api.routers import (  # noqa: F401
     broker,
     sla,
     utils,
+    portfolio_router,
 )

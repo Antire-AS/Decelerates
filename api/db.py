@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 
@@ -176,6 +176,25 @@ class CompanyChunk(Base):
     chunk_text = Column(String, nullable=False)
     embedding  = Column(Vector(EMBEDDING_DIM), nullable=True)
     created_at = Column(String, nullable=False)
+
+
+class Portfolio(Base):
+    """A named list of companies for cross-portfolio risk analysis."""
+    __tablename__ = "portfolios"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    name        = Column(String, nullable=False)
+    description = Column(String)
+    created_at  = Column(String, nullable=False)
+
+
+class PortfolioCompany(Base):
+    """Junction table — which companies belong to which portfolio."""
+    __tablename__ = "portfolio_companies"
+
+    portfolio_id = Column(Integer, ForeignKey("portfolios.id", ondelete="CASCADE"), primary_key=True)
+    orgnr        = Column(String(9), primary_key=True)
+    added_at     = Column(String, nullable=False)
 
 
 def init_db():

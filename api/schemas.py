@@ -46,3 +46,12 @@ class BrokerSettingsIn(BaseModel):
 
 class SlaIn(BaseModel):
     form_data: Dict[str, Any]
+
+
+class PortfolioCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+
+
+class PortfolioAddCompany(BaseModel):
+    orgnr: str
