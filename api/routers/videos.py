@@ -20,16 +20,10 @@ _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 #   ffs220824forsikringsmeglerrollen-hvakanvilære_fast.mp4
 #   ffs290824_fast.mp4
 _VIDEO_SECTIONS_MAP = {
-    #                    sections_prefix   display_name                                      max_seconds
-    # max_seconds = actual video duration; trims chapters whose timestamps exceed the video.
-    # ffs080524: 32:04 — sections from unedited ~52 min recording
-    # ffs220824: 45:22 — sections from longer ~89 min recording
-    # ffs290824: 122:20 — sections from longer ~143 min recording
-    # ffs100624: 99:37 — sections file only covers first 14 min (needs regeneration)
-    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis",              1924),  # 32:04
-    "ffs100624": ("ffskunde",     "Møte med kunden, behovsanalyse og rådgivning", None),  # incomplete sections, no trim
-    "ffs220824": ("ffslære",      "Forsikringsmeglerrollen – hva kan vi lære?",   2722),  # 45:22
-    "ffs290824": ("ffspraktisk",  "Praktisk forsikringsrådgivning",               7340),  # 122:20
+    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis",              None),
+    "ffs100624": ("ffskunde",     "Møte med kunden, behovsanalyse og rådgivning", None),
+    "ffs220824": ("ffslære",      "Forsikringsmeglerrollen – hva kan vi lære?",   None),
+    "ffs290824": ("ffspraktisk",  "Praktisk forsikringsrådgivning",               None),
 }
 
 router = APIRouter()
