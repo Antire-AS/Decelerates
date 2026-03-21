@@ -47,7 +47,7 @@ def _post(path: str, json: dict) -> dict | None:
 
 def _delete(path: str) -> bool:
     try:
-        r = requests.delete(f"{API_BASE}{path}", timeout=10)
+        r = requests.delete(f"{API_BASE}{path}", timeout=30)
         return r.ok
     except Exception:
         return False
@@ -497,12 +497,56 @@ def _render_live_ingest(portfolio_id: int, rows: list) -> None:
             st.rerun()
 
 
+# ── Admin: clean start + demo seed ────────────────────────────────────────────
+
+def _render_admin_controls() -> None:
+    with st.expander("⚙️ Admin", expanded=False):
+        st.caption("Disse knappene påvirker alle data i systemet.")
+        col_demo, col_reset = st.columns(2)
+
+        with col_demo:
+            st.markdown("**Last inn demo-data**")
+            st.caption("Oppretter 'Demo Portefølje' med 8 store norske selskaper, henter BRREG-data og starter PDF-ekstraksjon i bakgrunnen.")
+            if st.button("▶ Last inn demo", key="admin_demo", use_container_width=True, type="primary"):
+                with st.spinner("Henter selskapsdata og starter PDF-ekstraksjon..."):
+                    result = _post("/admin/demo", {})
+                if result:
+                    st.success(
+                        f"✅ Demo klar — portefølje '{result.get('portfolio_name')}' opprettet med "
+                        f"{result.get('companies')} selskaper. PDF-ekstraksjon kjører i bakgrunnen."
+                    )
+                    st.session_state["selected_portfolio_id"] = result.get("portfolio_id")
+                    st.rerun()
+                else:
+                    st.error("Kunne ikke laste demo-data.")
+
+        with col_reset:
+            st.markdown("**Nullstill alt**")
+            st.caption("Sletter alle selskaper, regnskapsdata, porteføljer og embeddings. Kan ikke angres.")
+            if st.button("🗑 Nullstill", key="admin_reset_btn", use_container_width=True, type="secondary"):
+                st.session_state["confirm_admin_reset"] = True
+
+        if st.session_state.get("confirm_admin_reset"):
+            st.warning("⚠️ Dette sletter ALL data permanent. Er du sikker?")
+            c1, c2 = st.columns(2)
+            if c1.button("Ja, slett alt", key="admin_reset_confirm", type="primary"):
+                with st.spinner("Sletter..."):
+                    result = _delete("/admin/reset")
+                st.session_state.pop("confirm_admin_reset", None)
+                st.session_state.pop("selected_portfolio_id", None)
+                st.rerun()
+            if c2.button("Avbryt", key="admin_reset_cancel"):
+                st.session_state.pop("confirm_admin_reset", None)
+                st.rerun()
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def render_portfolio_tab() -> None:
     overview_tab, named_tab = st.tabs(["Oversikt", "Mine porteføljer"])
 
     with overview_tab:
+        _render_admin_controls()
         companies = _fetch("/companies", params={"limit": 200})
         all_slas = _fetch("/sla")
         if not companies:

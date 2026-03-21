@@ -1,8 +1,11 @@
+import logging
 import os
 
 import requests
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from api.dependencies import get_db
 from api.services import (
     fetch_enhet_by_orgnr,
     fetch_koordinater,
@@ -196,4 +199,103 @@ def debug_status() -> dict:
         "alembic_error": alembic_error,
         "tags_column_exists": tags_col,
         "public_tables": tables,
+    }
+
+
+# ── Admin: reset + demo seed ───────────────────────────────────────────────
+
+_log = logging.getLogger(__name__)
+
+_DEMO_ORGNRS = [
+    "984851006",   # DNB Bank ASA
+    "995568217",   # Gjensidige Forsikring ASA
+    "923609016",   # Equinor ASA
+    "979981344",   # Søderberg & Partners Norge AS
+    "943753709",   # Kongsberg Gruppen ASA
+    "982463718",   # Telenor ASA
+    "986228608",   # Yara International ASA
+    "989795848",   # Aker BP ASA
+]
+
+
+@router.delete("/admin/reset")
+def admin_reset(db: Session = Depends(get_db)) -> dict:
+    """Delete all company data and portfolios — full clean slate."""
+    from sqlalchemy import text
+    tables = [
+        "portfolio_companies", "portfolios",
+        "company_chunks", "company_history", "company_pdf_sources",
+        "company_notes", "companies",
+    ]
+    deleted = {}
+    for table in tables:
+        result = db.execute(text(f"DELETE FROM {table}"))
+        deleted[table] = result.rowcount
+    db.commit()
+    return {"reset": True, "deleted_rows": deleted}
+
+
+@router.post("/admin/demo")
+def admin_demo(db: Session = Depends(get_db)) -> dict:
+    """Seed demo portfolio with 8 major Norwegian companies and trigger PDF extraction."""
+    from datetime import datetime, timezone
+    from api.db import Portfolio, PortfolioCompany, SessionLocal
+    from api.services.company import fetch_org_profile
+    from api.services.pdf_extract import _auto_extract_pdf_sources
+    from api.services.external_apis import fetch_enhet_by_orgnr
+    from concurrent.futures import ThreadPoolExecutor
+
+    # Create or reuse "Demo Portefølje"
+    portfolio = db.query(Portfolio).filter(Portfolio.name == "Demo Portefølje").first()
+    if not portfolio:
+        portfolio = Portfolio(
+            name="Demo Portefølje",
+            description="Norges største selskaper — klar for demo",
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        db.add(portfolio)
+        db.commit()
+        db.refresh(portfolio)
+
+    # Fetch BRREG profiles + add to portfolio
+    fetched, skipped = 0, 0
+    existing = {
+        pc.orgnr for pc in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio.id).all()
+    }
+    for orgnr in _DEMO_ORGNRS:
+        if orgnr not in existing:
+            db.add(PortfolioCompany(
+                portfolio_id=portfolio.id,
+                orgnr=orgnr,
+                added_at=datetime.now(timezone.utc).isoformat(),
+            ))
+        try:
+            fetch_org_profile(orgnr, db)
+            fetched += 1
+        except Exception as exc:
+            _log.warning("Demo seed: failed for %s — %s", orgnr, exc)
+            skipped += 1
+    db.commit()
+
+    # Trigger background PDF extraction for all demo companies
+    def _run(orgnr: str) -> None:
+        try:
+            org = fetch_enhet_by_orgnr(orgnr) or {}
+            _auto_extract_pdf_sources(orgnr, org, db_factory=SessionLocal)
+        except Exception as exc:
+            _log.warning("Demo PDF extraction: %s — %s", orgnr, exc)
+
+    executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="demo_pdf")
+    for orgnr in _DEMO_ORGNRS:
+        executor.submit(_run, orgnr)
+    executor.shutdown(wait=False)
+
+    return {
+        "portfolio_id": portfolio.id,
+        "portfolio_name": portfolio.name,
+        "companies": len(_DEMO_ORGNRS),
+        "fetched": fetched,
+        "skipped": skipped,
+        "pdf_extraction": "started in background",
     }
