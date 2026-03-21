@@ -1,7 +1,12 @@
 """Portfolio endpoints — named company lists with risk analysis and cross-company chat."""
+import json
+
 from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from api.db import PortfolioCompany, Company
+from api.db import SessionLocal
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.limiter import limiter
@@ -73,6 +78,59 @@ def ingest_portfolio(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -
         return svc.ingest_companies(portfolio_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/portfolio/{portfolio_id}/ingest/stream")
+def stream_ingest_portfolio(portfolio_id: int):
+    """Stream live progress of portfolio ingest as newline-delimited JSON.
+
+    Each line is a JSON object with fields: type, orgnr, navn, risk_score, index, total.
+    Types: start | searching | done | skipped | error | complete
+    """
+    def generate():
+        db = SessionLocal()
+        try:
+            rows = db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+            total = len(rows)
+            yield json.dumps({"type": "start", "total": total}) + "\n"
+
+            from api.services.company import fetch_org_profile
+            for i, pc in enumerate(rows):
+                existing = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
+                navn = (existing.navn if existing else None) or pc.orgnr
+
+                if existing and existing.navn and existing.risk_score is not None:
+                    yield json.dumps({
+                        "type": "skipped", "orgnr": pc.orgnr, "navn": navn,
+                        "risk_score": existing.risk_score, "index": i + 1, "total": total,
+                    }) + "\n"
+                    continue
+
+                yield json.dumps({
+                    "type": "searching", "orgnr": pc.orgnr, "navn": navn,
+                    "index": i + 1, "total": total,
+                }) + "\n"
+
+                try:
+                    fetch_org_profile(pc.orgnr, db)
+                    company = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
+                    yield json.dumps({
+                        "type": "done", "orgnr": pc.orgnr,
+                        "navn": (company.navn if company else navn),
+                        "risk_score": (company.risk_score if company else None),
+                        "index": i + 1, "total": total,
+                    }) + "\n"
+                except Exception as exc:
+                    yield json.dumps({
+                        "type": "error", "orgnr": pc.orgnr, "navn": navn,
+                        "error": str(exc)[:120], "index": i + 1, "total": total,
+                    }) + "\n"
+
+            yield json.dumps({"type": "complete", "total": total}) + "\n"
+        finally:
+            db.close()
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
 
 
 @router.post("/portfolio/{portfolio_id}/chat")

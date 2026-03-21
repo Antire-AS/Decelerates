@@ -1,4 +1,5 @@
 """Portfolio tab — named company lists with risk analysis and AI chat."""
+import json
 from datetime import date as _date, timedelta as _td
 
 import pandas as pd
@@ -312,6 +313,83 @@ def _render_portfolio_chat(portfolio_id: int) -> None:
             st.warning("Ingen svar fra AI-tjenesten.")
 
 
+# ── Live ingest ───────────────────────────────────────────────────────────────
+
+def _render_live_ingest(portfolio_id: int, rows: list) -> None:
+    """Live-streaming company lookup with animated progress via st.status()."""
+    needs_fetch = [r for r in rows if r.get("risk_score") is None or r.get("navn") == r.get("orgnr")]
+    already_done = len(rows) - len(needs_fetch)
+
+    col_btn, col_del = st.columns([3, 1])
+    with col_btn:
+        btn_label = (
+            f"🔍 Søk opp alle {len(rows)} selskaper live"
+            if needs_fetch else
+            f"♻️ Oppdater alle {len(rows)} selskaper"
+        )
+        if st.button(btn_label, key=f"live_ingest_{portfolio_id}", type="primary"):
+            done, skipped, failed = 0, 0, 0
+            with st.status(f"Søker opp {len(rows)} selskaper...", expanded=True) as status:
+                try:
+                    with requests.get(
+                        f"{API_BASE}/portfolio/{portfolio_id}/ingest/stream",
+                        stream=True,
+                        timeout=300,
+                    ) as resp:
+                        for raw_line in resp.iter_lines():
+                            if not raw_line:
+                                continue
+                            try:
+                                event = json.loads(raw_line)
+                            except Exception:
+                                continue
+
+                            etype = event.get("type")
+                            navn = event.get("navn") or event.get("orgnr", "")
+                            idx = event.get("index", "")
+                            total = event.get("total", "")
+                            score = event.get("risk_score")
+                            score_str = f"  —  risikoscore **{score}**" if score is not None else ""
+
+                            if etype == "start":
+                                status.write(f"Starter innhenting av **{total}** selskaper...")
+                            elif etype == "searching":
+                                status.write(f"🔍 `{idx}/{total}` &nbsp; Søker opp **{navn}**...")
+                            elif etype == "done":
+                                status.write(f"✅ `{idx}/{total}` &nbsp; **{navn}**{score_str}")
+                                done += 1
+                            elif etype == "skipped":
+                                status.write(f"⏭ `{idx}/{total}` &nbsp; {navn} — allerede hentet")
+                                skipped += 1
+                            elif etype == "error":
+                                status.write(f"❌ `{idx}/{total}` &nbsp; {navn} — {event.get('error', 'feil')}")
+                                failed += 1
+                            elif etype == "complete":
+                                status.update(
+                                    label=f"✅ Ferdig — {done} hentet, {skipped} hoppet over, {failed} feilet",
+                                    state="complete",
+                                )
+                except Exception as exc:
+                    status.update(label=f"Feil under innhenting: {exc}", state="error")
+            st.rerun()
+
+    with col_del:
+        if st.button("🗑 Slett portefølje", key=f"del_port_{portfolio_id}", type="secondary"):
+            st.session_state[f"confirm_del_{portfolio_id}"] = True
+
+    if st.session_state.get(f"confirm_del_{portfolio_id}"):
+        st.warning("Er du sikker? Dette sletter porteføljen permanent.")
+        c1, c2 = st.columns(2)
+        if c1.button("Ja, slett", key=f"confirm_del_yes_{portfolio_id}"):
+            _delete(f"/portfolio/{portfolio_id}")
+            st.session_state.pop("selected_portfolio_id", None)
+            st.session_state.pop(f"confirm_del_{portfolio_id}", None)
+            st.rerun()
+        if c2.button("Avbryt", key=f"confirm_del_no_{portfolio_id}"):
+            st.session_state.pop(f"confirm_del_{portfolio_id}", None)
+            st.rerun()
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def render_portfolio_tab() -> None:
@@ -339,30 +417,4 @@ def render_portfolio_tab() -> None:
             _render_portfolio_chat(portfolio_id)
 
         st.markdown("---")
-        col_ingest, col_del = st.columns([3, 1])
-        with col_ingest:
-            if st.button("Hent manglende selskapsdata fra BRREG", key=f"ingest_{portfolio_id}"):
-                with st.spinner("Henter data..."):
-                    result = _post(f"/portfolio/{portfolio_id}/ingest", {})
-                if result:
-                    st.success(
-                        f"Ferdig — hentet: {result.get('fetched', 0)}, "
-                        f"hoppet over: {result.get('skipped', 0)}, "
-                        f"feilet: {result.get('failed', 0)}"
-                    )
-                    st.rerun()
-        with col_del:
-            if st.button("🗑 Slett portefølje", key=f"del_port_{portfolio_id}", type="secondary"):
-                st.session_state[f"confirm_del_{portfolio_id}"] = True
-
-        if st.session_state.get(f"confirm_del_{portfolio_id}"):
-            st.warning("Er du sikker? Dette sletter porteføljen permanent.")
-            c1, c2 = st.columns(2)
-            if c1.button("Ja, slett", key=f"confirm_del_yes_{portfolio_id}"):
-                _delete(f"/portfolio/{portfolio_id}")
-                st.session_state.pop("selected_portfolio_id", None)
-                st.session_state.pop(f"confirm_del_{portfolio_id}", None)
-                st.rerun()
-            if c2.button("Avbryt", key=f"confirm_del_no_{portfolio_id}"):
-                st.session_state.pop(f"confirm_del_{portfolio_id}", None)
-                st.rerun()
+        _render_live_ingest(portfolio_id, rows)
