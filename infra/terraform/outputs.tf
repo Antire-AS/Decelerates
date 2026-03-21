@@ -29,8 +29,8 @@ output "db_fqdn" {
 }
 
 output "entra_app_client_id" {
-  description = "Entra ID app client ID — set as ENTRA_CLIENT_ID in GitHub secrets if needed"
-  value       = azuread_application.broker_ui.client_id
+  description = "Entra ID app client ID passed in — echoed back for verification"
+  value       = var.entra_client_id
 }
 
 output "entra_tenant_id" {

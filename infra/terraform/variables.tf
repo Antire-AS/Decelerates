@@ -79,3 +79,16 @@ variable "entra_tenant_id" {
   type        = string
   default     = ""
 }
+
+variable "entra_client_id" {
+  description = "Entra ID app registration Client ID for Easy Auth (ENTRA_CLIENT_ID secret)"
+  type        = string
+  default     = ""
+}
+
+variable "entra_client_secret" {
+  description = "Entra ID app registration Client Secret for Easy Auth (ENTRA_CLIENT_SECRET secret)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
