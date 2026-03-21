@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 KNOWLEDGE_ORG = "knowledge"
 _VIDEOS_CONTAINER = "transksrt"
 
-# Display names for each sections JSON prefix (mirrors _VIDEO_SECTIONS_MAP in documents.py)
+# Display names for each sections JSON prefix (mirrors _VIDEO_SECTIONS_MAP in videos.py)
 _VIDEO_DISPLAY_NAMES = {
     "ffsformidler": "Forsikringsformidling i praksis",
-    "ffskunde":     "Kundeorientering og rådgivning",
-    "ffslære":      "Fagkunnskap og regelverk",
+    "ffskunde":     "Møte med kunden, behovsanalyse og rådgivning",
+    "ffslære":      "Forsikringsmeglerrollen – hva kan vi lære?",
     "ffspraktisk":  "Praktisk forsikringsrådgivning",
 }
 
