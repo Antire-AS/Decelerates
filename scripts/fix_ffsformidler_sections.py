@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from api.services.blob_storage import BlobStorageService
 
 CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
-SECTIONS_BLOB = "ffsformidler_sections.json"
+SECTIONS_BLOB = "whisper_input/Videosubtime/ffsformidler_sections.json"
 VIDEO_DURATION_S = 32 * 60 + 4  # 32:04 = 1924 seconds
 
 

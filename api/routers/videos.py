@@ -12,17 +12,18 @@ from api.services.blob_storage import BlobStorageService
 _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
 _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 
-# Maps MP4 file stem → (sections_json_prefix, display_name)
+# Maps MP4 file stem → (sections_json_prefix, display_name, max_seconds|None)
+# max_seconds trims chapters whose start_seconds exceed the actual video duration.
 # Display names derived from descriptive filenames uploaded to Azure:
-#   ffs080524forsikringsformidlingipraksis_fast.mp4
+#   ffs080524forsikringsformidlingipraksis_fast.mp4  → 32:04 = 1924s
 #   ffs100624møtemedkundenbehovsanalysogrådgivning_fast.mp4
 #   ffs220824forsikringsmeglerrollen-hvakanvilære_fast.mp4
 #   ffs290824_fast.mp4
 _VIDEO_SECTIONS_MAP = {
-    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis"),
-    "ffs100624": ("ffskunde", "Møte med kunden, behovsanalyse og rådgivning"),
-    "ffs220824": ("ffslære", "Forsikringsmeglerrollen – hva kan vi lære?"),
-    "ffs290824": ("ffspraktisk", "Praktisk forsikringsrådgivning"),
+    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis", 1924),
+    "ffs100624": ("ffskunde", "Møte med kunden, behovsanalyse og rådgivning", None),
+    "ffs220824": ("ffslære", "Forsikringsmeglerrollen – hva kan vi lære?", None),
+    "ffs290824": ("ffspraktisk", "Praktisk forsikringsrådgivning", None),
 }
 
 router = APIRouter()
@@ -81,9 +82,8 @@ def list_videos() -> list:
         mp4 = best[key]
         directory = posixpath.dirname(mp4)
         fname = posixpath.basename(mp4)[:-4]
-        sections_prefix, display_name = _VIDEO_SECTIONS_MAP.get(
-            key, (key, key.replace("_", " "))
-        )
+        meta = _VIDEO_SECTIONS_MAP.get(key, (key, key.replace("_", " "), None))
+        sections_prefix, display_name, max_seconds = meta
         sections = None
         base = mp4[:-4]
         for cand in [
@@ -93,6 +93,8 @@ def list_videos() -> list:
         ]:
             if cand in all_blobs:
                 sections = svc.download_json(_VIDEOS_CONTAINER, cand)
+                if max_seconds is not None and isinstance(sections, list):
+                    sections = [ch for ch in sections if ch.get("start_seconds", 0) <= max_seconds]
                 break
 
         thumb_blob = next((
