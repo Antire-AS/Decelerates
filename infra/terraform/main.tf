@@ -19,7 +19,7 @@ terraform {
     resource_group_name  = "rg-prod-brokeraccelerator"
     storage_account_name = "stprodbrokeracc"
     container_name       = "tfstate"
-    blob_name            = "terraform.tfstate"
+    key                  = "terraform.tfstate"
     use_oidc             = true
   }
 }

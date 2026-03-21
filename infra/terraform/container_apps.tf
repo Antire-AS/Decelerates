@@ -43,12 +43,30 @@ resource "azurerm_container_app" "api" {
       cpu    = 0.5
       memory = "1Gi"
 
-      env { name = "DATABASE_URL";     value = local.db_connection_string }
-      env { name = "ANTHROPIC_API_KEY"; value = var.anthropic_api_key }
-      env { name = "GEMINI_API_KEY";    value = var.gemini_api_key }
-      env { name = "GEMINI_API_KEY_2";  value = var.gemini_api_key_2 }
-      env { name = "GEMINI_API_KEY_3";  value = var.gemini_api_key_3 }
-      env { name = "VOYAGE_API_KEY";    value = var.voyage_api_key }
+      env {
+        name  = "DATABASE_URL"
+        value = local.db_connection_string
+      }
+      env {
+        name  = "ANTHROPIC_API_KEY"
+        value = var.anthropic_api_key
+      }
+      env {
+        name  = "GEMINI_API_KEY"
+        value = var.gemini_api_key
+      }
+      env {
+        name  = "GEMINI_API_KEY_2"
+        value = var.gemini_api_key_2
+      }
+      env {
+        name  = "GEMINI_API_KEY_3"
+        value = var.gemini_api_key_3
+      }
+      env {
+        name  = "VOYAGE_API_KEY"
+        value = var.voyage_api_key
+      }
     }
   }
 
@@ -103,8 +121,14 @@ resource "azurerm_container_app" "ui" {
         name  = "API_BASE_URL"
         value = "https://${azurerm_container_app.api.latest_revision_fqdn}"
       }
-      env { name = "ENTRA_CLIENT_ID"; value = var.entra_client_id }
-      env { name = "ENTRA_TENANT_ID"; value = var.entra_tenant_id }
+      env {
+        name  = "ENTRA_CLIENT_ID"
+        value = var.entra_client_id
+      }
+      env {
+        name  = "ENTRA_TENANT_ID"
+        value = var.entra_tenant_id
+      }
     }
   }
 
