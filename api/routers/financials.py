@@ -53,3 +53,17 @@ def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Delete all company_history rows for this org so extraction re-runs on next load."""
     deleted = delete_history_year(orgnr, db)
     return {"orgnr": orgnr, "deleted_rows": deleted}
+
+
+@router.post("/financials/query")
+def nl_query(body: dict, db: Session = Depends(get_db)) -> dict:
+    """Convert a natural-language question to SQL and return results.
+
+    Body: {"question": "Which 10 companies have the highest revenue?"}
+    Returns: {"sql": "...", "columns": [...], "rows": [...], "error": null}
+    """
+    question = (body.get("question") or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="question is required")
+    from api.services.nl_query import run_nl_query
+    return run_nl_query(question, db)

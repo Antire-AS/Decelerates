@@ -497,6 +497,52 @@ def _render_live_ingest(portfolio_id: int, rows: list) -> None:
             st.rerun()
 
 
+# ── Natural-language SQL explorer ─────────────────────────────────────────────
+
+def _render_nl_query() -> None:
+    st.markdown("#### Spør om finansdata (English / Norsk)")
+    st.caption("Still spørsmål på naturlig språk — systemet oversetter til SQL og kjører mot databasen.")
+
+    examples = [
+        "Top 10 companies by revenue in MNOK",
+        "Companies with risk score above 8, sorted by risk",
+        "Average equity ratio per industry",
+        "Which companies have financial data for 2023?",
+    ]
+    with st.expander("Eksempler", expanded=False):
+        for ex in examples:
+            st.code(ex, language=None)
+
+    question = st.text_input(
+        "Spørsmål",
+        placeholder="Top 10 companies by revenue in MNOK",
+        key="nl_query_input",
+    )
+    if st.button("Kjør spørring", key="nl_query_btn", type="primary") and question.strip():
+        with st.spinner("Genererer SQL og kjører..."):
+            result = _post("/financials/query", {"question": question})
+
+        if not result:
+            st.error("Ingen respons fra serveren.")
+            return
+
+        if result.get("error"):
+            st.error(result["error"])
+            if result.get("sql"):
+                st.code(result["sql"], language="sql")
+            return
+
+        with st.expander("Generert SQL", expanded=False):
+            st.code(result.get("sql", ""), language="sql")
+
+        rows = result.get("rows", [])
+        if rows:
+            st.dataframe(rows, use_container_width=True)
+            st.caption(f"{len(rows)} rader")
+        else:
+            st.info("Ingen resultater.")
+
+
 # ── Admin: clean start + demo seed ────────────────────────────────────────────
 
 def _render_admin_controls() -> None:
@@ -579,6 +625,9 @@ def render_portfolio_tab() -> None:
             st.info("Ingen selskaper analysert ennå. Søk opp et selskap i Selskapsøk-fanen.")
         else:
             _render_overview(companies, all_slas)
+
+        st.markdown("---")
+        _render_nl_query()
 
     with named_tab:
         portfolio_id = _render_portfolio_selector()
