@@ -220,17 +220,25 @@ _DEMO_ORGNRS = [
 
 @router.delete("/admin/reset")
 def admin_reset(db: Session = Depends(get_db)) -> dict:
-    """Delete all company data and portfolios — full clean slate."""
+    """Reset collected company data so it will be re-fetched fresh from the web.
+
+    Deletes: company profiles, financial history, PDF sources, company embeddings,
+    portfolios. Preserves: knowledge base (video/doc chunks), broker settings,
+    SLA agreements, insurance documents, Azure blob storage.
+    """
     from sqlalchemy import text
-    tables = [
-        "portfolio_companies", "portfolios",
-        "company_chunks", "company_history", "company_pdf_sources",
-        "company_notes", "companies",
-    ]
     deleted = {}
-    for table in tables:
+
+    # Full-table deletes for company-owned tables
+    for table in ["portfolio_companies", "portfolios", "company_history",
+                  "company_pdf_sources", "company_notes", "companies"]:
         result = db.execute(text(f"DELETE FROM {table}"))
         deleted[table] = result.rowcount
+
+    # Only delete company chunks — keep orgnr='knowledge' (video/doc index)
+    result = db.execute(text("DELETE FROM company_chunks WHERE orgnr != 'knowledge'"))
+    deleted["company_chunks"] = result.rowcount
+
     db.commit()
     return {"reset": True, "deleted_rows": deleted}
 

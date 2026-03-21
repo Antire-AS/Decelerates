@@ -521,16 +521,20 @@ def _render_admin_controls() -> None:
                     st.error("Kunne ikke laste demo-data.")
 
         with col_reset:
-            st.markdown("**Nullstill alt**")
-            st.caption("Sletter alle selskaper, regnskapsdata, porteføljer og embeddings. Kan ikke angres.")
-            if st.button("🗑 Nullstill", key="admin_reset_btn", use_container_width=True, type="secondary"):
+            st.markdown("**Start innsamling på nytt**")
+            st.caption(
+                "Sletter innsamlede selskapsdata, regnskapshistorikk og porteføljer "
+                "slik at alt hentes friskt fra nettet neste gang. "
+                "Videoer, dokumenter og kunnskapsbasen beholdes."
+            )
+            if st.button("🔄 Nullstill innsamlet data", key="admin_reset_btn", use_container_width=True, type="secondary"):
                 st.session_state["confirm_admin_reset"] = True
 
         if st.session_state.get("confirm_admin_reset"):
-            st.warning("⚠️ Dette sletter ALL data permanent. Er du sikker?")
+            st.warning("⚠️ Dette sletter alle selskaper, regnskapsdata og porteføljer. Videoer og kunnskapsbase beholdes. Er du sikker?")
             c1, c2 = st.columns(2)
-            if c1.button("Ja, slett alt", key="admin_reset_confirm", type="primary"):
-                with st.spinner("Sletter..."):
+            if c1.button("Ja, start på nytt", key="admin_reset_confirm", type="primary"):
+                with st.spinner("Nullstiller innsamlet data..."):
                     result = _delete("/admin/reset")
                 st.session_state.pop("confirm_admin_reset", None)
                 st.session_state.pop("selected_portfolio_id", None)
