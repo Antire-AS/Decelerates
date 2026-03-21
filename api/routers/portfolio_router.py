@@ -81,48 +81,117 @@ def ingest_portfolio(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -
 
 
 @router.get("/portfolio/{portfolio_id}/ingest/stream")
-def stream_ingest_portfolio(portfolio_id: int):
+def stream_ingest_portfolio(portfolio_id: int, include_pdfs: bool = False):
     """Stream live progress of portfolio ingest as newline-delimited JSON.
 
-    Each line is a JSON object with fields: type, orgnr, navn, risk_score, index, total.
-    Types: start | searching | done | skipped | error | complete
+    Phase 1 (always): BRREG + risk score per company — fast, ~1-2s each.
+    Phase 2 (include_pdfs=true): Claude web-searches each company's investor
+    relations site to find annual + quarterly report PDFs, then extracts
+    5 years of financials. Takes 20-60s per company — best for demos of ≤20 companies.
+
+    Event types:
+      start | searching | done | skipped | error | complete
+      pdf_searching | pdf_found | pdf_none | pdf_error
     """
     def generate():
+        from api.services.company import fetch_org_profile
+        from api.services.external_apis import fetch_enhet_by_orgnr
+
         db = SessionLocal()
         try:
             rows = db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
             total = len(rows)
-            yield json.dumps({"type": "start", "total": total}) + "\n"
+            yield json.dumps({"type": "start", "total": total, "include_pdfs": include_pdfs}) + "\n"
 
-            from api.services.company import fetch_org_profile
             for i, pc in enumerate(rows):
                 existing = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
                 navn = (existing.navn if existing else None) or pc.orgnr
 
+                # ── Phase 1: BRREG + risk ──────────────────────────────────
                 if existing and existing.navn and existing.risk_score is not None:
                     yield json.dumps({
                         "type": "skipped", "orgnr": pc.orgnr, "navn": navn,
                         "risk_score": existing.risk_score, "index": i + 1, "total": total,
                     }) + "\n"
+                else:
+                    yield json.dumps({
+                        "type": "searching", "orgnr": pc.orgnr, "navn": navn,
+                        "index": i + 1, "total": total,
+                    }) + "\n"
+                    try:
+                        fetch_org_profile(pc.orgnr, db)
+                        company = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
+                        navn = (company.navn if company else navn)
+                        yield json.dumps({
+                            "type": "done", "orgnr": pc.orgnr, "navn": navn,
+                            "risk_score": (company.risk_score if company else None),
+                            "index": i + 1, "total": total,
+                        }) + "\n"
+                    except Exception as exc:
+                        yield json.dumps({
+                            "type": "error", "orgnr": pc.orgnr, "navn": navn,
+                            "error": str(exc)[:120], "index": i + 1, "total": total,
+                        }) + "\n"
+                        continue
+
+                if not include_pdfs:
+                    continue
+
+                # ── Phase 2: web-search for PDFs on company website ────────
+                from datetime import datetime
+                from api.db import CompanyPdfSource
+                from api.services.pdf_extract import _run_phase2_discovery
+
+                current_year = datetime.now().year
+                target_years = list(range(current_year - 4, current_year + 1))
+                covered = {
+                    s.year for s in
+                    db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == pc.orgnr).all()
+                }
+                missing = [y for y in target_years if y not in covered]
+
+                if not missing:
+                    yield json.dumps({
+                        "type": "pdf_found", "orgnr": pc.orgnr, "navn": navn,
+                        "found_years": sorted(covered), "new": False,
+                        "index": i + 1, "total": total,
+                    }) + "\n"
                     continue
 
                 yield json.dumps({
-                    "type": "searching", "orgnr": pc.orgnr, "navn": navn,
-                    "index": i + 1, "total": total,
+                    "type": "pdf_searching", "orgnr": pc.orgnr, "navn": navn,
+                    "missing_years": missing, "index": i + 1, "total": total,
                 }) + "\n"
 
                 try:
-                    fetch_org_profile(pc.orgnr, db)
-                    company = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
-                    yield json.dumps({
-                        "type": "done", "orgnr": pc.orgnr,
-                        "navn": (company.navn if company else navn),
-                        "risk_score": (company.risk_score if company else None),
-                        "index": i + 1, "total": total,
-                    }) + "\n"
+                    org = fetch_enhet_by_orgnr(pc.orgnr) or {"navn": navn, "organisasjonsnummer": pc.orgnr}
+                    sources = _run_phase2_discovery(pc.orgnr, org, db)
+                    found_years = sorted({s.year for s in sources})
+                    new_years = [y for y in found_years if y in missing]
+
+                    if new_years:
+                        yield json.dumps({
+                            "type": "pdf_found", "orgnr": pc.orgnr, "navn": navn,
+                            "found_years": found_years, "new_years": new_years,
+                            "new": True, "index": i + 1, "total": total,
+                        }) + "\n"
+                        # Kick off extraction in background (non-blocking)
+                        from threading import Thread
+                        from api.services.pdf_extract import _extract_pending_sources
+                        t = Thread(
+                            target=_extract_pending_sources,
+                            args=(pc.orgnr, sources, SessionLocal()),
+                            daemon=True,
+                        )
+                        t.start()
+                    else:
+                        yield json.dumps({
+                            "type": "pdf_none", "orgnr": pc.orgnr, "navn": navn,
+                            "index": i + 1, "total": total,
+                        }) + "\n"
                 except Exception as exc:
                     yield json.dumps({
-                        "type": "error", "orgnr": pc.orgnr, "navn": navn,
+                        "type": "pdf_error", "orgnr": pc.orgnr, "navn": navn,
                         "error": str(exc)[:120], "index": i + 1, "total": total,
                     }) + "\n"
 

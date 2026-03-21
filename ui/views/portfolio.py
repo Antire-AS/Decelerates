@@ -401,6 +401,16 @@ def _render_live_ingest(portfolio_id: int, rows: list) -> None:
     needs_fetch = [r for r in rows if r.get("risk_score") is None or r.get("navn") == r.get("orgnr")]
     already_done = len(rows) - len(needs_fetch)
 
+    include_pdfs = st.checkbox(
+        "Inkluder PDF-søk fra selskapets nettside (årsrapporter + kvartalsrapporter)",
+        key=f"include_pdfs_{portfolio_id}",
+        help=(
+            "Når aktivert søker agenten (Claude/Gemini) opp investor relations-siden for hvert selskap, "
+            "finner årsrapport- og kvartalsrapport-PDF-er, og starter ekstraksjon av 5-årig historikk i bakgrunnen. "
+            "Tar 20–60 sek per selskap — anbefalt for ≤20 selskaper om gangen."
+        ),
+    )
+
     col_btn, col_del = st.columns([3, 1])
     with col_btn:
         btn_label = (
@@ -410,12 +420,14 @@ def _render_live_ingest(portfolio_id: int, rows: list) -> None:
         )
         if st.button(btn_label, key=f"live_ingest_{portfolio_id}", type="primary"):
             done, skipped, failed = 0, 0, 0
+            stream_params = {"include_pdfs": "true"} if include_pdfs else {}
             with st.status(f"Søker opp {len(rows)} selskaper...", expanded=True) as status:
                 try:
                     with requests.get(
                         f"{API_BASE}/portfolio/{portfolio_id}/ingest/stream",
+                        params=stream_params,
                         stream=True,
-                        timeout=300,
+                        timeout=600,
                     ) as resp:
                         for raw_line in resp.iter_lines():
                             if not raw_line:
@@ -445,6 +457,20 @@ def _render_live_ingest(portfolio_id: int, rows: list) -> None:
                             elif etype == "error":
                                 status.write(f"❌ `{idx}/{total}` &nbsp; {navn} — {event.get('error', 'feil')}")
                                 failed += 1
+                            elif etype == "pdf_searching":
+                                missing = event.get("missing_years", [])
+                                yrs = ", ".join(str(y) for y in missing)
+                                status.write(f"🌐 `{idx}/{total}` &nbsp; Søker PDF-rapporter for **{navn}** (år: {yrs})...")
+                            elif etype == "pdf_found":
+                                if event.get("new"):
+                                    yrs = ", ".join(str(y) for y in event.get("new_years", []))
+                                    status.write(f"📄 `{idx}/{total}` &nbsp; **{navn}** — fant årsrapporter for {yrs}")
+                                else:
+                                    status.write(f"📋 `{idx}/{total}` &nbsp; **{navn}** — PDF-er allerede hentet")
+                            elif etype == "pdf_none":
+                                status.write(f"⚠️ `{idx}/{total}` &nbsp; **{navn}** — ingen årsrapport-PDF funnet på nett")
+                            elif etype == "pdf_error":
+                                status.write(f"❌ `{idx}/{total}` &nbsp; **{navn}** — PDF-søk feilet: {event.get('error', '')[:80]}")
                             elif etype == "complete":
                                 status.update(
                                     label=f"✅ Ferdig — {done} hentet, {skipped} hoppet over, {failed} feilet",
