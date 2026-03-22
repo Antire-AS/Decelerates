@@ -439,12 +439,37 @@ def send_portfolio_digest(
         sent = notification.send_portfolio_digest(recipient, portfolio.name, alerts)
         results.append({"portfolio": portfolio.name, "alerts": len(alerts), "sent": sent})
 
+    # Include upcoming renewal digest
+    from datetime import date, timedelta
+    from api.db import Policy, PolicyStatus
+    today = date.today()
+    cutoff = today + timedelta(days=90)
+    renewals = db.query(Policy).filter(
+        Policy.status == PolicyStatus.active,
+        Policy.renewal_date >= today,
+        Policy.renewal_date <= cutoff,
+    ).order_by(Policy.renewal_date.asc()).all()
+    renewal_dicts = [
+        {
+            "orgnr": p.orgnr,
+            "insurer": p.insurer,
+            "product_type": p.product_type,
+            "annual_premium_nok": p.annual_premium_nok,
+            "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
+            "days_to_renewal": (p.renewal_date - today).days if p.renewal_date else 0,
+        }
+        for p in renewals
+    ]
+    renewal_sent = notification.send_renewal_digest(recipient, renewal_dicts)
+
     total_sent = sum(1 for r in results if r["sent"])
     return {
         "recipient": recipient,
         "portfolios_checked": len(portfolios),
         "emails_sent": total_sent,
         "details": results,
+        "renewal_digest_sent": renewal_sent,
+        "renewals_included": len(renewal_dicts),
     }
 
 

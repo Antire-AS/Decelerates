@@ -26,3 +26,7 @@ class PdfExtractionError(BrokerError):
 
 class ExternalApiError(BrokerError):
     """An external API returned an unexpected error."""
+
+
+class ForbiddenError(BrokerError):
+    """The requesting user does not have permission for this operation."""

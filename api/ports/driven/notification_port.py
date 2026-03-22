@@ -19,3 +19,6 @@ class NotificationPort(ABC):
     def send_portfolio_digest(
         self, to: str, portfolio_name: str, alerts: list[dict]
     ) -> bool: ...
+
+    @abstractmethod
+    def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool: ...

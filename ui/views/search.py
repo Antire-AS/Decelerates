@@ -2,9 +2,15 @@
 import requests
 import streamlit as st
 
+import requests as _requests
+
 from ui.config import API_BASE, T, _fetch_company_data
 from ui.views.profile_core import render_profile_core
 from ui.views.profile_financials import render_profile_financials
+from ui.views.contacts import render_contacts_section
+from ui.views.policies import render_policies_section
+from ui.views.claims import render_claims_section
+from ui.views.activities import render_activity_feed
 
 
 def render_search_tab() -> None:
@@ -210,3 +216,18 @@ def render_search_tab() -> None:
                 selected_orgnr, org, regn, risk, risk_summary, pep,
                 history_data, prof, lic,
             )
+
+            # ── CRM sections ───────────────────────────────────────
+            render_contacts_section(selected_orgnr)
+
+            try:
+                _policies_resp = _requests.get(
+                    f"{API_BASE}/org/{selected_orgnr}/policies", timeout=8
+                )
+                _policies = _policies_resp.json() if _policies_resp.ok else []
+            except Exception:
+                _policies = []
+
+            render_policies_section(selected_orgnr)
+            render_claims_section(selected_orgnr, _policies)
+            render_activity_feed(selected_orgnr)

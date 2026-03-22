@@ -32,6 +32,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "alembic>=1.13.0",
     "punq>=0.7.0",
+    "pyjwt[crypto]>=2.8.0",
 ]
 
 [build-system]

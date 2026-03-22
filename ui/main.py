@@ -10,6 +10,7 @@ from ui.views.documents import render_documents_tab
 from ui.views.sla import render_sla_tab
 from ui.views.knowledge import render_knowledge_tab
 from ui.views.videos import render_videos_tab
+from ui.views.renewals import render_renewals_tab
 
 # ── Language toggle (must happen before any output) ──────────────────────────
 if "lang" not in st.session_state:
@@ -46,13 +47,13 @@ with _btn_col:
         st.rerun()
 
 # ── Tab navigation (landing page buttons can deep-link here) ─────────────────
-_TAB_NAMES = ["Hjem", "Selskapsøk", "Portefølje", "Dokumenter", "Videoer", "Avtaler", "Kunnskapsbase"]
-_TAB_GOTO  = {"search": 1, "portfolio": 2, "documents": 3, "videos": 4, "sla": 5, "knowledge": 6}
+_TAB_NAMES = ["Hjem", "Selskapsøk", "Portefølje", "Fornyelser", "Dokumenter", "Videoer", "Avtaler", "Kunnskapsbase"]
+_TAB_GOTO  = {"search": 1, "portfolio": 2, "renewals": 3, "documents": 4, "videos": 5, "sla": 6, "knowledge": 7}
 
 _default_tab = _TAB_GOTO.get(st.session_state.pop("_goto_tab", None), 0)
 
 (
-    tab_landing, tab_search, tab_portfolio, tab_docs,
+    tab_landing, tab_search, tab_portfolio, tab_renewals, tab_docs,
     tab_videos, tab_sla, tab_knowledge
 ) = st.tabs(_TAB_NAMES)
 
@@ -64,6 +65,9 @@ with tab_search:
 
 with tab_portfolio:
     render_portfolio_tab()
+
+with tab_renewals:
+    render_renewals_tab()
 
 with tab_docs:
     render_documents_tab()

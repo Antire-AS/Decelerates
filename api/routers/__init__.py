@@ -12,4 +12,9 @@ from api.routers import (  # noqa: F401
     sla,
     utils,
     portfolio_router,
+    users,
+    contacts,
+    policies,
+    claims,
+    activities,
 )

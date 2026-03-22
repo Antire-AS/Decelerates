@@ -1,6 +1,10 @@
+import enum
 import os
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey
+from sqlalchemy import (
+    Boolean, create_engine, Column, Date, DateTime, Enum as SAEnum,
+    Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey,
+)
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 
@@ -195,6 +199,132 @@ class PortfolioCompany(Base):
     portfolio_id = Column(Integer, ForeignKey("portfolios.id", ondelete="CASCADE"), primary_key=True)
     orgnr        = Column(String(9), primary_key=True)
     added_at     = Column(String, nullable=False)
+
+
+class UserRole(enum.Enum):
+    admin  = "admin"
+    broker = "broker"
+    viewer = "viewer"
+
+
+class BrokerFirm(Base):
+    """Multi-tenant broker firm — all CRM data is scoped to a firm."""
+    __tablename__ = "broker_firms"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    name       = Column(String, nullable=False)
+    orgnr      = Column(String(9), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class User(Base):
+    """Broker user — auto-provisioned on first Azure AD login."""
+    __tablename__ = "users"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    firm_id    = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    azure_oid  = Column(String(64), unique=True, nullable=False, index=True)
+    email      = Column(String, nullable=False)
+    name       = Column(String, nullable=False)
+    role       = Column(SAEnum(UserRole, name="user_role"), nullable=False, default=UserRole.broker)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class ContactPerson(Base):
+    """A named contact at a client company."""
+    __tablename__ = "contact_persons"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    orgnr      = Column(String(9), nullable=False, index=True)
+    name       = Column(String, nullable=False)
+    title      = Column(String, nullable=True)
+    email      = Column(String, nullable=True)
+    phone      = Column(String, nullable=True)
+    is_primary = Column(Boolean, default=False, nullable=False)
+    notes      = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class PolicyStatus(enum.Enum):
+    active    = "active"
+    expired   = "expired"
+    cancelled = "cancelled"
+    pending   = "pending"
+
+
+class Policy(Base):
+    """A bound insurance policy in the broker's book of business."""
+    __tablename__ = "policies"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=False, index=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    contact_person_id   = Column(Integer, ForeignKey("contact_persons.id", ondelete="SET NULL"), nullable=True)
+    policy_number       = Column(String(100), nullable=True)
+    insurer             = Column(String, nullable=False)
+    product_type        = Column(String, nullable=False)
+    coverage_amount_nok = Column(Float, nullable=True)
+    annual_premium_nok  = Column(Float, nullable=True)
+    start_date          = Column(Date, nullable=True)
+    renewal_date        = Column(Date, nullable=True, index=True)
+    status              = Column(SAEnum(PolicyStatus, name="policy_status"), nullable=False, default=PolicyStatus.active)
+    notes               = Column(String, nullable=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False)
+    updated_at          = Column(DateTime(timezone=True), nullable=False)
+
+
+class ClaimStatus(enum.Enum):
+    open      = "open"
+    in_review = "in_review"
+    settled   = "settled"
+    rejected  = "rejected"
+
+
+class Claim(Base):
+    """An insurance claim managed on behalf of a client."""
+    __tablename__ = "claims"
+
+    id                   = Column(Integer, primary_key=True, index=True)
+    policy_id            = Column(Integer, ForeignKey("policies.id", ondelete="CASCADE"), nullable=False, index=True)
+    orgnr                = Column(String(9), nullable=False, index=True)
+    firm_id              = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    claim_number         = Column(String(100), nullable=True)
+    incident_date        = Column(Date, nullable=True)
+    reported_date        = Column(Date, nullable=True)
+    status               = Column(SAEnum(ClaimStatus, name="claim_status"), nullable=False, default=ClaimStatus.open)
+    description          = Column(String, nullable=True)
+    estimated_amount_nok = Column(Float, nullable=True)
+    settled_amount_nok   = Column(Float, nullable=True)
+    insurer_contact      = Column(String, nullable=True)
+    notes                = Column(String, nullable=True)
+    created_at           = Column(DateTime(timezone=True), nullable=False)
+    updated_at           = Column(DateTime(timezone=True), nullable=False)
+
+
+class ActivityType(enum.Enum):
+    call    = "call"
+    email   = "email"
+    meeting = "meeting"
+    note    = "note"
+    task    = "task"
+
+
+class Activity(Base):
+    """CRM activity log entry — call, email, meeting, note, or task."""
+    __tablename__ = "activities"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    orgnr            = Column(String(9), nullable=True, index=True)
+    policy_id        = Column(Integer, ForeignKey("policies.id", ondelete="SET NULL"), nullable=True)
+    claim_id         = Column(Integer, ForeignKey("claims.id", ondelete="SET NULL"), nullable=True)
+    firm_id          = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    created_by_email = Column(String, nullable=False)
+    activity_type    = Column(SAEnum(ActivityType, name="activity_type"), nullable=False)
+    subject          = Column(String, nullable=False)
+    body             = Column(String, nullable=True)
+    due_date         = Column(Date, nullable=True)
+    completed        = Column(Boolean, default=False, nullable=False)
+    created_at       = Column(DateTime(timezone=True), nullable=False, index=True)
 
 
 def init_db():

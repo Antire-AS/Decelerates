@@ -141,6 +141,10 @@ _JUSTIFIED = {
     "collect_alerts",
     # download_portfolio_pdf — orchestrates companies + alerts + concentration + broker data for PDF; cohesive flow
     "download_portfolio_pdf",
+    # send_renewal_digest — email HTML table template with inline colour helpers; single coherent email
+    "send_renewal_digest",
+    # render_renewals_tab — full Streamlit tab with slider + dataframe + styled columns; tightly coupled flow
+    "render_renewals_tab",
 }
 
 # Files excluded from function-length checks (non-production scripts)

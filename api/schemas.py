@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
@@ -55,3 +56,102 @@ class PortfolioCreate(BaseModel):
 
 class PortfolioAddCompany(BaseModel):
     orgnr: str
+
+
+# ── Contacts ────────────────────────────────────────────────────────────────
+
+class ContactPersonIn(BaseModel):
+    name:       str
+    title:      Optional[str] = None
+    email:      Optional[str] = None
+    phone:      Optional[str] = None
+    is_primary: bool = False
+    notes:      Optional[str] = None
+
+
+class ContactPersonUpdate(BaseModel):
+    name:       Optional[str] = None
+    title:      Optional[str] = None
+    email:      Optional[str] = None
+    phone:      Optional[str] = None
+    is_primary: Optional[bool] = None
+    notes:      Optional[str] = None
+
+
+# ── Policies ────────────────────────────────────────────────────────────────
+
+class PolicyIn(BaseModel):
+    insurer:             str
+    product_type:        str
+    policy_number:       Optional[str] = None
+    contact_person_id:   Optional[int] = None
+    coverage_amount_nok: Optional[float] = None
+    annual_premium_nok:  Optional[float] = None
+    start_date:          Optional[date] = None
+    renewal_date:        Optional[date] = None
+    status:              str = "active"
+    notes:               Optional[str] = None
+
+
+class PolicyUpdate(BaseModel):
+    insurer:             Optional[str] = None
+    product_type:        Optional[str] = None
+    policy_number:       Optional[str] = None
+    contact_person_id:   Optional[int] = None
+    coverage_amount_nok: Optional[float] = None
+    annual_premium_nok:  Optional[float] = None
+    start_date:          Optional[date] = None
+    renewal_date:        Optional[date] = None
+    status:              Optional[str] = None
+    notes:               Optional[str] = None
+
+
+# ── Claims ──────────────────────────────────────────────────────────────────
+
+class ClaimIn(BaseModel):
+    policy_id:            int
+    claim_number:         Optional[str] = None
+    incident_date:        Optional[date] = None
+    reported_date:        Optional[date] = None
+    status:               str = "open"
+    description:          Optional[str] = None
+    estimated_amount_nok: Optional[float] = None
+    insurer_contact:      Optional[str] = None
+    notes:                Optional[str] = None
+
+
+class ClaimUpdate(BaseModel):
+    claim_number:         Optional[str] = None
+    incident_date:        Optional[date] = None
+    reported_date:        Optional[date] = None
+    status:               Optional[str] = None
+    description:          Optional[str] = None
+    estimated_amount_nok: Optional[float] = None
+    settled_amount_nok:   Optional[float] = None
+    insurer_contact:      Optional[str] = None
+    notes:                Optional[str] = None
+
+
+# ── Activities ───────────────────────────────────────────────────────────────
+
+class ActivityIn(BaseModel):
+    activity_type: str
+    subject:       str
+    body:          Optional[str] = None
+    policy_id:     Optional[int] = None
+    claim_id:      Optional[int] = None
+    due_date:      Optional[date] = None
+    completed:     bool = False
+
+
+class ActivityUpdate(BaseModel):
+    subject:   Optional[str] = None
+    body:      Optional[str] = None
+    due_date:  Optional[date] = None
+    completed: Optional[bool] = None
+
+
+# ── Users ────────────────────────────────────────────────────────────────────
+
+class UserRoleUpdate(BaseModel):
+    role: str  # "admin" | "broker" | "viewer"
