@@ -137,7 +137,61 @@ def estimate_insurance_needs(org: dict[str, Any], regn: dict[str, Any]) -> list[
     # Sort: Kritisk → Anbefalt → Vurder
     _priority_order = {"Kritisk": 0, "Anbefalt": 1, "Vurder": 2}
     needs.sort(key=lambda x: _priority_order.get(x["priority"], 9))
+
+    # Attach premium estimates
+    for n in needs:
+        n["estimated_annual_premium_nok"] = _estimate_premium(
+            n["type"], n["estimated_coverage_nok"], section, employees, revenue
+        )
+
     return needs
+
+
+# ── Premium rate table ────────────────────────────────────────────────────────
+# Rates are indicative Norwegian market ranges (% of coverage or % of payroll).
+# Source: industry practice / Finans Norge statistics.
+
+_PREMIUM_RATES: dict[str, tuple[float, float]] = {
+    # (min_rate, max_rate) as fraction of coverage
+    "Yrkesskadeforsikring":       (0.004, 0.008),   # 0.4–0.8% of lonnskostnad proxy
+    "Ansvarsforsikring":          (0.003, 0.005),   # 0.3–0.5% of coverage
+    "Eiendomsforsikring":         (0.001, 0.003),   # 0.1–0.3% of insured value
+    "Styreansvarsforsikring (D&O)": (0.010, 0.020), # 1–2% of coverage
+    "Cyberforsikring":            (0.015, 0.030),   # 1.5–3% — volatile market
+    "Transportforsikring":        (0.003, 0.007),   # 0.3–0.7% of coverage
+    "Nøkkelpersonforsikring":     (0.010, 0.015),   # 1–1.5% (life premium proxy)
+    "Kredittforsikring":          (0.003, 0.006),   # 0.3–0.6% of credit exposure
+}
+
+_HIGH_RISK_SECTIONS = {"C", "F", "H", "I"}   # construction/manufacturing/transport/food
+
+
+def _estimate_premium(
+    insurance_type: str,
+    coverage: float,
+    section: str,
+    employees: int,
+    revenue: float,
+) -> dict:
+    """Return {low, mid, high} annual premium in NOK for the given insurance line."""
+    rate_min, rate_max = _PREMIUM_RATES.get(insurance_type, (0.005, 0.010))
+
+    # Risk loading: high-risk NACE sections pay ~20% more
+    if section in _HIGH_RISK_SECTIONS:
+        rate_min *= 1.20
+        rate_max *= 1.20
+
+    low = _mnok(coverage * rate_min)
+    high = _mnok(coverage * rate_max)
+    mid = _mnok((low + high) / 2)
+
+    # Floor: minimum meaningful premium (avoid showing 0)
+    floor = 5_000
+    return {
+        "low": max(low, floor),
+        "mid": max(mid, floor),
+        "high": max(high, floor),
+    }
 
 
 # ── LLM narrative ─────────────────────────────────────────────────────────────

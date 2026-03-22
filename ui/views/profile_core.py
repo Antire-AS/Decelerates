@@ -335,12 +335,22 @@ def render_profile_core(
                     {
                         "Prioritet": f"{_PRIORITY_ICON.get(n['priority'], '')} {n['priority']}",
                         "Forsikringstype": n["type"],
-                        "Estimert dekningsbehov": fmt_mnok(n["estimated_coverage_nok"]),
+                        "Estimert dekning": fmt_mnok(n["estimated_coverage_nok"]),
+                        "Premieanslag (lav–høy)": (
+                            f"{fmt_mnok(n['estimated_annual_premium_nok']['low'])} – "
+                            f"{fmt_mnok(n['estimated_annual_premium_nok']['high'])}"
+                            if n.get("estimated_annual_premium_nok") else "–"
+                        ),
                         "Begrunnelse": n["reason"],
                     }
                     for n in needs_list
                 ]
                 st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                total_mid = sum(
+                    n.get("estimated_annual_premium_nok", {}).get("mid", 0)
+                    for n in needs_list
+                )
+                st.caption(f"💰 Estimert samlet årspreimie (midtpunkt): **{fmt_mnok(total_mid)}**")
             else:
                 st.info("Ingen forsikringsbehov identifisert.")
 

@@ -394,3 +394,115 @@ def admin_seed_norway_top100(db: Session = Depends(get_db)) -> dict:
         "pdf_agent_queued": len(resolved_orgnrs),
         "message": "PDF-innhenting via nett kjører i bakgrunnen (3 samtidige). Sjekk portefølje for fremgang.",
     }
+
+
+@router.post("/admin/portfolio-digest")
+def send_portfolio_digest(db: Session = Depends(get_db)) -> dict:
+    """Send a portfolio health digest email to the broker's contact_email.
+
+    Iterates all portfolios, collects alerts for each, and sends a single
+    combined email. Idempotent — safe to call from a scheduled cron job.
+    """
+    from api.db import Portfolio, PortfolioCompany, CompanyHistory, Company, BrokerSettings
+    from api.services.notification_service import NotificationService
+
+    settings = db.query(BrokerSettings).first()
+    recipient = settings.contact_email if settings else None
+    if not recipient:
+        raise HTTPException(
+            status_code=422,
+            detail="Ingen broker contact_email konfigurert — sett det i Innstillinger.",
+        )
+
+    svc = NotificationService()
+    if not svc.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.",
+        )
+
+    portfolios = db.query(Portfolio).all()
+    results = []
+    for portfolio in portfolios:
+        alerts = _collect_alerts(portfolio.id, db)
+        if not alerts:
+            results.append({"portfolio": portfolio.name, "alerts": 0, "sent": False})
+            continue
+        sent = svc.send_portfolio_digest(recipient, portfolio.name, alerts)
+        results.append({"portfolio": portfolio.name, "alerts": len(alerts), "sent": sent})
+
+    total_sent = sum(1 for r in results if r["sent"])
+    return {
+        "recipient": recipient,
+        "portfolios_checked": len(portfolios),
+        "emails_sent": total_sent,
+        "details": results,
+    }
+
+
+def _collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
+    """Reuse the alert logic from portfolio_router without an HTTP round-trip."""
+    from api.db import PortfolioCompany, CompanyHistory, Company
+
+    orgnrs = [
+        r.orgnr for r in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+    ]
+    company_names = {
+        c.orgnr: c.navn
+        for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+    }
+    alerts = []
+    for orgnr in orgnrs:
+        history = (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .limit(2)
+            .all()
+        )
+        if len(history) < 2:
+            continue
+        curr, prev = history[0], history[1]
+        navn = company_names.get(orgnr, orgnr)
+
+        if curr.revenue and prev.revenue and prev.revenue > 0:
+            yoy = (curr.revenue - prev.revenue) / prev.revenue
+            if yoy > 0.25:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Sterk vekst",
+                    "severity": "Moderat", "detail": f"Omsetning +{yoy*100:.0f}% YoY",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif yoy < -0.20:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Omsetningsfall",
+                    "severity": "Høy", "detail": f"Omsetning {yoy*100:.0f}% YoY",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.equity_ratio is not None and prev.equity_ratio is not None:
+            eq_drop = prev.equity_ratio - curr.equity_ratio
+            if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Negativ EK",
+                    "severity": "Kritisk", "detail": "Negativ egenkapital",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif eq_drop > 0.08:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Egenkapital svekket",
+                    "severity": "Høy", "detail": f"EK-andel falt {eq_drop*100:.1f}pp",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0:
+            emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
+            if emp_growth > 0.5:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Ny ansattvekst",
+                    "severity": "Moderat", "detail": f"+{emp_growth*100:.0f}% ansatte",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        for threshold in (100_000_000, 1_000_000_000):
+            if curr.revenue and prev.revenue:
+                if prev.revenue < threshold <= curr.revenue:
+                    alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Krysset terskel",
+                        "severity": "Moderat",
+                        "detail": f"Omsetning krysset {threshold/1e6:.0f} MNOK",
+                        "year_from": prev.year, "year_to": curr.year})
+
+    _sev_order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
+    alerts.sort(key=lambda a: _sev_order.get(a["severity"], 9))
+    return alerts

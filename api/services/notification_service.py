@@ -68,3 +68,56 @@ class NotificationService:
         </body></html>
         """
         return self.send_email(to, subject, body_html)
+
+    def send_portfolio_digest(
+        self,
+        to: str,
+        portfolio_name: str,
+        alerts: list[dict],
+    ) -> bool:
+        """Send a portfolio health digest email listing all active alerts."""
+        if not alerts:
+            return False
+
+        _SEV_ICON = {"Kritisk": "🚨", "Høy": "🔴", "Moderat": "🟡"}
+        _SEV_COLOR = {"Kritisk": "#c0392b", "Høy": "#e67e22", "Moderat": "#f1c40f"}
+
+        rows_html = ""
+        for a in alerts:
+            icon = _SEV_ICON.get(a.get("severity", ""), "⚪")
+            color = _SEV_COLOR.get(a.get("severity", ""), "#888")
+            rows_html += (
+                f"<tr>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
+                f"<span style='color:{color};font-weight:bold'>{icon} {a.get('severity','')}</span></td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'><strong>{a.get('navn','')}</strong></td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('alert_type','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('detail','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('year_from','')}→{a.get('year_to','')}</td>"
+                f"</tr>"
+            )
+
+        subject = f"Porteføljedigest — {portfolio_name} ({len(alerts)} varsler)"
+        body_html = f"""
+        <html><body style='font-family:Arial,sans-serif;color:#222;'>
+        <h2 style='color:#1a252f'>Broker Accelerator — Porteføljedigest</h2>
+        <p>Portefølje: <strong>{portfolio_name}</strong> &nbsp;·&nbsp;
+           <strong>{len(alerts)}</strong> aktive varsler</p>
+        <table style='border-collapse:collapse;width:100%;font-size:14px'>
+          <thead>
+            <tr style='background:#f5f5f5'>
+              <th style='padding:8px 12px;text-align:left'>Alvorlighet</th>
+              <th style='padding:8px 12px;text-align:left'>Selskap</th>
+              <th style='padding:8px 12px;text-align:left'>Varselstype</th>
+              <th style='padding:8px 12px;text-align:left'>Detalj</th>
+              <th style='padding:8px 12px;text-align:left'>År</th>
+            </tr>
+          </thead>
+          <tbody>{rows_html}</tbody>
+        </table>
+        <p style='margin-top:24px;font-size:12px;color:#888'>
+          Logg inn i Broker Accelerator for å se fullstendige detaljer og åpne selskapsprofiler.
+        </p>
+        </body></html>
+        """
+        return self.send_email(to, subject, body_html)

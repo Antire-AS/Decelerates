@@ -588,6 +588,27 @@ def _render_admin_controls() -> None:
             else:
                 st.error("Kunne ikke starte innhenting.")
 
+        st.markdown("---")
+        st.markdown("**📧 Porteføljedigest — e-postvarsel**")
+        st.caption(
+            "Sender en e-post med aktive vekstalerts på tvers av alle porteføljer "
+            "til broker-kontaktadressen konfigurert i Innstillinger."
+        )
+        if st.button("Send porteføljedigest", key="admin_digest", use_container_width=True):
+            with st.spinner("Sender digest-e-post…"):
+                try:
+                    r = requests.post(f"{API_BASE}/admin/portfolio-digest", timeout=30)
+                    if r.ok:
+                        d = r.json()
+                        st.success(
+                            f"✅ Sendt til {d['recipient']} — {d['emails_sent']} e-poster "
+                            f"({d['portfolios_checked']} porteføljer sjekket)."
+                        )
+                    else:
+                        st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
+                except Exception as _e:
+                    st.error(str(_e))
+
         with col_reset:
             st.markdown("**Start innsamling på nytt**")
             st.caption(

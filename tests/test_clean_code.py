@@ -133,6 +133,10 @@ _JUSTIFIED = {
     "list_companies",
     # Prospecting UI — Streamlit imperative API; filter + table + navigation in one flow
     "_render_prospecting",
+    # Portfolio digest endpoint — iterates all portfolios + sends per-portfolio emails; flow is cohesive
+    "send_portfolio_digest",
+    # Alert collector — same 5-rule alert engine as portfolio_router; kept inline to avoid shared mutable state
+    "_collect_alerts",
 }
 
 # Files excluded from function-length checks (non-production scripts)
