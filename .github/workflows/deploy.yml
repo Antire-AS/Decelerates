@@ -76,17 +76,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Ensure Container Apps Environment
-        run: |
-          az containerapp env show \
-            --name ${{ steps.config.outputs.cae }} \
-            --resource-group ${{ env.RG }} \
-            --output none 2>/dev/null \
-          || az containerapp env create \
-            --name ${{ steps.config.outputs.cae }} \
-            --resource-group ${{ env.RG }} \
-            --location ${{ env.LOCATION }}
-
       - name: Deploy API
         run: |
           az containerapp create \
@@ -155,29 +144,6 @@ jobs:
             --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
-
-      - name: Set up Terraform
-        if: github.ref_name == 'main'
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform apply (infrastructure)
-        if: github.ref_name == 'main'
-        continue-on-error: true   # backend storage must be bootstrapped first (scripts/bootstrap-tf-backend.sh)
-        working-directory: infra/terraform
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_USE_OIDC: "true"
-        run: |
-          terraform init
-          terraform apply -auto-approve \
-            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -var="github_repo=${{ github.repository }}" \
-            -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
-            -var="entra_tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -var="entra_client_id=${{ secrets.ENTRA_CLIENT_ID }}" \
-            -var="entra_client_secret=${{ secrets.ENTRA_CLIENT_SECRET }}"
 
       - name: Smoke test — API /ping
         run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"

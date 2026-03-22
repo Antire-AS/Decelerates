@@ -42,17 +42,17 @@ docker compose up --build
 Open [http://localhost:8501](http://localhost:8501) in your browser.
 API is at [http://localhost:8000](http://localhost:8000).
 
-### Without Docker
+### Without Docker (native, for rapid iteration)
 
 ```bash
 # One-time setup (installs uv + dependencies + Playwright)
 bash scripts/setup.sh
 
-# Start both API and UI
-bash scripts/run_all.sh
+# Start Postgres (needed by both services)
+docker compose up postgres -d
 ```
 
-Or run them separately in two terminals:
+Then in two separate terminals:
 
 ```bash
 bash scripts/run_api.sh   # FastAPI on http://localhost:8000

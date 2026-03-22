@@ -8,12 +8,20 @@
 
 ## Developer Setup
 
-1. Install the Antire Claude plugin (once per machine):
+1. Install Claude Code (once per machine — **not** a pip package, install globally):
+   ```bash
+   npm install -g @anthropic-ai/claude-code
+   # or on macOS:
+   brew install claude-code
+   claude --version   # verify
+   ```
+
+2. Install the Antire Claude plugin (once per machine):
    ```bash
    bash scripts/install-antire-plugin.sh
    ```
-2. Restart Claude Code.
-3. At the start of each Claude Code session, run `/antire-python-init` to load Antire coding standards.
+3. Restart Claude Code.
+4. At the start of each Claude Code session, run `/antire-python-init` to load Antire coding standards.
 
 ---
 
@@ -226,18 +234,44 @@ Nine tables: `companies`, `company_history`, `company_pdf_sources`, `company_not
 
 ---
 
+## Deployment / CD flow
+
+```
+feature branch
+    → PR to staging  (CI: tests + lint)
+    → merge to staging → staging deploy → smoke test /ping
+    → validate manually on staging URL
+    → PR to main  (CI: tests + lint again)
+    → merge to main → prod deploy → smoke test /ping
+```
+
+Both `staging` and `main` pushes run the same `deploy.yml` workflow.
+CI (`ci.yml`) now runs on PRs to **both** `staging` and `main`.
+
+**Infra changes** (new Azure resources, OIDC config): run `terraform apply` locally from `infra/terraform/`
+— Terraform is NOT part of CI/CD. See `infra/README.md` for details.
+
+---
+
 ## Running locally
 
+**Primary (full stack — logs preserved, matches prod environment):**
 ```bash
-# Start both API + UI
-bash scripts/run_all.sh
+docker compose up           # first time: docker compose up --build
+docker compose down         # stop everything
+```
 
-# Or individually
-bash scripts/run_api.sh   # FastAPI on port 8000
-bash scripts/run_ui.sh    # Streamlit on port 8501
+**Individual services (native hot-reload, separate terminals):**
+```bash
+bash scripts/run_api.sh     # FastAPI on http://localhost:8000
+bash scripts/run_ui.sh      # Streamlit on http://localhost:8501
+# Note: you must have Postgres running separately (docker compose up postgres -d)
+```
 
-# Tests (no API keys required)
-uv run python -m pytest tests/ -v
+**Tests:**
+```bash
+uv run python -m pytest tests/unit -v              # fast, no infrastructure needed
+uv run python -m pytest tests/unit tests/integration -v   # needs Postgres
 ```
 
 With Docker:
@@ -290,19 +324,38 @@ PDF extraction is **one-time per year** — once stored in `company_history` it 
 
 ## Tests
 
-```bash
-uv run python -m pytest tests/ -v
+Tests are split into three categories:
+
+```
+tests/
+├── conftest.py          shared fixtures + optional-dep stubs (no API keys needed)
+├── unit/                pure logic tests — no DB, no network, no API keys
+│   ├── test_risk.py     risk scoring rules (54 tests)
+│   ├── test_pdf_extract.py  _parse_json_financials (6 tests)
+│   ├── test_llm.py      LLM embed + answer with mocked providers (6 tests)
+│   ├── test_company.py  seed, upsert, financials fallback with mocked DB (5 tests)
+│   ├── test_external_apis.py  pure data-transform functions (7 tests)
+│   ├── test_insurance_needs.py  rule engine + premium estimates (43 tests)
+│   ├── test_clean_code.py  AST + static analysis (4 tests)
+│   └── test_ui.py       UI helper functions
+├── integration/         needs TEST_DATABASE_URL (real PostgreSQL)
+│   └── test_integration.py
+└── system/              needs SYSTEM_TEST_URL (live deployed API), skipped in CI
+    └── test_system.py
 ```
 
-82 tests covering:
-- `tests/test_risk.py` — risk scoring rules (54 tests)
-- `tests/test_pdf_extract.py` — `_parse_json_financials` (6 tests)
-- `tests/test_llm.py` — LLM embed + answer functions with mocked providers (6 tests)
-- `tests/test_company.py` — seed, upsert, financials fallback with mocked DB (5 tests)
-- `tests/test_external_apis.py` — pure data-transform functions (7 tests)
-- `tests/test_clean_code.py` — AST + static analysis (4 tests)
+```bash
+# Fast (no infrastructure required):
+uv run python -m pytest tests/unit -v
 
-`tests/conftest.py` stubs out heavy optional deps (`google.genai`, `voyageai`, `anthropic`, `pdfplumber`, `playwright`) so tests run without API keys or installed packages.
+# With real DB (CI uses this):
+uv run python -m pytest tests/unit tests/integration -v
+
+# Full suite (requires live deployment):
+SYSTEM_TEST_URL=https://... uv run python -m pytest tests/ -v
+```
+
+`tests/conftest.py` stubs out heavy optional deps (`google.genai`, `voyageai`, `anthropic`, `pdfplumber`, `playwright`) so unit tests run without API keys or installed packages.
 
 ---
 

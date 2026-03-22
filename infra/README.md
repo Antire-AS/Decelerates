@@ -1,106 +1,99 @@
 # Infrastructure
 
-Azure infrastructure for Broker Accelerator, managed with Terraform.
+## Ownership split
 
-## Architecture
+| What | Who manages it | When |
+|------|---------------|------|
+| Container App images (api, ui) | `deploy.yml` via `az containerapp create/update` | Every push to `main` / `staging` |
+| Container App Environment (CAE) | Manual / one-time CLI | First-time setup only |
+| ACR (`crantireshared`) | Manually provisioned | One-time |
+| PostgreSQL (`psql-broker-accelerator`) | Manually provisioned | One-time |
+| Managed identity | Manually provisioned | One-time |
+| OIDC federation (GitHub → Azure) | `infra/terraform/` | Run locally when auth config changes |
+| Entra ID app registration (Easy Auth) | `infra/terraform/` | Run locally when auth config changes |
 
-| Component | Azure Service |
-|-----------|---------------|
-| API (FastAPI) | Azure Container App |
-| UI (Streamlit) | Azure Container App |
-| Database | Azure PostgreSQL Flexible Server v16 |
-| Container images | Azure Container Registry (Basic SKU) |
-| Auth | GitHub OIDC federated credential (no stored secrets) |
+**Terraform is NOT run in CI/CD.** It is used locally to manage auth/identity resources that rarely change.
+The `deploy.yml` workflow is the single source of truth for application deployments.
 
-## Prerequisites
-
-- [Terraform](https://developer.hashicorp.com/terraform/install) ≥ 1.7
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-- An Azure subscription
-
-## Bootstrap Terraform state backend
-
-Run this **once** before the first `terraform init`. It creates the Azure Storage Account that holds the Terraform state file and grants the GitHub OIDC principal access to it.
-
-```bash
-bash scripts/bootstrap-tf-backend.sh <subscription-id> <github-client-id>
-```
-
-Get `<github-client-id>` from `terraform output -raw github_client_id` after a local first apply, or from the Azure portal (App Registration → Client ID).
+> **Why this split?** The live Azure resources were provisioned with specific names (`ca-api`, `crantireshared`,
+> `rg-broker-accelerator-prod`) that pre-date the Terraform config. Bringing them under Terraform state
+> requires `terraform import` for each resource — tracked as future work.
+> Until then, keeping Terraform out of CI prevents silent failures.
 
 ---
 
-## First-time setup
+## First-time environment setup (new environment)
 
 ```bash
-# 1. Authenticate
-az login
-az account set --subscription "<your-subscription-id>"
+# 1. Create resource group
+az group create --name rg-broker-accelerator-prod --location norwayeast
 
-# 2. Enter the Terraform directory
+# 2. Create Container Registry
+az acr create --name crantireshared --resource-group rg-broker-accelerator-prod --sku Basic
+
+# 3. Create Container App Environment
+az containerapp env create \
+  --name cae-broker-accelerator-prod \
+  --resource-group rg-broker-accelerator-prod \
+  --location norwayeast
+
+# 4. Create managed identity for ACR pull
+az identity create \
+  --name id-runtime-broker-accelerator-prod \
+  --resource-group rg-broker-accelerator-prod
+
+# 5. Assign AcrPull to managed identity
+az role assignment create \
+  --role AcrPull \
+  --assignee <managed-identity-principal-id> \
+  --scope $(az acr show --name crantireshared --query id -o tsv)
+
+# 6. Bootstrap Terraform backend (for OIDC + Entra auth resources)
+bash scripts/bootstrap-tf-backend.sh <subscription-id> <github-client-id>
+
+# 7. Apply Terraform (OIDC federation + Entra auth only)
 cd infra/terraform
+terraform init && terraform apply
+```
 
-# 3. Create your variable values (never commit this file)
-cat > terraform.tfvars <<EOF
-subscription_id   = "<your-subscription-id>"
-github_repo       = "<owner/repo>"          # e.g. "myorg/Decelerates"
-db_admin_password = "<strong-password>"
-anthropic_api_key = "<key-or-empty>"
-gemini_api_key    = "<key>"
-voyage_api_key    = "<key-or-empty>"
-EOF
+After these steps, push to `main` — `deploy.yml` will build and deploy the application.
 
-# 4. Initialise and apply
+---
+
+## Adding a new environment variable to running Container Apps
+
+Azure Container Apps preserves env vars across `az containerapp update --image` revisions.
+To add or change a variable without redeploying from scratch:
+
+```bash
+az containerapp update \
+  --name ca-api \
+  --resource-group rg-broker-accelerator-prod \
+  --set-env-vars "NEW_VAR=value"
+```
+
+Also add the variable to the `--env-vars` block in the `Deploy API` step of `deploy.yml`
+so it is set correctly on first-time container app creation.
+
+---
+
+## Terraform (OIDC + Entra auth)
+
+Terraform manages only the OIDC federation and Entra ID app registration. Run locally when
+these resources need to change.
+
+```bash
+cd infra/terraform
+az login
 terraform init
 terraform plan
 terraform apply
 ```
 
-After `apply` completes, note the outputs:
+### Notes
 
-```
-acr_login_server  = "acrprodbrokeraccelerator.azurecr.io"
-api_url           = "https://ca-prod-api.<hash>.norwayeast.azurecontainerapps.io"
-ui_url            = "https://ca-prod-ui.<hash>.norwayeast.azurecontainerapps.io"
-github_client_id  = "<uuid>"
-tenant_id         = "<uuid>"
-```
-
-## GitHub Actions secrets
-
-Set these in your repository → Settings → Secrets → Actions:
-
-| Secret | Value |
-|--------|-------|
-| `AZURE_CLIENT_ID` | `terraform output -raw github_client_id` |
-| `AZURE_TENANT_ID` | `terraform output -raw tenant_id` |
-| `AZURE_SUBSCRIPTION_ID` | Your Azure subscription ID |
-| `ACR_NAME` | Registry name only, e.g. `acrprodbrokeraccelerator` (no `.azurecr.io`) |
-| `DB_ADMIN_PASSWORD` | PostgreSQL admin password (same as `db_admin_password` in tfvars) |
-| `ANTHROPIC_API_KEY` | Claude API key |
-| `GEMINI_API_KEY` | Primary Gemini key |
-| `GEMINI_API_KEY_2` | Optional — Gemini rotation slot 2 |
-| `GEMINI_API_KEY_3` | Optional — Gemini rotation slot 3 |
-| `VOYAGE_API_KEY` | Optional — Voyage AI embeddings key |
-
-Once these are set, every push to `main` will build both container images and run `terraform apply` to deploy them — Terraform is the single source of truth for all infrastructure and image versions.
-
-## Day-to-day operations
-
-```bash
-# Review changes before applying
-terraform plan
-
-# Apply infrastructure changes
-terraform apply
-
-# Tear everything down
-terraform destroy
-```
-
-## Notes
-
-- **pgvector**: enabled via `azure.extensions = vector` server configuration — no manual SQL needed on first run.
-- **Firewall**: `0.0.0.0–0.0.0.0` allows all Azure-hosted IPs to reach PostgreSQL. Container Apps use dynamic egress IPs so a tighter rule is not practical without VNet integration.
-- **Remote state**: stored in Azure Blob Storage (`stprodbrokeracc/tfstate`). Run `scripts/bootstrap-tf-backend.sh` once before the first `terraform init`. CI uses OIDC to access the state file — no storage account keys are stored in GitHub.
-- **SKUs**: `B_Standard_B1ms` for PostgreSQL and `Basic` ACR are sized for development/staging. Upgrade `sku_name` and ACR SKU for production traffic.
+- **State backend**: Azure Blob Storage (`stprodbrokeracc/tfstate`). Run
+  `scripts/bootstrap-tf-backend.sh` once before the first `terraform init`.
+- **pgvector**: enabled via `azure.extensions = vector` server configuration.
+- **Firewall**: `0.0.0.0–0.0.0.0` allows all Azure-hosted IPs to reach PostgreSQL. Tighter
+  rules require VNet integration.
