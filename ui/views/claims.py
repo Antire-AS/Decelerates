@@ -4,7 +4,7 @@ from datetime import date
 import requests
 import streamlit as st
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 _STATUS_ICON = {
     "open":      "🔵",
@@ -28,7 +28,7 @@ def render_claims_section(orgnr: str, policies: list) -> None:
 
 def _render_claims_list(orgnr: str) -> None:
     try:
-        resp = requests.get(f"{API_BASE}/org/{orgnr}/claims", timeout=8)
+        resp = requests.get(f"{API_BASE}/org/{orgnr}/claims", headers=get_auth_headers(), timeout=8)
         claims = resp.json() if resp.ok else []
     except Exception:
         claims = []
@@ -56,7 +56,7 @@ def _render_claims_list(orgnr: str) -> None:
             st.caption(f"{icon} {label}")
         with col_del:
             if st.button("🗑", key=f"del_claim_{c['id']}", help="Slett skade"):
-                requests.delete(f"{API_BASE}/org/{orgnr}/claims/{c['id']}", timeout=8)
+                requests.delete(f"{API_BASE}/org/{orgnr}/claims/{c['id']}", headers=get_auth_headers(), timeout=8)
                 st.rerun()
 
 
@@ -93,7 +93,7 @@ def _render_add_claim_form(orgnr: str, policies: list) -> None:
                 "insurer_contact": insurer_contact or None,
                 "description": description or None, "notes": notes or None,
             }
-            r = requests.post(f"{API_BASE}/org/{orgnr}/claims", json=payload, timeout=8)
+            r = requests.post(f"{API_BASE}/org/{orgnr}/claims", json=payload, headers=get_auth_headers(), timeout=8)
             if r.status_code == 201:
                 st.success("Skade registrert!")
                 st.rerun()

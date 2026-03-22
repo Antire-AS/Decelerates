@@ -2,7 +2,7 @@
 import requests
 import streamlit as st
 
-from ui.config import API_BASE, T
+from ui.config import API_BASE, T, get_auth_headers
 
 
 def render_contacts_section(orgnr: str) -> None:
@@ -14,7 +14,7 @@ def render_contacts_section(orgnr: str) -> None:
 
 def _render_contact_list(orgnr: str) -> None:
     try:
-        resp = requests.get(f"{API_BASE}/org/{orgnr}/contacts", timeout=8)
+        resp = requests.get(f"{API_BASE}/org/{orgnr}/contacts", headers=get_auth_headers(), timeout=8)
         contacts = resp.json() if resp.ok else []
     except Exception:
         contacts = []
@@ -35,7 +35,7 @@ def _render_contact_list(orgnr: str) -> None:
                 st.caption(details)
         with col_del:
             if st.button("🗑", key=f"del_contact_{c['id']}", help="Slett kontakt"):
-                requests.delete(f"{API_BASE}/org/{orgnr}/contacts/{c['id']}", timeout=8)
+                requests.delete(f"{API_BASE}/org/{orgnr}/contacts/{c['id']}", headers=get_auth_headers(), timeout=8)
                 st.rerun()
 
 
@@ -54,7 +54,7 @@ def _render_add_contact_form(orgnr: str) -> None:
                 "name": name, "title": title or None, "email": email or None,
                 "phone": phone or None, "is_primary": is_primary, "notes": notes or None,
             }
-            r = requests.post(f"{API_BASE}/org/{orgnr}/contacts", json=payload, timeout=8)
+            r = requests.post(f"{API_BASE}/org/{orgnr}/contacts", json=payload, headers=get_auth_headers(), timeout=8)
             if r.status_code == 201:
                 st.success("Kontaktperson lagret!")
                 st.rerun()

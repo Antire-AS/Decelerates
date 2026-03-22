@@ -54,6 +54,20 @@ def get_user() -> dict | None:
     return st.session_state["_auth_user"]
 
 
+def get_access_token() -> str | None:
+    """Return the Azure AD access token injected by Easy Auth, or None when running locally.
+
+    Azure Container Apps Easy Auth injects the user's AAD access token as the
+    X-MS-TOKEN-AAD-ACCESS-TOKEN header on every authenticated request to the UI container.
+    Streamlit 1.37+ exposes this via st.context.headers (normalised to title-case).
+    Locally (no Easy Auth) this header is absent → returns None → API uses AUTH_DISABLED bypass.
+    """
+    try:
+        return st.context.headers.get("X-Ms-Token-Aad-Access-Token") or None
+    except Exception:
+        return None
+
+
 def is_manager() -> bool:
     user = get_user()
     if not user:

@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 
 def render_renewals_tab() -> None:
@@ -15,7 +15,7 @@ def render_renewals_tab() -> None:
     days = st.slider("Vis fornyelser innen (dager)", 7, 365, 90, key="renewal_days_slider")
 
     try:
-        resp = requests.get(f"{API_BASE}/renewals", params={"days": days}, timeout=10)
+        resp = requests.get(f"{API_BASE}/renewals", params={"days": days}, headers=get_auth_headers(), timeout=10)
         renewals = resp.json() if resp.ok else []
     except Exception:
         renewals = []

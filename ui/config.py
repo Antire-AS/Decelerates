@@ -10,6 +10,18 @@ import streamlit as st
 
 API_BASE = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
+
+def get_auth_headers() -> dict:
+    """Return Authorization header for CRM API requests.
+
+    In production (Azure Container Apps + Easy Auth) this forwards the AAD token
+    injected by Easy Auth to the API's JWT middleware.
+    Locally the token is absent and AUTH_DISABLED=true on the API bypasses validation.
+    """
+    from ui.auth import get_access_token
+    token = get_access_token()
+    return {"Authorization": f"Bearer {token}"} if token else {}
+
 _TRANSLATIONS = json.loads(pathlib.Path("ui/translations.json").read_text(encoding="utf-8"))
 
 

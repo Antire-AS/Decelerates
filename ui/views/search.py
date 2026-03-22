@@ -4,7 +4,7 @@ import streamlit as st
 
 import requests as _requests
 
-from ui.config import API_BASE, T, _fetch_company_data
+from ui.config import API_BASE, T, _fetch_company_data, get_auth_headers
 from ui.views.profile_core import render_profile_core
 from ui.views.profile_financials import render_profile_financials
 from ui.views.contacts import render_contacts_section
@@ -222,7 +222,8 @@ def render_search_tab() -> None:
 
             try:
                 _policies_resp = _requests.get(
-                    f"{API_BASE}/org/{selected_orgnr}/policies", timeout=8
+                    f"{API_BASE}/org/{selected_orgnr}/policies",
+                    headers=get_auth_headers(), timeout=8,
                 )
                 _policies = _policies_resp.json() if _policies_resp.ok else []
             except Exception:

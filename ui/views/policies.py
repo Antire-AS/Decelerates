@@ -4,7 +4,7 @@ from datetime import date
 import requests
 import streamlit as st
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 _PRODUCT_TYPES = [
     "Yrkesskade", "Ansvarsforsikring", "Eiendomsforsikring", "Cyberforsikring",
@@ -41,7 +41,7 @@ def render_policies_section(orgnr: str) -> None:
 
 def _render_policy_list(orgnr: str) -> None:
     try:
-        resp = requests.get(f"{API_BASE}/org/{orgnr}/policies", timeout=8)
+        resp = requests.get(f"{API_BASE}/org/{orgnr}/policies", headers=get_auth_headers(), timeout=8)
         policies = resp.json() if resp.ok else []
     except Exception:
         policies = []
@@ -64,7 +64,7 @@ def _render_policy_list(orgnr: str) -> None:
             st.caption(_days_badge(p.get("renewal_date")))
         with col_del:
             if st.button("🗑", key=f"del_policy_{p['id']}", help="Slett avtale"):
-                requests.delete(f"{API_BASE}/org/{orgnr}/policies/{p['id']}", timeout=8)
+                requests.delete(f"{API_BASE}/org/{orgnr}/policies/{p['id']}", headers=get_auth_headers(), timeout=8)
                 st.rerun()
 
 
@@ -90,7 +90,7 @@ def _render_add_policy_form(orgnr: str) -> None:
                 "renewal_date": renewal_date.isoformat() if renewal_date else None,
                 "notes": notes or None,
             }
-            r = requests.post(f"{API_BASE}/org/{orgnr}/policies", json=payload, timeout=8)
+            r = requests.post(f"{API_BASE}/org/{orgnr}/policies", json=payload, headers=get_auth_headers(), timeout=8)
             if r.status_code == 201:
                 st.success("Forsikringsavtale lagret!")
                 st.rerun()

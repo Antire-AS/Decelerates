@@ -2,7 +2,7 @@
 import requests
 import streamlit as st
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 _TYPE_ICON = {
     "call": "📞", "email": "📧", "meeting": "🤝",
@@ -23,7 +23,7 @@ def render_activity_feed(orgnr: str) -> None:
 
 def _render_timeline(orgnr: str) -> None:
     try:
-        resp = requests.get(f"{API_BASE}/org/{orgnr}/activities", timeout=8)
+        resp = requests.get(f"{API_BASE}/org/{orgnr}/activities", headers=get_auth_headers(), timeout=8)
         activities = resp.json() if resp.ok else []
     except Exception:
         activities = []
@@ -51,10 +51,10 @@ def _render_timeline(orgnr: str) -> None:
             if not a.get("completed") and a.get("activity_type") == "task":
                 if st.button("✓", key=f"complete_act_{a['id']}", help="Merk som fullført"):
                     requests.put(f"{API_BASE}/org/{orgnr}/activities/{a['id']}",
-                                 json={"completed": True}, timeout=8)
+                                 json={"completed": True}, headers=get_auth_headers(), timeout=8)
                     st.rerun()
             if st.button("🗑", key=f"del_act_{a['id']}", help="Slett"):
-                requests.delete(f"{API_BASE}/org/{orgnr}/activities/{a['id']}", timeout=8)
+                requests.delete(f"{API_BASE}/org/{orgnr}/activities/{a['id']}", headers=get_auth_headers(), timeout=8)
                 st.rerun()
 
 
@@ -73,7 +73,7 @@ def _render_add_form(orgnr: str) -> None:
                 "body": body or None,
                 "due_date": due_date.isoformat() if due_date else None,
             }
-            r = requests.post(f"{API_BASE}/org/{orgnr}/activities", json=payload, timeout=8)
+            r = requests.post(f"{API_BASE}/org/{orgnr}/activities", json=payload, headers=get_auth_headers(), timeout=8)
             if r.status_code == 201:
                 st.success("Aktivitet lagret!")
                 st.rerun()
