@@ -265,17 +265,11 @@ def render_profile_core(
     with st.expander("📊 Bransje-benchmark (peer-sammenligning)", expanded=False):
         _pb_key = f"peer_benchmark_{selected_orgnr}"
         if _pb_key not in st.session_state:
-            st.session_state[_pb_key] = None
-
-        if st.button("Hent peer-benchmark", key="btn_peer_bench"):
-            with st.spinner("Henter sammenligningsdata…"):
-                try:
-                    _r = requests.get(f"{API_BASE}/org/{selected_orgnr}/peer-benchmark", timeout=15)
-                    st.session_state[_pb_key] = _r.json() if _r.ok else None
-                    if not _r.ok:
-                        st.error(f"Feil: {_r.status_code}")
-                except Exception as _e:
-                    st.error(str(_e))
+            try:
+                _r = requests.get(f"{API_BASE}/org/{selected_orgnr}/peer-benchmark", timeout=15)
+                st.session_state[_pb_key] = _r.json() if _r.ok else {}
+            except Exception:
+                st.session_state[_pb_key] = {}
 
         _pb = st.session_state.get(_pb_key)
         if _pb:
@@ -311,17 +305,12 @@ def render_profile_core(
     with st.expander("📋 Forsikringsbehovsestimator", expanded=False):
         _needs_key = f"insurance_needs_{selected_orgnr}"
         if _needs_key not in st.session_state:
-            st.session_state[_needs_key] = None
-
-        if st.button("Analyser forsikringsbehov", key="btn_ins_needs"):
             with st.spinner("Beregner forsikringsbehov…"):
                 try:
                     _r = requests.get(f"{API_BASE}/org/{selected_orgnr}/insurance-needs", timeout=30)
-                    st.session_state[_needs_key] = _r.json() if _r.ok else None
-                    if not _r.ok:
-                        st.error(f"Feil: {_r.status_code}")
-                except Exception as _e:
-                    st.error(str(_e))
+                    st.session_state[_needs_key] = _r.json() if _r.ok else {}
+                except Exception:
+                    st.session_state[_needs_key] = {}
 
         _ins_data = st.session_state.get(_needs_key)
         if _ins_data:

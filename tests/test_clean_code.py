@@ -137,6 +137,10 @@ _JUSTIFIED = {
     "send_portfolio_digest",
     # Alert collector — same 5-rule alert engine as portfolio_router; kept inline to avoid shared mutable state
     "_collect_alerts",
+    # collect_alerts — 5-rule YoY engine extracted to service; rules list not decomposable
+    "collect_alerts",
+    # download_portfolio_pdf — orchestrates companies + alerts + concentration + broker data for PDF; cohesive flow
+    "download_portfolio_pdf",
 }
 
 # Files excluded from function-length checks (non-production scripts)

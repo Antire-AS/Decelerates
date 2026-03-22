@@ -798,6 +798,8 @@ def render_portfolio_tab() -> None:
         existing_orgnrs = {r["orgnr"] for r in rows}
 
         if rows:
+            pdf_url = f"{API_BASE}/portfolio/{portfolio_id}/pdf"
+            st.markdown(f"[📥 Last ned porteføljerapport (PDF)]({pdf_url})")
             _render_alerts(portfolio_id)
 
         # Seed + add companies

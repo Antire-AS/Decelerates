@@ -253,3 +253,74 @@ class PortfolioService:
         answer = _llm_answer_raw(prompt) or "Beklager, fikk ikke svar fra AI-tjenesten."
         sources = [r["orgnr"] for r in rows]
         return {"answer": answer, "sources": sources}
+
+
+# ── Shared alert logic (used by both portfolio_router and utils) ───────────────
+
+def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
+    """Collect YoY financial change alerts for all companies in a portfolio.
+
+    Returns alerts sorted by severity: Kritisk → Høy → Moderat.
+    """
+    orgnrs = [
+        r.orgnr for r in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+    ]
+    company_names = {
+        c.orgnr: c.navn
+        for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+    }
+    alerts: list[dict] = []
+    for orgnr in orgnrs:
+        history = (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .limit(2)
+            .all()
+        )
+        if len(history) < 2:
+            continue
+        curr, prev = history[0], history[1]
+        navn = company_names.get(orgnr, orgnr)
+
+        if curr.revenue and prev.revenue and prev.revenue > 0:
+            yoy = (curr.revenue - prev.revenue) / prev.revenue
+            if yoy > 0.25:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Sterk vekst",
+                    "severity": "Moderat", "detail": f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif yoy < -0.20:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Omsetningsfall",
+                    "severity": "Høy", "detail": f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.equity_ratio is not None and prev.equity_ratio is not None:
+            eq_drop = prev.equity_ratio - curr.equity_ratio
+            if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Negativ EK",
+                    "severity": "Kritisk", "detail": "Negativ egenkapital dette år — vurder kansellering",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif eq_drop > 0.08:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Egenkapital svekket",
+                    "severity": "Høy", "detail": f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0:
+            emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
+            if emp_growth > 0.5:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Ny ansattvekst",
+                    "severity": "Moderat", "detail": f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        for threshold in (100_000_000, 1_000_000_000):
+            if curr.revenue and prev.revenue:
+                if prev.revenue < threshold <= curr.revenue:
+                    alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Krysset terskel",
+                        "severity": "Moderat",
+                        "detail": f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone",
+                        "year_from": prev.year, "year_to": curr.year})
+
+    _sev_order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
+    alerts.sort(key=lambda a: _sev_order.get(a["severity"], 9))
+    return alerts

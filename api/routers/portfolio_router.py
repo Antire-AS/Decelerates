@@ -11,7 +11,7 @@ from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.limiter import limiter
 from api.schemas import PortfolioCreate, PortfolioAddCompany, ChatRequest
-from api.services.portfolio import PortfolioService
+from api.services.portfolio import PortfolioService, collect_alerts
 
 router = APIRouter()
 
@@ -287,75 +287,10 @@ def portfolio_chat(
 @router.get("/portfolio/{portfolio_id}/alerts")
 def get_portfolio_alerts(portfolio_id: int, db: Session = Depends(get_db)) -> list:
     """Detect significant YoY financial changes for companies in the portfolio."""
-    from api.db import CompanyHistory
-
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
-
-    orgnrs = [
-        r.orgnr for r in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-    ]
-    company_names = {
-        c.orgnr: c.navn
-        for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
-    }
-
-    alerts = []
-    for orgnr in orgnrs:
-        history = (
-            db.query(CompanyHistory)
-            .filter(CompanyHistory.orgnr == orgnr)
-            .order_by(CompanyHistory.year.desc())
-            .limit(2)
-            .all()
-        )
-        if len(history) < 2:
-            continue
-        curr, prev = history[0], history[1]
-        navn = company_names.get(orgnr, orgnr)
-
-        if curr.revenue and prev.revenue and prev.revenue > 0:
-            yoy = (curr.revenue - prev.revenue) / prev.revenue
-            if yoy > 0.25:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Sterk vekst",
-                    "severity": "Moderat", "detail": f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning",
-                    "year_from": prev.year, "year_to": curr.year})
-            elif yoy < -0.20:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Omsetningsfall",
-                    "severity": "Høy", "detail": f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        if curr.equity_ratio is not None and prev.equity_ratio is not None:
-            eq_drop = prev.equity_ratio - curr.equity_ratio
-            if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Negativ EK",
-                    "severity": "Kritisk", "detail": "Negativ egenkapital dette år — vurder kansellering",
-                    "year_from": prev.year, "year_to": curr.year})
-            elif eq_drop > 0.08:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Egenkapital svekket",
-                    "severity": "Høy", "detail": f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        if curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0:
-            emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
-            if emp_growth > 0.5:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Ny ansattvekst",
-                    "severity": "Moderat", "detail": f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        for threshold in (100_000_000, 1_000_000_000):
-            if curr.revenue and prev.revenue:
-                if prev.revenue < threshold <= curr.revenue:
-                    alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Krysset terskel",
-                        "severity": "Moderat",
-                        "detail": f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone",
-                        "year_from": prev.year, "year_to": curr.year})
-
-    _sev_order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
-    alerts.sort(key=lambda a: _sev_order.get(a["severity"], 9))
-    return alerts
+    return collect_alerts(portfolio_id, db)
 
 
 @router.get("/portfolio/{portfolio_id}/concentration")
@@ -423,3 +358,54 @@ def get_portfolio_concentration(portfolio_id: int, db: Session = Depends(get_db)
         "by_geography": [{"kommune": k, "count": v} for k, v in geo_sorted],
         "by_size": [{"band": k, "count": v} for k, v in size.items()],
     }
+
+
+@router.get("/portfolio/{portfolio_id}/pdf")
+def download_portfolio_pdf(portfolio_id: int, db: Session = Depends(get_db)):
+    """Generate and stream a portfolio report PDF."""
+    from api.db import BrokerSettings
+    from api.services.pdf_generate import generate_portfolio_pdf
+
+    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    orgnrs = [
+        r.orgnr for r in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+    ]
+    companies = [
+        {
+            "orgnr": c.orgnr, "navn": c.navn, "omsetning": c.sum_driftsinntekter,
+            "antall_ansatte": c.antall_ansatte, "egenkapitalandel": c.equity_ratio,
+            "risk_score": c.risk_score, "kommune": c.kommune,
+            "naeringskode1_beskrivelse": c.naeringskode1_beskrivelse,
+        }
+        for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+    ]
+    companies.sort(key=lambda x: (x.get("risk_score") or 0), reverse=True)
+
+    alerts = collect_alerts(portfolio_id, db)
+
+    concentration = get_portfolio_concentration(portfolio_id, db)
+
+    settings = db.query(BrokerSettings).first()
+    broker = {
+        "firm_name": settings.firm_name if settings else "",
+        "contact_name": settings.contact_name if settings else "",
+        "contact_email": settings.contact_email if settings else "",
+    }
+
+    pdf_bytes = generate_portfolio_pdf(
+        portfolio_name=portfolio.name,
+        companies=companies,
+        alerts=alerts,
+        concentration=concentration,
+        broker=broker,
+    )
+    filename = f"portefoeljerapport_{portfolio.name.replace(' ', '_')}.pdf"
+    return StreamingResponse(
+        iter([pdf_bytes]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
