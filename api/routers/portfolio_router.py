@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from api.db import PortfolioCompany, Company
+from api.db import PortfolioCompany, Company, Portfolio
 from api.db import SessionLocal
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
@@ -282,3 +282,144 @@ def portfolio_chat(
         return svc.chat(portfolio_id, body.question)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/portfolio/{portfolio_id}/alerts")
+def get_portfolio_alerts(portfolio_id: int, db: Session = Depends(get_db)) -> list:
+    """Detect significant YoY financial changes for companies in the portfolio."""
+    from api.db import CompanyHistory
+
+    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    orgnrs = [
+        r.orgnr for r in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+    ]
+    company_names = {
+        c.orgnr: c.navn
+        for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+    }
+
+    alerts = []
+    for orgnr in orgnrs:
+        history = (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .limit(2)
+            .all()
+        )
+        if len(history) < 2:
+            continue
+        curr, prev = history[0], history[1]
+        navn = company_names.get(orgnr, orgnr)
+
+        if curr.revenue and prev.revenue and prev.revenue > 0:
+            yoy = (curr.revenue - prev.revenue) / prev.revenue
+            if yoy > 0.25:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Sterk vekst",
+                    "severity": "Moderat", "detail": f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif yoy < -0.20:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Omsetningsfall",
+                    "severity": "Høy", "detail": f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.equity_ratio is not None and prev.equity_ratio is not None:
+            eq_drop = prev.equity_ratio - curr.equity_ratio
+            if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Negativ EK",
+                    "severity": "Kritisk", "detail": "Negativ egenkapital dette år — vurder kansellering",
+                    "year_from": prev.year, "year_to": curr.year})
+            elif eq_drop > 0.08:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Egenkapital svekket",
+                    "severity": "Høy", "detail": f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        if curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0:
+            emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
+            if emp_growth > 0.5:
+                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Ny ansattvekst",
+                    "severity": "Moderat", "detail": f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring",
+                    "year_from": prev.year, "year_to": curr.year})
+
+        for threshold in (100_000_000, 1_000_000_000):
+            if curr.revenue and prev.revenue:
+                if prev.revenue < threshold <= curr.revenue:
+                    alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Krysset terskel",
+                        "severity": "Moderat",
+                        "detail": f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone",
+                        "year_from": prev.year, "year_to": curr.year})
+
+    _sev_order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
+    alerts.sort(key=lambda a: _sev_order.get(a["severity"], 9))
+    return alerts
+
+
+@router.get("/portfolio/{portfolio_id}/concentration")
+def get_portfolio_concentration(portfolio_id: int, db: Session = Depends(get_db)) -> dict:
+    """Return portfolio concentration breakdown by industry, geography, and revenue size."""
+    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    from api.constants import _NACE_SECTION_MAP, NACE_BENCHMARKS
+    orgnrs = [
+        r.orgnr for r in
+        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+    ]
+    companies = db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+
+    def _section(nace):
+        if not nace:
+            return "?"
+        try:
+            code = int(str(nace).split(".")[0])
+            for rng, s in _NACE_SECTION_MAP:
+                if code in rng:
+                    return s
+        except (ValueError, AttributeError):
+            pass
+        return "?"
+
+    def _rev_band(rev):
+        if not rev:
+            return "Ukjent"
+        if rev < 10_000_000:
+            return "<10 MNOK"
+        if rev < 100_000_000:
+            return "10–100 MNOK"
+        if rev < 1_000_000_000:
+            return "100 MNOK–1 BNOK"
+        return ">1 BNOK"
+
+    industry: dict[str, dict] = {}
+    geography: dict[str, int] = {}
+    size: dict[str, int] = {}
+    total_revenue = 0.0
+
+    for c in companies:
+        sec = _section(c.naeringskode1)
+        label = NACE_BENCHMARKS.get(sec, {}).get("industry", sec)
+        industry.setdefault(sec, {"section": sec, "label": label, "count": 0, "revenue": 0})
+        industry[sec]["count"] += 1
+        industry[sec]["revenue"] += c.sum_driftsinntekter or 0
+
+        kom = c.kommune or "Ukjent"
+        geography[kom] = geography.get(kom, 0) + 1
+
+        band = _rev_band(c.sum_driftsinntekter)
+        size[band] = size.get(band, 0) + 1
+        total_revenue += c.sum_driftsinntekter or 0
+
+    geo_sorted = sorted(geography.items(), key=lambda x: x[1], reverse=True)[:10]
+    return {
+        "portfolio_id": portfolio_id,
+        "total_companies": len(companies),
+        "total_revenue": total_revenue,
+        "by_industry": sorted(industry.values(), key=lambda x: x["count"], reverse=True),
+        "by_geography": [{"kommune": k, "count": v} for k, v in geo_sorted],
+        "by_size": [{"band": k, "count": v} for k, v in size.items()],
+    }

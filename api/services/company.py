@@ -187,11 +187,46 @@ def _generate_risk_narrative(
     return _llm_answer_raw(prompt)
 
 
-def list_companies(limit: int, kommune: Optional[str], db: Session) -> List[Dict[str, Any]]:
+def list_companies(
+    limit: int,
+    kommune: Optional[str],
+    db: Session,
+    nace_section: Optional[str] = None,
+    min_revenue: Optional[float] = None,
+    max_revenue: Optional[float] = None,
+    min_risk: Optional[int] = None,
+    max_risk: Optional[int] = None,
+    min_employees: Optional[int] = None,
+    sort_by: str = "revenue",
+) -> List[Dict[str, Any]]:
+    from api.constants import _NACE_SECTION_MAP
     q = db.query(Company)
     if kommune:
         q = q.filter(Company.kommune == kommune)
-    rows = q.order_by(Company.id.desc()).limit(limit).all()
+    if nace_section:
+        # Collect all NACE codes for the section
+        codes = [str(c) for rng, s in _NACE_SECTION_MAP if s == nace_section.upper() for c in rng]
+        if codes:
+            q = q.filter(Company.naeringskode1.in_(codes) | Company.naeringskode1.like(f"{nace_section.upper()}%"))
+    if min_revenue is not None:
+        q = q.filter(Company.sum_driftsinntekter >= min_revenue)
+    if max_revenue is not None:
+        q = q.filter(Company.sum_driftsinntekter <= max_revenue)
+    if min_risk is not None:
+        q = q.filter(Company.risk_score >= min_risk)
+    if max_risk is not None:
+        q = q.filter(Company.risk_score <= max_risk)
+    if min_employees is not None:
+        q = q.filter(Company.antall_ansatte >= min_employees)
+
+    _SORT_MAP = {
+        "revenue": Company.sum_driftsinntekter.desc().nulls_last(),
+        "risk_score": Company.risk_score.desc().nulls_last(),
+        "navn": Company.navn.asc(),
+        "regnskapsår": Company.regnskapsår.desc().nulls_last(),
+    }
+    q = q.order_by(_SORT_MAP.get(sort_by, Company.sum_driftsinntekter.desc().nulls_last()))
+    rows = q.limit(limit).all()
     return [
         {
             "id": c.id,
@@ -207,6 +242,7 @@ def list_companies(limit: int, kommune: Optional[str], db: Session) -> List[Dict
             "sum_eiendeler": c.sum_eiendeler,
             "sum_egenkapital": c.sum_egenkapital,
             "egenkapitalandel": c.equity_ratio,
+            "antall_ansatte": c.antall_ansatte,
             "risk_score": c.risk_score,
         }
         for c in rows

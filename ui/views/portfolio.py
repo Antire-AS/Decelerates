@@ -612,10 +612,149 @@ def _render_admin_controls() -> None:
                 st.rerun()
 
 
+# ── Vekstalert ────────────────────────────────────────────────────────────────
+
+_SEVERITY_ICON = {"Kritisk": "🚨", "Høy": "🔴", "Moderat": "🟡"}
+
+
+def _render_alerts(portfolio_id: int) -> None:
+    alerts = _fetch(f"/portfolio/{portfolio_id}/alerts")
+    if not alerts:
+        return
+    with st.expander(f"⚠️ Vekstalerts ({len(alerts)})", expanded=True):
+        for sev in ("Kritisk", "Høy", "Moderat"):
+            group = [a for a in alerts if a.get("severity") == sev]
+            if not group:
+                continue
+            st.markdown(f"**{_SEVERITY_ICON.get(sev, '')} {sev}**")
+            for a in group:
+                col_a, col_b = st.columns([4, 1])
+                col_a.markdown(
+                    f"**{a['navn']}** — {a['alert_type']}: {a['detail']} "
+                    f"({a.get('year_from')}→{a.get('year_to')})"
+                )
+                if col_b.button("Åpne profil", key=f"alert_open_{a['orgnr']}_{a['alert_type']}"):
+                    st.session_state["selected_orgnr"] = a["orgnr"]
+                    st.session_state["_goto_tab"] = "search"
+                    st.rerun()
+
+
+# ── Porteføljekonsentrasjon ────────────────────────────────────────────────────
+
+def _render_concentration(portfolio_id: int) -> None:
+    data = _fetch(f"/portfolio/{portfolio_id}/concentration")
+    if not data or not data.get("total_companies"):
+        st.info("Ingen konsentrasjonsdata tilgjengelig.")
+        return
+
+    total_rev = data.get("total_revenue", 0)
+    st.caption(
+        f"{data['total_companies']} selskaper · "
+        f"Total eksponert omsetning: **{total_rev/1e9:.1f} BNOK**"
+    )
+
+    cc1, cc2, cc3 = st.columns(3)
+    with cc1:
+        st.markdown("**Bransjefordeling**")
+        ind = data.get("by_industry", [])
+        if ind:
+            df_ind = pd.DataFrame(ind)[["label", "count"]].set_index("label")
+            st.bar_chart(df_ind)
+
+    with cc2:
+        st.markdown("**Geografisk spredning (topp 10)**")
+        geo = data.get("by_geography", [])
+        if geo:
+            df_geo = pd.DataFrame(geo).set_index("kommune")
+            st.bar_chart(df_geo)
+
+    with cc3:
+        st.markdown("**Størrelsesfordeling**")
+        sz = data.get("by_size", [])
+        if sz:
+            _ORDER = ["<10 MNOK", "10–100 MNOK", "100 MNOK–1 BNOK", ">1 BNOK", "Ukjent"]
+            sz_sorted = sorted(sz, key=lambda x: _ORDER.index(x["band"]) if x["band"] in _ORDER else 99)
+            df_sz = pd.DataFrame(sz_sorted).set_index("band")
+            st.bar_chart(df_sz)
+
+
+# ── Prospecting list ──────────────────────────────────────────────────────────
+
+_NACE_SECTIONS = {
+    "A": "Jordbruk/skogbruk/fiske", "B": "Bergverksdrift", "C": "Industri",
+    "D": "Kraft/gass", "E": "Vann/avfall", "F": "Bygg og anlegg",
+    "G": "Handel", "H": "Transport/lagring", "I": "Overnatting/servering",
+    "J": "Informasjon/kommunikasjon", "K": "Finans/forsikring",
+    "L": "Eiendom", "M": "Faglig/vitenskapelig", "N": "Forretningsmessig",
+    "O": "Offentlig forvaltning", "P": "Undervisning",
+    "Q": "Helse/sosialtjenester", "R": "Kultur/underholdning", "S": "Andre tjenester",
+}
+
+
+def _render_prospecting() -> None:
+    st.caption("Finn nye kunder blant alle selskaper i databasen.")
+    with st.expander("🔽 Filtre", expanded=True):
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            section_opts = ["(alle)"] + [f"{k} — {v}" for k, v in _NACE_SECTIONS.items()]
+            selected_section = st.selectbox("Bransje (NACE-seksjon)", section_opts, key="prosp_section")
+            nace_section = selected_section.split(" —")[0] if selected_section != "(alle)" else None
+        with col_f2:
+            rev_min, rev_max = st.slider(
+                "Omsetning (MNOK)", 0, 2000, (0, 2000), step=10, key="prosp_rev"
+            )
+        with col_f3:
+            risk_min, risk_max = st.slider("Risikoscore", 0, 20, (0, 20), key="prosp_risk")
+        sort_opts = {"Omsetning (høyest)": "revenue", "Risikoscore (høyest)": "risk_score", "Navn (A–Å)": "navn"}
+        sort_label = st.selectbox("Sorter etter", list(sort_opts.keys()), key="prosp_sort")
+
+    params: dict = {
+        "limit": 300,
+        "sort_by": sort_opts[sort_label],
+        "min_risk": risk_min,
+        "max_risk": risk_max,
+    }
+    if nace_section:
+        params["nace_section"] = nace_section
+    if rev_min > 0:
+        params["min_revenue"] = rev_min * 1_000_000
+    if rev_max < 2000:
+        params["max_revenue"] = rev_max * 1_000_000
+
+    companies = _fetch("/companies", params=params)
+    st.caption(f"**{len(companies)} selskaper** matcher filtrene.")
+    if not companies:
+        st.info("Ingen selskaper funnet med valgte filtre.")
+        return
+
+    rows = [
+        {
+            "Orgnr": c["orgnr"],
+            "Selskap": c["navn"],
+            "Bransje": (c.get("naeringskode1_beskrivelse") or "")[:40],
+            "Omsetning": _fmt_mnok(c.get("omsetning")),
+            "Risiko": _risk_badge(c.get("risk_score")),
+            "Kommune": c.get("kommune") or "–",
+        }
+        for c in companies
+    ]
+    df = pd.DataFrame(rows)
+    selected = st.dataframe(
+        df, use_container_width=True, hide_index=True,
+        on_select="rerun", selection_mode="single-row",
+    )
+    sel_rows = (selected.get("selection") or {}).get("rows", [])
+    if sel_rows:
+        chosen = companies[sel_rows[0]]
+        st.session_state["selected_orgnr"] = chosen["orgnr"]
+        st.session_state["_goto_tab"] = "search"
+        st.rerun()
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def render_portfolio_tab() -> None:
-    overview_tab, named_tab = st.tabs(["Oversikt", "Mine porteføljer"])
+    overview_tab, named_tab, prospect_tab = st.tabs(["Oversikt", "Mine porteføljer", "🎯 Prospekter"])
 
     with overview_tab:
         _render_admin_controls()
@@ -637,15 +776,22 @@ def render_portfolio_tab() -> None:
         rows = _render_risk_table(portfolio_id)
         existing_orgnrs = {r["orgnr"] for r in rows}
 
+        if rows:
+            _render_alerts(portfolio_id)
+
         # Seed + add companies
         _render_seed_norway(portfolio_id)
         _render_add_company(portfolio_id, existing_orgnrs)
 
         if rows:
             _render_charts(rows)
+            _render_concentration(portfolio_id)
             st.markdown("---")
             _render_pdf_enrichment(portfolio_id, rows)
             _render_portfolio_chat(portfolio_id)
 
         st.markdown("---")
         _render_live_ingest(portfolio_id, rows)
+
+    with prospect_tab:
+        _render_prospecting()

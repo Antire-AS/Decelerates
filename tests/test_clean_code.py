@@ -121,6 +121,18 @@ _JUSTIFIED = {
     "admin_seed_norway_top100",
     # Portfolio RAG chat — builds context + calls LLM in one coherent flow
     "chat",
+    # Insurance needs rule engine — 8 insurance types, each rule is one atomic decision
+    "estimate_insurance_needs",
+    # Peer benchmark — DB peer query + SSB fallback + percentile math in one coherent flow
+    "get_peer_benchmark",
+    # Portfolio alerts — multi-rule YoY engine; rule list can't be decomposed
+    "get_portfolio_alerts",
+    # Portfolio concentration — three-dimension aggregation (industry/geo/size) in one pass
+    "get_portfolio_concentration",
+    # list_companies — SQLAlchemy builder with 7 optional filters + sort; flat and readable
+    "list_companies",
+    # Prospecting UI — Streamlit imperative API; filter + table + navigation in one flow
+    "_render_prospecting",
 }
 
 # Files excluded from function-length checks (non-production scripts)
