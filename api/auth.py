@@ -1,7 +1,9 @@
 """Azure AD JWT authentication — get_current_user FastAPI dependency.
 
 Dev bypass: set AUTH_DISABLED=true (or 1/yes) to skip token validation entirely.
-In production, tokens are validated against AZURE_TENANT_ID / AZURE_CLIENT_ID.
+In production, tokens are validated against AZURE_TENANT_ID / AUTH_AUDIENCE.
+AUTH_AUDIENCE is the App ID URI for the frontend App Registration, e.g. api://514e4f92-...
+(AZURE_CLIENT_ID is reserved for the managed identity — do NOT use it as the JWT audience.)
 
 Usage in routers:
     from api.auth import get_current_user, CurrentUser
@@ -52,9 +54,11 @@ def _get_jwks(tenant_id: str) -> dict:
 
 def _validate_token(token: str) -> dict:
     tenant_id = os.getenv("AZURE_TENANT_ID", "")
-    audience  = os.getenv("AZURE_CLIENT_ID", "")
+    # AUTH_AUDIENCE = App Registration client ID (ca-ui Easy Auth).
+    # Falls back to AZURE_CLIENT_ID only if AUTH_AUDIENCE is absent (legacy / local dev).
+    audience  = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
     if not tenant_id or not audience:
-        raise ValueError("AZURE_TENANT_ID and AZURE_CLIENT_ID must be set for JWT validation")
+        raise ValueError("AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation")
     jwks   = _get_jwks(tenant_id)
     header = jwt.get_unverified_header(token)
     try:
