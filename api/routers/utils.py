@@ -5,6 +5,8 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from api.container import resolve
+from api.ports.driven.notification_port import NotificationPort
 from api.dependencies import get_db
 from api.services.portfolio import collect_alerts
 from api.services import (
@@ -397,15 +399,21 @@ def admin_seed_norway_top100(db: Session = Depends(get_db)) -> dict:
     }
 
 
+def _get_notification() -> NotificationPort:
+    return resolve(NotificationPort)  # type: ignore[return-value]
+
+
 @router.post("/admin/portfolio-digest")
-def send_portfolio_digest(db: Session = Depends(get_db)) -> dict:
+def send_portfolio_digest(
+    db: Session = Depends(get_db),
+    notification: NotificationPort = Depends(_get_notification),
+) -> dict:
     """Send a portfolio health digest email to the broker's contact_email.
 
     Iterates all portfolios, collects alerts for each, and sends a single
     combined email. Idempotent — safe to call from a scheduled cron job.
     """
     from api.db import Portfolio, BrokerSettings
-    from api.services.notification_service import NotificationService
 
     settings = db.query(BrokerSettings).first()
     recipient = settings.contact_email if settings else None
@@ -415,8 +423,7 @@ def send_portfolio_digest(db: Session = Depends(get_db)) -> dict:
             detail="Ingen broker contact_email konfigurert — sett det i Innstillinger.",
         )
 
-    svc = NotificationService()
-    if not svc.is_configured():
+    if not notification.is_configured():
         raise HTTPException(
             status_code=503,
             detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.",
@@ -429,7 +436,7 @@ def send_portfolio_digest(db: Session = Depends(get_db)) -> dict:
         if not alerts:
             results.append({"portfolio": portfolio.name, "alerts": 0, "sent": False})
             continue
-        sent = svc.send_portfolio_digest(recipient, portfolio.name, alerts)
+        sent = notification.send_portfolio_digest(recipient, portfolio.name, alerts)
         results.append({"portfolio": portfolio.name, "alerts": len(alerts), "sent": sent})
 
     total_sent = sum(1 for r in results if r["sent"])

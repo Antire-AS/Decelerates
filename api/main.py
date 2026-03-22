@@ -8,6 +8,7 @@ See CLAUDE.md for architecture reference; live API docs at /docs.
 """
 
 import logging
+import os
 
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
@@ -18,6 +19,9 @@ from slowapi.errors import RateLimitExceeded
 
 from api.db import init_db
 from api.limiter import limiter
+from api.container import configure, AppConfig
+from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.notification_adapter import NotificationConfig
 
 logging.basicConfig(
     level=logging.INFO,
@@ -89,6 +93,20 @@ def on_startup():
         _seed_pdf_sources(db)
     finally:
         db.close()
+
+    # ── DI container ──────────────────────────────────────────────────────────
+    configure(AppConfig(
+        blob=BlobStorageConfig(
+            endpoint=os.getenv("AZURE_BLOB_ENDPOINT"),
+        ),
+        notification=NotificationConfig(
+            conn_str=os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING"),
+            sender=os.getenv(
+                "ACS_SENDER_ADDRESS",
+                "donotreply@acs-broker-accelerator-prod.azurecomm.net",
+            ),
+        ),
+    ))
 
 
 # ── Routers ────────────────────────────────────────────────────────────────

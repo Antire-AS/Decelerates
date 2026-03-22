@@ -49,8 +49,18 @@ bash scripts/gen_diagrams.sh   # writes docs/classes.mmd + docs/packages.mmd
 
 ```
 api/
-  main.py          ← entry: uvicorn api.main:app
-  routers/         ← HTTP layer (validate → call service → return response)
+  main.py          ← entry point; reads ALL env vars; configures DI container
+  container.py     ← punq ContainerFactory; registers ports → adapters
+  ports/
+    driven/        ← Abstract port interfaces (ABCs) for outbound dependencies
+      blob_storage_port.py    BlobStoragePort
+      notification_port.py    NotificationPort
+  adapters/        ← Concrete port implementations; no os.getenv(); inject Config
+      blob_storage_adapter.py  AzureBlobStorageAdapter + BlobStorageConfig
+      notification_adapter.py  AzureEmailNotificationAdapter + NotificationConfig
+  use_cases/       ← Pure business logic; no FastAPI/DB/LLM imports
+      insurance_needs.py       estimate_insurance_needs() + rule engine
+  routers/         ← HTTP layer (validate → call service/use_case → return response)
     broker.py      broker settings + notes (uses BrokerService)
     company.py     /org/{orgnr}, /search, /companies
     financials.py  /org/{orgnr}/pdf-history, /pdf-sources, /history
@@ -59,7 +69,8 @@ api/
     risk_router.py risk narrative + structure endpoints
     sla.py         SLA agreement endpoints (uses SlaService)
     documents.py   InsuranceDocument endpoints
-  services/        ← Business logic — no FastAPI imports
+    utils.py       admin + debug endpoints; injects NotificationPort via container
+  services/        ← Business logic (Phase 2 migration target) + legacy wrappers
     broker.py      BrokerService  (db in __init__)
     sla_service.py SlaService     (db in __init__)
     pdf_sources.py PdfSourcesService + backward-compat functions
@@ -70,6 +81,9 @@ api/
     company.py     CompanyService + module-level helpers
     pdf_extract.py PdfExtractService + module-level helpers
     pdf_generate.py PdfGenerateService + module-level helpers
+    blob_storage.py   BlobStorageService (legacy wrapper → AzureBlobStorageAdapter)
+    notification_service.py  NotificationService (legacy wrapper → adapter)
+    insurance_needs.py  re-export from api.use_cases.insurance_needs
   domain/
     exceptions.py  NotFoundError, QuotaError, LlmUnavailableError,
                    PdfExtractionError, ExternalApiError
@@ -85,6 +99,9 @@ ui/
 
 ## Clean Code Principles Followed
 
+- **Hexagonal architecture (Phase 1)** — outbound infrastructure is behind `ports/driven/` ABCs; implementations live in `adapters/`; pure logic in `use_cases/`. DI wired via `container.py` (punq). Phase 2 will migrate remaining services.
+- **Env vars only in `main.py`** — adapters accept frozen-dataclass Config objects; only `main.py` calls `os.getenv()`. Legacy wrappers in `services/` bridge Phase 1→2.
+- **Port injection via `Depends()`** — routers resolve ports from the container using factory functions (`_get_notification`, etc.) rather than instantiating adapters directly.
 - **No HTTPException in services** — services raise domain exceptions (`QuotaError`, `NotFoundError`, etc.); routers catch and convert to HTTP status codes
 - **No DB writes in routers** — all `db.add()` / `db.commit()` calls live in services; routers never touch ORM objects directly
 - **No LLM calls in routers** — all Gemini/Claude API calls are in `services/llm.py`; routers call service helpers
@@ -104,12 +121,21 @@ The following are intentional deviations from Antire Python standards — docume
 
 | Deviation | Antire Standard | Why we deviate |
 |-----------|----------------|----------------|
-| **Routers/services pattern** | Hexagonal architecture (ports, adapters, use cases) | FastAPI's `Depends()` injection covers DI needs without punq; hexagonal adds ceremony without benefit at this scale |
-| **Env vars read in services** | All `os.getenv` in `main.py` only | LLM keys are optional and read lazily — services check `_is_key_set()` at call time and gracefully skip missing keys; centralising them in `main.py` would require plumbing optional config through every service constructor |
+| **Env vars read in some services** | All `os.getenv` in `main.py` only | LLM keys are optional and read lazily — services check `_is_key_set()` at call time and gracefully skip missing keys; centralising them in `main.py` would require plumbing optional config through every service constructor. Phase 1 hexagonal migration owns blob + notification; remaining services are Phase 2. |
 | **UI render functions F/E complexity** | All functions ≤ cyclomatic C (10) | Streamlit's imperative widget API means each section branch is one mandatory call; splitting render functions breaks cohesion and increases navigation overhead |
 | **High-complexity agent loops** | All functions ≤ cyclomatic C (10) | `_agent_discover_pdfs_*` are tool-use state machines; branching reflects the multi-turn protocol, not accidental complexity |
 
 ---
+
+## Ports, Adapters, and Use Cases
+
+| Type | Class | File | Notes |
+|------|-------|------|-------|
+| Port (ABC) | `BlobStoragePort` | `api/ports/driven/blob_storage_port.py` | Abstract blob storage interface |
+| Port (ABC) | `NotificationPort` | `api/ports/driven/notification_port.py` | Abstract email notification interface |
+| Adapter | `AzureBlobStorageAdapter` | `api/adapters/blob_storage_adapter.py` | Azure Blob Storage; takes `BlobStorageConfig` |
+| Adapter | `AzureEmailNotificationAdapter` | `api/adapters/notification_adapter.py` | Azure Communication Services; takes `NotificationConfig` |
+| Use Case | `estimate_insurance_needs` | `api/use_cases/insurance_needs.py` | Pure rule engine — no I/O, no DB |
 
 ## Service Classes
 
@@ -144,7 +170,7 @@ The following are intentional deviations from Antire Python standards — docume
 
 ### [api/main.py](api/main.py) — FastAPI entry point
 
-Mounts all routers. On startup calls `init_db()` and `_seed_pdf_sources()`. Contains no business logic.
+Mounts all routers. On startup: runs Alembic migrations, calls `init_db()` + `_seed_pdf_sources()`, and configures the DI container. This is the **only** file that calls `os.getenv()` for infrastructure env vars (blob endpoint, ACS connection string). Contains no business logic.
 
 ### [api/routers/](api/routers/) — HTTP layer
 
