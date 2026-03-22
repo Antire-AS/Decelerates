@@ -1,0 +1,37 @@
+name: Quarterly Top 100 Refresh
+
+on:
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *'   # Jan 1, Apr 1, Jul 1, Oct 1 at 06:00 UTC
+  workflow_dispatch:               # allow manual trigger at any time
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  refresh-top100:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get API URL
+        id: api
+        run: |
+          FQDN=$(az containerapp show \
+            --name ca-api \
+            --resource-group rg-broker-accelerator-prod \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+
+      - name: Trigger Norway Top 100 refresh
+        run: |
+          curl --fail --retry 3 --retry-delay 10 \
+            -X POST "${{ steps.api.outputs.url }}/admin/seed-norway-top100"
+          echo "Top 100 refresh queued — PDF extraction runs in background (3 workers)."

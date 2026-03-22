@@ -207,6 +207,32 @@ def _render_knowledge_manage() -> None:
                 st.error(f"Indeksering feilet: {e}")
 
     st.markdown("---")
+    st.markdown("### Norsk forsikringslovgivning")
+    st.caption(
+        "Henter og indekserer Forsikringsavtaleloven, Forsikringsformidlingsloven og "
+        "Forsikringsvirksomhetsloven fra Lovdata.no. Allerede indekserte lover hoppes over."
+    )
+    if st.button("Last inn forsikringslovgivning", key="kb_regs_btn"):
+        with st.spinner("Henter og indekserer lover fra Lovdata.no… kan ta 30–60 sek."):
+            try:
+                r = requests.post(f"{API_BASE}/knowledge/seed-regulations", timeout=120)
+                if r.ok:
+                    data = r.json()
+                    for reg in data.get("seeded", []):
+                        status = reg.get("status", "")
+                        if status == "already_indexed":
+                            st.info(f"✓ {reg['name']} — allerede indeksert")
+                        elif status == "indexed":
+                            st.success(f"✓ {reg['name']} — {reg['chunks']} biter indeksert")
+                        else:
+                            st.warning(f"⚠ {reg['name']} — kunne ikke hentes")
+                    st.rerun()
+                else:
+                    st.error(f"Feil: {r.status_code} — {r.text}")
+            except Exception as e:
+                st.error(f"Feil: {e}")
+
+    st.markdown("---")
     st.markdown("### Legg til egendefinert tekst")
     st.caption("Teksten vil bli delt opp i biter og embeddet for bruk i AI-chat.")
     ingest_orgnr = st.text_input("Orgnr (9 siffer)", max_chars=9, key="kb_ingest_orgnr")

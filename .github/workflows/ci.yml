@@ -46,6 +46,9 @@ jobs:
             --fail-under=8 \
             --disable=C0114,C0115,C0116,R0903,W0611
 
+      - name: Complexity report (informational)
+        run: uv run radon cc api/ ui/ -n C -s || true
+
   ruff:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-ruff-formating.yml@v0.18.0
 

@@ -1,6 +1,9 @@
 import json
+import logging
 
 from fastapi import APIRouter, Query, HTTPException, Depends, Request
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.orm import Session
 
 from api.db import Company, CompanyNote, CompanyChunk, CompanyHistory, InsuranceOffer
@@ -278,3 +281,91 @@ def knowledge_index_stats(db: Session = Depends(get_db)) -> dict:
     """Return current knowledge index statistics."""
     from api.services.knowledge_index import get_stats
     return get_stats(db)
+
+
+# ── Norwegian insurance regulations ───────────────────────────────────────────
+
+_REGULATION_SOURCES = [
+    {
+        "name": "Forsikringsavtaleloven (FAL) 1989",
+        "url": "https://lovdata.no/dokument/NL/lov/1989-06-16-69",
+    },
+    {
+        "name": "Forsikringsformidlingsloven 2005",
+        "url": "https://lovdata.no/dokument/NL/lov/2005-06-10-44",
+    },
+    {
+        "name": "Forsikringsvirksomhetsloven 2015",
+        "url": "https://lovdata.no/dokument/NL/lov/2015-04-10-17",
+    },
+]
+
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (compatible; BrokerAccelerator/1.0; "
+        "+https://github.com/Antire-AS/Decelerates)"
+    )
+}
+
+
+def _fetch_regulation_text(url: str) -> str | None:
+    """Fetch a Lovdata page and return plain text, or None on failure."""
+    import re
+    import html as html_lib
+    import requests as req
+
+    try:
+        r = req.get(url, headers=_HEADERS, timeout=15)
+        r.raise_for_status()
+        text = r.text
+        # Remove <script> and <style> blocks
+        text = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", text, flags=re.S | re.I)
+        # Strip all remaining tags
+        text = re.sub(r"<[^>]+>", " ", text)
+        # Unescape HTML entities (&amp; &nbsp; etc.)
+        text = html_lib.unescape(text)
+        # Collapse whitespace
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text.strip()
+    except Exception as exc:
+        logger.warning("seed_regulations: failed to fetch %s — %s", url, exc)
+        return None
+
+
+@router.post("/knowledge/seed-regulations")
+def seed_regulations(db: Session = Depends(get_db)) -> dict:
+    """Fetch and index Norwegian insurance regulations into the knowledge base.
+
+    Sources: Forsikringsavtaleloven, Forsikringsformidlingsloven,
+    Forsikringsvirksomhetsloven — all from Lovdata.no (open access).
+    Already-indexed regulations are skipped (idempotent).
+    """
+    from api.services.knowledge_index import KNOWLEDGE_ORG
+    from api.db import CompanyChunk
+
+    existing_sources = {
+        r.source for r in
+        db.query(CompanyChunk.source)
+        .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
+        .filter(CompanyChunk.source.like("regulation::%"))
+        .all()
+    }
+
+    results = []
+    for reg in _REGULATION_SOURCES:
+        source_key = f"regulation::{reg['name']}"
+        if source_key in existing_sources:
+            results.append({"name": reg["name"], "chunks": 0, "status": "already_indexed"})
+            continue
+
+        text = _fetch_regulation_text(reg["url"])
+        if not text or len(text) < 200:
+            results.append({"name": reg["name"], "chunks": 0, "status": "fetch_failed"})
+            continue
+
+        chunks = _chunk_and_store(KNOWLEDGE_ORG, source_key, text, db)
+        results.append({"name": reg["name"], "chunks": chunks, "status": "indexed"})
+        logger.info("seed_regulations: indexed %s — %d chunks", reg["name"], chunks)
+
+    return {"seeded": results, "total_chunks": sum(r["chunks"] for r in results)}

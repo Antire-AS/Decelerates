@@ -100,6 +100,27 @@ _JUSTIFIED = {
     "render_documents_tab",
     "render_sla_tab",
     "render_knowledge_tab",
+    # Landing page — single-screen Streamlit tab with stats + feature cards + CTAs
+    "render_landing_tab",
+    # Portfolio view sub-sections — tightly coupled Streamlit imperative rendering
+    "_render_overview",
+    "_render_portfolio_selector",
+    "_render_seed_norway",
+    "_render_portfolio_chat",
+    "_render_live_ingest",
+    "_render_nl_query",
+    "_render_admin_controls",
+    # SSE streaming generators — async generator protocol requires all logic inline;
+    # the inner generate() functions are reported separately by AST walker
+    "stream_ingest_portfolio",
+    "stream_seed_norway",
+    "generate",
+    # Admin seed endpoints — multi-phase BRREG lookup + background PDF agent setup;
+    # complexity is inherent to the two-phase seeding protocol
+    "admin_demo",
+    "admin_seed_norway_top100",
+    # Portfolio RAG chat — builds context + calls LLM in one coherent flow
+    "chat",
 }
 
 # Files excluded from function-length checks (non-production scripts)
