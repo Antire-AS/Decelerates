@@ -137,7 +137,43 @@ def _send_kb_question(question: str) -> None:
     )
 
 
+_CHAT_CSS = """
+<style>
+/* ── user bubble ── */
+div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+    background: #2C3E50 !important;
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+}
+div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) p,
+div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) .stMarkdown {
+    color: #D4C9B8 !important;
+}
+/* ── assistant bubble ── */
+div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+    background: #F7F5F2 !important;
+    border: 1px solid #D0CBC3 !important;
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+}
+div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) p {
+    color: #2C3E50 !important;
+}
+/* ── chat input bar ── */
+div[data-testid="stChatInput"] > div {
+    border: 1px solid #D0CBC3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+}
+</style>
+"""
+
+
 def _render_knowledge_chat() -> None:
+    st.markdown(_CHAT_CSS, unsafe_allow_html=True)
+
     if "kb_messages" not in st.session_state:
         st.session_state["kb_messages"] = []
 
