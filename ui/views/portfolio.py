@@ -790,29 +790,39 @@ def render_portfolio_tab() -> None:
         if not portfolio_id:
             return
 
-        rows = _render_risk_table(portfolio_id)
-        existing_orgnrs = {r["orgnr"] for r in rows}
+        p_oversikt, p_ai, p_admin = st.tabs(["Oversikt", "AI-analyse", "Administrer"])
 
-        if rows:
-            pdf_url = f"{API_BASE}/portfolio/{portfolio_id}/pdf"
-            st.markdown(f"[📥 Last ned porteføljerapport (PDF)]({pdf_url})")
-            _render_alerts(portfolio_id)
+        with p_oversikt:
+            rows = _render_risk_table(portfolio_id)
+            existing_orgnrs = {r["orgnr"] for r in rows}
+            if rows:
+                pdf_url = f"{API_BASE}/portfolio/{portfolio_id}/pdf"
+                st.markdown(f"[📥 Last ned porteføljerapport (PDF)]({pdf_url})")
+                _render_alerts(portfolio_id)
+                _render_charts(rows)
+                _render_concentration(portfolio_id)
+            else:
+                existing_orgnrs = set()
 
-        # Seed + add companies
-        _render_seed_norway(portfolio_id)
-        _render_add_company(portfolio_id, existing_orgnrs)
+        with p_ai:
+            rows_ai = _fetch(f"/portfolio/{portfolio_id}/risk")
+            if not rows_ai:
+                st.info("Legg til selskaper i Administrer-fanen først.")
+            else:
+                _render_portfolio_chat(portfolio_id)
+                st.markdown("---")
+                _render_nl_query()
 
-        if rows:
-            _render_charts(rows)
-            _render_concentration(portfolio_id)
+        with p_admin:
+            rows_admin = _fetch(f"/portfolio/{portfolio_id}/risk")
+            existing_orgnrs_admin = {r["orgnr"] for r in rows_admin}
+            _render_seed_norway(portfolio_id)
+            _render_add_company(portfolio_id, existing_orgnrs_admin)
+            if rows_admin:
+                st.markdown("---")
+                _render_pdf_enrichment(portfolio_id, rows_admin)
             st.markdown("---")
-            _render_pdf_enrichment(portfolio_id, rows)
-            _render_portfolio_chat(portfolio_id)
-            st.markdown("---")
-            _render_nl_query()
-
-        st.markdown("---")
-        _render_live_ingest(portfolio_id, rows)
+            _render_live_ingest(portfolio_id, rows_admin)
 
     with prospect_tab:
         _render_prospecting()
