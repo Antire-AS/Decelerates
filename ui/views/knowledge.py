@@ -193,7 +193,7 @@ def _render_knowledge_chat() -> None:
             _send_kb_question(pending)
         st.rerun()
 
-    chat_col, video_col = st.columns([3, 2], gap="large")
+    video_col, chat_col = st.columns([2, 3], gap="large")
 
     with chat_col:
         if not st.session_state["kb_messages"]:
@@ -247,13 +247,37 @@ def _render_knowledge_chat() -> None:
         dl = st.session_state.get("kb_video_player")
         if dl:
             hdr, close_btn = st.columns([5, 1])
-            hdr.caption(f"🎬 **{dl['display_name']}** — {dl['chapter']}")
+            hdr.caption(f"🎬 **{dl['display_name']}**")
             if close_btn.button("✕", key="kb_close_player"):
                 st.session_state.pop("kb_video_player", None)
                 st.rerun()
             _render_inline_player(dl)
+            # Show numbered chapter steps below the player
+            videos = _fetch_videos()
+            vid = next((v for v in videos if v.get("filename") == dl["display_name"]), None)
+            if vid:
+                from ui.views.videos import _parse_sections, _fmt_time as _vfmt
+                sections = _parse_sections(vid.get("sections") or [])
+                if sections:
+                    st.markdown("**Steg i videoen**")
+                    for step_i, ch in enumerate(sections, 1):
+                        ts = _vfmt(ch["start"])
+                        label = ch["title"] or f"Steg {step_i}"
+                        is_current = abs(ch["start"] - dl.get("start_seconds", 0)) < 30
+                        prefix = "▶" if is_current else f"{step_i}."
+                        if st.button(
+                            f"{prefix}  {ts}  {label}",
+                            key=f"kb_step_{step_i}",
+                            type="primary" if is_current else "secondary",
+                            use_container_width=True,
+                        ):
+                            st.session_state["kb_video_player"] = {
+                                **dl, "start_seconds": int(ch["start"]), "chapter": label,
+                            }
+                            st.rerun()
         else:
-            st.caption("Trykk **▶ Se i video** på en kilde for å spille av her.")
+            st.markdown("#### Prosessvideoer")
+            st.caption("Klikk **▶ Se i video** ved en kilde i chatten for å spille av her med kapittelnavigasjon.")
 
 
 # ── search ────────────────────────────────────────────────────────────────────
