@@ -13,6 +13,105 @@ from ui.views.claims import render_claims_section
 from ui.views.activities import render_activity_feed
 
 
+# ── Guided broker workflow helpers ────────────────────────────────────────────
+
+_WORKFLOW_STEPS = [
+    ("Datainnhenting",   "Selskapsdata fra BRREG",             "Oversikt"),
+    ("Risikovurdering",  "Risikoscore og AI-narrativ",          "Oversikt"),
+    ("Behovsanalyse",    "Forsikringsbehov estimert",           "Forsikring"),
+    ("Tilbud innhentet", "Tilbud fra forsikringsselskaper",     "Forsikring"),
+    ("Tilbudsanalyse",   "AI-sammenligning fullført",           "Forsikring"),
+    ("Presentasjon",     "Forsikringstilbud PDF generert",      "Forsikring"),
+    ("Kontrakt",         "Tjenesteavtale signert i Avtaler",    "Avtaler"),
+]
+
+
+def _compute_workflow_steps(orgnr: str, risk: dict) -> list[dict]:
+    has_contract = False
+    try:
+        sla_list = requests.get(f"{API_BASE}/sla", timeout=3).json()
+        has_contract = any(s.get("client_orgnr") == orgnr for s in (sla_list or []))
+    except Exception:
+        pass
+    done_flags = [
+        True,
+        risk.get("score") is not None,
+        bool(st.session_state.get("narrative")),
+        len(st.session_state.get("offers_uploaded_names", [])) > 0,
+        bool(st.session_state.get("offers_comparison")),
+        bool(st.session_state.get("forsikringstilbud_pdf")),
+        has_contract,
+    ]
+    return [
+        {"done": done_flags[i], "label": label, "desc": desc, "tab_name": tab}
+        for i, (label, desc, tab) in enumerate(_WORKFLOW_STEPS)
+    ]
+
+
+def _wf_circle(i: int, done: bool, active: bool) -> str:
+    if done:
+        style = "background:#2C3E50;color:#D4C9B8;"
+        txt = "✓"
+    elif active:
+        style = "background:#4A6FA5;color:#fff;box-shadow:0 0 0 3px #C5D8F0;"
+        txt = str(i + 1)
+    else:
+        style = "background:#EDEAE6;color:#A09890;border:1.5px solid #D0CBC3;"
+        txt = str(i + 1)
+    return (
+        f"<div style='width:26px;height:26px;border-radius:50%;{style}"
+        f"display:flex;align-items:center;justify-content:center;"
+        f"font-size:11px;font-weight:700;flex-shrink:0'>{txt}</div>"
+    )
+
+
+def _render_workflow_stepper(steps: list[dict]) -> None:
+    """Horizontal 7-step progress stepper shown above company profile tabs."""
+    active_i = next((i for i, s in enumerate(steps) if not s["done"]), len(steps))
+    parts = [
+        "<div style='display:flex;align-items:flex-start;padding:14px 16px;"
+        "background:#fff;border-radius:10px;border:1px solid #E0DBD5;"
+        "box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:8px'>"
+    ]
+    for i, step in enumerate(steps):
+        is_active = i == active_i
+        lbl_color = "#5A8A5A" if step["done"] else ("#1A2E40" if is_active else "#A09890")
+        lbl_weight = "600" if step["done"] else ("700" if is_active else "400")
+        lbl = step["label"].replace(" ", "<br>")
+        parts += [
+            "<div style='display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto'>",
+            _wf_circle(i, step["done"], is_active),
+            f"<div style='font-size:9px;text-align:center;color:{lbl_color};"
+            f"font-weight:{lbl_weight};line-height:1.3;max-width:58px'>{lbl}</div>",
+            "</div>",
+        ]
+        if i < len(steps) - 1:
+            conn_bg = "#2C3E50" if step["done"] else "#D0CBC3"
+            parts.append(f"<div style='flex:1;height:2px;background:{conn_bg};margin-top:12px;min-width:8px'></div>")
+    parts.append("</div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
+
+    if active_i < len(steps):
+        s = steps[active_i]
+        st.markdown(
+            f"<div style='background:#EEF4FC;border-left:3px solid #4A6FA5;border-radius:5px;"
+            f"padding:8px 14px;font-size:12px;margin-bottom:12px'>"
+            f"<span style='color:#2C3E50;font-weight:700'>Neste: Steg {active_i+1} — {s['label']}</span>"
+            f"<span style='color:#5A6A7A;margin-left:8px'>{s['desc']}. Gå til <b>{s['tab_name']}</b>-fanen.</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            "<div style='background:#F0F7F0;border-left:3px solid #5A8A5A;border-radius:5px;"
+            "padding:8px 14px;font-size:12px;margin-bottom:12px'>"
+            "<span style='color:#2C3E50;font-weight:700'>✓ Alle 7 steg fullført</span>"
+            "<span style='color:#5A6A7A;margin-left:8px'>Klientprosessen er komplett.</span>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+
 def render_search_tab() -> None:
     _lang = st.session_state.get("lang", "no")
     st.subheader(T("Search organisation"))
@@ -37,88 +136,53 @@ def render_search_tab() -> None:
         if key not in st.session_state:
             st.session_state[key] = default
 
-    # ── Sidebar: broker process checklist ────────────────────────────────────
+    # ── Sidebar: compact progress summary ────────────────────────────────────
     orgnr_ctx = st.session_state.get("selected_orgnr")
     if orgnr_ctx:
         with st.sidebar:
             st.markdown("### Salgsprosess")
-
-            step1 = True
-            step2 = bool(st.session_state.get("narrative")) or bool(st.session_state.get("risk_offer"))
-            step3 = len(st.session_state.get("offers_uploaded_names", [])) > 0
-            step4 = bool(st.session_state.get("offers_comparison"))
-            step5 = st.session_state.get(f"step5_{orgnr_ctx}", False)
-            step6 = st.session_state.get(f"step6_{orgnr_ctx}", False)
-            step7 = False
+            _sidebar_risk = {}
             try:
-                _sla_list = requests.get(f"{API_BASE}/sla", timeout=4).json()
-                step7 = any(s.get("client_orgnr") == orgnr_ctx for s in _sla_list)
+                _pr = requests.get(f"{API_BASE}/org/{orgnr_ctx}", timeout=5).json()
+                _sidebar_risk = (_pr.get("risk") or {})
             except Exception:
                 pass
-
-            steps = [
-                (step1, "Datainnhenting",    "Selskapsdata hentet fra BRREG"),
-                (step2, "Behovsanalyse",     "Risikoscoring og AI-analyse"),
-                (step3, "Tilbudsinnhenting", "Tilbud fra forsikringsselskaper"),
-                (step4, "Analyse av tilbud", "Sammenstilling og AI-sammenligning"),
-                (step5, "Presentasjon",      "Tilbud presentert for kunde"),
-                (step6, "Forhandlinger",     "Vilkår og pris avklart"),
-                (step7, "Kontrakt",          "Tjenesteavtale signert"),
-            ]
-
-            done_count = sum(1 for done, _, _ in steps if done)
-            total = len(steps)
-
-            st.progress(done_count / total)
-            st.caption(f"{done_count} av {total} steg fullført")
+            _sw = _compute_workflow_steps(orgnr_ctx, _sidebar_risk)
+            _done = sum(1 for s in _sw if s["done"])
+            st.progress(_done / len(_sw))
+            st.caption(f"{_done} av {len(_sw)} steg fullført")
             st.markdown("---")
-
-            active_idx = next((i for i, (done, _, _) in enumerate(steps) if not done), total)
-
-            for i, (done, title, desc) in enumerate(steps):
-                is_active = i == active_idx
-                if done:
+            _active_sb = next((i for i, s in enumerate(_sw) if not s["done"]), len(_sw))
+            for i, s in enumerate(_sw):
+                if s["done"]:
                     st.markdown(
-                        f"<div style='display:flex;align-items:center;padding:5px 0;gap:10px'>"
-                        f"<span style='width:22px;height:22px;border-radius:50%;background:#4A6FA5;"
+                        f"<div style='display:flex;align-items:center;gap:8px;padding:4px 0'>"
+                        f"<span style='width:20px;height:20px;border-radius:50%;background:#2C3E50;"
                         f"display:inline-flex;align-items:center;justify-content:center;"
-                        f"font-size:12px;color:#fff;font-weight:700;flex-shrink:0'>✓</span>"
-                        f"<span style='color:#7A9A5A;font-size:13px;font-weight:600'>{title}</span>"
-                        f"</div>",
+                        f"font-size:10px;color:#D4C9B8;font-weight:700;flex-shrink:0'>✓</span>"
+                        f"<span style='color:#5A8A5A;font-size:12px;font-weight:600'>{s['label']}</span></div>",
                         unsafe_allow_html=True,
                     )
-                elif is_active:
+                elif i == _active_sb:
                     st.markdown(
-                        f"<div style='display:flex;align-items:center;padding:6px 8px;gap:10px;"
-                        f"background:#FFFFFF;border-left:3px solid #4A6FA5;border-radius:4px;"
-                        f"margin:3px 0;box-shadow:0 1px 3px rgba(0,0,0,0.06)'>"
-                        f"<span style='width:22px;height:22px;border-radius:50%;background:#4A6FA5;"
+                        f"<div style='display:flex;align-items:center;gap:8px;padding:5px 8px;"
+                        f"background:#fff;border-left:3px solid #4A6FA5;border-radius:4px;margin:2px 0'>"
+                        f"<span style='width:20px;height:20px;border-radius:50%;background:#4A6FA5;"
                         f"display:inline-flex;align-items:center;justify-content:center;"
-                        f"font-size:11px;color:#fff;font-weight:700;flex-shrink:0'>{i+1}</span>"
-                        f"<div><div style='color:#2C3E50;font-size:13px;font-weight:700'>{title}</div>"
-                        f"<div style='color:#8A7F74;font-size:10px;margin-top:1px'>{desc}</div></div>"
-                        f"</div>",
+                        f"font-size:10px;color:#fff;font-weight:700;flex-shrink:0'>{i+1}</span>"
+                        f"<div><div style='color:#2C3E50;font-size:12px;font-weight:700'>{s['label']}</div>"
+                        f"<div style='color:#8A7F74;font-size:9px'>{s['desc']}</div></div></div>",
                         unsafe_allow_html=True,
                     )
                 else:
                     st.markdown(
-                        f"<div style='display:flex;align-items:center;padding:5px 0;gap:10px'>"
-                        f"<span style='width:22px;height:22px;border-radius:50%;border:1.5px solid #C8C0B6;"
+                        f"<div style='display:flex;align-items:center;gap:8px;padding:4px 0'>"
+                        f"<span style='width:20px;height:20px;border-radius:50%;border:1px solid #C8C0B6;"
                         f"display:inline-flex;align-items:center;justify-content:center;"
-                        f"font-size:11px;color:#B8B0A8;font-weight:600;flex-shrink:0'>{i+1}</span>"
-                        f"<span style='color:#A09890;font-size:13px'>{title}</span>"
-                        f"</div>",
+                        f"font-size:10px;color:#C8C0B6;font-weight:600;flex-shrink:0'>{i+1}</span>"
+                        f"<span style='color:#B0A898;font-size:12px'>{s['label']}</span></div>",
                         unsafe_allow_html=True,
                     )
-
-            st.markdown("---")
-            new5 = st.checkbox("Presentasjon fullført", value=step5, key=f"cb5_{orgnr_ctx}")
-            new6 = st.checkbox("Forhandlinger fullført", value=step6, key=f"cb6_{orgnr_ctx}")
-            st.session_state[f"step5_{orgnr_ctx}"] = new5
-            st.session_state[f"step6_{orgnr_ctx}"] = new6
-
-            if not step7:
-                st.caption("Gå til **Avtaler**-fanen for å opprette tjenesteavtale (steg 7)")
 
     # ── Search button + results ───────────────────────
     if st.button(T("Search")):
@@ -206,6 +270,9 @@ def render_search_tab() -> None:
                     "score": None,
                     "reasons": ["Based on AI estimates — no public financial data"],
                 }
+
+            _wf_steps = _compute_workflow_steps(selected_orgnr, risk)
+            _render_workflow_stepper(_wf_steps)
 
             tab_oversikt, tab_okonomi, tab_forsikring, tab_crm = st.tabs(
                 ["Oversikt", "Økonomi", "Forsikring", "CRM"]

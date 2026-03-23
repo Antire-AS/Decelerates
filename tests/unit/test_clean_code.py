@@ -92,6 +92,10 @@ _JUSTIFIED = {
     "_render_knowledge_search",
     # Financial Mode — portfolio selector + KPIs + table + 2 charts + CSV export; Streamlit imperative
     "render_financial_tab",
+    # Guided workflow stepper — HTML builder for 7-step horizontal progress bar; string assembly
+    "_render_workflow_stepper",
+    # Sidebar compact progress — 7 steps with 3 distinct HTML variants; inline Streamlit loop
+    "render_search_tab",
     # Knowledge analyser — 5 pre-built comparison prompts + table download; tightly coupled flow
     "_render_knowledge_analyse",
     # UI render functions — Streamlit's imperative API requires one call per widget;
