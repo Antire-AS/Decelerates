@@ -58,6 +58,19 @@ _default_tab = _TAB_GOTO.get(st.session_state.pop("_goto_tab", None), 0)
     tab_videos, tab_sla, tab_knowledge, tab_admin
 ) = st.tabs(_TAB_NAMES)
 
+# Programmatic tab navigation — st.tabs() has no index param, so we click via JS
+if _default_tab > 0:
+    import streamlit.components.v1 as _stc
+    _stc.html(
+        f"""<script>
+        (function() {{
+            var tabs = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+            if (tabs && tabs[{_default_tab}]) tabs[{_default_tab}].click();
+        }})();
+        </script>""",
+        height=0,
+    )
+
 with tab_landing:
     render_landing_tab()
 

@@ -145,6 +145,10 @@ _JUSTIFIED = {
     "send_renewal_digest",
     # render_renewals_tab — full Streamlit tab with slider + dataframe + styled columns; tightly coupled flow
     "render_renewals_tab",
+    # render_oversikt_section — Streamlit imperative API; org info + risk + board + peer benchmark in one cohesive flow
+    "render_oversikt_section",
+    # render_forsikring_section — Streamlit imperative API; insurance needs + recommendation + narrative + offers
+    "render_forsikring_section",
     # get_dashboard — aggregates 5 separate DB queries into one response; flat, not decomposable
     "get_dashboard",
     # _render_exports — two independent export flows (renewals + policies); Streamlit requires inline buttons

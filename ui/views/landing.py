@@ -22,7 +22,6 @@ def render_landing_tab() -> None:
     data = _fetch_dashboard()
 
     if data is None:
-        st.info("Dashboard ikke tilgjengelig — logg inn for å se statistikk.")
         _render_quickstart()
         return
 

@@ -407,3 +407,7 @@ def render_profile_financials(
     with st.expander("Raw API responses"):
         st.json(prof)
         st.json(lic or {"orgnr": selected_orgnr, "licenses": []})
+
+
+# Alias used by sub-tab rendering in search.py
+render_okonomi_section = render_profile_financials

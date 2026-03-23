@@ -5,8 +5,8 @@ import streamlit as st
 import requests as _requests
 
 from ui.config import API_BASE, T, _fetch_company_data, get_auth_headers
-from ui.views.profile_core import render_profile_core
-from ui.views.profile_financials import render_profile_financials
+from ui.views.profile_core import render_oversikt_section, render_forsikring_section
+from ui.views.profile_financials import render_okonomi_section
 from ui.views.contacts import render_contacts_section
 from ui.views.policies import render_policies_section
 from ui.views.claims import render_claims_section
@@ -207,28 +207,42 @@ def render_search_tab() -> None:
                     "reasons": ["Based on AI estimates — no public financial data"],
                 }
 
-            render_profile_core(
-                selected_orgnr, org, regn, risk, risk_summary, pep,
-                lic, roles_data, konkurs_data, struktur_data,
-                koordinater_data, benchmark_data, prof,
-            )
-            render_profile_financials(
-                selected_orgnr, org, regn, risk, risk_summary, pep,
-                history_data, prof, lic,
+            tab_oversikt, tab_okonomi, tab_forsikring, tab_crm = st.tabs(
+                ["Oversikt", "Økonomi", "Forsikring", "CRM"]
             )
 
-            # ── CRM sections ───────────────────────────────────────
-            render_contacts_section(selected_orgnr)
-
-            try:
-                _policies_resp = _requests.get(
-                    f"{API_BASE}/org/{selected_orgnr}/policies",
-                    headers=get_auth_headers(), timeout=8,
+            with tab_oversikt:
+                render_oversikt_section(
+                    selected_orgnr, org, regn, risk, risk_summary, pep,
+                    lic, roles_data, konkurs_data, struktur_data,
+                    koordinater_data, benchmark_data, prof,
                 )
-                _policies = _policies_resp.json() if _policies_resp.ok else []
-            except Exception:
-                _policies = []
 
-            render_policies_section(selected_orgnr)
-            render_claims_section(selected_orgnr, _policies)
-            render_activity_feed(selected_orgnr)
+            with tab_okonomi:
+                render_okonomi_section(
+                    selected_orgnr, org, regn, risk, risk_summary, pep,
+                    history_data, prof, lic,
+                )
+
+            with tab_forsikring:
+                render_forsikring_section(
+                    selected_orgnr, org, regn, risk, risk_summary, pep,
+                    lic, roles_data, konkurs_data, struktur_data,
+                    koordinater_data, benchmark_data, prof,
+                )
+
+            with tab_crm:
+                render_contacts_section(selected_orgnr)
+
+                try:
+                    _policies_resp = _requests.get(
+                        f"{API_BASE}/org/{selected_orgnr}/policies",
+                        headers=get_auth_headers(), timeout=8,
+                    )
+                    _policies = _policies_resp.json() if _policies_resp.ok else []
+                except Exception:
+                    _policies = []
+
+                render_policies_section(selected_orgnr)
+                render_claims_section(selected_orgnr, _policies)
+                render_activity_feed(selected_orgnr)

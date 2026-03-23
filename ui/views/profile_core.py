@@ -6,7 +6,7 @@ import pandas as pd
 from ui.config import API_BASE, T, fmt_mnok
 
 
-def render_profile_core(
+def render_oversikt_section(
     selected_orgnr: str,
     org: dict,
     regn: dict,
@@ -300,6 +300,24 @@ def render_profile_core(
             pb_c3.metric("Risikoscore",
                 str(_company_rs) if _company_rs is not None else "–",
                 delta=_delta_rs)
+
+
+def render_forsikring_section(
+    selected_orgnr: str,
+    org: dict,
+    regn: dict,
+    risk: dict,
+    risk_summary: dict,
+    pep: dict,
+    lic,
+    roles_data,
+    konkurs_data,
+    struktur_data,
+    koordinater_data,
+    benchmark_data,
+    prof: dict,
+) -> None:
+    _lang = st.session_state.get("lang", "no")
 
     # ── 5) Insurance needs estimator ───────────────────
     with st.expander("📋 Forsikringsbehovsestimator", expanded=False):
@@ -598,3 +616,30 @@ def render_profile_core(
                 if st.button(T("Clear"), key="clear_gap_btn"):
                     st.session_state["coverage_gap"] = None
                     st.rerun()
+
+
+def render_profile_core(
+    selected_orgnr: str,
+    org: dict,
+    regn: dict,
+    risk: dict,
+    risk_summary: dict,
+    pep: dict,
+    lic,
+    roles_data,
+    konkurs_data,
+    struktur_data,
+    koordinater_data,
+    benchmark_data,
+    prof: dict,
+) -> None:
+    render_oversikt_section(
+        selected_orgnr, org, regn, risk, risk_summary, pep,
+        lic, roles_data, konkurs_data, struktur_data,
+        koordinater_data, benchmark_data, prof,
+    )
+    render_forsikring_section(
+        selected_orgnr, org, regn, risk, risk_summary, pep,
+        lic, roles_data, konkurs_data, struktur_data,
+        koordinater_data, benchmark_data, prof,
+    )
