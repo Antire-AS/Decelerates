@@ -778,16 +778,12 @@ def render_portfolio_tab() -> None:
     overview_tab, named_tab, prospect_tab = st.tabs(["Oversikt", "Mine porteføljer", "🎯 Prospekter"])
 
     with overview_tab:
-        _render_admin_controls()
         companies = _fetch("/companies", params={"limit": 200})
         all_slas = _fetch("/sla")
         if not companies:
             st.info("Ingen selskaper analysert ennå. Søk opp et selskap i Selskapsøk-fanen.")
         else:
             _render_overview(companies, all_slas)
-
-        st.markdown("---")
-        _render_nl_query()
 
     with named_tab:
         portfolio_id = _render_portfolio_selector()
@@ -812,6 +808,8 @@ def render_portfolio_tab() -> None:
             st.markdown("---")
             _render_pdf_enrichment(portfolio_id, rows)
             _render_portfolio_chat(portfolio_id)
+            st.markdown("---")
+            _render_nl_query()
 
         st.markdown("---")
         _render_live_ingest(portfolio_id, rows)

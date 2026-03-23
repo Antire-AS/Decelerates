@@ -144,3 +144,100 @@ def render_admin_tab() -> None:
                         st.error(f"Feil: {r.text}")
                 except Exception as e:
                     st.error(str(e))
+
+    st.markdown("---")
+    _render_data_controls()
+
+
+def _render_data_controls() -> None:
+    st.markdown("#### Datahåndtering")
+
+    col_demo, col_reset = st.columns(2)
+
+    with col_demo:
+        st.markdown("**Last inn demo-data**")
+        st.caption(
+            "Oppretter 'Demo Portefølje' med 8 store norske selskaper, "
+            "henter BRREG-data og starter PDF-ekstraksjon i bakgrunnen."
+        )
+        if st.button("▶ Last inn demo", key="admin_demo_tab", use_container_width=True, type="primary"):
+            with st.spinner("Henter selskapsdata..."):
+                try:
+                    r = requests.post(f"{API_BASE}/admin/demo", timeout=60)
+                    if r.ok:
+                        d = r.json()
+                        st.success(
+                            f"✅ Demo klar — '{d.get('portfolio_name')}' opprettet med "
+                            f"{d.get('companies')} selskaper."
+                        )
+                    else:
+                        st.error(f"Feil: {r.text}")
+                except Exception as e:
+                    st.error(str(e))
+
+    with col_reset:
+        st.markdown("**Nullstill innsamlet data**")
+        st.caption(
+            "Sletter selskapsdata, regnskapshistorikk og porteføljer. "
+            "Videoer, dokumenter og kunnskapsbasen beholdes."
+        )
+        if st.button("🔄 Nullstill innsamlet data", key="admin_reset_tab", use_container_width=True, type="secondary"):
+            st.session_state["confirm_admin_reset_tab"] = True
+
+    if st.session_state.get("confirm_admin_reset_tab"):
+        st.warning("⚠️ Dette sletter alle selskaper, regnskapsdata og porteføljer. Er du sikker?")
+        c1, c2 = st.columns(2)
+        if c1.button("Ja, nullstill", key="admin_reset_confirm_tab", type="primary"):
+            with st.spinner("Nullstiller..."):
+                try:
+                    requests.delete(f"{API_BASE}/admin/reset", timeout=30)
+                except Exception:
+                    pass
+            st.session_state.pop("confirm_admin_reset_tab", None)
+            st.rerun()
+        if c2.button("Avbryt", key="admin_reset_cancel_tab"):
+            st.session_state.pop("confirm_admin_reset_tab", None)
+            st.rerun()
+
+    st.markdown("---")
+    st.markdown("**🇳🇴 Norges Topp 100 — full finansiell innhenting**")
+    st.caption(
+        "Slår opp alle ~100 største norske selskaper i BRREG, henter profiler og risikoscore, "
+        "og kjører AI-agenten (Claude/Gemini) for å finne årsrapport-PDF-er fra IR-sidene. "
+        "Tar 30–90 minutter totalt."
+    )
+    if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100_tab", use_container_width=True, type="primary"):
+        with st.spinner("Slår opp selskaper i BRREG..."):
+            try:
+                r = requests.post(f"{API_BASE}/admin/seed-norway-top100", timeout=60)
+                if r.ok:
+                    d = r.json()
+                    st.success(
+                        f"✅ Startet — {d.get('pdf_agent_queued')} selskaper i kø for PDF-innhenting. "
+                        f"Portefølje: '{d.get('portfolio_name')}'."
+                    )
+                else:
+                    st.error(f"Feil: {r.text}")
+            except Exception as e:
+                st.error(str(e))
+
+    st.markdown("---")
+    st.markdown("**📧 Porteføljedigest — e-postvarsel**")
+    st.caption(
+        "Sender e-post med aktive vekstalerts på tvers av alle porteføljer "
+        "til broker-kontaktadressen konfigurert i Innstillinger."
+    )
+    if st.button("Send porteføljedigest", key="admin_digest_tab", use_container_width=True):
+        with st.spinner("Sender digest-e-post…"):
+            try:
+                r = requests.post(f"{API_BASE}/admin/portfolio-digest", timeout=30)
+                if r.ok:
+                    d = r.json()
+                    st.success(
+                        f"✅ Sendt til {d['recipient']} — {d['emails_sent']} e-poster "
+                        f"({d['portfolios_checked']} porteføljer sjekket)."
+                    )
+                else:
+                    st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
+            except Exception as e:
+                st.error(str(e))

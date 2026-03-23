@@ -147,6 +147,8 @@ _JUSTIFIED = {
     "render_renewals_tab",
     # render_oversikt_section — Streamlit imperative API; org info + risk + board + peer benchmark in one cohesive flow
     "render_oversikt_section",
+    # _render_data_controls — three data-management operations (demo, reset, top100, digest); Streamlit inline buttons
+    "_render_data_controls",
     # render_forsikring_section — Streamlit imperative API; insurance needs + recommendation + narrative + offers
     "render_forsikring_section",
     # get_dashboard — aggregates 5 separate DB queries into one response; flat, not decomposable
