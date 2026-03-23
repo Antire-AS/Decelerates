@@ -161,11 +161,21 @@ div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"
 div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) p {
     color: #2C3E50 !important;
 }
-/* ── chat input bar ── */
-div[data-testid="stChatInput"] > div {
+/* ── chat input bar — flat, no bubble ── */
+div[data-testid="stChatInput"] {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+div[data-testid="stChatInput"] textarea {
     border: 1px solid #D0CBC3 !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     background: #fff !important;
+    box-shadow: none !important;
+    padding: 10px 14px !important;
+    font-size: 0.9rem !important;
+    color: #2C3E50 !important;
 }
 </style>
 """
