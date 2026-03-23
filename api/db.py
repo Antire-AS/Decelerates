@@ -142,6 +142,13 @@ class InsuranceOffer(Base):
     uploaded_at    = Column(String, nullable=False)
     pdf_content    = Column(LargeBinary, nullable=False)
     extracted_text = Column(String)          # cached pdfplumber extraction
+    # Structured fields parsed by LLM in background after upload
+    parsed_premie    = Column(String, nullable=True)
+    parsed_dekning   = Column(String, nullable=True)
+    parsed_egenandel = Column(String, nullable=True)
+    parsed_vilkaar   = Column(String, nullable=True)
+    parsed_styrker   = Column(String, nullable=True)
+    parsed_svakheter = Column(String, nullable=True)
 
 
 class InsuranceDocument(Base):

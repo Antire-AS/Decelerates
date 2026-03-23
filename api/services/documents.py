@@ -321,3 +321,28 @@ def remove_insurance_offer(offer_id: int, orgnr: str, db: Session) -> bool:
 
 def find_similar_documents(doc: InsuranceDocument, db: Session, limit: int = 3) -> list:
     return DocumentService(db).find_similar(doc, limit)
+
+
+def parse_and_store_offer(offer_id: int, db_factory=None) -> None:
+    """Background task: LLM-extract structured fields from a stored offer and persist them."""
+    from api.db import SessionLocal
+    from api.services.pdf_generate import _extract_offer_summary
+    if db_factory is None:
+        db_factory = SessionLocal
+    db = db_factory()
+    try:
+        row = db.query(InsuranceOffer).filter(InsuranceOffer.id == offer_id).first()
+        if not row or not row.extracted_text:
+            return
+        parsed = _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text)
+        row.parsed_premie    = parsed.get("premie")
+        row.parsed_dekning   = parsed.get("dekning")
+        row.parsed_egenandel = parsed.get("egenandel")
+        row.parsed_vilkaar   = parsed.get("vilkaar")
+        row.parsed_styrker   = parsed.get("styrker")
+        row.parsed_svakheter = parsed.get("svakheter")
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()

@@ -1,14 +1,14 @@
 import io
 from typing import Any, List
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
 
 from api.db import Company, InsuranceOffer
 from api.services.llm import _compare_offers_with_llm
-from api.services.documents import save_insurance_offers, remove_insurance_offer, _pdf_bytes_to_text
+from api.services.documents import parse_and_store_offer, save_insurance_offers, remove_insurance_offer, _pdf_bytes_to_text
 from api.dependencies import get_db
 
 router = APIRouter()
@@ -78,10 +78,11 @@ async def compare_offers(
 @router.post("/org/{orgnr}/offers")
 async def save_offers(
     orgnr: str,
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
-    """Upload and persist offer PDFs for a company."""
+    """Upload and persist offer PDFs; schedules background LLM parsing of structured fields."""
     offer_data = []
     for f in files:
         raw = await f.read()
@@ -91,6 +92,9 @@ async def save_offers(
             "extracted_text": _pdf_bytes_to_text(raw) or None,
         })
     saved = save_insurance_offers(orgnr, offer_data, db)
+    for item in saved:
+        if item.get("id"):
+            background_tasks.add_task(parse_and_store_offer, item["id"])
     return {"orgnr": orgnr, "saved": saved}
 
 
@@ -105,6 +109,13 @@ def list_offers(orgnr: str, db: Session = Depends(get_db)) -> list:
             "insurer_name": r.insurer_name,
             "uploaded_at": r.uploaded_at,
             "has_text": bool(r.extracted_text),
+            "parsed": bool(r.parsed_premie),
+            "premie": r.parsed_premie,
+            "dekning": r.parsed_dekning,
+            "egenandel": r.parsed_egenandel,
+            "vilkaar": r.parsed_vilkaar,
+            "styrker": r.parsed_styrker,
+            "svakheter": r.parsed_svakheter,
         }
         for r in rows
     ]

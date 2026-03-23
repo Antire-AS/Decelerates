@@ -278,10 +278,22 @@ def download_forsikringstilbud(
         raise HTTPException(status_code=404, detail="Company not in database")
 
     stored_offers = db.query(InsuranceOffer).filter(InsuranceOffer.orgnr == orgnr).all()
-    offer_summaries = [
-        _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text or "")
-        for row in stored_offers
-    ]
+    offer_summaries = []
+    for row in stored_offers:
+        if row.parsed_premie:
+            offer_summaries.append({
+                "selskap": row.insurer_name or row.filename,
+                "premie": row.parsed_premie,
+                "dekning": row.parsed_dekning or "–",
+                "egenandel": row.parsed_egenandel or "–",
+                "vilkaar": row.parsed_vilkaar or "–",
+                "styrker": row.parsed_styrker or "–",
+                "svakheter": row.parsed_svakheter or "–",
+            })
+        else:
+            offer_summaries.append(
+                _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text or "")
+            )
     broker_name, broker_contact, broker_email, broker_phone = _broker_info_from_db(db)
     pdf_bytes = _build_forsikringstilbud_pdf(db_obj, body, offer_summaries,
                                              broker_name, broker_contact, broker_email, broker_phone)
