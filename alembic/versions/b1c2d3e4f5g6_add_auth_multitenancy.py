@@ -35,7 +35,7 @@ def upgrade() -> None:
     )
 
     user_role = sa.Enum("admin", "broker", "viewer", name="user_role")
-    user_role.create(op.get_bind())
+    user_role.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "users",

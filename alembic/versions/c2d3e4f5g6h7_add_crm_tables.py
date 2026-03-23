@@ -21,9 +21,9 @@ def upgrade() -> None:
     policy_status = sa.Enum("active", "expired", "cancelled", "pending", name="policy_status")
     claim_status  = sa.Enum("open", "in_review", "settled", "rejected", name="claim_status")
     activity_type = sa.Enum("call", "email", "meeting", "note", "task", name="activity_type")
-    policy_status.create(op.get_bind())
-    claim_status.create(op.get_bind())
-    activity_type.create(op.get_bind())
+    policy_status.create(op.get_bind(), checkfirst=True)
+    claim_status.create(op.get_bind(), checkfirst=True)
+    activity_type.create(op.get_bind(), checkfirst=True)
 
     # ── contact_persons ──────────────────────────────────────────────────────
     op.create_table(
