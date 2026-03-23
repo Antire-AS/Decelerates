@@ -1,14 +1,18 @@
 import io
 from typing import Any, List
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, UploadFile
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
 
 from api.db import Company, InsuranceOffer
+from api.limiter import limiter
 from api.services.llm import _compare_offers_with_llm
-from api.services.documents import parse_and_store_offer, save_insurance_offers, remove_insurance_offer, _pdf_bytes_to_text
+from api.services.documents import (
+    parse_and_store_offer, save_insurance_offers, remove_insurance_offer,
+    update_offer_status, _pdf_bytes_to_text,
+)
 from api.dependencies import get_db
 
 router = APIRouter()
@@ -48,7 +52,9 @@ Hvilket tilbud passer best for denne bedriften og hvorfor.
 
 
 @router.post("/org/{orgnr}/offers/compare")
+@limiter.limit("20/minute")
 async def compare_offers(
+    request: Request,
     orgnr: str,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
@@ -116,9 +122,26 @@ def list_offers(orgnr: str, db: Session = Depends(get_db)) -> list:
             "vilkaar": r.parsed_vilkaar,
             "styrker": r.parsed_styrker,
             "svakheter": r.parsed_svakheter,
+            "status": r.status.value if r.status else "pending",
         }
         for r in rows
     ]
+
+
+@router.patch("/org/{orgnr}/offers/{offer_id}/status")
+def set_offer_status(
+    orgnr: str,
+    offer_id: int,
+    body: dict,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Update the win/loss status of an offer (pending/accepted/rejected/negotiating)."""
+    status = (body.get("status") or "").strip()
+    if not status:
+        raise HTTPException(status_code=400, detail="status is required")
+    if not update_offer_status(offer_id, orgnr, status, db):
+        raise HTTPException(status_code=404, detail="Offer not found or invalid status")
+    return {"id": offer_id, "status": status}
 
 
 @router.delete("/org/{orgnr}/offers/{offer_id}")

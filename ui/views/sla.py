@@ -385,13 +385,17 @@ def render_sla_tab() -> None:
                 lines_str = ", ".join(sla.get("insurance_lines") or []) or "—"
                 color = status_color.get(sla.get("status", "draft"), "grey")
                 with st.container(border=True):
-                    c1, c2, c3 = st.columns([3, 2, 1])
+                    c1, c2, c3, c4 = st.columns([3, 2, 1, 1])
                     with c1:
                         st.markdown(f"**{sla.get('client_navn', '—')}**  `{sla.get('client_orgnr', '')}`")
                         st.caption(f"Start: {sla.get('start_date', '—')}  |  Lines: {lines_str}")
                     with c2:
                         st.markdown(f":{color}[{sla.get('status', 'draft').upper()}]")
-                        st.caption(f"Created: {(sla.get('created_at') or '')[:10]}")
+                        signed_at = sla.get("signed_at")
+                        if signed_at:
+                            st.caption(f"Signert: {signed_at[:10]} av {sla.get('signed_by') or '–'}")
+                        else:
+                            st.caption(f"Created: {(sla.get('created_at') or '')[:10]}")
                     with c3:
                         try:
                             pdf_bytes = requests.get(
@@ -406,3 +410,19 @@ def render_sla_tab() -> None:
                             )
                         except Exception:
                             st.button("PDF", disabled=True, key=f"dl_sla_err_{sla['id']}")
+                    with c4:
+                        if not sla.get("signed_at"):
+                            if st.button("Signer", key=f"sign_sla_{sla['id']}", type="primary"):
+                                try:
+                                    r = requests.patch(
+                                        f"{API_BASE}/sla/{sla['id']}/sign",
+                                        json={"signed_by": "broker"},
+                                        timeout=8,
+                                    )
+                                    if r.ok:
+                                        st.toast("Avtale signert!")
+                                        st.rerun()
+                                    else:
+                                        st.error(f"Feil: {r.text}")
+                                except Exception as e:
+                                    st.error(str(e))

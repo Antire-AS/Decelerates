@@ -75,6 +75,27 @@ def _validate_token(token: str) -> dict:
     )
 
 
+def get_optional_user(
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
+    db: Session = Depends(get_db),
+) -> Optional[CurrentUser]:
+    """Like get_current_user but returns None instead of 401 when no token is present."""
+    if os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+        return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
+    if not creds:
+        return None
+    try:
+        claims = _validate_token(creds.credentials)
+    except Exception:
+        return None
+    oid   = claims.get("oid", "")
+    email = claims.get("preferred_username") or claims.get("email", "")
+    name  = claims.get("name", "")
+    from api.services.user_service import UserService
+    user = UserService(db).get_or_create(oid=oid, email=email, name=name)
+    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id)
+
+
 def get_current_user(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),

@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 import pandas as pd
 
-from ui.config import API_BASE, T, fmt_mnok
+from ui.config import API_BASE, T, fmt_mnok, get_auth_headers
 
 
 def render_oversikt_section(
@@ -458,7 +458,7 @@ def render_forsikring_section(
                 "total_premieanslag": offer.get("total_premieanslag", ""),
                 "sammendrag": offer.get("sammendrag", ""),
             }
-            _dl_col, _save_col = st.columns(2)
+            _dl_col, _save_col, _email_col = st.columns(3)
             with _dl_col:
                 if st.button(T("Download tilbud PDF"), key="dl_tilbud"):
                     with st.spinner(T("Generating PDF")):
@@ -490,6 +490,28 @@ def render_forsikring_section(
                                 st.error(f"Feil: {r.text}")
                         except Exception as e:
                             st.error(str(e))
+            with _email_col:
+                _tilbud_email = st.text_input(
+                    "Send til klient (e-post)", key="tilbud_email_input",
+                    placeholder="kontakt@firma.no",
+                )
+                if st.button("Send til klient", key="send_tilbud_email"):
+                    if not _tilbud_email:
+                        st.warning("Skriv inn en e-postadresse.")
+                    else:
+                        with st.spinner("Sender lenke…"):
+                            try:
+                                r = requests.post(
+                                    f"{API_BASE}/org/{selected_orgnr}/forsikringstilbud/email",
+                                    json={"recipient_email": _tilbud_email},
+                                    headers=get_auth_headers(), timeout=15,
+                                )
+                                if r.ok:
+                                    st.success(f"Sendt til {_tilbud_email}")
+                                else:
+                                    st.error(f"Feil: {r.text}")
+                            except Exception as e:
+                                st.error(str(e))
 
             if st.session_state.get("forsikringstilbud_pdf"):
                 st.download_button(
@@ -537,12 +559,32 @@ def render_forsikring_section(
         if stored_offers:
             _n_offers = len(stored_offers)
             st.caption(f"{_n_offers} {'tilbud lagret i databasen' if _lang == 'no' else 'offers stored in database'}")
+            _STATUS_OPTIONS = ["pending", "negotiating", "accepted", "rejected"]
+            _STATUS_LABELS = {
+                "pending": "Venter", "negotiating": "Forhandler",
+                "accepted": "Akseptert", "rejected": "Avslått",
+            }
             for offer in stored_offers:
-                col_name, col_date, col_dl, col_del = st.columns([3, 2, 1, 1])
+                col_name, col_date, col_status, col_dl, col_del = st.columns([3, 2, 2, 1, 1])
                 with col_name:
                     st.write(f"**{offer['insurer_name']}**  `{offer['filename']}`")
                 with col_date:
                     st.caption(offer.get("uploaded_at", "")[:10])
+                with col_status:
+                    cur_status = offer.get("status") or "pending"
+                    new_status = st.selectbox(
+                        "Status", _STATUS_OPTIONS,
+                        index=_STATUS_OPTIONS.index(cur_status) if cur_status in _STATUS_OPTIONS else 0,
+                        format_func=lambda s: _STATUS_LABELS.get(s, s),
+                        key=f"status_{offer['id']}",
+                        label_visibility="collapsed",
+                    )
+                    if new_status != cur_status:
+                        requests.patch(
+                            f"{API_BASE}/org/{selected_orgnr}/offers/{offer['id']}/status",
+                            json={"status": new_status}, timeout=6,
+                        )
+                        st.rerun()
                 with col_dl:
                     try:
                         pdf_bytes = requests.get(

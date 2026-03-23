@@ -5,6 +5,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from api.auth import CurrentUser, get_current_user
 from api.container import resolve
 from api.ports.driven.notification_port import NotificationPort
 from api.dependencies import get_db

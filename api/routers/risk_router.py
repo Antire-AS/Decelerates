@@ -8,8 +8,14 @@ from pydantic import BaseModel
 
 import os
 
-from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings
+import logging
+
+from api.auth import CurrentUser, get_current_user
+from api.container import resolve
+from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings, ClientToken
 from api.domain.exceptions import LlmUnavailableError, QuotaError
+from api.ports.driven.notification_port import NotificationPort
+from api.services.audit import log_audit
 from api.services.llm import _llm_answer_raw, _fmt_nok, _parse_json_from_llm_response
 from api.services.rag import _save_to_rag
 from api.services.company import _generate_risk_narrative
@@ -24,6 +30,8 @@ from api.schemas import ForsikringstilbudRequest
 from api.dependencies import get_db
 from api.risk import derive_simple_risk
 from api.prompts import RISK_OFFER_PROMPT, RISK_OFFER_PROMPT_EN
+
+_log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -305,6 +313,63 @@ def download_forsikringstilbud(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.post("/org/{orgnr}/forsikringstilbud/email")
+def email_forsikringstilbud(
+    orgnr: str,
+    body: dict,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Email a shareable client-profile link for an existing forsikringstilbud.
+
+    Body: {"recipient_email": "kontakt@firma.no"}
+    """
+    recipient_email = (body.get("recipient_email") or "").strip()
+    if not recipient_email:
+        raise HTTPException(status_code=400, detail="recipient_email is required")
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Company not in database")
+
+    import secrets
+    from datetime import datetime, timedelta, timezone as _tz
+    from api.services.pdf_sources import save_insurance_document as _save_doc
+
+    # Create (or reuse an existing) client token for this company
+    now = datetime.now(_tz.utc)
+    token_row = (
+        db.query(ClientToken)
+        .filter(ClientToken.orgnr == orgnr, ClientToken.expires_at > now)
+        .order_by(ClientToken.expires_at.desc())
+        .first()
+    )
+    if not token_row:
+        token_str = secrets.token_urlsafe(32)
+        token_row = ClientToken(
+            token=token_str, orgnr=orgnr,
+            label=f"E-post til {recipient_email}",
+            expires_at=now + timedelta(days=30),
+            created_at=now,
+        )
+        db.add(token_row)
+        db.commit()
+        db.refresh(token_row)
+
+    ui_base = os.getenv("UI_BASE_URL", "https://ca-ui.thankfulplant-2ef6e3b0.norwayeast.azurecontainerapps.io")
+    share_url = f"{ui_base}/?token={token_row.token}"
+
+    notification: NotificationPort = resolve(NotificationPort)
+    sent = notification.send_forsikringstilbud(
+        to=recipient_email,
+        client_navn=db_obj.navn or orgnr,
+        orgnr=orgnr,
+        share_url=share_url,
+    )
+    log_audit(db, "email_forsikringstilbud", orgnr=orgnr, actor_email=user.email,
+              detail={"recipient": recipient_email, "sent": sent})
+    return {"sent": sent, "recipient": recipient_email, "share_url": share_url}
 
 
 @router.post("/org/{orgnr}/narrative")

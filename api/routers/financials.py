@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 
 from api.db import CompanyHistory, CompanyPdfSource
+from api.limiter import limiter
 from api.services import _get_full_history, fetch_history_from_pdf
 from api.services.pdf_sources import upsert_pdf_source, delete_history_year
 from api.schemas import PdfHistoryRequest
@@ -88,7 +89,8 @@ def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
 
 
 @router.post("/financials/query")
-def nl_query(body: dict, db: Session = Depends(get_db)) -> dict:
+@limiter.limit("20/minute")
+def nl_query(request: Request, body: dict, db: Session = Depends(get_db)) -> dict:
     """Convert a natural-language question to SQL and return results.
 
     Body: {"question": "Which 10 companies have the highest revenue?"}

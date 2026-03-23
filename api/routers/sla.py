@@ -46,9 +46,30 @@ def list_slas(db: Session = Depends(get_db)) -> list:
             "start_date": r.start_date,
             "insurance_lines": r.insurance_lines,
             "status": r.status,
+            "signed_at": r.signed_at.isoformat() if r.signed_at else None,
+            "signed_by": r.signed_by,
         }
         for r in rows
     ]
+
+
+@router.patch("/sla/{sla_id}/sign")
+def sign_sla(
+    sla_id: int,
+    body: dict,
+    svc: SlaService = Depends(_get_sla_service),
+) -> dict:
+    """Mark an SLA as signed (records timestamp + signer name)."""
+    signed_by = (body.get("signed_by") or "").strip() or None
+    row = svc.mark_signed(sla_id, signed_by=signed_by)
+    if not row:
+        raise HTTPException(status_code=404, detail="SLA not found")
+    return {
+        "id": row.id,
+        "status": row.status,
+        "signed_at": row.signed_at.isoformat() if row.signed_at else None,
+        "signed_by": row.signed_by,
+    }
 
 
 @router.get("/sla/{sla_id}")

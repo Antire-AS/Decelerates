@@ -179,6 +179,10 @@ _JUSTIFIED = {
     "render_forsikring_section",
     # get_dashboard — aggregates 5 separate DB queries into one response; flat, not decomposable
     "get_dashboard",
+    # on_startup — 6 sequential startup phases (alembic + init_db + search + firm + token cleanup + DI); can't be split
+    "on_startup",
+    # email_forsikringstilbud — token lookup/create + email send + audit log in one cohesive flow
+    "email_forsikringstilbud",
     # _render_exports — two independent export flows (renewals + policies); Streamlit requires inline buttons
     "_render_exports",
     # render_admin_tab — users table + exports + role management; Streamlit imperative API

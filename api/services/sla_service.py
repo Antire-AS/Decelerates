@@ -1,6 +1,6 @@
 """SLA agreement creation service."""
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,18 @@ from api.schemas import SlaIn
 class SlaService:
     def __init__(self, db: Session) -> None:
         self.db = db
+
+    def mark_signed(self, sla_id: int, signed_by: Optional[str] = None) -> Optional[SlaAgreement]:
+        """Mark an SLA agreement as signed. Returns None if not found."""
+        row = self.db.query(SlaAgreement).filter(SlaAgreement.id == sla_id).first()
+        if not row:
+            return None
+        row.signed_at = datetime.now(timezone.utc)
+        row.signed_by = signed_by
+        row.status = "active"
+        self.db.commit()
+        self.db.refresh(row)
+        return row
 
     def create_agreement(self, body: SlaIn) -> SlaAgreement:
         """Create and persist a new SLA agreement, embedding a broker snapshot."""

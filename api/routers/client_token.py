@@ -1,13 +1,16 @@
 """Client-token endpoints — generate and resolve read-only shareable profile links."""
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from api.auth import CurrentUser, get_current_user, get_optional_user
 from api.db import ClientToken, Company
 from api.dependencies import get_db
 from api.services import fetch_org_profile
+from api.services.audit import log_audit
 
 router = APIRouter()
 
@@ -19,6 +22,7 @@ def create_client_token(
     orgnr: str,
     label: str = "",
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Generate a 30-day read-only token for sharing a company profile with a client."""
     if not db.query(Company).filter(Company.orgnr == orgnr).first():
@@ -33,11 +37,17 @@ def create_client_token(
         created_at=now,
     ))
     db.commit()
+    log_audit(db, "create_client_token", orgnr=orgnr, actor_email=user.email,
+              detail={"label": label or None})
     return {"token": token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
 
 
 @router.get("/client/{token}")
-def get_client_profile(token: str, db: Session = Depends(get_db)) -> dict:
+def get_client_profile(
+    token: str,
+    db: Session = Depends(get_db),
+    user: Optional[CurrentUser] = Depends(get_optional_user),
+) -> dict:
     """Resolve a client token and return a read-only company profile snapshot."""
     row = db.query(ClientToken).filter(ClientToken.token == token).first()
     if not row:
@@ -49,6 +59,9 @@ def get_client_profile(token: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Company not found")
     org = profile.get("org") or {}
     risk = profile.get("risk") or {}
+    actor = user.email if user else "client"
+    log_audit(db, "view_client_profile", orgnr=row.orgnr, actor_email=actor,
+              detail={"token_label": row.label})
     return {
         "orgnr": row.orgnr,
         "navn": org.get("navn"),

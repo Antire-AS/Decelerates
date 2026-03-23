@@ -323,6 +323,22 @@ def find_similar_documents(doc: InsuranceDocument, db: Session, limit: int = 3) 
     return DocumentService(db).find_similar(doc, limit)
 
 
+def update_offer_status(offer_id: int, orgnr: str, status: str, db: Session) -> bool:
+    """Update the win/loss status of a stored offer. Returns False if not found."""
+    from api.db import OfferStatus
+    row = db.query(InsuranceOffer).filter(
+        InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr
+    ).first()
+    if not row:
+        return False
+    try:
+        row.status = OfferStatus(status)
+    except ValueError:
+        return False
+    db.commit()
+    return True
+
+
 def parse_and_store_offer(offer_id: int, db_factory=None) -> None:
     """Background task: LLM-extract structured fields from a stored offer and persist them."""
     from api.db import SessionLocal

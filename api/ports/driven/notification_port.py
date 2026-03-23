@@ -27,3 +27,8 @@ class NotificationPort(ABC):
     def send_activity_reminders(
         self, to: str, overdue: list[dict], due_today: list[dict]
     ) -> bool: ...
+
+    @abstractmethod
+    def send_forsikringstilbud(
+        self, to: str, client_navn: str, orgnr: str, share_url: str
+    ) -> bool: ...

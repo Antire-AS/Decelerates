@@ -162,6 +162,25 @@ class AzureEmailNotificationAdapter(NotificationPort):
         )
         return self.send_email(to, subject, body_html)
 
+    def send_forsikringstilbud(
+        self, to: str, client_navn: str, orgnr: str, share_url: str
+    ) -> bool:
+        subject = f"Forsikringstilbud klar — {client_navn}"
+        body_html = f"""
+        <html><body style='font-family:Arial,sans-serif;color:#222'>
+        <h2 style='color:#1a252f'>Broker Accelerator — Forsikringstilbud</h2>
+        <p>Hei,</p>
+        <p>Et forsikringstilbud for <strong>{client_navn}</strong> (orgnr: {orgnr})
+        er nå klart for gjennomgang.</p>
+        <p><a href='{share_url}' style='background:#1a73e8;color:#fff;padding:10px 20px;
+        border-radius:4px;text-decoration:none;display:inline-block;margin-top:8px'>
+        Se tilbudet</a></p>
+        <p style='margin-top:24px;font-size:12px;color:#888'>
+        Lenken er gyldig i 30 dager.</p>
+        </body></html>
+        """
+        return self.send_email(to, subject, body_html)
+
     def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool:
         if not renewals:
             return False

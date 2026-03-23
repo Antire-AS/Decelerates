@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from sqlalchemy import (
     Boolean, create_engine, Column, Date, DateTime, Enum as SAEnum,
-    Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey,
+    Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey, Index,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
@@ -130,6 +130,15 @@ class SlaAgreement(Base):
     fee_structure   = Column(JSON)     # {"lines": [{"line": "Eiendom", "type": "provisjon", "rate": 12.5}]}
     status          = Column(String, default="draft")   # "draft" | "active" | "terminated"
     form_data       = Column(JSON)     # full snapshot for PDF regeneration
+    signed_at       = Column(DateTime(timezone=True), nullable=True)
+    signed_by       = Column(String, nullable=True)
+
+
+class OfferStatus(enum.Enum):
+    pending     = "pending"
+    accepted    = "accepted"
+    rejected    = "rejected"
+    negotiating = "negotiating"
 
 
 class InsuranceOffer(Base):
@@ -149,6 +158,11 @@ class InsuranceOffer(Base):
     parsed_vilkaar   = Column(String, nullable=True)
     parsed_styrker   = Column(String, nullable=True)
     parsed_svakheter = Column(String, nullable=True)
+    status = Column(
+        SAEnum(OfferStatus, name="offer_status", create_type=False),
+        nullable=True,
+        default=OfferStatus.pending,
+    )
 
 
 class InsuranceDocument(Base):
@@ -345,6 +359,18 @@ class ClientToken(Base):
     label      = Column(String, nullable=True)     # e.g. "Sendt til kontakt 23.03.2026"
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class AuditLog(Base):
+    """Immutable audit trail — records key broker actions for compliance and debugging."""
+    __tablename__ = "audit_log"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    orgnr       = Column(String(9), nullable=True, index=True)
+    actor_email = Column(String, nullable=True)
+    action      = Column(String, nullable=False)   # e.g. "view_client_profile", "send_tilbud"
+    detail      = Column(String, nullable=True)    # JSON-encoded extras
+    created_at  = Column(DateTime(timezone=True), nullable=False, index=True)
 
 
 def init_db():

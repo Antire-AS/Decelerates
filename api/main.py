@@ -55,6 +55,7 @@ from api.routers import (
     activities,
     client_token,
     analytics,
+    audit,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -120,6 +121,20 @@ def on_startup():
         finally:
             db_firm.close()
 
+    # ── Expired client token cleanup ──────────────────────────────────────────
+    from datetime import datetime, timezone as _tz
+    from api.db import ClientToken
+    db_tok = next(get_db())
+    try:
+        db_tok.query(ClientToken).filter(
+            ClientToken.expires_at < datetime.now(_tz.utc)
+        ).delete(synchronize_session=False)
+        db_tok.commit()
+    except Exception:
+        db_tok.rollback()
+    finally:
+        db_tok.close()
+
     # ── DI container ──────────────────────────────────────────────────────────
     configure(AppConfig(
         blob=BlobStorageConfig(
@@ -154,5 +169,6 @@ app.include_router(claims.router)
 app.include_router(activities.router)
 app.include_router(client_token.router)
 app.include_router(analytics.router)
+app.include_router(audit.router)
 
 __all__ = ["app", "limiter"]
