@@ -13,19 +13,21 @@ class PolicyService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list_by_orgnr(self, orgnr: str, firm_id: int) -> list[Policy]:
+    def list_by_orgnr(self, orgnr: str, firm_id: int, skip: int = 0, limit: int = 100) -> list[Policy]:
         return (
             self.db.query(Policy)
             .filter(Policy.orgnr == orgnr, Policy.firm_id == firm_id)
             .order_by(Policy.renewal_date.asc().nullslast())
+            .offset(skip).limit(limit)
             .all()
         )
 
-    def list_by_firm(self, firm_id: int) -> list[Policy]:
+    def list_by_firm(self, firm_id: int, skip: int = 0, limit: int = 100) -> list[Policy]:
         return (
             self.db.query(Policy)
             .filter(Policy.firm_id == firm_id)
             .order_by(Policy.renewal_date.asc().nullslast())
+            .offset(skip).limit(limit)
             .all()
         )
 

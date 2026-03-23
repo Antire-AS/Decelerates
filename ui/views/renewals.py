@@ -1,4 +1,5 @@
 """Render renewal pipeline tab — upcoming policy renewals across all companies."""
+import io
 from datetime import date
 
 import pandas as pd
@@ -55,5 +56,16 @@ def render_renewals_tab() -> None:
     )
 
     st.dataframe(styled, use_container_width=True, hide_index=True)
-    st.caption(f"Totalt {len(renewals)} avtaler · "
-               f"Samlet premie: kr {sum(r.get('annual_premium_nok') or 0 for r in renewals):,.0f}")
+    st.caption(
+        f"Totalt {len(renewals)} avtaler · "
+        f"Samlet premie: kr {sum(r.get('annual_premium_nok') or 0 for r in renewals):,.0f}"
+    )
+
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False, sheet_name="Fornyelser")
+    st.download_button(
+        label="⬇️ Last ned Excel",
+        data=buf.getvalue(),
+        file_name=f"fornyelser_{date.today().isoformat()}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )

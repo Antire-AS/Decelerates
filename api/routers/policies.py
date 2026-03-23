@@ -30,6 +30,7 @@ def _serialize(p) -> dict:
         "renewal_date":        p.renewal_date.isoformat() if p.renewal_date else None,
         "status":              p.status.value,
         "notes":               p.notes,
+        "document_url":        p.document_url,
         "created_at":          p.created_at.isoformat() if p.created_at else None,
         "updated_at":          p.updated_at.isoformat() if p.updated_at else None,
     }
@@ -38,10 +39,12 @@ def _serialize(p) -> dict:
 @router.get("/org/{orgnr}/policies")
 def list_policies(
     orgnr: str,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
     svc: PolicyService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
-    return [_serialize(p) for p in svc.list_by_orgnr(orgnr, user.firm_id)]
+    return [_serialize(p) for p in svc.list_by_orgnr(orgnr, user.firm_id, skip=skip, limit=limit)]
 
 
 @router.post("/org/{orgnr}/policies", status_code=201)
@@ -86,11 +89,13 @@ def delete_policy(
 
 @router.get("/policies")
 def list_all_policies(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
     svc: PolicyService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """All policies for the current firm."""
-    return [_serialize(p) for p in svc.list_by_firm(user.firm_id)]
+    return [_serialize(p) for p in svc.list_by_firm(user.firm_id, skip=skip, limit=limit)]
 
 
 @router.get("/renewals")

@@ -1,0 +1,19 @@
+name: Daily Renewal Reminder
+
+on:
+  schedule:
+    # 07:00 UTC every weekday (09:00 Norwegian summer time)
+    - cron: "0 7 * * 1-5"
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send renewal + portfolio digest
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/portfolio-digest" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}

@@ -18,7 +18,7 @@ _db_url = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1).repl
     "postgresql+psycopg2://", "postgresql+psycopg://", 1
 )
 
-engine = create_engine(_db_url, echo=True, future=True)
+engine = create_engine(_db_url, echo=False, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
@@ -269,6 +269,7 @@ class Policy(Base):
     renewal_date        = Column(Date, nullable=True, index=True)
     status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active)
     notes               = Column(String, nullable=True)
+    document_url        = Column(String, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)
     updated_at          = Column(DateTime(timezone=True), nullable=False)
 

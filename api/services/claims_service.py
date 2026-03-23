@@ -12,11 +12,12 @@ class ClaimsService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list_by_orgnr(self, orgnr: str, firm_id: int) -> list[Claim]:
+    def list_by_orgnr(self, orgnr: str, firm_id: int, skip: int = 0, limit: int = 100) -> list[Claim]:
         return (
             self.db.query(Claim)
             .filter(Claim.orgnr == orgnr, Claim.firm_id == firm_id)
             .order_by(Claim.created_at.desc())
+            .offset(skip).limit(limit)
             .all()
         )
 

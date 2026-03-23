@@ -1,10 +1,72 @@
-"""Admin tab — user and role management."""
+"""Admin tab — user and role management, data exports."""
+import io
+from datetime import date
+
+import pandas as pd
 import requests
 import streamlit as st
 
 from ui.config import API_BASE, get_auth_headers
 
 ROLES = ["admin", "broker", "viewer"]
+
+
+def _render_exports(headers: dict) -> None:
+    st.markdown("#### Eksporter data")
+    col_r, col_p = st.columns(2)
+
+    with col_r:
+        if st.button("Hent fornyelsesrapport (Excel)", use_container_width=True):
+            try:
+                resp = requests.get(
+                    f"{API_BASE}/renewals", params={"days": 365},
+                    headers=headers, timeout=10,
+                )
+                renewals = resp.json() if resp.ok else []
+                if renewals:
+                    df = pd.DataFrame([{
+                        "Orgnr": r.get("orgnr"), "Forsikringsselskap": r.get("insurer"),
+                        "Produkt": r.get("product_type"), "Premie (kr)": r.get("annual_premium_nok"),
+                        "Fornyelsesdato": r.get("renewal_date"), "Dager igjen": r.get("days_to_renewal"),
+                        "Status": r.get("status"),
+                    } for r in renewals])
+                    buf = io.BytesIO()
+                    df.to_excel(buf, index=False, sheet_name="Fornyelser")
+                    st.download_button(
+                        "⬇️ Last ned", data=buf.getvalue(),
+                        file_name=f"fornyelser_{date.today()}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                else:
+                    st.info("Ingen fornyelser funnet.")
+            except Exception as e:
+                st.error(str(e))
+
+    with col_p:
+        if st.button("Hent premievolum (Excel)", use_container_width=True):
+            try:
+                resp = requests.get(f"{API_BASE}/policies", headers=headers, timeout=10)
+                policies = resp.json() if resp.ok else []
+                if policies:
+                    df = pd.DataFrame([{
+                        "Orgnr": p.get("orgnr"), "Forsikringsselskap": p.get("insurer"),
+                        "Produkt": p.get("product_type"), "Avtalenr": p.get("policy_number"),
+                        "Premie (kr)": p.get("annual_premium_nok"),
+                        "Forsikringssum (kr)": p.get("coverage_amount_nok"),
+                        "Startdato": p.get("start_date"), "Fornyelsesdato": p.get("renewal_date"),
+                        "Status": p.get("status"),
+                    } for p in policies])
+                    buf = io.BytesIO()
+                    df.to_excel(buf, index=False, sheet_name="Avtaleoversikt")
+                    st.download_button(
+                        "⬇️ Last ned", data=buf.getvalue(),
+                        file_name=f"avtaleoversikt_{date.today()}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                else:
+                    st.info("Ingen avtaler funnet.")
+            except Exception as e:
+                st.error(str(e))
 
 
 def render_admin_tab() -> None:
@@ -38,6 +100,10 @@ def render_admin_tab() -> None:
         st.info("Ingen brukere funnet.")
         return
 
+    st.markdown("---")
+    _render_exports(headers)
+    st.markdown("---")
+    st.markdown("#### Brukere")
     st.markdown(f"**{len(users)} brukere i firmaet**")
     st.markdown("---")
 

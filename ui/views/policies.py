@@ -59,7 +59,9 @@ def _render_policy_list(orgnr: str) -> None:
                 details.append(f"Avtalenr: {p['policy_number']}")
             if p.get("annual_premium_nok"):
                 details.append(f"Premie: kr {p['annual_premium_nok']:,.0f}")
-            st.caption(" · ".join(details) if details else "")
+            if p.get("document_url"):
+                details.append(f"[📄 Avtaledokument]({p['document_url']})")
+            st.markdown(" · ".join(details) if details else "")
         with col_renewal:
             st.caption(_days_badge(p.get("renewal_date")))
         with col_del:
@@ -80,6 +82,7 @@ def _render_add_policy_form(orgnr: str) -> None:
         start_date   = col1.date_input("Startdato", value=None)
         renewal_date = col2.date_input("Fornyelsesdato", value=None)
         notes = st.text_area("Notater", height=60)
+        document_url = st.text_input("Dokument-URL (valgfritt)", placeholder="https://...")
         if st.form_submit_button("Lagre avtale") and insurer:
             payload = {
                 "insurer": insurer, "product_type": product_type,
@@ -89,6 +92,7 @@ def _render_add_policy_form(orgnr: str) -> None:
                 "start_date": start_date.isoformat() if start_date else None,
                 "renewal_date": renewal_date.isoformat() if renewal_date else None,
                 "notes": notes or None,
+                "document_url": document_url or None,
             }
             r = requests.post(f"{API_BASE}/org/{orgnr}/policies", json=payload, headers=get_auth_headers(), timeout=8)
             if r.status_code == 201:

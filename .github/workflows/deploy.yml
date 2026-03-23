@@ -102,6 +102,7 @@ jobs:
             "AUTH_AUDIENCE=api://514e4f92-1099-405d-86ed-a141d992ac45"
             "BROKER_FIRM_NAME=${{ secrets.BROKER_FIRM_NAME }}"
             "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
+            "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
           )
 
           az containerapp create \

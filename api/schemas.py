@@ -91,6 +91,7 @@ class PolicyIn(BaseModel):
     renewal_date:        Optional[date] = None
     status:              str = "active"
     notes:               Optional[str] = None
+    document_url:        Optional[str] = None
 
 
 class PolicyUpdate(BaseModel):
@@ -104,6 +105,7 @@ class PolicyUpdate(BaseModel):
     renewal_date:        Optional[date] = None
     status:              Optional[str] = None
     notes:               Optional[str] = None
+    document_url:        Optional[str] = None
 
 
 # ── Claims ──────────────────────────────────────────────────────────────────
