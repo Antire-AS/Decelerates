@@ -1,9 +1,14 @@
 """Knowledge base tab: AI chat over videos and insurance documents, plus search and management."""
+import re
+
+import pandas as pd
 import requests
 import streamlit as st
 
 from ui.config import API_BASE
 
+
+# ── formatting helpers ────────────────────────────────────────────────────────
 
 def _fmt_time(s: int) -> str:
     h, m = s // 3600, (s % 3600) // 60
@@ -12,10 +17,8 @@ def _fmt_time(s: int) -> str:
 
 def _source_label(source: str) -> str:
     """Convert a raw source key to a human-readable label."""
-    # New format: video::{display_name}::{start_seconds}::{chapter_title}[::N]
     if source.startswith("video::"):
         parts = source.split("::")
-        # Strip trailing sub-chunk index (::2, ::3, …)
         if len(parts) == 5 and parts[4].isdigit():
             parts = parts[:4]
         if len(parts) == 4:
@@ -23,7 +26,6 @@ def _source_label(source: str) -> str:
             ts = _fmt_time(int(start_s)) if start_s.isdigit() else start_s
             return f"🎬 {name} — \"{chapter}\" ({ts})"
         return f"🎬 {source.removeprefix('video::')}"
-    # New format: doc::{id}::{title}::{insurer}::{year}
     if source.startswith("doc::"):
         parts = source.split("::")
         if len(parts) >= 3:
@@ -33,7 +35,6 @@ def _source_label(source: str) -> str:
             suffix = f" ({', '.join(x for x in [insurer, year] if x)})" if insurer or year else ""
             return f"📄 {title}{suffix}"
         return f"📄 {source.removeprefix('doc::')}"
-    # Legacy formats
     if source.startswith("doc_"):
         return f"📄 Forsikringsdokument (ID {source.removeprefix('doc_')})"
     if source.startswith("video_"):
@@ -64,17 +65,105 @@ def _render_inline_player(dl: dict) -> None:
         st.info(f"Video ikke funnet: {dl['display_name']}")
 
 
+# ── table-aware markdown renderer ─────────────────────────────────────────────
+
+def _render_with_tables(text: str) -> None:
+    """Render markdown; any embedded markdown tables become interactive st.dataframe."""
+    parts = re.split(r'(\|.+\|(?:\n\|[-:| ]+\|)(?:\n\|.+\|)*)', text, flags=re.MULTILINE)
+    for part in parts:
+        stripped = part.strip()
+        if stripped.startswith("|") and "\n" in stripped:
+            lines = [ln for ln in stripped.splitlines() if not re.match(r'^\|[-:| ]+\|$', ln.strip())]
+            if len(lines) >= 2:
+                try:
+                    rows = [[c.strip() for c in ln.strip("|").split("|")] for ln in lines]
+                    df = pd.DataFrame(rows[1:], columns=rows[0])
+                    st.dataframe(df, use_container_width=True, hide_index=True)
+                    continue
+                except Exception:
+                    pass
+        if stripped:
+            st.markdown(part)
+
+
+# ── kb stats ─────────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=60)
+def _fetch_kb_stats() -> dict:
+    try:
+        r = requests.get(f"{API_BASE}/knowledge/index/stats", timeout=5)
+        return r.json() if r.ok else {}
+    except Exception:
+        return {}
+
+
+def _render_kb_stats_bar() -> None:
+    stats = _fetch_kb_stats()
+    total = stats.get("total", 0)
+    docs = stats.get("doc_chunks", 0)
+    vids = stats.get("video_chunks", 0)
+    if total:
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Totalt indeksert", total)
+        c2.metric("📄 Dokumentbiter", docs)
+        c3.metric("🎬 Videobiter", vids)
+    else:
+        st.info("Ingen kunnskap indeksert ennå. Gå til **Administrer** og klikk «Indekser kunnskap».")
+
+
+# ── chat ─────────────────────────────────────────────────────────────────────
+
+_STARTERS = [
+    ("🛡️", "Hva dekker ansvarsforsikring?"),
+    ("💻", "Hva er cyberforsikring og hvem trenger det?"),
+    ("👔", "Krav og dekning for styreansvarsforsikring?"),
+    ("🏗️", "Hva er byggeforsikring?"),
+]
+
+
+def _send_kb_question(question: str) -> None:
+    """Append user message, call API, append assistant response."""
+    st.session_state["kb_messages"].append({"role": "user", "content": question, "sources": []})
+    try:
+        resp = requests.post(f"{API_BASE}/knowledge/chat", json={"question": question}, timeout=120)
+        data = resp.json() if resp.ok else {}
+        answer = data.get("answer") or f"Feil: {resp.status_code}"
+        sources = data.get("sources", [])
+        source_snippets = data.get("source_snippets", {})
+    except Exception as e:
+        answer, sources, source_snippets = f"Kunne ikke kontakte API: {e}", [], {}
+    st.session_state["kb_messages"].append(
+        {"role": "assistant", "content": answer, "sources": sources, "source_snippets": source_snippets}
+    )
+
+
 def _render_knowledge_chat() -> None:
     if "kb_messages" not in st.session_state:
         st.session_state["kb_messages"] = []
 
+    pending = st.session_state.pop("kb_pending_question", None)
+    if pending:
+        with st.spinner("Søker i kunnskapsbasen…"):
+            _send_kb_question(pending)
+        st.rerun()
+
     chat_col, video_col = st.columns([3, 2], gap="large")
 
     with chat_col:
-        st.caption("Chat direkte med AI om innholdet i kursvideoene og forsikringsdokumentene.")
+        if not st.session_state["kb_messages"]:
+            _render_kb_stats_bar()
+            st.markdown("#### Forslag til spørsmål")
+            c1, c2 = st.columns(2)
+            for i, (icon, q) in enumerate(_STARTERS):
+                col = c1 if i % 2 == 0 else c2
+                if col.button(f"{icon}  {q}", key=f"kb_starter_{i}", use_container_width=True):
+                    st.session_state["kb_pending_question"] = q
+                    st.rerun()
+            st.markdown("---")
+
         for msg_idx, msg in enumerate(st.session_state["kb_messages"]):
             with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+                _render_with_tables(msg["content"])
                 if msg.get("sources"):
                     with st.expander(f"Kilder ({len(msg['sources'])})", expanded=False):
                         for src_idx, src in enumerate(msg["sources"]):
@@ -99,17 +188,8 @@ def _render_knowledge_chat() -> None:
 
         question = st.chat_input("Still et spørsmål om videoer eller dokumenter…")
         if question:
-            st.session_state["kb_messages"].append({"role": "user", "content": question, "sources": []})
             with st.spinner("Søker i kunnskapsbasen…"):
-                try:
-                    resp = requests.post(f"{API_BASE}/knowledge/chat", json={"question": question}, timeout=120)
-                    data = resp.json() if resp.ok else {}
-                    answer = data.get("answer") or f"Feil: {resp.status_code}"
-                    sources = data.get("sources", [])
-                    source_snippets = data.get("source_snippets", {})
-                except Exception as e:
-                    answer, sources, source_snippets = f"Kunne ikke kontakte API: {e}", [], {}
-            st.session_state["kb_messages"].append({"role": "assistant", "content": answer, "sources": sources, "source_snippets": source_snippets})
+                _send_kb_question(question)
             st.rerun()
 
         if st.session_state["kb_messages"] and st.button("Tøm samtale", key="kb_clear"):
@@ -130,13 +210,20 @@ def _render_knowledge_chat() -> None:
             st.caption("Trykk **▶ Se i video** på en kilde for å spille av her.")
 
 
+# ── search ────────────────────────────────────────────────────────────────────
+
 def _render_knowledge_search() -> None:
     kb_query = st.text_input(
         "Søk i kunnskapsbase",
         placeholder="f.eks. 'negativ egenkapital' eller 'cyber dekning'",
         key="kb_query",
     )
-    kb_limit = st.slider("Antall resultater", 5, 30, 10, key="kb_limit")
+    filter_col, limit_col = st.columns([2, 1])
+    filter_type = filter_col.radio(
+        "Filtrer", ["Alle", "📄 Dokumenter", "🎬 Videoer"], horizontal=True, key="kb_filter_type",
+        label_visibility="collapsed",
+    )
+    kb_limit = limit_col.slider("Antall resultater", 5, 30, 10, key="kb_limit")
 
     if st.button("Søk", key="kb_search_btn") and kb_query.strip():
         with st.spinner("Søker…"):
@@ -150,20 +237,133 @@ def _render_knowledge_search() -> None:
             except Exception:
                 results = []
 
+        if filter_type == "📄 Dokumenter":
+            results = [r for r in results if r.get("source", "").startswith("doc")]
+        elif filter_type == "🎬 Videoer":
+            results = [r for r in results if r.get("source", "").startswith("video")]
+
         if not results:
             st.info("Ingen relevante treff. Prøv et annet søkeord, eller indekser kunnskap via Administrer-fanen.")
         else:
-            st.markdown(f"**{len(results)} treff**")
+            n_docs = sum(1 for r in results if r.get("source", "").startswith("doc"))
+            n_vids = len(results) - n_docs
+            st.markdown(
+                f"**{len(results)} treff** — "
+                f"📄 {n_docs} fra dokumenter · 🎬 {n_vids} fra videoer"
+            )
             for r in results:
+                src = r.get("source", "")
+                badge = "🎬" if src.startswith("video") else "📄"
                 with st.container(border=True):
                     c1, c2 = st.columns([2, 5])
                     with c1:
-                        st.markdown(f"**Orgnr:** `{r['orgnr']}`")
-                        st.caption(f"Kilde: {_source_label(r['source'])}")
-                        st.caption(f"{(r.get('created_at') or '')[:10]}")
+                        st.markdown(f"**{badge} {_source_label(src)}**")
+                        st.caption(f"Orgnr: `{r['orgnr']}`  ·  {(r.get('created_at') or '')[:10]}")
                     with c2:
                         st.markdown(r["chunk_text"])
 
+
+# ── analyse ───────────────────────────────────────────────────────────────────
+
+_COMPARISON_PROMPTS = [
+    (
+        "📊 Sammenlign ansvarsforsikring og produktansvar",
+        "Lag en kompakt sammenligningstabell (markdown) av ansvarsforsikring og produktansvarsforsikring "
+        "med kolonner: Type | Hva dekkes | Typiske unntak | Hvem trenger det.",
+    ),
+    (
+        "📊 Oversikt over vanlige bedriftsforsikringer",
+        "Lag en oversiktstabell (markdown) over de 6 vanligste forsikringstypene for norske SMB-bedrifter "
+        "med kolonner: Forsikringstype | Hva dekkes | Typisk forsikringssum | Anbefalt for.",
+    ),
+    (
+        "📊 Cyberforsikring — dekning og unntak",
+        "Lag en tabell (markdown) over hva cyberforsikring typisk dekker og ikke dekker, "
+        "med kolonner: Område | Dekket? | Eksempel.",
+    ),
+    (
+        "📊 Sammenlign forsikringstilbydere i dokumentene",
+        "Basert på forsikringsdokumentene i kunnskapsbasen, lag en sammenligningstabell av "
+        "forsikringstilbyderne med kolonner: Selskap | Produkt | Dekning | Premie | Særtrekk.",
+    ),
+    (
+        "📊 Forsikringslovgivning — nøkkelparagrafer",
+        "Lag en oversiktstabell (markdown) over de viktigste paragrafene i Forsikringsavtaleloven (FAL) "
+        "som er relevante for bedriftsforsikring, med kolonner: § | Tema | Hva det innebærer.",
+    ),
+]
+
+
+def _render_knowledge_analyse() -> None:
+    st.markdown("#### AI-genererte sammenligninger og tabeller")
+    st.caption(
+        "Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen. "
+        "Tabeller vises som interaktive og sorterbare."
+    )
+    _render_kb_stats_bar()
+    st.markdown("---")
+
+    if "kb_analyse_result" not in st.session_state:
+        st.session_state["kb_analyse_result"] = None
+
+    for label, prompt in _COMPARISON_PROMPTS:
+        if st.button(label, key=f"analyse_{label[:20]}", use_container_width=True):
+            with st.spinner("AI analyserer kunnskapsbasen…"):
+                try:
+                    resp = requests.post(
+                        f"{API_BASE}/knowledge/chat", json={"question": prompt}, timeout=120
+                    )
+                    data = resp.json() if resp.ok else {}
+                    st.session_state["kb_analyse_result"] = {
+                        "label": label,
+                        "answer": data.get("answer", "Ingen svar."),
+                        "sources": data.get("sources", []),
+                    }
+                except Exception as e:
+                    st.session_state["kb_analyse_result"] = {
+                        "label": label,
+                        "answer": f"Feil: {e}",
+                        "sources": [],
+                    }
+            st.rerun()
+
+    result = st.session_state.get("kb_analyse_result")
+    if result:
+        st.markdown("---")
+        st.markdown(f"**{result['label']}**")
+        _render_with_tables(result["answer"])
+
+        if result.get("sources"):
+            with st.expander(f"Kilder ({len(result['sources'])})", expanded=False):
+                for src in result["sources"]:
+                    st.caption(_source_label(src))
+
+        answer_text = result["answer"]
+        tables = re.findall(r'(\|.+\|(?:\n\|[-:| ]+\|)(?:\n\|.+\|)*)', answer_text, re.MULTILINE)
+        if tables:
+            for t_idx, tbl in enumerate(tables):
+                lines = [ln for ln in tbl.strip().splitlines() if not re.match(r'^\|[-:| ]+\|$', ln.strip())]
+                if len(lines) >= 2:
+                    try:
+                        rows = [[c.strip() for c in ln.strip("|").split("|")] for ln in lines]
+                        df = pd.DataFrame(rows[1:], columns=rows[0])
+                        buf = df.to_csv(index=False).encode()
+                        st.download_button(
+                            f"⬇️ Last ned tabell {t_idx + 1} som CSV",
+                            data=buf,
+                            file_name=f"sammenligning_{t_idx + 1}.csv",
+                            mime="text/csv",
+                            key=f"dl_csv_{t_idx}",
+                        )
+                    except Exception:
+                        pass
+
+        if st.button("Tøm resultat", key="kb_analyse_clear"):
+            st.session_state["kb_analyse_result"] = None
+            st.rerun()
+
+
+# ── manage ────────────────────────────────────────────────────────────────────
 
 def _render_knowledge_manage() -> None:
     st.markdown("### Indeksert kunnskap")
@@ -176,6 +376,12 @@ def _render_knowledge_manage() -> None:
             col1.metric("Totalt indeksert", s.get("total", 0))
             col2.metric("Dokumentbiter", s.get("doc_chunks", 0))
             col3.metric("Videobiter", s.get("video_chunks", 0))
+            if s.get("total", 0) > 0:
+                chart_df = pd.DataFrame({
+                    "Type": ["📄 Dokumenter", "🎬 Videoer"],
+                    "Biter": [s.get("doc_chunks", 0), s.get("video_chunks", 0)],
+                })
+                st.bar_chart(chart_df.set_index("Type"), height=150)
     except Exception:
         st.info("Klarte ikke hente indeksstatistikk.")
 
@@ -200,6 +406,7 @@ def _render_knowledge_manage() -> None:
                         f"({data.get('docs_chunks', 0)} fra dokumenter, "
                         f"{data.get('video_chunks', 0)} fra videoer)."
                     )
+                    st.cache_data.clear()
                     st.rerun()
                 else:
                     st.error(f"Feil: {r.status_code} — {r.text}")
@@ -260,12 +467,18 @@ def _render_knowledge_manage() -> None:
                     st.error(f"Kunne ikke kontakte API: {e}")
 
 
+# ── tab entry point ───────────────────────────────────────────────────────────
+
 def render_knowledge_tab() -> None:
     st.markdown("## Kunnskapsbase")
-    chat_tab, search_tab, manage_tab = st.tabs(["💬 Chat", "🔍 Søk", "⚙️ Administrer"])
+    chat_tab, search_tab, analyse_tab, manage_tab = st.tabs(
+        ["💬 Chat", "🔍 Søk", "📊 Analyser", "⚙️ Administrer"]
+    )
     with chat_tab:
         _render_knowledge_chat()
     with search_tab:
         _render_knowledge_search()
+    with analyse_tab:
+        _render_knowledge_analyse()
     with manage_tab:
         _render_knowledge_manage()

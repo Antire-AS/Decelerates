@@ -88,6 +88,10 @@ _JUSTIFIED = {
     # Knowledge UI — Streamlit chat + spinner + state management; tightly coupled flow
     "_render_knowledge_chat",
     "_render_knowledge_manage",
+    # Knowledge search — filter + result cards; Streamlit imperative layout
+    "_render_knowledge_search",
+    # Knowledge analyser — 5 pre-built comparison prompts + table download; tightly coupled flow
+    "_render_knowledge_analyse",
     # UI render functions — Streamlit's imperative API requires one call per widget;
     # these cannot be decomposed without losing cohesion (each section is tightly coupled)
     "render_search_tab",

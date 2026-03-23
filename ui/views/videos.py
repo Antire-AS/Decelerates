@@ -103,15 +103,21 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
     poster = f'poster="{thumbnail_url}"' if thumbnail_url else ""
     chapter_btns = "".join(
         f'<button class="cpt" onclick="s({ch["start"]})">'
-        f'<span class="ts">{_fmt_time(ch["start"])}</span>{ch["title"] or "–"}</button>'
+        f'<span class="ts">{_fmt_time(ch["start"])}</span>'
+        f'<span class="ct">{ch["title"] or "–"}</span></button>'
         for ch in sections
     )
     chapters_block = (
-        f'<div class="cpts"><div class="cpts-lbl">Kapitler ({len(sections)})</div>{chapter_btns}</div>'
+        f'<div class="cpts"><div class="cpts-lbl">Kapitler ({len(sections)})</div>'
+        f'<div class="cpts-grid">{chapter_btns}</div></div>'
         if sections else ""
     )
     max_h = "340px" if compact else "460px"
-    height = (430 if compact else 540) + max(0, (len(sections) - 3) * 28) if sections else (400 if compact else 500)
+    # 2-column grid: ceil(n/2) rows × 32px per row
+    import math
+    grid_rows = math.ceil(len(sections) / 2) if sections else 0
+    chapter_h = grid_rows * 34 + 36  # 34px/row + label
+    height = (400 if compact else 510) + chapter_h if sections else (400 if compact else 500)
     css = (
         "*{margin:0;padding:0;box-sizing:border-box}"
         "body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:transparent}"
@@ -119,15 +125,17 @@ def _render_video_player(vid: dict, compact: bool = False, autoplay_at: float | 
         ".hdr{background:#2C3E50;color:#D4C9B8;padding:10px 16px;font-size:.88rem;font-weight:700;"
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
         f"video{{width:100%;display:block;background:#000;max-height:{max_h}}}"
-        ".cpts{background:#F7F5F2;border-top:1px solid #E0DBD5;padding:10px 12px}"
+        ".cpts{background:#F7F5F2;border-top:1px solid #E0DBD5;padding:10px 14px}"
         ".cpts-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8A7F74;"
-        "font-weight:700;margin-bottom:6px}"
-        ".cpt{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #D0CBC3;"
-        "border-radius:5px;padding:4px 9px;margin:2px;cursor:pointer;font-size:.78rem;color:#3A4E60;"
-        "transition:background .15s,border-color .15s}"
+        "font-weight:700;margin-bottom:8px}"
+        ".cpts-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}"
+        ".cpt{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #D0CBC3;"
+        "border-radius:5px;padding:5px 9px;cursor:pointer;font-size:.78rem;color:#3A4E60;"
+        "transition:background .15s,border-color .15s;text-align:left;overflow:hidden}"
         ".cpt:hover{background:#E8F0FB;border-color:#4A6FA5;color:#1565C0}"
-        ".ts{font-size:.7rem;color:#8A7F74;background:#EDEAE6;padding:1px 4px;border-radius:3px;"
-        "font-variant-numeric:tabular-nums}"
+        ".ts{flex-shrink:0;font-size:.7rem;color:#8A7F74;background:#EDEAE6;padding:2px 5px;"
+        "border-radius:3px;font-variant-numeric:tabular-nums}"
+        ".ct{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
     )
     autoplay_js = (
         f"v.currentTime={autoplay_at};v.play();" if autoplay_at is not None else ""
