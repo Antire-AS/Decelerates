@@ -649,3 +649,45 @@ def send_portfolio_digest(
     }
 
 
+@router.post("/admin/activity-reminders")
+def send_activity_reminders(
+    db: Session = Depends(get_db),
+    notification: NotificationPort = Depends(_get_notification),
+) -> dict:
+    """Email the broker about overdue and due-today activities. Safe to call from cron."""
+    from datetime import date
+    from api.db import Activity, BrokerSettings
+
+    settings = db.query(BrokerSettings).first()
+    recipient = settings.contact_email if settings else None
+    if not recipient:
+        raise HTTPException(status_code=422, detail="Ingen broker contact_email konfigurert.")
+    if not notification.is_configured():
+        raise HTTPException(status_code=503, detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.")
+
+    today = date.today()
+    overdue = db.query(Activity).filter(
+        Activity.completed == False, Activity.due_date < today,  # noqa: E712
+    ).order_by(Activity.due_date.asc()).all()
+    due_today = db.query(Activity).filter(
+        Activity.completed == False, Activity.due_date == today,  # noqa: E712
+    ).order_by(Activity.created_at.asc()).all()
+
+    if not overdue and not due_today:
+        return {"sent": False, "reason": "no due activities"}
+
+    def _to_dict(a) -> dict:
+        return {
+            "orgnr": a.orgnr, "subject": a.subject,
+            "activity_type": a.activity_type.value if a.activity_type else "",
+            "due_date": a.due_date.isoformat() if a.due_date else None,
+        }
+
+    sent = notification.send_activity_reminders(
+        recipient,
+        [_to_dict(a) for a in overdue],
+        [_to_dict(a) for a in due_today],
+    )
+    return {"sent": sent, "overdue": len(overdue), "due_today": len(due_today), "recipient": recipient}
+
+

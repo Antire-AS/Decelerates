@@ -20,10 +20,19 @@ def _fmt_nok(v) -> str:
 @st.cache_data(ttl=120)
 def _fetch_portfolios() -> list:
     try:
-        r = requests.get(f"{API_BASE}/portfolios", timeout=8)
+        r = requests.get(f"{API_BASE}/portfolio", timeout=8)
         return r.json() if r.ok else []
     except Exception:
         return []
+
+
+@st.cache_data(ttl=120)
+def _fetch_premium_analytics() -> dict:
+    try:
+        r = requests.get(f"{API_BASE}/analytics/premiums", timeout=10)
+        return r.json() if r.ok else {}
+    except Exception:
+        return {}
 
 
 @st.cache_data(ttl=60)
@@ -145,10 +154,56 @@ def _render_adhoc_comparison() -> None:
     )
 
 
+def _render_premium_tab() -> None:
+    data = _fetch_premium_analytics()
+    if not data:
+        st.info("Ingen policyer registrert ennå. Legg til policyer i Selskapsøk → CRM-fanen.")
+        return
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total premievolum", _fmt_nok(data.get("total_premium_book")))
+    c2.metric("Aktive avtaler", str(data.get("active_policy_count", 0)))
+    c3.metric("Forfaller 90d", _fmt_nok(data.get("renewals_90d_premium")))
+    c4.metric("Gj.snitt per avtale", _fmt_nok(data.get("avg_premium_per_policy")))
+
+    st.markdown("---")
+    by_insurer = data.get("by_insurer") or []
+    by_product = data.get("by_product") or []
+
+    ins_col, prod_col = st.columns(2)
+    with ins_col:
+        st.markdown("**Premie per forsikringsselskap**")
+        if by_insurer:
+            ins_df = pd.DataFrame(by_insurer).rename(columns={"insurer": "Selskap", "total_premium": "Premie NOK", "share_pct": "Andel %", "count": "Avtaler"})
+            st.bar_chart(ins_df.set_index("Selskap")["Premie NOK"], height=260)
+            st.dataframe(ins_df[["Selskap", "Avtaler", "Andel %"]], use_container_width=True, hide_index=True)
+    with prod_col:
+        st.markdown("**Premie per produkttype**")
+        if by_product:
+            prod_df = pd.DataFrame(by_product).rename(columns={"product_type": "Produkt", "total_premium": "Premie NOK", "share_pct": "Andel %", "count": "Avtaler"})
+            st.bar_chart(prod_df.set_index("Produkt")["Premie NOK"], height=260)
+            st.dataframe(prod_df[["Produkt", "Avtaler", "Andel %"]], use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    by_status = data.get("by_status") or []
+    if by_status:
+        status_df = pd.DataFrame(by_status).rename(columns={"status": "Status", "total_premium": "Premie NOK", "count": "Avtaler", "share_pct": "Andel %"})
+        st.markdown("**Fordeling per status**")
+        st.dataframe(status_df[["Status", "Avtaler", "Premie NOK", "Andel %"]], use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    export_df = pd.DataFrame(by_insurer + [{"insurer": "—", "count": None, "total_premium": None, "share_pct": None}] + by_product)
+    st.download_button("⬇️ Eksporter til CSV", data=export_df.to_csv(index=False).encode(),
+                       file_name="premieanalyse.csv", mime="text/csv")
+
+
 def render_financial_tab() -> None:
     st.markdown("## Finansiell analyse")
 
-    tab_portfolio, tab_compare = st.tabs(["Portefølje", "Sammenlign selskaper"])
+    tab_portfolio, tab_compare, tab_premium = st.tabs(["Portefølje", "Sammenlign selskaper", "Premieanalyse"])
+
+    with tab_premium:
+        _render_premium_tab()
 
     with tab_compare:
         _render_adhoc_comparison()

@@ -266,3 +266,21 @@ def _render_data_controls() -> None:
                     st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
             except Exception as e:
                 st.error(str(e))
+
+    if st.button("Send aktivitetspåminnelser", key="admin_activity_reminders", use_container_width=True):
+        with st.spinner("Sjekker forfallsdatoer og sender påminnelse…"):
+            try:
+                r = requests.post(f"{API_BASE}/admin/activity-reminders", timeout=30)
+                if r.ok:
+                    d = r.json()
+                    if d.get("sent"):
+                        st.success(
+                            f"✅ Sendt til {d['recipient']} — "
+                            f"{d['overdue']} forfalt, {d['due_today']} forfaller i dag."
+                        )
+                    else:
+                        st.info("Ingen forfallne oppgaver i dag.")
+                else:
+                    st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
+            except Exception as e:
+                st.error(str(e))

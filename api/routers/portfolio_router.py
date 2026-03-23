@@ -409,3 +409,88 @@ def download_portfolio_pdf(portfolio_id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ── Batch CSV import ──────────────────────────────────────────────────────────
+
+import csv
+import io
+import re
+
+from fastapi import File, UploadFile, Query as _Query
+from typing import Optional as _Optional
+
+_MAX_IMPORT_ROWS = 500
+_ORGNR_RE = re.compile(r"^\d{9}$")
+
+
+def _parse_csv_orgnrs(content: bytes) -> tuple[list[str], list[str]]:
+    """Parse CSV bytes → (valid_orgnrs, invalid_values). Deduplicates. Max 500 rows enforced outside."""
+    text = content.decode("utf-8", errors="replace")
+    reader = csv.DictReader(io.StringIO(text))
+    col = next(
+        (c for c in (reader.fieldnames or []) if "orgnr" in c.lower()),
+        None,
+    )
+    # Restart reader if no orgnr header found — fall back to first column
+    if col is None:
+        reader = csv.reader(io.StringIO(text))  # type: ignore[assignment]
+        rows = [r[0].strip() for r in reader if r and r[0].strip()]
+    else:
+        rows = [r.get(col, "").strip() for r in reader]
+
+    seen, valid, invalid = set(), [], []
+    for val in rows:
+        if not val or val == col:
+            continue
+        if _ORGNR_RE.match(val):
+            if val not in seen:
+                seen.add(val)
+                valid.append(val)
+        else:
+            invalid.append(val)
+    return valid, invalid
+
+
+@router.post("/batch/import")
+async def batch_import_csv(
+    file: UploadFile = File(...),
+    portfolio_id: _Optional[int] = _Query(default=None),
+):
+    """Import orgnr values from a CSV file, fetch BRREG profiles, optionally add to a portfolio."""
+    content = await file.read()
+    valid, invalid_vals = _parse_csv_orgnrs(content)
+    if len(valid) > _MAX_IMPORT_ROWS:
+        raise HTTPException(status_code=422, detail=f"Maks {_MAX_IMPORT_ROWS} orgnr per import.")
+
+    def generate():
+        from datetime import datetime, timezone
+        from api.services import fetch_org_profile
+
+        db = SessionLocal()
+        total = len(valid)
+        try:
+            yield json.dumps({"type": "start", "total": total, "invalid": len(invalid_vals)}) + "\n"
+            added, failed = 0, 0
+            for i, orgnr in enumerate(valid):
+                yield json.dumps({"type": "searching", "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                try:
+                    result = fetch_org_profile(orgnr, db)
+                    navn = (result or {}).get("org", {}).get("navn", orgnr) if result else orgnr
+                    if portfolio_id:
+                        db.merge(PortfolioCompany(
+                            portfolio_id=portfolio_id,
+                            orgnr=orgnr,
+                            added_at=datetime.now(timezone.utc).isoformat(),
+                        ))
+                        db.commit()
+                    yield json.dumps({"type": "done", "orgnr": orgnr, "navn": navn, "index": i + 1, "total": total}) + "\n"
+                    added += 1
+                except Exception as exc:
+                    yield json.dumps({"type": "error", "orgnr": orgnr, "error": str(exc)[:120], "index": i + 1, "total": total}) + "\n"
+                    failed += 1
+            yield json.dumps({"type": "complete", "added": added, "failed": failed, "invalid": len(invalid_vals)}) + "\n"
+        finally:
+            db.close()
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")

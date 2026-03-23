@@ -255,7 +255,9 @@ def _render_add_company(portfolio_id: int, existing_orgnrs: set) -> None:
         all_companies = _fetch("/companies", params={"limit": 500})
         available = [c for c in all_companies if c["orgnr"] not in existing_orgnrs]
 
-        tab_search, tab_manual = st.tabs(["Fra analyserte selskaper", "Orgnr manuelt"])
+        tab_search, tab_manual, tab_csv = st.tabs(
+            ["Fra analyserte selskaper", "Orgnr manuelt", "CSV-import"]
+        )
 
         with tab_search:
             if available:
@@ -284,6 +286,42 @@ def _render_add_company(portfolio_id: int, existing_orgnrs: set) -> None:
                         requests.get(f"{API_BASE}/org/{manual_orgnr.strip()}", timeout=30)
                         _post(f"/portfolio/{portfolio_id}/companies", {"orgnr": manual_orgnr.strip()})
                     st.rerun()
+
+        with tab_csv:
+            st.caption("Last opp en CSV-fil med én kolonne med header `orgnr` (eller én kolonne uten header). Maks 500 rader.")
+            csv_file = st.file_uploader("Velg CSV-fil", type=["csv"], key=f"port_csv_{portfolio_id}")
+            fetch_brreg = st.checkbox("Hent BRREG-data for hvert selskap", value=True, key=f"port_csv_fetch_{portfolio_id}")
+            if st.button("Start import", key=f"port_csv_import_{portfolio_id}", disabled=csv_file is None):
+                progress = st.empty()
+                log = st.empty()
+                lines = []
+                try:
+                    resp = requests.post(
+                        f"{API_BASE}/batch/import",
+                        files={"file": (csv_file.name, csv_file.getvalue(), "text/csv")},
+                        params={"portfolio_id": portfolio_id, "fetch_brreg": str(fetch_brreg).lower()},
+                        stream=True, timeout=300,
+                    )
+                    for raw in resp.iter_lines():
+                        if not raw:
+                            continue
+                        evt = json.loads(raw)
+                        if evt.get("type") == "start":
+                            progress.info(f"Importerer {evt['total']} orgnr… ({evt.get('invalid', 0)} ugyldige ignorert)")
+                        elif evt.get("type") == "done":
+                            lines.append(f"✅ {evt['orgnr']} — {evt.get('navn', '')}")
+                            log.markdown("\n".join(lines[-12:]))
+                        elif evt.get("type") == "error":
+                            lines.append(f"❌ {evt['orgnr']} — {evt.get('error', '')}")
+                            log.markdown("\n".join(lines[-12:]))
+                        elif evt.get("type") == "complete":
+                            progress.success(
+                                f"Import fullført — {evt['added']} lagt til, "
+                                f"{evt['failed']} feilet, {evt.get('invalid', 0)} ugyldige."
+                            )
+                            st.rerun()
+                except Exception as e:
+                    st.error(str(e))
 
 
 def _render_risk_table(portfolio_id: int) -> list:

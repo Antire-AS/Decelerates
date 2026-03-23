@@ -98,6 +98,12 @@ _JUSTIFIED = {
     "render_client_view",
     # Client share expander — token creation + URL display + active token list; Streamlit inline
     "_render_client_share",
+    # Premium analytics tab — 4 KPIs + 2 bar charts + status table + CSV export; Streamlit imperative
+    "_render_premium_tab",
+    # Batch CSV import endpoint — streaming NDJSON generator; protocol requires all logic inline
+    "batch_import_csv",
+    # Add company expander — 3 tabs (search, manual, CSV); Streamlit imperative layout
+    "_render_add_company",
     # Guided workflow stepper — HTML builder for 7-step horizontal progress bar; string assembly
     "_render_workflow_stepper",
     # Insurance needs endpoint — DB lookup + BRREG fallback + two compute calls; cohesive flow

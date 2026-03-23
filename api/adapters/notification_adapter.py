@@ -117,6 +117,51 @@ class AzureEmailNotificationAdapter(NotificationPort):
         """
         return self.send_email(to, subject, body_html)
 
+    @staticmethod
+    def _activity_row(a: dict, color: str) -> str:
+        due = a.get("due_date") or "–"
+        return (
+            f"<tr>"
+            f"<td style='padding:6px 12px;border-bottom:1px solid #eee;"
+            f"color:{color};font-weight:bold'>{due}</td>"
+            f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
+            f"{a.get('activity_type','').capitalize()}</td>"
+            f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
+            f"<strong>{a.get('subject','')}</strong></td>"
+            f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
+            f"{a.get('orgnr') or '–'}</td>"
+            f"</tr>"
+        )
+
+    def send_activity_reminders(
+        self, to: str, overdue: list[dict], due_today: list[dict]
+    ) -> bool:
+        if not overdue and not due_today:
+            return False
+        rows = "".join(
+            [self._activity_row(a, "#c0392b") for a in overdue]
+            + [self._activity_row(a, "#e67e22") for a in due_today]
+        )
+        n = len(overdue) + len(due_today)
+        subject = f"Aktivitetspåminnelse — {n} oppgaver krever oppfølging"
+        body_html = (
+            "<html><body style='font-family:Arial,sans-serif;color:#222'>"
+            "<h2 style='color:#1a252f'>Broker Accelerator — Aktivitetspåminnelse</h2>"
+            f"<p><strong>{len(overdue)}</strong> forfalt · "
+            f"<strong>{len(due_today)}</strong> forfaller i dag</p>"
+            "<table style='border-collapse:collapse;width:100%;font-size:14px'>"
+            "<thead><tr style='background:#f5f5f5'>"
+            "<th style='padding:8px 12px;text-align:left'>Forfallsdato</th>"
+            "<th style='padding:8px 12px;text-align:left'>Type</th>"
+            "<th style='padding:8px 12px;text-align:left'>Oppgave</th>"
+            "<th style='padding:8px 12px;text-align:left'>Orgnr</th>"
+            f"</tr></thead><tbody>{rows}</tbody></table>"
+            "<p style='margin-top:24px;font-size:12px;color:#888'>"
+            "Logg inn i Broker Accelerator for å fullføre oppgavene.</p>"
+            "</body></html>"
+        )
+        return self.send_email(to, subject, body_html)
+
     def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool:
         if not renewals:
             return False

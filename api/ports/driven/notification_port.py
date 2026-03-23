@@ -22,3 +22,8 @@ class NotificationPort(ABC):
 
     @abstractmethod
     def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool: ...
+
+    @abstractmethod
+    def send_activity_reminders(
+        self, to: str, overdue: list[dict], due_today: list[dict]
+    ) -> bool: ...
