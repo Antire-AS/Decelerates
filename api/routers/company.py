@@ -92,28 +92,43 @@ def list_companies(
 def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Return prioritised insurance needs estimate for a company."""
     from api.db import Company, CompanyHistory
+    from api.services import fetch_enhet_by_orgnr
+
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
-    if not db_obj:
-        raise HTTPException(
-            status_code=404,
-            detail="Company not in database — call /org/{orgnr} first to load it",
-        )
-    org = {
-        "orgnr": db_obj.orgnr,
-        "navn": db_obj.navn,
-        "naeringskode1": db_obj.naeringskode1,
-        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
-        "antall_ansatte": db_obj.antall_ansatte,
-        "sum_driftsinntekter": db_obj.sum_driftsinntekter,
-        "sum_eiendeler": db_obj.sum_eiendeler,
-        "sum_egenkapital": db_obj.sum_egenkapital,
-    }
+    if db_obj:
+        org = {
+            "orgnr": db_obj.orgnr,
+            "navn": db_obj.navn,
+            "naeringskode1": db_obj.naeringskode1,
+            "organisasjonsform_kode": db_obj.organisasjonsform_kode,
+            "antall_ansatte": db_obj.antall_ansatte,
+            "sum_driftsinntekter": db_obj.sum_driftsinntekter,
+            "sum_eiendeler": db_obj.sum_eiendeler,
+            "sum_egenkapital": db_obj.sum_egenkapital,
+        }
+    else:
+        # Company not yet saved to DB — fetch live from BRREG
+        brreg = fetch_enhet_by_orgnr(orgnr) or {}
+        if not brreg:
+            raise HTTPException(status_code=404, detail="Organisation not found in BRREG")
+        org = {
+            "orgnr": orgnr,
+            "navn": brreg.get("navn"),
+            "naeringskode1": (brreg.get("naeringskode1") or {}).get("kode"),
+            "organisasjonsform_kode": (brreg.get("organisasjonsform") or {}).get("kode"),
+            "antall_ansatte": brreg.get("antallAnsatte"),
+            "sum_driftsinntekter": None,
+            "sum_eiendeler": None,
+            "sum_egenkapital": None,
+        }
+
     latest = (
         db.query(CompanyHistory)
         .filter(CompanyHistory.orgnr == orgnr)
         .order_by(CompanyHistory.year.desc())
         .first()
-    )
+    ) if db_obj else None
+
     regn = {}
     if latest:
         regn = {
@@ -122,6 +137,7 @@ def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
             "antall_ansatte": latest.antall_ansatte,
             "lonnskostnad": (latest.raw or {}).get("lonnskostnad"),
         }
+
     needs = estimate_insurance_needs(org, regn)
     narrative = build_insurance_narrative(org, regn, needs)
     return {"orgnr": orgnr, "needs": needs, "narrative": narrative}

@@ -94,6 +94,8 @@ _JUSTIFIED = {
     "render_financial_tab",
     # Guided workflow stepper — HTML builder for 7-step horizontal progress bar; string assembly
     "_render_workflow_stepper",
+    # Insurance needs endpoint — DB lookup + BRREG fallback + two compute calls; cohesive flow
+    "get_insurance_needs",
     # Sidebar compact progress — 7 steps with 3 distinct HTML variants; inline Streamlit loop
     "render_search_tab",
     # Knowledge analyser — 5 pre-built comparison prompts + table download; tightly coupled flow

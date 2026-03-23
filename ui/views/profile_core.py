@@ -322,20 +322,27 @@ def render_forsikring_section(
     # ── 5) Insurance needs estimator ───────────────────
     with st.expander("📋 Forsikringsbehovsestimator", expanded=False):
         _needs_key = f"insurance_needs_{selected_orgnr}"
+        _needs_err_key = f"insurance_needs_err_{selected_orgnr}"
         if _needs_key not in st.session_state:
             with st.spinner("Beregner forsikringsbehov…"):
                 try:
                     _r = requests.get(f"{API_BASE}/org/{selected_orgnr}/insurance-needs", timeout=30)
-                    st.session_state[_needs_key] = _r.json() if _r.ok else {}
-                except Exception:
-                    st.session_state[_needs_key] = {}
+                    if _r.ok:
+                        st.session_state[_needs_key] = _r.json()
+                        st.session_state.pop(_needs_err_key, None)
+                    else:
+                        st.session_state[_needs_err_key] = f"HTTP {_r.status_code}"
+                except Exception as _e:
+                    st.session_state[_needs_err_key] = str(_e)
 
         _ins_data = st.session_state.get(_needs_key)
         if not _ins_data:
             col_msg, col_retry = st.columns([5, 1])
-            col_msg.caption("Kunne ikke beregne forsikringsbehov. Prøv igjen.")
+            _err_detail = st.session_state.get(_needs_err_key, "")
+            col_msg.caption(f"Kunne ikke beregne forsikringsbehov.{' (' + _err_detail + ')' if _err_detail else ''} Prøv igjen.")
             if col_retry.button("↺ Prøv igjen", key=f"retry_needs_{selected_orgnr}"):
-                del st.session_state[_needs_key]
+                st.session_state.pop(_needs_key, None)
+                st.session_state.pop(_needs_err_key, None)
                 st.rerun()
         else:
             narrative = _ins_data.get("narrative", "")
