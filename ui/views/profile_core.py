@@ -331,7 +331,13 @@ def render_forsikring_section(
                     st.session_state[_needs_key] = {}
 
         _ins_data = st.session_state.get(_needs_key)
-        if _ins_data:
+        if not _ins_data:
+            col_msg, col_retry = st.columns([5, 1])
+            col_msg.caption("Kunne ikke beregne forsikringsbehov. Prøv igjen.")
+            if col_retry.button("↺ Prøv igjen", key=f"retry_needs_{selected_orgnr}"):
+                del st.session_state[_needs_key]
+                st.rerun()
+        else:
             narrative = _ins_data.get("narrative", "")
             if narrative:
                 st.info(narrative)
