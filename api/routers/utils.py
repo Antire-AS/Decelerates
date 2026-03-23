@@ -399,6 +399,109 @@ def admin_seed_norway_top100(db: Session = Depends(get_db)) -> dict:
     }
 
 
+@router.post("/admin/seed-crm-demo")
+def seed_crm_demo(db: Session = Depends(get_db)) -> dict:
+    """Seed realistic demo policies, claims, and activities for the demo companies."""
+    from datetime import date, datetime, timedelta, timezone
+    from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, ActivityType
+
+    today = date.today()
+    now = datetime.now(timezone.utc)
+    firm_id = 1
+
+    _POLICIES = [
+        ("984851006", "If Skadeforsikring",   "Ansvarsforsikring",       "POL-DNB-001", 1_200_000, 50_000_000, 22),
+        ("984851006", "Storebrand Forsikring", "Styreansvarsforsikring",  "POL-DNB-002",   350_000, 10_000_000, 75),
+        ("923609016", "Tryg Forsikring",       "Transportforsikring",     "POL-EQN-001", 2_800_000,100_000_000,  8),
+        ("923609016", "Codan Forsikring",      "Tingsskadeforsikring",    "POL-EQN-002", 5_500_000,200_000_000, 45),
+        ("995568217", "Fremtind Forsikring",   "Yrkesskadeforsikring",    "POL-GJE-001",   890_000, 20_000_000, 18),
+        ("943753709", "If Skadeforsikring",    "Eiendomsforsikring",      "POL-KON-001", 1_800_000, 80_000_000, 30),
+        ("982463718", "Tryg Forsikring",       "Cyberforsikring",         "POL-TEL-001", 2_100_000, 30_000_000, 62),
+        ("986228608", "Gjensidige Forsikring", "Ansvarsforsikring",       "POL-YAR-001", 3_400_000,120_000_000, 88),
+        ("989795848", "Codan Forsikring",      "Driftsavbruddsforsikring","POL-AKB-001", 4_200_000,150_000_000, 15),
+        ("979981344", "Storebrand Forsikring", "Eiendomsforsikring",      "POL-SOP-001",   450_000, 25_000_000, 55),
+    ]
+
+    created_policies, skipped = 0, 0
+    policy_map: dict = {}
+    for orgnr, insurer, product_type, pol_nr, premium, coverage, days_to_renewal in _POLICIES:
+        exists = db.query(Policy).filter(Policy.policy_number == pol_nr, Policy.firm_id == firm_id).first()
+        if exists:
+            policy_map[pol_nr] = exists
+            skipped += 1
+            continue
+        p = Policy(
+            orgnr=orgnr, firm_id=firm_id, policy_number=pol_nr,
+            insurer=insurer, product_type=product_type,
+            annual_premium_nok=float(premium), coverage_amount_nok=float(coverage),
+            start_date=today - timedelta(days=365 - days_to_renewal),
+            renewal_date=today + timedelta(days=days_to_renewal),
+            status=PolicyStatus.active, created_at=now, updated_at=now,
+        )
+        db.add(p)
+        db.flush()
+        policy_map[pol_nr] = p
+        created_policies += 1
+    db.commit()
+
+    _CLAIMS = [
+        ("POL-DNB-001", "984851006", "SKD-2025-001", ClaimStatus.open,     "Skade på kontorbygg — vanninntrenging",   250_000),
+        ("POL-EQN-001", "923609016", "SKD-2025-002", ClaimStatus.open,     "Lasteskade under transport",            1_800_000),
+        ("POL-KON-001", "943753709", "SKD-2024-018", ClaimStatus.settled,  "Sprinkleranlegg utløst — vannskade",      380_000),
+        ("POL-AKB-001", "989795848", "SKD-2025-003", ClaimStatus.open,     "Nedetid produksjonsanlegg",             2_500_000),
+    ]
+
+    created_claims = 0
+    for pol_nr, orgnr, claim_nr, status, desc, amount in _CLAIMS:
+        pol = policy_map.get(pol_nr)
+        if not pol:
+            continue
+        exists = db.query(Claim).filter(Claim.claim_number == claim_nr, Claim.firm_id == firm_id).first()
+        if exists:
+            continue
+        db.add(Claim(
+            policy_id=pol.id, orgnr=orgnr, firm_id=firm_id,
+            claim_number=claim_nr, incident_date=today - timedelta(days=30),
+            reported_date=today - timedelta(days=25), status=status,
+            description=desc, estimated_amount_nok=float(amount),
+            created_at=now, updated_at=now,
+        ))
+        created_claims += 1
+    db.commit()
+
+    _ACTIVITIES = [
+        ("984851006", ActivityType.call,    "Fornyelsessamtale — Ansvarsforsikring",      today + timedelta(days=3),  False),
+        ("923609016", ActivityType.meeting, "Gjennomgang forsikringsportefølje",           today + timedelta(days=7),  False),
+        ("995568217", ActivityType.email,   "Sendt tilbud Yrkesskadeforsikring",           today - timedelta(days=5),  True),
+        ("989795848", ActivityType.task,    "Følge opp skadekrav SKD-2025-003",            today + timedelta(days=2),  False),
+        ("943753709", ActivityType.meeting, "Fornyelsesmøte Eiendomsforsikring",           today - timedelta(days=10), True),
+        ("982463718", ActivityType.call,    "Avklare dekningsomfang Cyberforsikring",      today + timedelta(days=14), False),
+        ("986228608", ActivityType.email,   "Kvartalsstatus til kunde",                    today - timedelta(days=3),  True),
+    ]
+
+    created_activities = 0
+    for orgnr, atype, subject, due_date, completed in _ACTIVITIES:
+        exists = db.query(Activity).filter(
+            Activity.orgnr == orgnr, Activity.subject == subject, Activity.firm_id == firm_id
+        ).first()
+        if exists:
+            continue
+        db.add(Activity(
+            orgnr=orgnr, firm_id=firm_id, activity_type=atype,
+            subject=subject, due_date=due_date, completed=completed,
+            created_by="demo@broker.no", created_at=now, updated_at=now,
+        ))
+        created_activities += 1
+    db.commit()
+
+    return {
+        "policies_created": created_policies,
+        "policies_skipped": skipped,
+        "claims_created": created_claims,
+        "activities_created": created_activities,
+    }
+
+
 @router.get("/dashboard")
 def get_dashboard(
     db: Session = Depends(get_db),

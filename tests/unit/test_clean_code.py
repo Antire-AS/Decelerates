@@ -139,6 +139,8 @@ _JUSTIFIED = {
     "_collect_alerts",
     # collect_alerts — 5-rule YoY engine extracted to service; rules list not decomposable
     "collect_alerts",
+    # seed_crm_demo — three inline seed lists (policies, claims, activities); single atomic transaction
+    "seed_crm_demo",
     # download_portfolio_pdf — orchestrates companies + alerts + concentration + broker data for PDF; cohesive flow
     "download_portfolio_pdf",
     # send_renewal_digest — email HTML table template with inline colour helpers; single coherent email

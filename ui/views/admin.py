@@ -146,7 +146,32 @@ def render_admin_tab() -> None:
                     st.error(str(e))
 
     st.markdown("---")
+    _render_crm_seed()
+    st.markdown("---")
     _render_data_controls()
+
+
+def _render_crm_seed() -> None:
+    st.markdown("#### CRM demo-data")
+    st.caption(
+        "Oppretter realistiske forsikringsavtaler, skader og aktiviteter for demo-selskapene "
+        "slik at Fornyelser, CRM-faner og dashboardet viser ekte data."
+    )
+    if st.button("Seed CRM demo-data", key="seed_crm_btn", use_container_width=True, type="primary"):
+        with st.spinner("Oppretter demo CRM-data…"):
+            try:
+                r = requests.post(f"{API_BASE}/admin/seed-crm-demo", timeout=30)
+                if r.ok:
+                    d = r.json()
+                    st.success(
+                        f"✅ Ferdig — {d['policies_created']} avtaler, "
+                        f"{d['claims_created']} skader, "
+                        f"{d['activities_created']} aktiviteter opprettet."
+                    )
+                else:
+                    st.error(f"Feil: {r.text}")
+            except Exception as e:
+                st.error(str(e))
 
 
 def _render_data_controls() -> None:
