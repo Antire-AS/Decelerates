@@ -187,19 +187,36 @@ def render_videos_tab() -> None:
     with nav_col:
         st.markdown("#### Kursvideoer")
         for i, vid in enumerate(videos):
-            label = vid.get("filename") or vid.get("blob_name", f"Video {i + 1}")
+            raw_label = vid.get("filename") or vid.get("blob_name", f"Video {i + 1}")
+            # Strip extension and truncate
+            clean = raw_label.rsplit(".", 1)[0] if "." in raw_label else raw_label
+            title = clean[:42] + "…" if len(clean) > 44 else clean
             raw_sections = vid.get("sections") or []
             sections = _parse_sections(raw_sections)
-            chapter_count = len(sections)
-            desc = _video_description(raw_sections if isinstance(raw_sections, list) else [])
-
+            ch = len(sections)
             is_active = i == st.session_state["selected_video_idx"]
-            btn_type = "primary" if is_active else "secondary"
-            if st.button(label, key=f"vid_nav_{i}", type=btn_type, use_container_width=True):
-                st.session_state["selected_video_idx"] = i
-                st.rerun()
-            if sections:
-                st.caption(f"{chapter_count} kapitler{' · ' + desc if desc else ''}")
+
+            bg = "#EEF4FC" if is_active else "#FAFAF8"
+            border = "3px solid #4A6FA5" if is_active else "3px solid #E8E3DC"
+            title_w = "700" if is_active else "500"
+            title_c = "#1A2E40" if is_active else "#3A4E60"
+            st.markdown(
+                f"<div style='background:{bg};border-left:{border};border-radius:6px;"
+                f"padding:9px 12px;margin-bottom:2px;cursor:pointer'>"
+                f"<div style='font-size:13px;font-weight:{title_w};color:{title_c};"
+                f"line-height:1.35'>{title}</div>"
+                + (f"<div style='font-size:10px;color:#8A7F74;margin-top:3px'>"
+                   f"{'▶ ' if is_active else ''}{ch} kapitler</div>" if ch else "")
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+            if not is_active:
+                if st.button("Spill av", key=f"vid_nav_{i}", use_container_width=True):
+                    st.session_state["selected_video_idx"] = i
+                    st.rerun()
+            else:
+                st.button("▶ Spiller nå", key=f"vid_nav_{i}", use_container_width=True,
+                          disabled=True, type="primary")
 
         st.markdown("---")
         with st.expander("Last opp video", expanded=False):
