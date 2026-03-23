@@ -301,6 +301,46 @@ def render_oversikt_section(
                 str(_company_rs) if _company_rs is not None else "–",
                 delta=_delta_rs)
 
+    # ── 5) Client share link ───────────────────────────
+    _render_client_share(selected_orgnr)
+
+
+def _render_client_share(selected_orgnr: str) -> None:
+    """Expander letting broker generate and copy a 30-day read-only client link."""
+    with st.expander("🔗 Del profil med klient", expanded=False):
+        _tok_key = f"client_token_{selected_orgnr}"
+        _label = st.text_input("Etikett (valgfritt)", placeholder="F.eks. sendt til Ole Olsen",
+                                key=f"client_tok_label_{selected_orgnr}")
+        if st.button("Generer delingslenke", key=f"gen_client_tok_{selected_orgnr}"):
+            try:
+                r = requests.post(
+                    f"{API_BASE}/org/{selected_orgnr}/client-token",
+                    params={"label": _label},
+                    timeout=10,
+                )
+                if r.ok:
+                    st.session_state[_tok_key] = r.json().get("token")
+                else:
+                    st.error("Kunne ikke opprette lenke.")
+            except Exception as e:
+                st.error(str(e))
+        tok = st.session_state.get(_tok_key)
+        if tok:
+            ui_base = st.session_state.get("ui_base_url", "http://localhost:8501")
+            share_url = f"{ui_base}/?client_token={tok}"
+            st.code(share_url, language=None)
+            st.caption("Lenken er gyldig i 30 dager. Del den direkte med klienten.")
+        existing = []
+        try:
+            er = requests.get(f"{API_BASE}/org/{selected_orgnr}/client-tokens", timeout=5)
+            existing = er.json() if er.ok else []
+        except Exception:
+            pass
+        if existing:
+            st.markdown(f"**{len(existing)} aktive lenker:**")
+            for t in existing:
+                st.caption(f"• {t['label'] or '(ingen etikett)'}  —  utløper {t['expires_at'][:10]}")
+
 
 def render_forsikring_section(
     selected_orgnr: str,

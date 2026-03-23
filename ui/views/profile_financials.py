@@ -19,6 +19,20 @@ def render_profile_financials(
 ) -> None:
     _lang = st.session_state.get("lang", "no")
 
+    # ── Extraction status banner ────────────────────────
+    try:
+        _es = requests.get(f"{API_BASE}/org/{selected_orgnr}/extraction-status", timeout=5).json()
+        if _es.get("status") == "extracting":
+            _pending = _es.get("pending_years", [])
+            st.info(
+                f"Henter årsrapport-data i bakgrunnen for {len(_pending)} år "
+                f"({', '.join(str(y) for y in _pending)}). Last inn siden på nytt om noen sekunder."
+            )
+        elif _es.get("status") == "no_sources" and not history_data:
+            st.caption("Ingen PDF-kilder funnet ennå. Legg til en årsrapport-URL nedenfor.")
+    except Exception:
+        pass
+
     # ── 5) Key figures ─────────────────────────────────
     has_real_regn = bool(
         prof.get("regnskap") and prof["regnskap"].get("regnskapsår") is not None

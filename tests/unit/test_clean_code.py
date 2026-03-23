@@ -92,6 +92,12 @@ _JUSTIFIED = {
     "_render_knowledge_search",
     # Financial Mode — portfolio selector + KPIs + table + 2 charts + CSV export; Streamlit imperative
     "render_financial_tab",
+    # Ad-hoc comparison — multiselect + table + 2 charts + CSV; Streamlit imperative
+    "_render_adhoc_comparison",
+    # Client read-only view — banner + 3 metric rows + risk reasons + regnskap; Streamlit imperative
+    "render_client_view",
+    # Client share expander — token creation + URL display + active token list; Streamlit inline
+    "_render_client_share",
     # Guided workflow stepper — HTML builder for 7-step horizontal progress bar; string assembly
     "_render_workflow_stepper",
     # Insurance needs endpoint — DB lookup + BRREG fallback + two compute calls; cohesive flow

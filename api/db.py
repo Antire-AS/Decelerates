@@ -335,6 +335,18 @@ class Activity(Base):
     created_at       = Column(DateTime(timezone=True), nullable=False, index=True)
 
 
+class ClientToken(Base):
+    """Short-lived read-only token a broker shares with a client to view their profile."""
+    __tablename__ = "client_tokens"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    token      = Column(String(64), unique=True, nullable=False, index=True)
+    orgnr      = Column(String(9), nullable=False, index=True)
+    label      = Column(String, nullable=True)     # e.g. "Sendt til kontakt 23.03.2026"
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
 def init_db():
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))

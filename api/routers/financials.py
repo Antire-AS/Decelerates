@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-from api.db import CompanyPdfSource
+from api.db import CompanyHistory, CompanyPdfSource
 from api.services import _get_full_history, fetch_history_from_pdf
 from api.services.pdf_sources import upsert_pdf_source, delete_history_year
 from api.schemas import PdfHistoryRequest
@@ -45,6 +47,36 @@ def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)) -> dict:
             {"year": s.year, "pdf_url": s.pdf_url, "label": s.label, "added_at": s.added_at}
             for s in sources
         ],
+    }
+
+
+@router.get("/org/{orgnr}/extraction-status")
+def get_extraction_status(orgnr: str, db: Session = Depends(get_db)) -> dict:
+    """Return whether background PDF extraction has data, is pending, or is complete."""
+    sources = db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all()
+    extracted_years = {
+        r.year for r in db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all()
+    }
+    source_years = {s.year for s in sources}
+    pending_years = sorted(source_years - extracted_years)
+    done_years = sorted(source_years & extracted_years)
+    current_year = datetime.now().year
+    target = set(range(current_year - 5, current_year))
+    if not sources:
+        status = "no_sources"
+    elif pending_years:
+        status = "extracting"
+    elif not extracted_years:
+        status = "no_data"
+    else:
+        status = "done"
+    return {
+        "orgnr": orgnr,
+        "status": status,
+        "source_years": sorted(source_years),
+        "done_years": done_years,
+        "pending_years": pending_years,
+        "missing_target_years": sorted(target - source_years),
     }
 
 

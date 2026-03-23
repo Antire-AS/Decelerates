@@ -24,6 +24,14 @@ st.set_page_config(
     layout="wide",
 )
 
+# ── Client token intercept — render read-only view before main app ────────────
+_client_token = st.query_params.get("client_token")
+if _client_token:
+    from ui.views.client_view import render_client_view
+    st.markdown(f"<style>{pathlib.Path('ui/styles.css').read_text()}</style>", unsafe_allow_html=True)
+    render_client_view(_client_token)
+    st.stop()
+
 st.markdown(f"<style>{pathlib.Path('ui/styles.css').read_text()}</style>", unsafe_allow_html=True)
 render_user_badge()
 st.markdown("""

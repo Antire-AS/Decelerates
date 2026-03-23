@@ -1,0 +1,80 @@
+"""Client-token endpoints — generate and resolve read-only shareable profile links."""
+import secrets
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from api.db import ClientToken, Company
+from api.dependencies import get_db
+from api.services import fetch_org_profile
+
+router = APIRouter()
+
+_TOKEN_TTL_DAYS = 30
+
+
+@router.post("/org/{orgnr}/client-token")
+def create_client_token(
+    orgnr: str,
+    label: str = "",
+    db: Session = Depends(get_db),
+) -> dict:
+    """Generate a 30-day read-only token for sharing a company profile with a client."""
+    if not db.query(Company).filter(Company.orgnr == orgnr).first():
+        raise HTTPException(status_code=404, detail="Company not in database")
+    now = datetime.now(timezone.utc)
+    token = secrets.token_urlsafe(32)
+    db.add(ClientToken(
+        token=token,
+        orgnr=orgnr,
+        label=label or None,
+        expires_at=now + timedelta(days=_TOKEN_TTL_DAYS),
+        created_at=now,
+    ))
+    db.commit()
+    return {"token": token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
+
+
+@router.get("/client/{token}")
+def get_client_profile(token: str, db: Session = Depends(get_db)) -> dict:
+    """Resolve a client token and return a read-only company profile snapshot."""
+    row = db.query(ClientToken).filter(ClientToken.token == token).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Token not found")
+    if row.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="Token expired")
+    profile = fetch_org_profile(row.orgnr, db)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Company not found")
+    org = profile.get("org") or {}
+    risk = profile.get("risk") or {}
+    return {
+        "orgnr": row.orgnr,
+        "navn": org.get("navn"),
+        "kommune": org.get("kommune"),
+        "naeringskode1_beskrivelse": org.get("naeringskode1_beskrivelse"),
+        "antall_ansatte": org.get("antall_ansatte"),
+        "sum_driftsinntekter": org.get("sum_driftsinntekter"),
+        "risk_score": risk.get("score"),
+        "risk_reasons": risk.get("reasons", []),
+        "regnskap": profile.get("regnskap") or {},
+        "expires_at": row.expires_at.isoformat(),
+    }
+
+
+@router.get("/org/{orgnr}/client-tokens")
+def list_client_tokens(orgnr: str, db: Session = Depends(get_db)) -> list:
+    """List all active tokens for a company."""
+    now = datetime.now(timezone.utc)
+    rows = (
+        db.query(ClientToken)
+        .filter(ClientToken.orgnr == orgnr, ClientToken.expires_at > now)
+        .order_by(ClientToken.created_at.desc())
+        .all()
+    )
+    return [
+        {"token": r.token, "label": r.label, "expires_at": r.expires_at.isoformat(),
+         "created_at": r.created_at.isoformat()}
+        for r in rows
+    ]

@@ -93,39 +93,39 @@ def _render_risk_chart(df: pd.DataFrame) -> None:
     st.bar_chart(chart_df.set_index("Selskap")["Risikoscore"], height=280)
 
 
-def render_financial_tab() -> None:
-    st.markdown("## Finansiell analyse")
+@st.cache_data(ttl=120)
+def _fetch_all_companies(limit: int = 500) -> list:
+    try:
+        r = requests.get(f"{API_BASE}/companies", params={"limit": limit}, timeout=10)
+        return r.json() if r.ok else []
+    except Exception:
+        return []
 
-    portfolios = _fetch_portfolios()
-    if not portfolios:
-        st.info("Ingen porteføljer funnet. Opprett en i Portefølje-fanen.")
+
+def _render_adhoc_comparison() -> None:
+    """Let the broker pick any companies from the DB and compare side-by-side."""
+    companies = _fetch_all_companies()
+    if not companies:
+        st.info("Ingen selskaper i databasen ennå. Søk opp selskaper i Selskapsøk-fanen.")
         return
 
-    names = [p["name"] for p in portfolios]
-    chosen = st.selectbox("Velg portefølje", names, key="fin_portfolio_sel")
-    pid = next(p["id"] for p in portfolios if p["name"] == chosen)
-
-    rows = _fetch_portfolio_rows(pid)
-    if not rows:
-        st.info("Ingen selskaper i denne porteføljen, eller data ikke hentet ennå.")
-        return
-
-    st.markdown("---")
-    _render_kpi_row(rows)
-    st.markdown("---")
-
-    df = _build_df(rows)
-    sort_options = ["Omsetning", "Risikoscore", "EK-andel %", "Selskap"]
-    sort_col = st.selectbox("Sorter etter", sort_options, key="fin_sort_col")
-    numeric_sort = df[sort_col] if sort_col in df.columns else df["Selskap"]
-    df = df.sort_values(
-        sort_col,
-        ascending=(sort_col == "Selskap"),
-        na_position="last",
+    name_map = {
+        f"{c.get('navn', c['orgnr'])} ({c['orgnr']})": c
+        for c in companies
+    }
+    selected_labels = st.multiselect(
+        "Velg selskaper å sammenligne (maks 8)",
+        options=list(name_map.keys()),
+        max_selections=8,
+        key="adhoc_compare_sel",
     )
+    if not selected_labels:
+        st.caption("Velg minst ett selskap ovenfor for å starte sammenligningen.")
+        return
 
-    _render_comparison_table(df, sort_col)
-
+    rows = [name_map[lbl] for lbl in selected_labels]
+    df = _build_df(rows)
+    _render_comparison_table(df, "Selskap")
     st.markdown("---")
     rev_col, risk_col = st.columns(2)
     with rev_col:
@@ -134,12 +134,65 @@ def render_financial_tab() -> None:
     with risk_col:
         st.markdown("**Risikoscore**")
         _render_risk_chart(df)
-
     st.markdown("---")
     buf = df.drop(columns=["Orgnr"]).to_csv(index=False).encode()
     st.download_button(
         "⬇️ Eksporter til CSV",
         data=buf,
-        file_name=f"finans_{chosen.replace(' ', '_')}.csv",
+        file_name="sammenligning.csv",
         mime="text/csv",
+        key="adhoc_csv",
     )
+
+
+def render_financial_tab() -> None:
+    st.markdown("## Finansiell analyse")
+
+    tab_portfolio, tab_compare = st.tabs(["Portefølje", "Sammenlign selskaper"])
+
+    with tab_compare:
+        _render_adhoc_comparison()
+
+    with tab_portfolio:
+        portfolios = _fetch_portfolios()
+        if not portfolios:
+            st.info("Ingen porteføljer funnet. Opprett en i Portefølje-fanen.")
+            return
+
+        names = [p["name"] for p in portfolios]
+        chosen = st.selectbox("Velg portefølje", names, key="fin_portfolio_sel")
+        pid = next(p["id"] for p in portfolios if p["name"] == chosen)
+
+        rows = _fetch_portfolio_rows(pid)
+        if not rows:
+            st.info("Ingen selskaper i denne porteføljen, eller data ikke hentet ennå.")
+            return
+
+        st.markdown("---")
+        _render_kpi_row(rows)
+        st.markdown("---")
+
+        df = _build_df(rows)
+        sort_options = ["Omsetning", "Risikoscore", "EK-andel %", "Selskap"]
+        sort_col = st.selectbox("Sorter etter", sort_options, key="fin_sort_col")
+        df = df.sort_values(sort_col, ascending=(sort_col == "Selskap"), na_position="last")
+
+        _render_comparison_table(df, sort_col)
+
+        st.markdown("---")
+        rev_col, risk_col = st.columns(2)
+        with rev_col:
+            st.markdown("**Omsetning (MNOK)**")
+            _render_revenue_chart(df)
+        with risk_col:
+            st.markdown("**Risikoscore**")
+            _render_risk_chart(df)
+
+        st.markdown("---")
+        buf = df.drop(columns=["Orgnr"]).to_csv(index=False).encode()
+        st.download_button(
+            "⬇️ Eksporter til CSV",
+            data=buf,
+            file_name=f"finans_{chosen.replace(' ', '_')}.csv",
+            mime="text/csv",
+        )
