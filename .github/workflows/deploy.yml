@@ -100,6 +100,8 @@ jobs:
             "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b"
             "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}"
             "AUTH_AUDIENCE=api://514e4f92-1099-405d-86ed-a141d992ac45"
+            "BROKER_FIRM_NAME=${{ secrets.BROKER_FIRM_NAME }}"
+            "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
           )
 
           az containerapp create \
@@ -151,6 +153,19 @@ jobs:
             --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
+
+      - name: Configure API startup probe
+        run: |
+          APP=${{ steps.config.outputs.api_app }}
+          RG=${{ env.RG }}
+          APP_ID=$(az containerapp show --name "$APP" --resource-group "$RG" --query id -o tsv)
+          az containerapp show --name "$APP" --resource-group "$RG" \
+            --query "properties.template.containers[0]" -o json > /tmp/container.json
+          python3 -c "import json; c=json.load(open('/tmp/container.json')); c['probes']=[{'type':'Startup','httpGet':{'path':'/ping','port':8000},'initialDelaySeconds':10,'periodSeconds':5,'failureThreshold':30,'timeoutSeconds':5}]; json.dump({'properties':{'template':{'containers':[c]}}},open('/tmp/probe_patch.json','w'))"
+          az rest --method patch \
+            --url "${APP_ID}?api-version=2023-05-01" \
+            --headers "Content-Type=application/json" \
+            --body @/tmp/probe_patch.json
 
       - name: Smoke test — API /ping
         run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"

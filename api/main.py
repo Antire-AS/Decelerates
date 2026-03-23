@@ -27,6 +27,11 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
+
+_ai_conn_str = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+if _ai_conn_str:
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    configure_azure_monitor(connection_string=_ai_conn_str)
 from api.services import _seed_pdf_sources
 from api.services.search_service import SearchService
 from api.dependencies import get_db
@@ -98,6 +103,19 @@ def on_startup():
         _seed_pdf_sources(db)
     finally:
         db.close()
+
+    # ── Default firm name (set via BROKER_FIRM_NAME env var) ──────────────────
+    firm_name = os.getenv("BROKER_FIRM_NAME")
+    if firm_name:
+        from api.db import BrokerFirm
+        db_firm = next(get_db())
+        try:
+            firm = db_firm.query(BrokerFirm).filter(BrokerFirm.id == 1).first()
+            if firm and firm.name != firm_name:
+                firm.name = firm_name
+                db_firm.commit()
+        finally:
+            db_firm.close()
 
     # ── DI container ──────────────────────────────────────────────────────────
     configure(AppConfig(
