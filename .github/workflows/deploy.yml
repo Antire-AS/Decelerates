@@ -78,6 +78,30 @@ jobs:
 
       - name: Deploy API
         run: |
+          # Shared env-vars block used by both create and update
+          ENV_VARS=(
+            "DATABASE_URL=${{ steps.config.outputs.db_url }}"
+            "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
+            "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}"
+            "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}"
+            "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"
+            "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}"
+            "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}"
+            "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}"
+            "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o"
+            "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}"
+            "AZURE_DOCUMENT_INTELLIGENCE_KEY=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}"
+            "AZURE_BLOB_ENDPOINT=${{ secrets.AZURE_BLOB_ENDPOINT }}"
+            "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}"
+            "AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }}"
+            "AZURE_SEARCH_INDEX_NAME=company-chunks"
+            "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}"
+            "AZURE_VIDEO_CONTAINER=transksrt"
+            "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b"
+            "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}"
+            "AUTH_AUDIENCE=api://514e4f92-1099-405d-86ed-a141d992ac45"
+          )
+
           az containerapp create \
             --name ${{ steps.config.outputs.api_app }} \
             --resource-group ${{ env.RG }} \
@@ -90,30 +114,13 @@ jobs:
             --ingress external \
             --min-replicas 1 \
             --max-replicas 3 \
-            --env-vars \
-              "DATABASE_URL=${{ steps.config.outputs.db_url }}" \
-              "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" \
-              "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}" \
-              "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}" \
-              "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" \
-              "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" \
-              "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
-              "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" \
-              "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o" \
-              "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}" \
-              "AZURE_DOCUMENT_INTELLIGENCE_KEY=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}" \
-              "AZURE_BLOB_ENDPOINT=${{ secrets.AZURE_BLOB_ENDPOINT }}" \
-              "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
-              "AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }}" \
-              "AZURE_SEARCH_INDEX_NAME=company-chunks" \
-              "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
-              "AZURE_VIDEO_CONTAINER=transksrt" \
-              "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b" \
+            --env-vars "${ENV_VARS[@]}" \
           2>/dev/null \
           || az containerapp update \
             --name ${{ steps.config.outputs.api_app }} \
             --resource-group ${{ env.RG }} \
-            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
+            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
+            --set-env-vars "${ENV_VARS[@]}"
 
       - name: Get API URL
         id: api
