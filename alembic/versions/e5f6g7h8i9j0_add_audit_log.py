@@ -17,17 +17,16 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "audit_log",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("orgnr", sa.String(9), nullable=True, index=True),
-        sa.Column("actor_email", sa.String(), nullable=True),
-        sa.Column("action", sa.String(), nullable=False),
-        sa.Column("detail", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, index=True),
+    op.execute("SET LOCAL lock_timeout = '60s'")
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS audit_log ("
+        "  id SERIAL NOT NULL, orgnr VARCHAR(9), actor_email VARCHAR,"
+        "  action VARCHAR NOT NULL, detail VARCHAR,"
+        "  created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (id)"
+        ")"
     )
-    op.create_index("ix_audit_log_orgnr", "audit_log", ["orgnr"])
-    op.create_index("ix_audit_log_created_at", "audit_log", ["created_at"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_audit_log_orgnr ON audit_log (orgnr)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_audit_log_created_at ON audit_log (created_at)")
 
 
 def downgrade() -> None:

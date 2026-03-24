@@ -17,15 +17,17 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "broker_firms",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("orgnr", sa.String(9), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute("SET LOCAL lock_timeout = '60s'")
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS broker_firms ("
+        "  id SERIAL NOT NULL,"
+        "  name VARCHAR NOT NULL,"
+        "  orgnr VARCHAR(9),"
+        "  created_at TIMESTAMPTZ NOT NULL,"
+        "  PRIMARY KEY (id)"
+        ")"
     )
-    op.create_index("ix_broker_firms_id", "broker_firms", ["id"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_broker_firms_id ON broker_firms (id)")
 
     # Seed the default firm so auto-provisioned users have a firm to join
     op.execute(
@@ -34,25 +36,30 @@ def upgrade() -> None:
         "ON CONFLICT DO NOTHING"
     )
 
-    user_role = sa.Enum("admin", "broker", "viewer", name="user_role")
-    user_role.create(op.get_bind(), checkfirst=True)
-
-    op.create_table(
-        "users",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("firm_id", sa.Integer(), nullable=False),
-        sa.Column("azure_oid", sa.String(64), nullable=False),
-        sa.Column("email", sa.String(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("role", sa.Enum("admin", "broker", "viewer", name="user_role", create_type=False), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["firm_id"], ["broker_firms.id"], ondelete="RESTRICT"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("azure_oid"),
+    op.execute(
+        "DO $$ BEGIN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN "
+        "CREATE TYPE user_role AS ENUM ('admin', 'broker', 'viewer'); "
+        "END IF; END $$"
     )
-    op.create_index("ix_users_id", "users", ["id"])
-    op.create_index("ix_users_azure_oid", "users", ["azure_oid"])
-    op.create_index("ix_users_firm_id", "users", ["firm_id"])
+
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS users ("
+        "  id SERIAL NOT NULL,"
+        "  firm_id INTEGER NOT NULL,"
+        "  azure_oid VARCHAR(64) NOT NULL,"
+        "  email VARCHAR NOT NULL,"
+        "  name VARCHAR NOT NULL,"
+        "  role user_role NOT NULL,"
+        "  created_at TIMESTAMPTZ NOT NULL,"
+        "  PRIMARY KEY (id),"
+        "  UNIQUE (azure_oid),"
+        "  FOREIGN KEY (firm_id) REFERENCES broker_firms(id) ON DELETE RESTRICT"
+        ")"
+    )
+    op.execute("CREATE INDEX IF NOT EXISTS ix_users_id ON users (id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_users_azure_oid ON users (azure_oid)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_users_firm_id ON users (firm_id)")
 
 
 def downgrade() -> None:

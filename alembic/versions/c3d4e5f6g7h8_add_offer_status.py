@@ -17,17 +17,15 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    op.execute("SET LOCAL lock_timeout = '60s'")
     op.execute(
-        "CREATE TYPE offer_status AS ENUM ('pending', 'accepted', 'rejected', 'negotiating')"
+        "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'offer_status') "
+        "THEN CREATE TYPE offer_status AS ENUM ('pending', 'accepted', 'rejected', 'negotiating'); "
+        "END IF; END $$"
     )
-    op.add_column(
-        "insurance_offers",
-        sa.Column(
-            "status",
-            sa.Enum("pending", "accepted", "rejected", "negotiating", name="offer_status"),
-            nullable=True,
-            server_default="pending",
-        ),
+    op.execute(
+        "ALTER TABLE insurance_offers ADD COLUMN IF NOT EXISTS "
+        "status offer_status DEFAULT 'pending'"
     )
 
 

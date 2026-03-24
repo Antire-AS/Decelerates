@@ -17,109 +17,84 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    op.execute("SET LOCAL lock_timeout = '60s'")
     # ── Enums ────────────────────────────────────────────────────────────────
-    policy_status = sa.Enum("active", "expired", "cancelled", "pending", name="policy_status")
-    claim_status  = sa.Enum("open", "in_review", "settled", "rejected", name="claim_status")
-    activity_type = sa.Enum("call", "email", "meeting", "note", "task", name="activity_type")
-    policy_status.create(op.get_bind(), checkfirst=True)
-    claim_status.create(op.get_bind(), checkfirst=True)
-    activity_type.create(op.get_bind(), checkfirst=True)
+    for typname, values in [
+        ("policy_status", "('active', 'expired', 'cancelled', 'pending')"),
+        ("claim_status",  "('open', 'in_review', 'settled', 'rejected')"),
+        ("activity_type", "('call', 'email', 'meeting', 'note', 'task')"),
+    ]:
+        op.execute(
+            f"DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{typname}') "
+            f"THEN CREATE TYPE {typname} AS ENUM {values}; END IF; END $$"
+        )
 
     # ── contact_persons ──────────────────────────────────────────────────────
-    op.create_table(
-        "contact_persons",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("orgnr", sa.String(9), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("title", sa.String(), nullable=True),
-        sa.Column("email", sa.String(), nullable=True),
-        sa.Column("phone", sa.String(), nullable=True),
-        sa.Column("is_primary", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("notes", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS contact_persons ("
+        "  id SERIAL NOT NULL, orgnr VARCHAR(9) NOT NULL, name VARCHAR NOT NULL,"
+        "  title VARCHAR, email VARCHAR, phone VARCHAR,"
+        "  is_primary BOOLEAN NOT NULL DEFAULT false, notes VARCHAR,"
+        "  created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (id)"
+        ")"
     )
-    op.create_index("ix_contact_persons_id", "contact_persons", ["id"])
-    op.create_index("ix_contact_persons_orgnr", "contact_persons", ["orgnr"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_contact_persons_id ON contact_persons (id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_contact_persons_orgnr ON contact_persons (orgnr)")
 
     # ── policies ─────────────────────────────────────────────────────────────
-    op.create_table(
-        "policies",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("orgnr", sa.String(9), nullable=False),
-        sa.Column("firm_id", sa.Integer(), nullable=False),
-        sa.Column("contact_person_id", sa.Integer(), nullable=True),
-        sa.Column("policy_number", sa.String(100), nullable=True),
-        sa.Column("insurer", sa.String(), nullable=False),
-        sa.Column("product_type", sa.String(), nullable=False),
-        sa.Column("coverage_amount_nok", sa.Float(), nullable=True),
-        sa.Column("annual_premium_nok", sa.Float(), nullable=True),
-        sa.Column("start_date", sa.Date(), nullable=True),
-        sa.Column("renewal_date", sa.Date(), nullable=True),
-        sa.Column("status", sa.Enum("active", "expired", "cancelled", "pending", name="policy_status", create_type=False), nullable=False),
-        sa.Column("notes", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["firm_id"], ["broker_firms.id"], ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(["contact_person_id"], ["contact_persons.id"], ondelete="SET NULL"),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS policies ("
+        "  id SERIAL NOT NULL, orgnr VARCHAR(9) NOT NULL, firm_id INTEGER NOT NULL,"
+        "  contact_person_id INTEGER, policy_number VARCHAR(100), insurer VARCHAR NOT NULL,"
+        "  product_type VARCHAR NOT NULL, coverage_amount_nok FLOAT, annual_premium_nok FLOAT,"
+        "  start_date DATE, renewal_date DATE, status policy_status NOT NULL,"
+        "  notes VARCHAR, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ NOT NULL,"
+        "  PRIMARY KEY (id),"
+        "  FOREIGN KEY (firm_id) REFERENCES broker_firms(id) ON DELETE RESTRICT,"
+        "  FOREIGN KEY (contact_person_id) REFERENCES contact_persons(id) ON DELETE SET NULL"
+        ")"
     )
-    op.create_index("ix_policies_id", "policies", ["id"])
-    op.create_index("ix_policies_orgnr", "policies", ["orgnr"])
-    op.create_index("ix_policies_firm_id", "policies", ["firm_id"])
-    op.create_index("ix_policies_renewal_date", "policies", ["renewal_date"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_policies_id ON policies (id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_policies_orgnr ON policies (orgnr)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_policies_firm_id ON policies (firm_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_policies_renewal_date ON policies (renewal_date)")
 
     # ── claims ───────────────────────────────────────────────────────────────
-    op.create_table(
-        "claims",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("policy_id", sa.Integer(), nullable=False),
-        sa.Column("orgnr", sa.String(9), nullable=False),
-        sa.Column("firm_id", sa.Integer(), nullable=False),
-        sa.Column("claim_number", sa.String(100), nullable=True),
-        sa.Column("incident_date", sa.Date(), nullable=True),
-        sa.Column("reported_date", sa.Date(), nullable=True),
-        sa.Column("status", sa.Enum("open", "in_review", "settled", "rejected", name="claim_status", create_type=False), nullable=False),
-        sa.Column("description", sa.String(), nullable=True),
-        sa.Column("estimated_amount_nok", sa.Float(), nullable=True),
-        sa.Column("settled_amount_nok", sa.Float(), nullable=True),
-        sa.Column("insurer_contact", sa.String(), nullable=True),
-        sa.Column("notes", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["policy_id"], ["policies.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["firm_id"], ["broker_firms.id"], ondelete="RESTRICT"),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS claims ("
+        "  id SERIAL NOT NULL, policy_id INTEGER NOT NULL, orgnr VARCHAR(9) NOT NULL,"
+        "  firm_id INTEGER NOT NULL, claim_number VARCHAR(100), incident_date DATE,"
+        "  reported_date DATE, status claim_status NOT NULL, description VARCHAR,"
+        "  estimated_amount_nok FLOAT, settled_amount_nok FLOAT, insurer_contact VARCHAR,"
+        "  notes VARCHAR, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ NOT NULL,"
+        "  PRIMARY KEY (id),"
+        "  FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE CASCADE,"
+        "  FOREIGN KEY (firm_id) REFERENCES broker_firms(id) ON DELETE RESTRICT"
+        ")"
     )
-    op.create_index("ix_claims_id", "claims", ["id"])
-    op.create_index("ix_claims_orgnr", "claims", ["orgnr"])
-    op.create_index("ix_claims_policy_id", "claims", ["policy_id"])
-    op.create_index("ix_claims_firm_id", "claims", ["firm_id"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_claims_id ON claims (id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_claims_orgnr ON claims (orgnr)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_claims_policy_id ON claims (policy_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_claims_firm_id ON claims (firm_id)")
 
     # ── activities ───────────────────────────────────────────────────────────
-    op.create_table(
-        "activities",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("orgnr", sa.String(9), nullable=True),
-        sa.Column("policy_id", sa.Integer(), nullable=True),
-        sa.Column("claim_id", sa.Integer(), nullable=True),
-        sa.Column("firm_id", sa.Integer(), nullable=False),
-        sa.Column("created_by_email", sa.String(), nullable=False),
-        sa.Column("activity_type", sa.Enum("call", "email", "meeting", "note", "task", name="activity_type", create_type=False), nullable=False),
-        sa.Column("subject", sa.String(), nullable=False),
-        sa.Column("body", sa.String(), nullable=True),
-        sa.Column("due_date", sa.Date(), nullable=True),
-        sa.Column("completed", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["policy_id"], ["policies.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["claim_id"], ["claims.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["firm_id"], ["broker_firms.id"], ondelete="RESTRICT"),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        "CREATE TABLE IF NOT EXISTS activities ("
+        "  id SERIAL NOT NULL, orgnr VARCHAR(9), policy_id INTEGER, claim_id INTEGER,"
+        "  firm_id INTEGER NOT NULL, created_by_email VARCHAR NOT NULL,"
+        "  activity_type activity_type NOT NULL, subject VARCHAR NOT NULL, body VARCHAR,"
+        "  due_date DATE, completed BOOLEAN NOT NULL DEFAULT false,"
+        "  created_at TIMESTAMPTZ NOT NULL,"
+        "  PRIMARY KEY (id),"
+        "  FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE SET NULL,"
+        "  FOREIGN KEY (claim_id) REFERENCES claims(id) ON DELETE SET NULL,"
+        "  FOREIGN KEY (firm_id) REFERENCES broker_firms(id) ON DELETE RESTRICT"
+        ")"
     )
-    op.create_index("ix_activities_id", "activities", ["id"])
-    op.create_index("ix_activities_orgnr", "activities", ["orgnr"])
-    op.create_index("ix_activities_firm_id", "activities", ["firm_id"])
-    op.create_index("ix_activities_created_at", "activities", ["created_at"])
+    op.execute("CREATE INDEX IF NOT EXISTS ix_activities_id ON activities (id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_activities_orgnr ON activities (orgnr)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_activities_firm_id ON activities (firm_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_activities_created_at ON activities (created_at)")
 
 
 def downgrade() -> None:
