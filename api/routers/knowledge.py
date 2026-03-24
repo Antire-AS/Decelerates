@@ -1,5 +1,6 @@
 import json
 import logging
+import uuid
 
 from fastapi import APIRouter, Query, HTTPException, Depends, Request
 
@@ -16,7 +17,7 @@ from api.services import (
     _embed,
     _llm_answer_raw,
 )
-from api.services.rag import save_qa_note
+from api.services.rag import save_qa_note, clear_chat_session as _clear_chat_session
 from api.rag_chain import build_rag_chain
 from api.schemas import ChatRequest, IngestKnowledgeRequest
 from api.dependencies import get_db
@@ -41,8 +42,26 @@ def _auto_ingest_company_data(orgnr: str, db: Session) -> None:
             _chunk_and_store(orgnr, src, str(offer.extracted_text), db)
 
 
-def _answer_with_rag_or_notes(orgnr: str, question: str, db_obj: Company, db: Session) -> str:
+def _build_history_context(orgnr: str, db: Session, session_id: str | None = None, limit: int = 5) -> str:
+    """Return last N Q&A pairs as a formatted conversation history string."""
+    q = db.query(CompanyNote).filter(CompanyNote.orgnr == orgnr)
+    if session_id:
+        q = q.filter(CompanyNote.session_id == session_id)
+    notes = q.order_by(CompanyNote.id.desc()).limit(limit).all()
+    if not notes:
+        return ""
+    pairs = "\n".join(
+        f"Q: {n.question}\nA: {n.answer}" for n in reversed(notes)
+    )
+    return f"Previous conversation:\n{pairs}"
+
+
+def _answer_with_rag_or_notes(
+    orgnr: str, question: str, db_obj: Company, db: Session, history_ctx: str = ""
+) -> str:
     """Try chunk-based RAG; fall back to CompanyNote cosine search."""
+    full_q = f"{history_ctx}\n\nCurrent question: {question}" if history_ctx else question
+
     chunk_texts = _retrieve_chunks(orgnr, question, db, limit=5)
     if chunk_texts:
         rag = build_rag_chain(
@@ -50,7 +69,7 @@ def _answer_with_rag_or_notes(orgnr: str, question: str, db_obj: Company, db: Se
             retriever_fn=lambda q: _retrieve_chunks(orgnr, q, db, limit=5),
             system_prompt=CHAT_SYSTEM_PROMPT,
         )
-        return rag(question) or ""
+        return rag(full_q) or ""
 
     q_emb = _embed(question)
     if q_emb:
@@ -69,30 +88,41 @@ def _answer_with_rag_or_notes(orgnr: str, question: str, db_obj: Company, db: Se
             .limit(5)
             .all()
         )[::-1]
-    return _llm_answer(_build_company_context(db_obj, relevant_notes), question)
+    context = _build_company_context(db_obj, relevant_notes)
+    if history_ctx:
+        context = f"{context}\n\n{history_ctx}"
+    return _llm_answer(context, question)
 
 
 @router.post("/org/{orgnr}/chat")
 @limiter.limit("10/minute")
-def chat_about_org(request: Request, orgnr: str, body: ChatRequest, db: Session = Depends(get_db)):
-    from api.rag_chain import build_rag_chain
+def chat_about_org(
+    request: Request,
+    orgnr: str,
+    body: ChatRequest,
+    session_id: str = Query(default=""),
+    db: Session = Depends(get_db),
+):
+    from api.rag_chain import build_rag_chain  # noqa: F401 (imported for side-effects)
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
         raise HTTPException(
             status_code=404,
             detail="Company not in database — call /org/{orgnr} first to load it",
         )
+    active_session = session_id.strip() or str(uuid.uuid4())
     _auto_ingest_company_data(orgnr, db)
+    history_ctx = _build_history_context(orgnr, db, session_id=active_session)
     try:
-        answer = _answer_with_rag_or_notes(orgnr, body.question, db_obj, db)
+        answer = _answer_with_rag_or_notes(orgnr, body.question, db_obj, db, history_ctx)
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    note_id = save_qa_note(orgnr, body.question, answer, db)
+    note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
     _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
-    return {"orgnr": orgnr, "question": body.question, "answer": answer}
+    return {"orgnr": orgnr, "question": body.question, "answer": answer, "session_id": active_session}
 
 
 @router.post("/org/{orgnr}/ingest-knowledge")
@@ -141,25 +171,35 @@ def search_knowledge(
 @router.get("/org/{orgnr}/chat")
 def get_chat_history(
     orgnr: str,
+    session_id: str = Query(default=""),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list:
-    notes = (
-        db.query(CompanyNote)
-        .filter(CompanyNote.orgnr == orgnr)
-        .order_by(CompanyNote.id.desc())
-        .limit(limit)
-        .all()
-    )
+    q = db.query(CompanyNote).filter(CompanyNote.orgnr == orgnr)
+    if session_id.strip():
+        q = q.filter(CompanyNote.session_id == session_id.strip())
+    notes = q.order_by(CompanyNote.id.asc()).limit(limit).all()
     return [
         {
             "id": n.id,
+            "session_id": n.session_id,
             "question": n.question,
             "answer": n.answer,
             "created_at": n.created_at,
         }
         for n in notes
     ]
+
+
+@router.delete("/org/{orgnr}/chat")
+def delete_chat_session(
+    orgnr: str,
+    session_id: str = Query(...),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Delete all Q&A notes for a specific chat session."""
+    deleted = _clear_chat_session(orgnr, session_id, db)
+    return {"deleted": deleted, "session_id": session_id}
 
 
 # ── Knowledge base chat (videos + insurance docs) ─────────────────────────────

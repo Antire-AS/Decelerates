@@ -332,46 +332,77 @@ def render_profile_financials(
 
     # ── 8) Analyst chat ────────────────────────────────
     with st.expander(T("Ask analyst"), expanded=False):
-        question = st.text_input(
-            T("Question label"),
-            placeholder=T("Question placeholder"),
-            key="chat_input",
-        )
-        if st.button("Ask"):
-            if question:
-                with st.spinner("Thinking..."):
+        import uuid as _uuid
+        chat_key = f"company_chat_{selected_orgnr}"
+        loaded_key = f"company_chat_loaded_{selected_orgnr}"
+        session_key = f"company_chat_session_{selected_orgnr}"
+
+        # Ensure a session_id exists for this company
+        if session_key not in st.session_state:
+            st.session_state[session_key] = str(_uuid.uuid4())
+        active_session = st.session_state[session_key]
+
+        # Load persisted history for this session once per orgnr
+        if not st.session_state.get(loaded_key):
+            try:
+                hist_resp = requests.get(
+                    f"{API_BASE}/org/{selected_orgnr}/chat",
+                    params={"session_id": active_session, "limit": 20},
+                    timeout=10,
+                )
+                if hist_resp.ok:
+                    msgs = []
+                    for h in hist_resp.json():
+                        msgs.append({"role": "user",      "content": h["question"]})
+                        msgs.append({"role": "assistant", "content": h["answer"]})
+                    st.session_state[chat_key] = msgs
+            except Exception:
+                pass
+            st.session_state[loaded_key] = True
+
+        if chat_key not in st.session_state:
+            st.session_state[chat_key] = []
+
+        # Render existing messages
+        for msg in st.session_state[chat_key]:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+        # New question input
+        new_q = st.chat_input(T("Question placeholder"), key=f"chat_input_{selected_orgnr}")
+        if new_q:
+            st.session_state[chat_key].append({"role": "user", "content": new_q})
+            with st.chat_message("user"):
+                st.markdown(new_q)
+            with st.chat_message("assistant"):
+                with st.spinner("Tenker..."):
                     try:
                         resp = requests.post(
                             f"{API_BASE}/org/{selected_orgnr}/chat",
-                            json={"question": question}, timeout=30,
+                            json={"question": new_q},
+                            params={"session_id": active_session},
+                            timeout=60,
                         )
-                        resp.raise_for_status()
-                        st.session_state["chat_answer"] = resp.json()
+                        answer = resp.json().get("answer", f"Feil: {resp.status_code}") if resp.ok else f"Feil: {resp.status_code}"
                     except Exception as e:
-                        st.error(f"Chat failed: {e}")
-            else:
-                st.warning("Please enter a question.")
+                        answer = f"Kunne ikke kontakte API: {e}"
+                    st.markdown(answer)
+            st.session_state[chat_key].append({"role": "assistant", "content": answer})
 
-        if st.session_state["chat_answer"]:
-            data = st.session_state["chat_answer"]
-            st.markdown(f"**Q:** {data['question']}")
-            st.info(data["answer"])
-
-        try:
-            chat_hist_resp = requests.get(
-                f"{API_BASE}/org/{selected_orgnr}/chat", params={"limit": 10}, timeout=10,
-            )
-            chat_hist_resp.raise_for_status()
-            chat_history = chat_hist_resp.json()
-            if chat_history:
-                st.markdown(f"#### {T('Previous questions')}")
-                for item in chat_history:
-                    date = item.get("created_at", "")[:10]
-                    st.markdown(f"**[{date}] Q:** {item['question']}")
-                    st.write(item["answer"])
-                    st.divider()
-        except Exception:
-            pass
+        if st.session_state[chat_key] and st.button("Ny samtale", key=f"clear_chat_{selected_orgnr}"):
+            # Clear on the API side and start a fresh session
+            try:
+                requests.delete(
+                    f"{API_BASE}/org/{selected_orgnr}/chat",
+                    params={"session_id": active_session},
+                    timeout=5,
+                )
+            except Exception:
+                pass
+            st.session_state[chat_key] = []
+            st.session_state[loaded_key] = False
+            st.session_state[session_key] = str(_uuid.uuid4())
+            st.rerun()
 
     # ── 9) Broker notes ────────────────────────────────
     with st.expander(T("Notes"), expanded=False):

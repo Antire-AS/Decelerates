@@ -54,6 +54,7 @@ class CompanyNote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     orgnr = Column(String(9), index=True, nullable=False)
+    session_id = Column(String(36), nullable=True, index=True)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
     created_at = Column(String, nullable=False)

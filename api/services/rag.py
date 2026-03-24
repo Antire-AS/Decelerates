@@ -113,11 +113,12 @@ class RagService:
             )
         return [r.chunk_text for r in rows]
 
-    def save_qa_note(self, orgnr: str, question: str, answer: str) -> int:
+    def save_qa_note(self, orgnr: str, question: str, answer: str, session_id: str | None = None) -> int:
         """Persist a Q&A pair as a CompanyNote with embedding. Returns the note ID."""
         emb = _embed(f"{question} {answer}")
         note = CompanyNote(
             orgnr=orgnr,
+            session_id=session_id or None,
             question=question,
             answer=answer,
             created_at=datetime.now(timezone.utc).isoformat(),
@@ -154,8 +155,19 @@ def _retrieve_chunks(orgnr: str, question: str, db: Session, limit: int = 5) -> 
     return RagService(db).retrieve_chunks(orgnr, question, limit)
 
 
-def save_qa_note(orgnr: str, question: str, answer: str, db: Session) -> int:
-    return RagService(db).save_qa_note(orgnr, question, answer)
+def save_qa_note(orgnr: str, question: str, answer: str, db: Session, session_id: str | None = None) -> int:
+    return RagService(db).save_qa_note(orgnr, question, answer, session_id)
+
+
+def clear_chat_session(orgnr: str, session_id: str, db: Session) -> int:
+    """Delete all Q&A notes for a session. Returns count deleted."""
+    deleted = (
+        db.query(CompanyNote)
+        .filter(CompanyNote.orgnr == orgnr, CompanyNote.session_id == session_id)
+        .delete()
+    )
+    db.commit()
+    return deleted
 
 
 def _save_to_rag(orgnr: str, label: str, content: str, db: Session) -> None:
