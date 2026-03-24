@@ -208,6 +208,7 @@ class Portfolio(Base):
     __tablename__ = "portfolios"
 
     id          = Column(Integer, primary_key=True, index=True)
+    firm_id     = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=True, index=True)
     name        = Column(String, nullable=False)
     description = Column(String)
     created_at  = Column(String, nullable=False)
@@ -273,6 +274,14 @@ class PolicyStatus(enum.Enum):
     pending   = "pending"
 
 
+class RenewalStage(enum.Enum):
+    not_started    = "not_started"
+    ready_to_quote = "ready_to_quote"
+    quoted         = "quoted"
+    accepted       = "accepted"
+    declined       = "declined"
+
+
 class Policy(Base):
     """A bound insurance policy in the broker's book of business."""
     __tablename__ = "policies"
@@ -289,6 +298,7 @@ class Policy(Base):
     start_date          = Column(Date, nullable=True)
     renewal_date        = Column(Date, nullable=True, index=True)
     status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active)
+    renewal_stage       = Column(SAEnum(RenewalStage, name="renewal_stage", create_type=False), nullable=False, default=RenewalStage.not_started)
     notes               = Column(String, nullable=True)
     document_url        = Column(String, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)

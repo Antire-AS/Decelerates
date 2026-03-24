@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from api.auth import CurrentUser, get_current_user
 from api.db import PortfolioCompany, Company, Portfolio
 from api.db import SessionLocal
 from api.dependencies import get_db
@@ -23,30 +24,46 @@ def _svc(db: Session = Depends(get_db)) -> PortfolioService:
 # ── CRUD ──────────────────────────────────────────────────────────────────────
 
 @router.post("/portfolio")
-def create_portfolio(body: PortfolioCreate, svc: PortfolioService = Depends(_svc)) -> dict:
-    p = svc.create(body.name, body.description or "")
+def create_portfolio(
+    body: PortfolioCreate,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    p = svc.create(body.name, user.firm_id, body.description or "")
     return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
 
 
 @router.get("/portfolio")
-def list_portfolios(svc: PortfolioService = Depends(_svc)) -> list:
+def list_portfolios(
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> list:
     return [
         {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
-        for p in svc.list_portfolios()
+        for p in svc.list_portfolios(user.firm_id)
     ]
 
 
 @router.delete("/portfolio/{portfolio_id}")
-def delete_portfolio(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -> dict:
+def delete_portfolio(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     try:
-        svc.delete(portfolio_id)
+        svc.delete(portfolio_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return {"deleted": portfolio_id}
 
 
 @router.post("/portfolio/{portfolio_id}/companies")
-def add_company(portfolio_id: int, body: PortfolioAddCompany, svc: PortfolioService = Depends(_svc)) -> dict:
+def add_company(
+    portfolio_id: int,
+    body: PortfolioAddCompany,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     try:
         svc.add_company(portfolio_id, body.orgnr)
     except NotFoundError as e:
@@ -55,7 +72,12 @@ def add_company(portfolio_id: int, body: PortfolioAddCompany, svc: PortfolioServ
 
 
 @router.delete("/portfolio/{portfolio_id}/companies/{orgnr}")
-def remove_company(portfolio_id: int, orgnr: str, svc: PortfolioService = Depends(_svc)) -> dict:
+def remove_company(
+    portfolio_id: int,
+    orgnr: str,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     svc.remove_company(portfolio_id, orgnr)
     return {"portfolio_id": portfolio_id, "orgnr": orgnr}
 
@@ -63,7 +85,11 @@ def remove_company(portfolio_id: int, orgnr: str, svc: PortfolioService = Depend
 # ── Analysis ──────────────────────────────────────────────────────────────────
 
 @router.get("/portfolio/{portfolio_id}/risk")
-def get_portfolio_risk(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -> list:
+def get_portfolio_risk(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> list:
     """Return risk summary for every company in the portfolio, sorted by risk score."""
     try:
         return svc.get_risk_summary(portfolio_id)
@@ -72,7 +98,11 @@ def get_portfolio_risk(portfolio_id: int, svc: PortfolioService = Depends(_svc))
 
 
 @router.post("/portfolio/{portfolio_id}/ingest")
-def ingest_portfolio(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -> dict:
+def ingest_portfolio(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Batch-fetch BRREG + financial data for all companies not yet in the database."""
     try:
         return svc.ingest_companies(portfolio_id)
@@ -258,7 +288,11 @@ def stream_seed_norway(portfolio_id: int):
 
 
 @router.post("/portfolio/{portfolio_id}/enrich-pdfs")
-def enrich_pdfs(portfolio_id: int, svc: PortfolioService = Depends(_svc)) -> dict:
+def enrich_pdfs(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Trigger background PDF discovery + 5-year extraction for all companies in the portfolio.
 
     Returns immediately. Check /portfolio/{id}/risk for progress as data populates.
@@ -276,6 +310,7 @@ def portfolio_chat(
     portfolio_id: int,
     body: ChatRequest,
     svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Answer a question grounded in the financial data of all companies in the portfolio."""
     try:
@@ -285,7 +320,11 @@ def portfolio_chat(
 
 
 @router.get("/portfolio/{portfolio_id}/alerts")
-def get_portfolio_alerts(portfolio_id: int, db: Session = Depends(get_db)) -> list:
+def get_portfolio_alerts(
+    portfolio_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> list:
     """Detect significant YoY financial changes for companies in the portfolio."""
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
@@ -294,7 +333,11 @@ def get_portfolio_alerts(portfolio_id: int, db: Session = Depends(get_db)) -> li
 
 
 @router.get("/portfolio/{portfolio_id}/concentration")
-def get_portfolio_concentration(portfolio_id: int, db: Session = Depends(get_db)) -> dict:
+def get_portfolio_concentration(
+    portfolio_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Return portfolio concentration breakdown by industry, geography, and revenue size."""
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
@@ -361,7 +404,11 @@ def get_portfolio_concentration(portfolio_id: int, db: Session = Depends(get_db)
 
 
 @router.get("/portfolio/{portfolio_id}/pdf")
-def download_portfolio_pdf(portfolio_id: int, db: Session = Depends(get_db)):
+def download_portfolio_pdf(
+    portfolio_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
     """Generate and stream a portfolio report PDF."""
     from api.db import BrokerSettings
     from api.services.pdf_generate import generate_portfolio_pdf

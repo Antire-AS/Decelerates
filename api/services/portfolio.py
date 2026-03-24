@@ -18,9 +18,10 @@ class PortfolioService:
 
     # ── CRUD ──────────────────────────────────────────────────────────────────
 
-    def create(self, name: str, description: str = "") -> Portfolio:
+    def create(self, name: str, firm_id: int, description: str = "") -> Portfolio:
         p = Portfolio(
             name=name.strip(),
+            firm_id=firm_id,
             description=(description or "").strip(),
             created_at=datetime.now(timezone.utc).isoformat(),
         )
@@ -29,17 +30,25 @@ class PortfolioService:
         self.db.refresh(p)
         return p
 
-    def list_portfolios(self) -> list[Portfolio]:
-        return self.db.query(Portfolio).order_by(Portfolio.id.desc()).all()
+    def list_portfolios(self, firm_id: int) -> list[Portfolio]:
+        return (
+            self.db.query(Portfolio)
+            .filter((Portfolio.firm_id == firm_id) | (Portfolio.firm_id.is_(None)))
+            .order_by(Portfolio.id.desc())
+            .all()
+        )
 
-    def get(self, portfolio_id: int) -> Portfolio:
-        p = self.db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    def get(self, portfolio_id: int, firm_id: Optional[int] = None) -> Portfolio:
+        q = self.db.query(Portfolio).filter(Portfolio.id == portfolio_id)
+        if firm_id is not None:
+            q = q.filter((Portfolio.firm_id == firm_id) | (Portfolio.firm_id.is_(None)))
+        p = q.first()
         if not p:
             raise NotFoundError(f"Portfolio {portfolio_id} not found")
         return p
 
-    def delete(self, portfolio_id: int) -> None:
-        p = self.get(portfolio_id)
+    def delete(self, portfolio_id: int, firm_id: int) -> None:
+        p = self.get(portfolio_id, firm_id)
         self.db.delete(p)
         self.db.commit()
 
