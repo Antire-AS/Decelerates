@@ -424,9 +424,8 @@ def _render_benchmarks(rows: list) -> None:
     tbl["Omsetning"]  = tbl["revenue"].apply(_fmt_mnok)
     tbl["Risikoscore"] = tbl["risk_score"].fillna("–").astype(str)
     st.dataframe(
-        tbl[["navn", "orgnr", "EK-status", "Omsetning", "Risikoscore"]]
-        .rename(columns={"navn": "Selskap", "orgnr": "Orgnr"})
-        .sort_values("EK-andel %"),
+        tbl.sort_values("EK-andel %")[["navn", "orgnr", "EK-status", "Omsetning", "Risikoscore"]]
+        .rename(columns={"navn": "Selskap", "orgnr": "Orgnr"}),
         use_container_width=True,
         hide_index=True,
     )
