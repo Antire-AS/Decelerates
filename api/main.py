@@ -97,18 +97,11 @@ def _stamp_existing_db_if_needed(alembic_cfg) -> None:
 
 @app.on_event("startup")
 def on_startup():
-    import sys
-    def _log(msg): print(f"[STARTUP] {msg}", file=sys.stderr, flush=True)
     alembic_cfg = AlembicConfig("alembic.ini")
-    _log("stamping")
     _stamp_existing_db_if_needed(alembic_cfg)
-    _log("running migrations")
     alembic_command.upgrade(alembic_cfg, "head")
-    _log("init_db")
     init_db()
-    _log("ensure_index")
     SearchService().ensure_index()
-    _log("seed_pdf_sources")
     db = next(get_db())
     try:
         _seed_pdf_sources(db)

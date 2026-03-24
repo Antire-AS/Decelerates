@@ -17,11 +17,13 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "company_notes",
-        sa.Column("session_id", sa.String(36), nullable=True),
+    op.execute("SET LOCAL lock_timeout = '60s'")
+    op.execute(
+        "ALTER TABLE company_notes ADD COLUMN IF NOT EXISTS session_id VARCHAR(36)"
     )
-    op.create_index("ix_company_notes_session_id", "company_notes", ["session_id"])
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_company_notes_session_id ON company_notes (session_id)"
+    )
 
 
 def downgrade() -> None:

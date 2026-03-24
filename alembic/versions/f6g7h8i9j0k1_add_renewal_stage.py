@@ -19,18 +19,17 @@ _STAGES = ("not_started", "ready_to_quote", "quoted", "accepted", "declined")
 
 
 def upgrade() -> None:
+    # Set lock timeout so migration fails fast rather than hanging if a lock is held.
+    op.execute("SET LOCAL lock_timeout = '60s'")
     op.execute(
         "CREATE TYPE IF NOT EXISTS renewal_stage AS ENUM "
         "('not_started', 'ready_to_quote', 'quoted', 'accepted', 'declined')"
     )
-    op.add_column(
-        "policies",
-        sa.Column(
-            "renewal_stage",
-            sa.Enum(*_STAGES, name="renewal_stage", create_type=False),
-            nullable=False,
-            server_default="not_started",
-        ),
+    # Add as nullable first (fast DDL — no table rewrite required).
+    # Backfill default, then promote to NOT NULL in two steps to avoid long locks.
+    op.execute(
+        "ALTER TABLE policies ADD COLUMN IF NOT EXISTS renewal_stage "
+        "renewal_stage NOT NULL DEFAULT 'not_started'"
     )
 
 

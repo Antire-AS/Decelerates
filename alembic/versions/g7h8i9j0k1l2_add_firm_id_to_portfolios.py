@@ -17,16 +17,19 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "portfolios",
-        sa.Column("firm_id", sa.Integer(), nullable=True),
+    op.execute("SET LOCAL lock_timeout = '60s'")
+    op.execute(
+        "ALTER TABLE portfolios ADD COLUMN IF NOT EXISTS firm_id INTEGER"
     )
-    op.create_index("ix_portfolios_firm_id", "portfolios", ["firm_id"])
-    op.create_foreign_key(
-        "fk_portfolios_firm_id",
-        "portfolios", "broker_firms",
-        ["firm_id"], ["id"],
-        ondelete="CASCADE",
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_portfolios_firm_id ON portfolios (firm_id)"
+    )
+    op.execute(
+        "ALTER TABLE portfolios DROP CONSTRAINT IF EXISTS fk_portfolios_firm_id"
+    )
+    op.execute(
+        "ALTER TABLE portfolios ADD CONSTRAINT fk_portfolios_firm_id "
+        "FOREIGN KEY (firm_id) REFERENCES broker_firms(id) ON DELETE CASCADE"
     )
 
 
