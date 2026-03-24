@@ -90,6 +90,7 @@ class PolicyIn(BaseModel):
     start_date:          Optional[date] = None
     renewal_date:        Optional[date] = None
     status:              str = "active"
+    renewal_stage:       Optional[str] = None
     notes:               Optional[str] = None
     document_url:        Optional[str] = None
 
@@ -104,8 +105,14 @@ class PolicyUpdate(BaseModel):
     start_date:          Optional[date] = None
     renewal_date:        Optional[date] = None
     status:              Optional[str] = None
+    renewal_stage:       Optional[str] = None
     notes:               Optional[str] = None
     document_url:        Optional[str] = None
+
+
+class RenewalAdvanceIn(BaseModel):
+    stage:        str            # not_started | ready_to_quote | quoted | accepted | declined
+    notify_email: Optional[str] = None  # if set, send stage-change email to this address
 
 
 # ── Claims ──────────────────────────────────────────────────────────────────

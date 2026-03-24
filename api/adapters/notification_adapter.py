@@ -181,6 +181,49 @@ class AzureEmailNotificationAdapter(NotificationPort):
         """
         return self.send_email(to, subject, body_html)
 
+    def send_renewal_stage_change(
+        self, to: str, policy_number: str, insurer: str, product_type: str, stage: str
+    ) -> bool:
+        _STAGE_LABELS = {
+            "not_started":    "Ikke startet",
+            "ready_to_quote": "Klar for tilbud",
+            "quoted":         "Tilbud sendt",
+            "accepted":       "Akseptert",
+            "declined":       "Avslått",
+        }
+        _STAGE_COLORS = {
+            "not_started":    "#888888",
+            "ready_to_quote": "#e67e22",
+            "quoted":         "#2980b9",
+            "accepted":       "#27ae60",
+            "declined":       "#c0392b",
+        }
+        label = _STAGE_LABELS.get(stage, stage)
+        color = _STAGE_COLORS.get(stage, "#888")
+        subject = f"Fornyelse oppdatert — {policy_number} ({insurer})"
+        body_html = f"""
+        <html><body style='font-family:Arial,sans-serif;color:#222'>
+        <h2 style='color:#1a252f'>Broker Accelerator — Fornyelse oppdatert</h2>
+        <p>Status for følgende forsikringsavtale er oppdatert:</p>
+        <table style='border-collapse:collapse;font-size:14px;margin:12px 0'>
+          <tr><td style='padding:6px 16px 6px 0;color:#666'>Avtalenummer</td>
+              <td style='padding:6px 0'><strong>{policy_number}</strong></td></tr>
+          <tr><td style='padding:6px 16px 6px 0;color:#666'>Forsikringsselskap</td>
+              <td style='padding:6px 0'>{insurer}</td></tr>
+          <tr><td style='padding:6px 16px 6px 0;color:#666'>Produkt</td>
+              <td style='padding:6px 0'>{product_type}</td></tr>
+          <tr><td style='padding:6px 16px 6px 0;color:#666'>Ny status</td>
+              <td style='padding:6px 0'>
+                <span style='background:{color};color:#fff;padding:3px 10px;
+                border-radius:12px;font-size:13px'>{label}</span>
+              </td></tr>
+        </table>
+        <p style='margin-top:24px;font-size:12px;color:#888'>
+          Logg inn i Broker Accelerator for å se fornyelsespipelinen.</p>
+        </body></html>
+        """
+        return self.send_email(to, subject, body_html)
+
     def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool:
         if not renewals:
             return False

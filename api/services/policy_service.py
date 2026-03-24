@@ -4,7 +4,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from api.db import Policy, PolicyStatus
+from api.db import Policy, PolicyStatus, RenewalStage
 from api.domain.exceptions import NotFoundError
 from api.schemas import PolicyIn, PolicyUpdate
 
@@ -45,6 +45,7 @@ class PolicyService:
             start_date=body.start_date,
             renewal_date=body.renewal_date,
             status=self._parse_status(body.status),
+            renewal_stage=self._parse_renewal_stage(body.renewal_stage) if body.renewal_stage else RenewalStage.not_started,
             notes=body.notes,
             created_at=now,
             updated_at=now,
@@ -59,8 +60,18 @@ class PolicyService:
         data = body.model_dump(exclude_none=True)
         if "status" in data:
             data["status"] = self._parse_status(data["status"])
+        if "renewal_stage" in data:
+            data["renewal_stage"] = self._parse_renewal_stage(data["renewal_stage"])
         for field, value in data.items():
             setattr(policy, field, value)
+        policy.updated_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(policy)
+        return policy
+
+    def advance_renewal_stage(self, policy_id: int, firm_id: int, new_stage: str) -> Policy:
+        policy = self._get_or_raise(policy_id, firm_id)
+        policy.renewal_stage = self._parse_renewal_stage(new_stage)
         policy.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(policy)
@@ -102,3 +113,10 @@ class PolicyService:
             return PolicyStatus[value]
         except KeyError:
             raise NotFoundError(f"Unknown policy status: {value}")
+
+    @staticmethod
+    def _parse_renewal_stage(value: str) -> RenewalStage:
+        try:
+            return RenewalStage[value]
+        except KeyError:
+            raise NotFoundError(f"Unknown renewal stage: {value}")

@@ -32,3 +32,8 @@ class NotificationPort(ABC):
     def send_forsikringstilbud(
         self, to: str, client_navn: str, orgnr: str, share_url: str
     ) -> bool: ...
+
+    @abstractmethod
+    def send_renewal_stage_change(
+        self, to: str, policy_number: str, insurer: str, product_type: str, stage: str
+    ) -> bool: ...

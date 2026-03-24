@@ -187,6 +187,10 @@ _JUSTIFIED = {
     "_render_exports",
     # render_admin_tab — users table + exports + role management; Streamlit imperative API
     "render_admin_tab",
+    # send_renewal_stage_change — HTML email template with colour map + table cells; single coherent email
+    "send_renewal_stage_change",
+    # _render_benchmarks — equity ratio bar chart + traffic-light table; Streamlit imperative layout
+    "_render_benchmarks",
 }
 
 # Files excluded from function-length checks (non-production scripts)
