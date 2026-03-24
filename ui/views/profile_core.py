@@ -125,7 +125,7 @@ def render_oversikt_section(
                         }
                         for m in active
                     ]),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                     height=row_h,
                 )
@@ -142,7 +142,7 @@ def render_oversikt_section(
                             }
                             for m in resigned
                         ]),
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True,
                     )
         else:
@@ -225,7 +225,7 @@ def render_oversikt_section(
                 }
                 for f in factors
             ]
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
             st.caption(f"Maks mulig score: {MAX_SCORE} poeng · Scoreskala: 0–3 Lav · 4–7 Moderat · 8–12 Høy · 13+ Svært høy")
         else:
             st.success("Ingen risikofaktorer identifisert.")
@@ -405,7 +405,7 @@ def render_forsikring_section(
                     }
                     for n in needs_list
                 ]
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
                 total_mid = sum(
                     n.get("estimated_annual_premium_nok", {}).get("mid", 0)
                     for n in needs_list
@@ -449,7 +449,7 @@ def render_forsikring_section(
                 col_map2 = {"type": "Forsikringstype", "prioritet": "Prioritet",
                             "anbefalt_sum": "Anbefalt dekningssum", "begrunnelse": "Begrunnelse"}
                 df_offer = df_offer.rename(columns={k: v for k, v in col_map2.items() if k in df_offer.columns})
-                st.dataframe(df_offer, use_container_width=True, hide_index=True)
+                st.dataframe(df_offer, width="stretch", hide_index=True)
             if offer.get("total_premieanslag"):
                 st.caption(f"Estimert premieanslag: **{offer['total_premieanslag']}**")
 

@@ -333,7 +333,7 @@ def render_sla_tab() -> None:
                     rate_str = f"{f['rate']} %" if f["type"] == "provisjon" and f.get("rate") else \
                                f"NOK {int(f['rate']):,}".replace(",", " ") if f["type"] == "fast" and f.get("rate") else "—"
                     fee_data.append({"Line": f["line"], "Fee type": type_label, "Rate / Amount": rate_str})
-                st.dataframe(pd.DataFrame(fee_data), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(fee_data), width="stretch", hide_index=True)
 
             st.divider()
             col_back, col_gen = st.columns([1, 4])

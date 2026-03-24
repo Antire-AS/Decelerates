@@ -211,11 +211,11 @@ def render_videos_tab() -> None:
                 unsafe_allow_html=True,
             )
             if not is_active:
-                if st.button("Spill av", key=f"vid_nav_{i}", use_container_width=True):
+                if st.button("Spill av", key=f"vid_nav_{i}", width="stretch"):
                     st.session_state["selected_video_idx"] = i
                     st.rerun()
             else:
-                st.button("▶ Spiller nå", key=f"vid_nav_{i}", use_container_width=True,
+                st.button("▶ Spiller nå", key=f"vid_nav_{i}", width="stretch",
                           disabled=True, type="primary")
 
         st.markdown("---")

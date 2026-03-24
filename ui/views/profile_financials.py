@@ -185,7 +185,7 @@ def render_profile_financials(
                 summary_rows.append(r)
                 prev = row
 
-            st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(summary_rows), width="stretch", hide_index=True)
             st.caption(T("Source history"))
 
             df_hist = pd.DataFrame(sorted_years).set_index("year")

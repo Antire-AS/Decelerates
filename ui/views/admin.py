@@ -16,7 +16,7 @@ def _render_exports(headers: dict) -> None:
     col_r, col_p = st.columns(2)
 
     with col_r:
-        if st.button("Hent fornyelsesrapport (Excel)", use_container_width=True):
+        if st.button("Hent fornyelsesrapport (Excel)", width="stretch"):
             try:
                 resp = requests.get(
                     f"{API_BASE}/renewals", params={"days": 365},
@@ -43,7 +43,7 @@ def _render_exports(headers: dict) -> None:
                 st.error(str(e))
 
     with col_p:
-        if st.button("Hent premievolum (Excel)", use_container_width=True):
+        if st.button("Hent premievolum (Excel)", width="stretch"):
             try:
                 resp = requests.get(f"{API_BASE}/policies", headers=headers, timeout=10)
                 policies = resp.json() if resp.ok else []
@@ -106,7 +106,7 @@ def _render_audit_log(headers: dict) -> None:
         "Orgnr":      r.get("orgnr") or "–",
         "Detaljer":   r.get("detail") or "–",
     } for r in rows])
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
 
 def render_admin_tab() -> None:
@@ -201,7 +201,7 @@ def _render_crm_seed() -> None:
         "Oppretter realistiske forsikringsavtaler, skader og aktiviteter for demo-selskapene "
         "slik at Fornyelser, CRM-faner og dashboardet viser ekte data."
     )
-    if st.button("Seed CRM demo-data", key="seed_crm_btn", use_container_width=True, type="primary"):
+    if st.button("Seed CRM demo-data", key="seed_crm_btn", width="stretch", type="primary"):
         with st.spinner("Oppretter demo CRM-data…"):
             try:
                 r = requests.post(f"{API_BASE}/admin/seed-crm-demo", timeout=30)
@@ -224,7 +224,7 @@ def _render_demo_documents() -> None:
         "Genererer anonymiserte kopier av eksisterende forsikringsdokumenter — "
         "erstatter selskapsnavn, org.nr og justerer beløp. Brukes for testmiljø og demo."
     )
-    if st.button("Generer demo-dokumenter", key="seed_demo_docs_btn", use_container_width=True):
+    if st.button("Generer demo-dokumenter", key="seed_demo_docs_btn", width="stretch"):
         with st.spinner("Genererer demo-dokumenter…"):
             try:
                 r = requests.post(f"{API_BASE}/admin/seed-demo-documents", timeout=60)
@@ -253,7 +253,7 @@ def _render_data_controls() -> None:
             "Oppretter 'Demo Portefølje' med 8 store norske selskaper, "
             "henter BRREG-data og starter PDF-ekstraksjon i bakgrunnen."
         )
-        if st.button("▶ Last inn demo", key="admin_demo_tab", use_container_width=True, type="primary"):
+        if st.button("▶ Last inn demo", key="admin_demo_tab", width="stretch", type="primary"):
             with st.spinner("Henter selskapsdata..."):
                 try:
                     r = requests.post(f"{API_BASE}/admin/demo", timeout=60)
@@ -274,7 +274,7 @@ def _render_data_controls() -> None:
             "Sletter selskapsdata, regnskapshistorikk og porteføljer. "
             "Videoer, dokumenter og kunnskapsbasen beholdes."
         )
-        if st.button("🔄 Nullstill innsamlet data", key="admin_reset_tab", use_container_width=True, type="secondary"):
+        if st.button("🔄 Nullstill innsamlet data", key="admin_reset_tab", width="stretch", type="secondary"):
             st.session_state["confirm_admin_reset_tab"] = True
 
     if st.session_state.get("confirm_admin_reset_tab"):
@@ -299,7 +299,7 @@ def _render_data_controls() -> None:
         "og kjører AI-agenten (Claude/Gemini) for å finne årsrapport-PDF-er fra IR-sidene. "
         "Tar 30–90 minutter totalt."
     )
-    if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100_tab", use_container_width=True, type="primary"):
+    if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100_tab", width="stretch", type="primary"):
         with st.spinner("Slår opp selskaper i BRREG..."):
             try:
                 r = requests.post(f"{API_BASE}/admin/seed-norway-top100", timeout=60)
@@ -320,7 +320,7 @@ def _render_data_controls() -> None:
         "Sender e-post med aktive vekstalerts på tvers av alle porteføljer "
         "til broker-kontaktadressen konfigurert i Innstillinger."
     )
-    if st.button("Send porteføljedigest", key="admin_digest_tab", use_container_width=True):
+    if st.button("Send porteføljedigest", key="admin_digest_tab", width="stretch"):
         with st.spinner("Sender digest-e-post…"):
             try:
                 r = requests.post(f"{API_BASE}/admin/portfolio-digest", timeout=30)
@@ -335,7 +335,7 @@ def _render_data_controls() -> None:
             except Exception as e:
                 st.error(str(e))
 
-    if st.button("Send aktivitetspåminnelser", key="admin_activity_reminders", use_container_width=True):
+    if st.button("Send aktivitetspåminnelser", key="admin_activity_reminders", width="stretch"):
         with st.spinner("Sjekker forfallsdatoer og sender påminnelse…"):
             try:
                 r = requests.post(f"{API_BASE}/admin/activity-reminders", timeout=30)

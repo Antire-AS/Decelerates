@@ -78,7 +78,7 @@ def _render_with_tables(text: str) -> None:
                 try:
                     rows = [[c.strip() for c in ln.strip("|").split("|")] for ln in lines]
                     df = pd.DataFrame(rows[1:], columns=rows[0])
-                    st.dataframe(df, use_container_width=True, hide_index=True)
+                    st.dataframe(df, width="stretch", hide_index=True)
                     continue
                 except Exception:
                     pass
@@ -202,7 +202,7 @@ def _render_knowledge_chat() -> None:
             c1, c2 = st.columns(2)
             for i, (icon, q) in enumerate(_STARTERS):
                 col = c1 if i % 2 == 0 else c2
-                if col.button(f"{icon}  {q}", key=f"kb_starter_{i}", use_container_width=True):
+                if col.button(f"{icon}  {q}", key=f"kb_starter_{i}", width="stretch"):
                     st.session_state["kb_pending_question"] = q
                     st.rerun()
             st.markdown("---")
@@ -269,7 +269,7 @@ def _render_knowledge_chat() -> None:
                             f"{prefix}  {ts}  {label}",
                             key=f"kb_step_{step_i}",
                             type="primary" if is_current else "secondary",
-                            use_container_width=True,
+                            width="stretch",
                         ):
                             st.session_state["kb_video_player"] = {
                                 **dl, "start_seconds": int(ch["start"]), "chapter": label,
@@ -377,7 +377,7 @@ def _render_knowledge_analyse() -> None:
         st.session_state["kb_analyse_result"] = None
 
     for label, prompt in _COMPARISON_PROMPTS:
-        if st.button(label, key=f"analyse_{label[:20]}", use_container_width=True):
+        if st.button(label, key=f"analyse_{label[:20]}", width="stretch"):
             with st.spinner("AI analyserer kunnskapsbasen…"):
                 try:
                     resp = requests.post(

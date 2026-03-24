@@ -80,7 +80,7 @@ def _render_comparison_table(df: pd.DataFrame, sort_col: str) -> None:
     display["Risikoscore"] = df["Risikoscore"].apply(lambda x: f"{x:.0f}" if x is not None else "–")
     display["År"] = df["År"].apply(lambda x: str(int(x)) if x else "–")
     cols = ["Selskap", "Omsetning", "Egenkapital", "EK-andel %", "Risikoscore", "Bransje", "År"]
-    st.dataframe(display[cols], use_container_width=True, hide_index=True)
+    st.dataframe(display[cols], width="stretch", hide_index=True)
 
 
 def _render_revenue_chart(df: pd.DataFrame) -> None:
@@ -176,20 +176,20 @@ def _render_premium_tab() -> None:
         if by_insurer:
             ins_df = pd.DataFrame(by_insurer).rename(columns={"insurer": "Selskap", "total_premium": "Premie NOK", "share_pct": "Andel %", "count": "Avtaler"})
             st.bar_chart(ins_df.set_index("Selskap")["Premie NOK"], height=260)
-            st.dataframe(ins_df[["Selskap", "Avtaler", "Andel %"]], use_container_width=True, hide_index=True)
+            st.dataframe(ins_df[["Selskap", "Avtaler", "Andel %"]], width="stretch", hide_index=True)
     with prod_col:
         st.markdown("**Premie per produkttype**")
         if by_product:
             prod_df = pd.DataFrame(by_product).rename(columns={"product_type": "Produkt", "total_premium": "Premie NOK", "share_pct": "Andel %", "count": "Avtaler"})
             st.bar_chart(prod_df.set_index("Produkt")["Premie NOK"], height=260)
-            st.dataframe(prod_df[["Produkt", "Avtaler", "Andel %"]], use_container_width=True, hide_index=True)
+            st.dataframe(prod_df[["Produkt", "Avtaler", "Andel %"]], width="stretch", hide_index=True)
 
     st.markdown("---")
     by_status = data.get("by_status") or []
     if by_status:
         status_df = pd.DataFrame(by_status).rename(columns={"status": "Status", "total_premium": "Premie NOK", "count": "Avtaler", "share_pct": "Andel %"})
         st.markdown("**Fordeling per status**")
-        st.dataframe(status_df[["Status", "Avtaler", "Premie NOK", "Andel %"]], use_container_width=True, hide_index=True)
+        st.dataframe(status_df[["Status", "Avtaler", "Premie NOK", "Andel %"]], width="stretch", hide_index=True)
 
     st.markdown("---")
     export_df = pd.DataFrame(by_insurer + [{"insurer": "—", "count": None, "total_premium": None, "share_pct": None}] + by_product)

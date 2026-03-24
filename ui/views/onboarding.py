@@ -56,7 +56,7 @@ _STEPS = [
 
 def render_onboarding_button() -> None:
     """Render a ? button in the sidebar that re-opens the onboarding tour."""
-    if st.sidebar.button("❓ Veiledning", key="onboarding_trigger", use_container_width=True):
+    if st.sidebar.button("❓ Veiledning", key="onboarding_trigger", width="stretch"):
         st.session_state["onboarding_open"] = True
         st.session_state["onboarding_step"] = 0
         st.rerun()

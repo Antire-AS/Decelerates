@@ -177,7 +177,7 @@ def render_renewals_tab() -> None:
             .format({"Premie (kr)": lambda v: f"kr {v:,.0f}" if v else "–"})
         )
 
-        st.dataframe(styled, use_container_width=True, hide_index=True)
+        st.dataframe(styled, width="stretch", hide_index=True)
         st.caption(
             f"Totalt {len(renewals)} avtaler · "
             f"Samlet premie: kr {total_premium:,.0f}"

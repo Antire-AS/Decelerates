@@ -99,7 +99,7 @@ def _render_overview(companies: list, all_slas: list) -> None:
     if "Risikoscore" in df_disp.columns:
         df_disp.insert(0, "Risikonivå", df["risk_score"].apply(_risk_badge))
         df_disp = df_disp.sort_values("Risikoscore", ascending=False, na_position="last")
-    st.dataframe(df_disp, use_container_width=True, hide_index=True)
+    st.dataframe(df_disp, width="stretch", hide_index=True)
 
     col_left, col_right = st.columns(2)
     with col_left:
@@ -125,7 +125,7 @@ def _render_portfolio_selector() -> int | None:
 
     col_sel, col_new = st.columns([3, 1])
     with col_new:
-        if st.button("+ Ny portefølje", use_container_width=True):
+        if st.button("+ Ny portefølje", width="stretch"):
             st.session_state["show_new_portfolio_form"] = True
 
     if st.session_state.get("show_new_portfolio_form"):
@@ -349,7 +349,7 @@ def _render_risk_table(portfolio_id: int) -> list:
         "År": df.get("regnskapsår", pd.Series(["–"] * len(df))).fillna("–").astype(str),
         "Score": df["risk_score"].fillna(0).astype(int),
     })
-    st.dataframe(df_display.sort_values("Score", ascending=False), use_container_width=True, hide_index=True)
+    st.dataframe(df_display.sort_values("Score", ascending=False), width="stretch", hide_index=True)
 
     with st.expander("Fjern selskaper", expanded=False):
         for r in rows:
@@ -426,7 +426,7 @@ def _render_benchmarks(rows: list) -> None:
     st.dataframe(
         tbl.sort_values("EK-andel %")[["navn", "orgnr", "EK-status", "Omsetning", "Risikoscore"]]
         .rename(columns={"navn": "Selskap", "orgnr": "Orgnr"}),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -646,7 +646,7 @@ def _render_nl_query() -> None:
 
         rows = result.get("rows", [])
         if rows:
-            st.dataframe(rows, use_container_width=True)
+            st.dataframe(rows, width="stretch")
             st.caption(f"{len(rows)} rader")
         else:
             st.info("Ingen resultater.")
@@ -662,7 +662,7 @@ def _render_admin_controls() -> None:
         with col_demo:
             st.markdown("**Last inn demo-data**")
             st.caption("Oppretter 'Demo Portefølje' med 8 store norske selskaper, henter BRREG-data og starter PDF-ekstraksjon i bakgrunnen.")
-            if st.button("▶ Last inn demo", key="admin_demo", use_container_width=True, type="primary"):
+            if st.button("▶ Last inn demo", key="admin_demo", width="stretch", type="primary"):
                 with st.spinner("Henter selskapsdata og starter PDF-ekstraksjon..."):
                     result = _post("/admin/demo", {})
                 if result:
@@ -683,7 +683,7 @@ def _render_admin_controls() -> None:
             "fra hvert selskaps investor relations-side. Ekstraksjon av 5-årig historikk kjører "
             "i bakgrunnen — tar 30–90 minutter totalt."
         )
-        if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100", use_container_width=True, type="primary"):
+        if st.button("🚀 Hent finansdata for Norges Topp 100", key="admin_top100", width="stretch", type="primary"):
             with st.spinner("Slår opp selskaper i BRREG og starter PDF-agent..."):
                 result = _post("/admin/seed-norway-top100", {})
             if result:
@@ -703,7 +703,7 @@ def _render_admin_controls() -> None:
             "Sender en e-post med aktive vekstalerts på tvers av alle porteføljer "
             "til broker-kontaktadressen konfigurert i Innstillinger."
         )
-        if st.button("Send porteføljedigest", key="admin_digest", use_container_width=True):
+        if st.button("Send porteføljedigest", key="admin_digest", width="stretch"):
             with st.spinner("Sender digest-e-post…"):
                 try:
                     r = requests.post(f"{API_BASE}/admin/portfolio-digest", timeout=30)
@@ -725,7 +725,7 @@ def _render_admin_controls() -> None:
                 "slik at alt hentes friskt fra nettet neste gang. "
                 "Videoer, dokumenter og kunnskapsbasen beholdes."
             )
-            if st.button("🔄 Nullstill innsamlet data", key="admin_reset_btn", use_container_width=True, type="secondary"):
+            if st.button("🔄 Nullstill innsamlet data", key="admin_reset_btn", width="stretch", type="secondary"):
                 st.session_state["confirm_admin_reset"] = True
 
         if st.session_state.get("confirm_admin_reset"):
@@ -797,7 +797,7 @@ def _render_premium_analytics(portfolio_id: int) -> None:
             df_ins = pd.DataFrame(ins)[["insurer", "premium_nok", "share_pct"]].copy()
             df_ins["premium_nok"] = (df_ins["premium_nok"] / 1_000_000).round(2)
             df_ins.rename(columns={"insurer": "Forsikringsselskap", "premium_nok": "Premie (MNOK)", "share_pct": "Andel %"}, inplace=True)
-            st.dataframe(df_ins, use_container_width=True, hide_index=True)
+            st.dataframe(df_ins, width="stretch", hide_index=True)
 
     with col_prod:
         prod = data.get("product_concentration", [])
@@ -806,7 +806,7 @@ def _render_premium_analytics(portfolio_id: int) -> None:
             df_prod = pd.DataFrame(prod)[["product_type", "count", "premium_nok"]].copy()
             df_prod["premium_nok"] = (df_prod["premium_nok"] / 1_000_000).round(2)
             df_prod.rename(columns={"product_type": "Produkttype", "count": "Antall", "premium_nok": "Premie (MNOK)"}, inplace=True)
-            st.dataframe(df_prod, use_container_width=True, hide_index=True)
+            st.dataframe(df_prod, width="stretch", hide_index=True)
 
 
 def _render_concentration(portfolio_id: int) -> None:
@@ -955,7 +955,7 @@ def _render_prospecting() -> None:
     ]
     df = pd.DataFrame(rows)
     selected = st.dataframe(
-        df, use_container_width=True, hide_index=True,
+        df, width="stretch", hide_index=True,
         on_select="rerun", selection_mode="single-row",
     )
     sel_rows = (selected.get("selection") or {}).get("rows", [])

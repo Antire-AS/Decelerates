@@ -89,18 +89,18 @@ def _render_quickstart() -> None:
     st.markdown("#### Hurtignavigering")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        if st.button("🔍 Selskapsøk", use_container_width=True, type="primary"):
+        if st.button("🔍 Selskapsøk", width="stretch", type="primary"):
             st.session_state["_goto_tab"] = "search"
             st.rerun()
     with c2:
-        if st.button("🔔 Fornyelser", use_container_width=True):
+        if st.button("🔔 Fornyelser", width="stretch"):
             st.session_state["_goto_tab"] = "renewals"
             st.rerun()
     with c3:
-        if st.button("📁 Portefølje", use_container_width=True):
+        if st.button("📁 Portefølje", width="stretch"):
             st.session_state["_goto_tab"] = "portfolio"
             st.rerun()
     with c4:
-        if st.button("📄 Dokumenter", use_container_width=True):
+        if st.button("📄 Dokumenter", width="stretch"):
             st.session_state["_goto_tab"] = "documents"
             st.rerun()

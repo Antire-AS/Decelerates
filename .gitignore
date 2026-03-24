@@ -6,3 +6,7 @@ __pycache__/
 sample_offers/
 .idea/
 .venv/
+cf-proxy/.wrangler/
+/routers/
+/services/
+/domain/
