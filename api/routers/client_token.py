@@ -4,8 +4,10 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from datetime import datetime, timezone
+
 from api.auth import CurrentUser, get_current_user, get_optional_user
-from api.db import Company
+from api.db import ClientToken, Company
 from api.dependencies import get_db
 from api.services import fetch_org_profile
 from api.services.audit import log_audit
