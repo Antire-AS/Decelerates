@@ -12,10 +12,11 @@ import logging
 
 from api.auth import CurrentUser, get_current_user
 from api.container import resolve
-from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings, ClientToken
+from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.ports.driven.notification_port import NotificationPort
 from api.services.audit import log_audit
+from api.services.client_token_service import get_or_create_active_token
 from api.services.llm import _llm_answer_raw, _fmt_nok, _parse_json_from_llm_response
 from api.services.rag import _save_to_rag
 from api.services.company import _generate_risk_narrative
@@ -333,29 +334,10 @@ def email_forsikringstilbud(
     if not db_obj:
         raise HTTPException(status_code=404, detail="Company not in database")
 
-    import secrets
-    from datetime import datetime, timedelta, timezone as _tz
-    from api.services.pdf_sources import save_insurance_document as _save_doc
-
-    # Create (or reuse an existing) client token for this company
-    now = datetime.now(_tz.utc)
-    token_row = (
-        db.query(ClientToken)
-        .filter(ClientToken.orgnr == orgnr, ClientToken.expires_at > now)
-        .order_by(ClientToken.expires_at.desc())
-        .first()
+    # Get or create a 30-day read-only token for this company
+    token_row = get_or_create_active_token(
+        orgnr, label=f"E-post til {recipient_email}", db=db
     )
-    if not token_row:
-        token_str = secrets.token_urlsafe(32)
-        token_row = ClientToken(
-            token=token_str, orgnr=orgnr,
-            label=f"E-post til {recipient_email}",
-            expires_at=now + timedelta(days=30),
-            created_at=now,
-        )
-        db.add(token_row)
-        db.commit()
-        db.refresh(token_row)
 
     ui_base = os.getenv("UI_BASE_URL", "https://ca-ui.thankfulplant-2ef6e3b0.norwayeast.azurecontainerapps.io")
     share_url = f"{ui_base}/?token={token_row.token}"

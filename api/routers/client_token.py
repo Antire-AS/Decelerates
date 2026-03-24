@@ -1,20 +1,21 @@
 """Client-token endpoints — generate and resolve read-only shareable profile links."""
-import secrets
-from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user, get_optional_user
-from api.db import ClientToken, Company
+from api.db import Company
 from api.dependencies import get_db
 from api.services import fetch_org_profile
 from api.services.audit import log_audit
+from api.services.client_token_service import (
+    _TOKEN_TTL_DAYS,
+    create_token,
+    list_active_tokens,
+)
 
 router = APIRouter()
-
-_TOKEN_TTL_DAYS = 30
 
 
 @router.post("/org/{orgnr}/client-token")
@@ -27,19 +28,10 @@ def create_client_token(
     """Generate a 30-day read-only token for sharing a company profile with a client."""
     if not db.query(Company).filter(Company.orgnr == orgnr).first():
         raise HTTPException(status_code=404, detail="Company not in database")
-    now = datetime.now(timezone.utc)
-    token = secrets.token_urlsafe(32)
-    db.add(ClientToken(
-        token=token,
-        orgnr=orgnr,
-        label=label or None,
-        expires_at=now + timedelta(days=_TOKEN_TTL_DAYS),
-        created_at=now,
-    ))
-    db.commit()
+    row = create_token(orgnr, label or None, db)
     log_audit(db, "create_client_token", orgnr=orgnr, actor_email=user.email,
               detail={"label": label or None})
-    return {"token": token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
+    return {"token": row.token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
 
 
 @router.get("/client/{token}")
@@ -79,13 +71,7 @@ def get_client_profile(
 @router.get("/org/{orgnr}/client-tokens")
 def list_client_tokens(orgnr: str, db: Session = Depends(get_db)) -> list:
     """List all active tokens for a company."""
-    now = datetime.now(timezone.utc)
-    rows = (
-        db.query(ClientToken)
-        .filter(ClientToken.orgnr == orgnr, ClientToken.expires_at > now)
-        .order_by(ClientToken.created_at.desc())
-        .all()
-    )
+    rows = list_active_tokens(orgnr, db)
     return [
         {"token": r.token, "label": r.label, "expires_at": r.expires_at.isoformat(),
          "created_at": r.created_at.isoformat()}
