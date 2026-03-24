@@ -1,4 +1,3 @@
-import logging
 import os
 
 import requests
@@ -9,6 +8,7 @@ from api.auth import CurrentUser, get_current_user
 from api.container import resolve
 from api.ports.driven.notification_port import NotificationPort
 from api.dependencies import get_db
+from api.services.admin_service import AdminService
 from api.services.portfolio import collect_alerts
 from api.services import (
     fetch_enhet_by_orgnr,
@@ -22,6 +22,10 @@ from api.services import (
 )
 
 router = APIRouter()
+
+
+def _admin_svc(db: Session = Depends(get_db)) -> AdminService:
+    return AdminService(db)
 
 
 @router.get("/org/{orgnr}/roles")
@@ -208,299 +212,28 @@ def debug_status() -> dict:
 
 # ── Admin: reset + demo seed ───────────────────────────────────────────────
 
-_log = logging.getLogger(__name__)
-
-_DEMO_ORGNRS = [
-    "984851006",   # DNB Bank ASA
-    "995568217",   # Gjensidige Forsikring ASA
-    "923609016",   # Equinor ASA
-    "979981344",   # Søderberg & Partners Norge AS
-    "943753709",   # Kongsberg Gruppen ASA
-    "982463718",   # Telenor ASA
-    "986228608",   # Yara International ASA
-    "989795848",   # Aker BP ASA
-]
-
-
 @router.delete("/admin/reset")
-def admin_reset(db: Session = Depends(get_db)) -> dict:
-    """Reset collected company data so it will be re-fetched fresh from the web.
-
-    Deletes: company profiles, financial history, PDF sources, company embeddings,
-    portfolios. Preserves: knowledge base (video/doc chunks), broker settings,
-    SLA agreements, insurance documents, Azure blob storage.
-    """
-    from sqlalchemy import text
-    deleted = {}
-
-    # Full-table deletes for company-owned tables
-    for table in ["portfolio_companies", "portfolios", "company_history",
-                  "company_pdf_sources", "company_notes", "companies"]:
-        result = db.execute(text(f"DELETE FROM {table}"))
-        deleted[table] = result.rowcount
-
-    # Only delete company chunks — keep orgnr='knowledge' (video/doc index)
-    result = db.execute(text("DELETE FROM company_chunks WHERE orgnr != 'knowledge'"))
-    deleted["company_chunks"] = result.rowcount
-
-    db.commit()
-    return {"reset": True, "deleted_rows": deleted}
+def admin_reset(svc: AdminService = Depends(_admin_svc)) -> dict:
+    """Reset collected company data so it will be re-fetched fresh from the web."""
+    return svc.reset()
 
 
 @router.post("/admin/demo")
-def admin_demo(db: Session = Depends(get_db)) -> dict:
+def admin_demo(svc: AdminService = Depends(_admin_svc)) -> dict:
     """Seed demo portfolio with 8 major Norwegian companies and trigger PDF extraction."""
-    from datetime import datetime, timezone
-    from api.db import Portfolio, PortfolioCompany, SessionLocal
-    from api.services.company import fetch_org_profile
-    from api.services.pdf_extract import _auto_extract_pdf_sources
-    from api.services.external_apis import fetch_enhet_by_orgnr
-    from concurrent.futures import ThreadPoolExecutor
-
-    # Create or reuse "Demo Portefølje"
-    portfolio = db.query(Portfolio).filter(Portfolio.name == "Demo Portefølje").first()
-    if not portfolio:
-        portfolio = Portfolio(
-            name="Demo Portefølje",
-            description="Norges største selskaper — klar for demo",
-            created_at=datetime.now(timezone.utc).isoformat(),
-        )
-        db.add(portfolio)
-        db.commit()
-        db.refresh(portfolio)
-
-    # Fetch BRREG profiles + add to portfolio
-    fetched, skipped = 0, 0
-    existing = {
-        pc.orgnr for pc in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio.id).all()
-    }
-    for orgnr in _DEMO_ORGNRS:
-        if orgnr not in existing:
-            db.add(PortfolioCompany(
-                portfolio_id=portfolio.id,
-                orgnr=orgnr,
-                added_at=datetime.now(timezone.utc).isoformat(),
-            ))
-        try:
-            fetch_org_profile(orgnr, db)
-            fetched += 1
-        except Exception as exc:
-            _log.warning("Demo seed: failed for %s — %s", orgnr, exc)
-            skipped += 1
-    db.commit()
-
-    # Trigger background PDF extraction for all demo companies
-    def _run(orgnr: str) -> None:
-        try:
-            org = fetch_enhet_by_orgnr(orgnr) or {}
-            _auto_extract_pdf_sources(orgnr, org, db_factory=SessionLocal)
-        except Exception as exc:
-            _log.warning("Demo PDF extraction: %s — %s", orgnr, exc)
-
-    executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="demo_pdf")
-    for orgnr in _DEMO_ORGNRS:
-        executor.submit(_run, orgnr)
-    executor.shutdown(wait=False)
-
-    return {
-        "portfolio_id": portfolio.id,
-        "portfolio_name": portfolio.name,
-        "companies": len(_DEMO_ORGNRS),
-        "fetched": fetched,
-        "skipped": skipped,
-        "pdf_extraction": "started in background",
-    }
+    return svc.seed_demo()
 
 
 @router.post("/admin/seed-norway-top100")
-def admin_seed_norway_top100(db: Session = Depends(get_db)) -> dict:
-    """Look up Norway's Top 100 companies in BRREG, fetch their profiles, and run
-    the PDF web-search agent (Claude/Gemini) to extract 5-year financial history.
-
-    Returns immediately — all work runs in background threads (3 workers).
-    Check /portfolio/{id}/risk for progress as data populates.
-    """
-    from datetime import datetime, timezone
-    from concurrent.futures import ThreadPoolExecutor
-    from api.constants import TOP_100_NO_NAMES
-    from api.db import Portfolio, PortfolioCompany, SessionLocal
-    from api.services.external_apis import fetch_enhetsregisteret, fetch_enhet_by_orgnr
-    from api.services.company import fetch_org_profile
-    from api.services.pdf_extract import _auto_extract_pdf_sources
-
-    # Create or reuse "Norges Topp 100" portfolio
-    portfolio = db.query(Portfolio).filter(Portfolio.name == "Norges Topp 100").first()
-    if not portfolio:
-        portfolio = Portfolio(
-            name="Norges Topp 100",
-            description="Norges 100 største selskaper — automatisk innhentet",
-            created_at=datetime.now(timezone.utc).isoformat(),
-        )
-        db.add(portfolio)
-        db.commit()
-        db.refresh(portfolio)
-
-    existing_orgnrs = {
-        pc.orgnr for pc in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio.id).all()
-    }
-
-    # Phase 1 (synchronous, fast): BRREG name lookup + profile fetch for all 100
-    resolved_orgnrs = list(existing_orgnrs)
-    lookup_added, lookup_failed = 0, 0
-    for name in TOP_100_NO_NAMES:
-        try:
-            results = fetch_enhetsregisteret(name, size=1)
-            if not results:
-                lookup_failed += 1
-                continue
-            orgnr = results[0]["orgnr"]
-            if orgnr not in existing_orgnrs:
-                db.add(PortfolioCompany(
-                    portfolio_id=portfolio.id,
-                    orgnr=orgnr,
-                    added_at=datetime.now(timezone.utc).isoformat(),
-                ))
-                existing_orgnrs.add(orgnr)
-                lookup_added += 1
-            if orgnr not in resolved_orgnrs:
-                resolved_orgnrs.append(orgnr)
-            try:
-                fetch_org_profile(orgnr, db)
-            except Exception as exc:
-                _log.warning("Top100 profile fetch failed for %s: %s", orgnr, exc)
-        except Exception as exc:
-            _log.warning("Top100 BRREG lookup failed for '%s': %s", name, exc)
-            lookup_failed += 1
-    db.commit()
-
-    # Phase 2 (background): web-search agent finds annual/quarterly PDFs per company
-    def _run_pdf(orgnr: str) -> None:
-        try:
-            org = fetch_enhet_by_orgnr(orgnr) or {}
-            _auto_extract_pdf_sources(orgnr, org, db_factory=SessionLocal)
-        except Exception as exc:
-            _log.warning("Top100 PDF agent failed for %s: %s", orgnr, exc)
-
-    executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="top100_pdf")
-    for orgnr in resolved_orgnrs:
-        executor.submit(_run_pdf, orgnr)
-    executor.shutdown(wait=False)
-
-    return {
-        "portfolio_id": portfolio.id,
-        "portfolio_name": portfolio.name,
-        "total_names": len(TOP_100_NO_NAMES),
-        "added_to_portfolio": lookup_added,
-        "already_present": len(existing_orgnrs) - lookup_added,
-        "lookup_failed": lookup_failed,
-        "pdf_agent_queued": len(resolved_orgnrs),
-        "message": "PDF-innhenting via nett kjører i bakgrunnen (3 samtidige). Sjekk portefølje for fremgang.",
-    }
+def admin_seed_norway_top100(svc: AdminService = Depends(_admin_svc)) -> dict:
+    """Seed Norges Topp 100 portfolio, fetch BRREG profiles, queue PDF extraction."""
+    return svc.seed_norway_top100()
 
 
 @router.post("/admin/seed-crm-demo")
-def seed_crm_demo(db: Session = Depends(get_db)) -> dict:
+def seed_crm_demo(svc: AdminService = Depends(_admin_svc)) -> dict:
     """Seed realistic demo policies, claims, and activities for the demo companies."""
-    from datetime import date, datetime, timedelta, timezone
-    from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, ActivityType
-
-    today = date.today()
-    now = datetime.now(timezone.utc)
-    firm_id = 1
-
-    _POLICIES = [
-        ("984851006", "If Skadeforsikring",   "Ansvarsforsikring",       "POL-DNB-001", 1_200_000, 50_000_000, 22),
-        ("984851006", "Storebrand Forsikring", "Styreansvarsforsikring",  "POL-DNB-002",   350_000, 10_000_000, 75),
-        ("923609016", "Tryg Forsikring",       "Transportforsikring",     "POL-EQN-001", 2_800_000,100_000_000,  8),
-        ("923609016", "Codan Forsikring",      "Tingsskadeforsikring",    "POL-EQN-002", 5_500_000,200_000_000, 45),
-        ("995568217", "Fremtind Forsikring",   "Yrkesskadeforsikring",    "POL-GJE-001",   890_000, 20_000_000, 18),
-        ("943753709", "If Skadeforsikring",    "Eiendomsforsikring",      "POL-KON-001", 1_800_000, 80_000_000, 30),
-        ("982463718", "Tryg Forsikring",       "Cyberforsikring",         "POL-TEL-001", 2_100_000, 30_000_000, 62),
-        ("986228608", "Gjensidige Forsikring", "Ansvarsforsikring",       "POL-YAR-001", 3_400_000,120_000_000, 88),
-        ("989795848", "Codan Forsikring",      "Driftsavbruddsforsikring","POL-AKB-001", 4_200_000,150_000_000, 15),
-        ("979981344", "Storebrand Forsikring", "Eiendomsforsikring",      "POL-SOP-001",   450_000, 25_000_000, 55),
-    ]
-
-    created_policies, skipped = 0, 0
-    policy_map: dict = {}
-    for orgnr, insurer, product_type, pol_nr, premium, coverage, days_to_renewal in _POLICIES:
-        exists = db.query(Policy).filter(Policy.policy_number == pol_nr, Policy.firm_id == firm_id).first()
-        if exists:
-            policy_map[pol_nr] = exists
-            skipped += 1
-            continue
-        p = Policy(
-            orgnr=orgnr, firm_id=firm_id, policy_number=pol_nr,
-            insurer=insurer, product_type=product_type,
-            annual_premium_nok=float(premium), coverage_amount_nok=float(coverage),
-            start_date=today - timedelta(days=365 - days_to_renewal),
-            renewal_date=today + timedelta(days=days_to_renewal),
-            status=PolicyStatus.active, created_at=now, updated_at=now,
-        )
-        db.add(p)
-        db.flush()
-        policy_map[pol_nr] = p
-        created_policies += 1
-    db.commit()
-
-    _CLAIMS = [
-        ("POL-DNB-001", "984851006", "SKD-2025-001", ClaimStatus.open,     "Skade på kontorbygg — vanninntrenging",   250_000),
-        ("POL-EQN-001", "923609016", "SKD-2025-002", ClaimStatus.open,     "Lasteskade under transport",            1_800_000),
-        ("POL-KON-001", "943753709", "SKD-2024-018", ClaimStatus.settled,  "Sprinkleranlegg utløst — vannskade",      380_000),
-        ("POL-AKB-001", "989795848", "SKD-2025-003", ClaimStatus.open,     "Nedetid produksjonsanlegg",             2_500_000),
-    ]
-
-    created_claims = 0
-    for pol_nr, orgnr, claim_nr, status, desc, amount in _CLAIMS:
-        pol = policy_map.get(pol_nr)
-        if not pol:
-            continue
-        exists = db.query(Claim).filter(Claim.claim_number == claim_nr, Claim.firm_id == firm_id).first()
-        if exists:
-            continue
-        db.add(Claim(
-            policy_id=pol.id, orgnr=orgnr, firm_id=firm_id,
-            claim_number=claim_nr, incident_date=today - timedelta(days=30),
-            reported_date=today - timedelta(days=25), status=status,
-            description=desc, estimated_amount_nok=float(amount),
-            created_at=now, updated_at=now,
-        ))
-        created_claims += 1
-    db.commit()
-
-    _ACTIVITIES = [
-        ("984851006", ActivityType.call,    "Fornyelsessamtale — Ansvarsforsikring",      today + timedelta(days=3),  False),
-        ("923609016", ActivityType.meeting, "Gjennomgang forsikringsportefølje",           today + timedelta(days=7),  False),
-        ("995568217", ActivityType.email,   "Sendt tilbud Yrkesskadeforsikring",           today - timedelta(days=5),  True),
-        ("989795848", ActivityType.task,    "Følge opp skadekrav SKD-2025-003",            today + timedelta(days=2),  False),
-        ("943753709", ActivityType.meeting, "Fornyelsesmøte Eiendomsforsikring",           today - timedelta(days=10), True),
-        ("982463718", ActivityType.call,    "Avklare dekningsomfang Cyberforsikring",      today + timedelta(days=14), False),
-        ("986228608", ActivityType.email,   "Kvartalsstatus til kunde",                    today - timedelta(days=3),  True),
-    ]
-
-    created_activities = 0
-    for orgnr, atype, subject, due_date, completed in _ACTIVITIES:
-        exists = db.query(Activity).filter(
-            Activity.orgnr == orgnr, Activity.subject == subject, Activity.firm_id == firm_id
-        ).first()
-        if exists:
-            continue
-        db.add(Activity(
-            orgnr=orgnr, firm_id=firm_id, activity_type=atype,
-            subject=subject, due_date=due_date, completed=completed,
-            created_by="demo@broker.no", created_at=now, updated_at=now,
-        ))
-        created_activities += 1
-    db.commit()
-
-    return {
-        "policies_created": created_policies,
-        "policies_skipped": skipped,
-        "claims_created": created_claims,
-        "activities_created": created_activities,
-    }
+    return svc.seed_crm_demo()
 
 
 @router.get("/dashboard")
