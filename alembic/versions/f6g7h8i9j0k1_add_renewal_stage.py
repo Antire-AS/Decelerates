@@ -20,7 +20,7 @@ _STAGES = ("not_started", "ready_to_quote", "quoted", "accepted", "declined")
 
 def upgrade() -> None:
     op.execute(
-        "CREATE TYPE renewal_stage AS ENUM "
+        "CREATE TYPE IF NOT EXISTS renewal_stage AS ENUM "
         "('not_started', 'ready_to_quote', 'quoted', 'accepted', 'declined')"
     )
     op.add_column(
