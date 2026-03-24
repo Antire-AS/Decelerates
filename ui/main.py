@@ -13,6 +13,7 @@ from ui.views.videos import render_videos_tab
 from ui.views.renewals import render_renewals_tab
 from ui.views.admin import render_admin_tab
 from ui.views.financials import render_financial_tab
+from ui.views.onboarding import render_onboarding_tour, render_onboarding_button
 
 # ── Language toggle (must happen before any output) ──────────────────────────
 if "lang" not in st.session_state:
@@ -34,6 +35,8 @@ if _client_token:
 
 st.markdown(f"<style>{pathlib.Path('ui/styles.css').read_text()}</style>", unsafe_allow_html=True)
 render_user_badge()
+render_onboarding_tour()
+render_onboarding_button()
 st.markdown("""
 <div class="broker-header">
     <div class="broker-header-icon">⚖️</div>

@@ -236,6 +236,13 @@ def seed_crm_demo(svc: AdminService = Depends(_admin_svc)) -> dict:
     return svc.seed_crm_demo()
 
 
+@router.post("/admin/seed-demo-documents")
+def seed_demo_documents_endpoint(db: Session = Depends(get_db)) -> dict:
+    """Generate anonymised demo insurance documents from existing real documents."""
+    from api.services.demo_documents import seed_demo_documents
+    return seed_demo_documents(db)
+
+
 @router.get("/dashboard")
 def get_dashboard(
     db: Session = Depends(get_db),

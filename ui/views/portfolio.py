@@ -847,6 +847,53 @@ def _render_concentration(portfolio_id: int) -> None:
             st.bar_chart(df_sz)
 
 
+# ── Company comparison charts ─────────────────────────────────────────────────
+
+def _render_comparison_charts(rows: list) -> None:
+    """Side-by-side bar charts comparing selected companies on key metrics."""
+    if len(rows) < 2:
+        return
+
+    st.markdown("#### Sammenlign selskaper")
+    names = [r.get("navn") or r.get("orgnr", "?") for r in rows]
+    selected = st.multiselect(
+        "Velg selskaper å sammenligne (2–6)",
+        names,
+        default=names[:min(4, len(names))],
+        key="comparison_select",
+    )
+    if len(selected) < 2:
+        st.caption("Velg minst 2 selskaper.")
+        return
+
+    subset = [r for r in rows if (r.get("navn") or r.get("orgnr")) in selected]
+
+    col_eq, col_rev, col_risk = st.columns(3)
+    with col_eq:
+        st.caption("**EK-andel %**")
+        eq_data = {
+            (r.get("navn") or r.get("orgnr")): round((r.get("equity_ratio") or 0) * 100, 1)
+            for r in subset
+        }
+        st.bar_chart(eq_data, height=200)
+
+    with col_rev:
+        st.caption("**Omsetning (MNOK)**")
+        rev_data = {
+            (r.get("navn") or r.get("orgnr")): round((r.get("revenue") or 0) / 1_000_000, 1)
+            for r in subset
+        }
+        st.bar_chart(rev_data, height=200)
+
+    with col_risk:
+        st.caption("**Risikoscore (1–10)**")
+        risk_data = {
+            (r.get("navn") or r.get("orgnr")): r.get("risk_score") or 0
+            for r in subset
+        }
+        st.bar_chart(risk_data, height=200)
+
+
 # ── Prospecting list ──────────────────────────────────────────────────────────
 
 _NACE_SECTIONS = {
@@ -950,6 +997,7 @@ def render_portfolio_tab() -> None:
                 _render_alerts(portfolio_id)
                 _render_charts(rows)
                 _render_benchmarks(rows)
+                _render_comparison_charts(rows)
                 _render_premium_analytics(portfolio_id)
                 _render_concentration(portfolio_id)
             else:

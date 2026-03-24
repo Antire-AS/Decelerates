@@ -25,18 +25,18 @@ _DEMO_ORGNRS = [
     "989795848",  # Aker BP ASA
 ]
 
-# (orgnr, insurer, product_type, policy_number, premium, coverage, days_to_renewal)
+# (orgnr, insurer, product_type, policy_number, premium, coverage, days_to_renewal, renewal_stage)
 _DEMO_POLICIES_DATA = [
-    ("984851006", "If Skadeforsikring",   "Ansvarsforsikring",       "POL-DNB-001", 1_200_000,  50_000_000, 22),
-    ("984851006", "Storebrand Forsikring","Styreansvarsforsikring",  "POL-DNB-002",   350_000,  10_000_000, 75),
-    ("923609016", "Tryg Forsikring",      "Transportforsikring",     "POL-EQN-001", 2_800_000, 100_000_000,  8),
-    ("923609016", "Codan Forsikring",     "Tingsskadeforsikring",    "POL-EQN-002", 5_500_000, 200_000_000, 45),
-    ("995568217", "Fremtind Forsikring",  "Yrkesskadeforsikring",    "POL-GJE-001",   890_000,  20_000_000, 18),
-    ("943753709", "If Skadeforsikring",   "Eiendomsforsikring",      "POL-KON-001", 1_800_000,  80_000_000, 30),
-    ("982463718", "Tryg Forsikring",      "Cyberforsikring",         "POL-TEL-001", 2_100_000,  30_000_000, 62),
-    ("986228608", "Gjensidige Forsikring","Ansvarsforsikring",       "POL-YAR-001", 3_400_000, 120_000_000, 88),
-    ("989795848", "Codan Forsikring",     "Driftsavbruddsforsikring","POL-AKB-001", 4_200_000, 150_000_000, 15),
-    ("979981344", "Storebrand Forsikring","Eiendomsforsikring",      "POL-SOP-001",   450_000,  25_000_000, 55),
+    ("984851006", "If Skadeforsikring",   "Ansvarsforsikring",       "POL-DNB-001", 1_200_000,  50_000_000, 22, "ready_to_quote"),
+    ("984851006", "Storebrand Forsikring","Styreansvarsforsikring",  "POL-DNB-002",   350_000,  10_000_000, 75, "not_started"),
+    ("923609016", "Tryg Forsikring",      "Transportforsikring",     "POL-EQN-001", 2_800_000, 100_000_000,  8, "quoted"),
+    ("923609016", "Codan Forsikring",     "Tingsskadeforsikring",    "POL-EQN-002", 5_500_000, 200_000_000, 45, "not_started"),
+    ("995568217", "Fremtind Forsikring",  "Yrkesskadeforsikring",    "POL-GJE-001",   890_000,  20_000_000, 18, "ready_to_quote"),
+    ("943753709", "If Skadeforsikring",   "Eiendomsforsikring",      "POL-KON-001", 1_800_000,  80_000_000, 30, "quoted"),
+    ("982463718", "Tryg Forsikring",      "Cyberforsikring",         "POL-TEL-001", 2_100_000,  30_000_000, 62, "not_started"),
+    ("986228608", "Gjensidige Forsikring","Ansvarsforsikring",       "POL-YAR-001", 3_400_000, 120_000_000, 88, "not_started"),
+    ("989795848", "Codan Forsikring",     "Driftsavbruddsforsikring","POL-AKB-001", 4_200_000, 150_000_000, 15, "accepted"),
+    ("979981344", "Storebrand Forsikring","Eiendomsforsikring",      "POL-SOP-001",   450_000,  25_000_000, 55, "declined"),
 ]
 
 # (policy_number, orgnr, claim_number, status, description, amount)
@@ -173,7 +173,7 @@ class AdminService:
     def _seed_policies(self, firm_id: int, now: datetime) -> tuple[int, int, dict]:
         today = date.today()
         created, skipped, policy_map = 0, 0, {}
-        for orgnr, insurer, product_type, pol_nr, premium, coverage, days_to_renewal in _DEMO_POLICIES_DATA:
+        for orgnr, insurer, product_type, pol_nr, premium, coverage, days_to_renewal, stage in _DEMO_POLICIES_DATA:
             exists = self.db.query(Policy).filter(
                 Policy.policy_number == pol_nr, Policy.firm_id == firm_id
             ).first()
@@ -181,13 +181,16 @@ class AdminService:
                 policy_map[pol_nr] = exists
                 skipped += 1
                 continue
+            from api.db import RenewalStage
+            renewal_stage = RenewalStage[stage] if stage else RenewalStage.not_started
             p = Policy(
                 orgnr=orgnr, firm_id=firm_id, policy_number=pol_nr,
                 insurer=insurer, product_type=product_type,
                 annual_premium_nok=float(premium), coverage_amount_nok=float(coverage),
                 start_date=today - timedelta(days=365 - days_to_renewal),
                 renewal_date=today + timedelta(days=days_to_renewal),
-                status=PolicyStatus.active, created_at=now, updated_at=now,
+                status=PolicyStatus.active, renewal_stage=renewal_stage,
+                created_at=now, updated_at=now,
             )
             self.db.add(p)
             self.db.flush()

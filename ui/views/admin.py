@@ -69,6 +69,46 @@ def _render_exports(headers: dict) -> None:
                 st.error(str(e))
 
 
+def _render_audit_log(headers: dict) -> None:
+    st.markdown("#### Aktivitetslogg")
+    st.caption("Oversikt over hvem som har brukt applikasjonen og hvilke handlinger de har utført.")
+    col_lim, col_refresh = st.columns([3, 1])
+    limit = col_lim.slider("Antall oppføringer", 10, 200, 50, key="audit_limit")
+    if col_refresh.button("Oppdater", key="audit_refresh"):
+        st.rerun()
+    try:
+        resp = requests.get(
+            f"{API_BASE}/audit",
+            params={"limit": limit},
+            headers=headers,
+            timeout=10,
+        )
+        rows = resp.json() if resp.ok else []
+    except Exception as e:
+        st.error(f"Kunne ikke hente logg: {e}")
+        return
+
+    if not rows:
+        st.info("Ingen aktivitet registrert ennå.")
+        return
+
+    unique_users = len({r.get("actor_email") for r in rows if r.get("actor_email")})
+    unique_orgnrs = len({r.get("orgnr") for r in rows if r.get("orgnr")})
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Oppføringer vist", len(rows))
+    m2.metric("Unike brukere", unique_users)
+    m3.metric("Unike selskaper", unique_orgnrs)
+
+    df = pd.DataFrame([{
+        "Tidspunkt":  r.get("created_at", "")[:19].replace("T", " "),
+        "Bruker":     r.get("actor_email", "–"),
+        "Handling":   r.get("action", "–"),
+        "Orgnr":      r.get("orgnr") or "–",
+        "Detaljer":   r.get("detail") or "–",
+    } for r in rows])
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+
 def render_admin_tab() -> None:
     st.subheader("⚙️ Brukere og tilganger")
 
@@ -148,7 +188,11 @@ def render_admin_tab() -> None:
     st.markdown("---")
     _render_crm_seed()
     st.markdown("---")
+    _render_demo_documents()
+    st.markdown("---")
     _render_data_controls()
+    st.markdown("---")
+    _render_audit_log(headers)
 
 
 def _render_crm_seed() -> None:
@@ -168,6 +212,30 @@ def _render_crm_seed() -> None:
                         f"{d['claims_created']} skader, "
                         f"{d['activities_created']} aktiviteter opprettet."
                     )
+                else:
+                    st.error(f"Feil: {r.text}")
+            except Exception as e:
+                st.error(str(e))
+
+
+def _render_demo_documents() -> None:
+    st.markdown("#### Demo-dokumenter")
+    st.caption(
+        "Genererer anonymiserte kopier av eksisterende forsikringsdokumenter — "
+        "erstatter selskapsnavn, org.nr og justerer beløp. Brukes for testmiljø og demo."
+    )
+    if st.button("Generer demo-dokumenter", key="seed_demo_docs_btn", use_container_width=True):
+        with st.spinner("Genererer demo-dokumenter…"):
+            try:
+                r = requests.post(f"{API_BASE}/admin/seed-demo-documents", timeout=60)
+                if r.ok:
+                    d = r.json()
+                    st.success(
+                        f"✅ Ferdig — {d['created']} dokumenter opprettet, "
+                        f"{d['skipped']} hoppet over."
+                    )
+                    if d.get("reason"):
+                        st.info(d["reason"])
                 else:
                     st.error(f"Feil: {r.text}")
             except Exception as e:

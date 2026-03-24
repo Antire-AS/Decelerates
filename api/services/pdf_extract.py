@@ -893,6 +893,70 @@ def _discover_pdfs_per_year_search(
     return results
 
 
+def _agent_discover_pdfs_azure_openai(
+    orgnr: str, navn: str, hjemmeside: Optional[str],
+    target_years: List[int],
+) -> List[Dict[str, Any]]:
+    """Azure OpenAI (gpt-4o) tool-use agent for annual report PDF discovery.
+
+    Uses OpenAI function-calling with web_search (DDG) and fetch_url tools.
+    Faster than Gemini 2-phase approach for companies with well-indexed IR pages.
+    """
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    if not endpoint or not api_key:
+        return []
+    from openai import AzureOpenAI
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+    client = AzureOpenAI(api_key=api_key, azure_endpoint=endpoint, api_version="2024-02-01")
+    tools = [
+        {"type": "function", "function": {
+            "name": "web_search",
+            "description": "Search the web. Returns [{title, url, snippet}].",
+            "parameters": {"type": "object", "properties": {
+                "query": {"type": "string"}}, "required": ["query"]},
+        }},
+        {"type": "function", "function": {
+            "name": "fetch_url",
+            "description": "Fetch a URL. Returns {text, pdf_links, page_links}.",
+            "parameters": {"type": "object", "properties": {
+                "url": {"type": "string"}}, "required": ["url"]},
+        }},
+    ]
+    system_prompt = _agent_system_prompt(navn, orgnr, hjemmeside, target_years)
+    messages: List[Dict[str, Any]] = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Find annual report PDFs for {navn} (orgnr {orgnr})."},
+    ]
+    for _ in range(8):
+        response = client.chat.completions.create(
+            model=deployment, messages=messages, tools=tools, tool_choice="auto",
+        )
+        msg = response.choices[0].message
+        messages.append(msg.model_dump(exclude_unset=True))
+        if response.choices[0].finish_reason == "stop":
+            content = (msg.content or "").strip()
+            cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", content).strip()
+            m = re.search(r"\[.*\]", cleaned, re.DOTALL)
+            if m:
+                try:
+                    return json.loads(m.group())
+                except Exception:
+                    pass
+            return []
+        if not msg.tool_calls:
+            break
+        tool_results = []
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            result = _run_tool(tc.function.name, args)
+            tool_results.append({
+                "role": "tool", "tool_call_id": tc.id, "content": json.dumps(result),
+            })
+        messages.extend(tool_results)
+    return []
+
+
 def _agent_discover_pdfs(
     orgnr: str,
     navn: str,
@@ -915,6 +979,16 @@ def _agent_discover_pdfs(
             return result
         except Exception as exc:
             logger.warning("[discovery] Claude agent failed for %s: %s", orgnr, exc)
+
+    # Azure OpenAI fallback — gpt-4o function-calling agent (faster than Gemini 2-phase)
+    try:
+        logger.info("[discovery] Trying Azure OpenAI agent for %s", orgnr)
+        result = _agent_discover_pdfs_azure_openai(orgnr, navn, hjemmeside, target_years)
+        if result:
+            logger.info("[discovery] Azure OpenAI agent returned %d results for %s", len(result), orgnr)
+            return result
+    except Exception as exc:
+        logger.warning("[discovery] Azure OpenAI agent failed for %s: %s", orgnr, exc)
 
     for gemini_key in _gemini_api_keys():
         try:

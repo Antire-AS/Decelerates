@@ -44,6 +44,7 @@ _JUSTIFIED = {
     # Agentic tool-use loops — multi-step state machine, can't be split
     "_agent_discover_pdfs_claude",
     "_agent_discover_pdfs_gemini",
+    "_agent_discover_pdfs_azure_openai",
     "_agent_discover_pdfs",
     "_run_phase2_discovery",
     # PDF layout — fpdf2 imperative API; each set_font/cell/color is one mandatory line
@@ -191,6 +192,12 @@ _JUSTIFIED = {
     "send_renewal_stage_change",
     # _render_benchmarks — equity ratio bar chart + traffic-light table; Streamlit imperative layout
     "_render_benchmarks",
+    # seed_demo_documents — DB query + pdfplumber extraction + fpdf2 generation + commit in one atomic flow
+    "seed_demo_documents",
+    # render_onboarding_tour — Streamlit imperative API; progress bar + step content + nav buttons; tightly coupled
+    "render_onboarding_tour",
+    # _render_comparison_charts — 3 side-by-side bar charts + multiselect; Streamlit imperative layout
+    "_render_comparison_charts",
 }
 
 # Files excluded from function-length checks (non-production scripts)
