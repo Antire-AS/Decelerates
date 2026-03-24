@@ -30,3 +30,7 @@ class ExternalApiError(BrokerError):
 
 class ForbiddenError(BrokerError):
     """The requesting user does not have permission for this operation."""
+
+
+class ValidationError(BrokerError):
+    """An input value is syntactically valid but semantically wrong (e.g. unknown enum member)."""

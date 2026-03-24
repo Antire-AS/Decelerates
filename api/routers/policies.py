@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
+from api.container import resolve
 from api.dependencies import get_db
-from api.domain.exceptions import NotFoundError
+from api.domain.exceptions import NotFoundError, ValidationError
+from api.ports.driven.notification_port import NotificationPort
 from api.schemas import PolicyIn, PolicyUpdate, RenewalAdvanceIn
 from api.services.policy_service import PolicyService
 
@@ -13,6 +15,10 @@ router = APIRouter()
 
 def _svc(db: Session = Depends(get_db)) -> PolicyService:
     return PolicyService(db)
+
+
+def _get_notification() -> NotificationPort:
+    return resolve(NotificationPort)  # type: ignore[return-value]
 
 
 def _serialize(p) -> dict:
@@ -57,8 +63,8 @@ def create_policy(
 ) -> dict:
     try:
         return _serialize(svc.create(orgnr, user.firm_id, body))
-    except NotFoundError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.put("/org/{orgnr}/policies/{policy_id}")
@@ -71,6 +77,8 @@ def update_policy(
 ) -> dict:
     try:
         return _serialize(svc.update(policy_id, user.firm_id, body))
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -143,20 +151,17 @@ def advance_renewal_stage(
     body: RenewalAdvanceIn,
     svc: PolicyService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
+    notification: NotificationPort = Depends(_get_notification),
 ) -> dict:
     """Advance the renewal workflow stage for a policy and optionally notify by email."""
-    _VALID_STAGES = {"not_started", "ready_to_quote", "quoted", "accepted", "declined"}
-    if body.stage not in _VALID_STAGES:
-        raise HTTPException(status_code=422, detail=f"Invalid stage '{body.stage}'. Must be one of: {', '.join(sorted(_VALID_STAGES))}")
     try:
         policy = svc.advance_renewal_stage(policy_id, user.firm_id, body.stage)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
     if body.notify_email:
-        from api.container import resolve
-        from api.ports.driven.notification_port import NotificationPort
-        notification = resolve(NotificationPort)
         notification.send_renewal_stage_change(
             to=body.notify_email,
             policy_number=policy.policy_number or f"#{policy.id}",

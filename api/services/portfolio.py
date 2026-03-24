@@ -282,6 +282,176 @@ class PortfolioService:
             "upcoming_renewals_30d": renewals_30,
         }
 
+    # ── Streaming ingest ──────────────────────────────────────────────────────
+
+    def _stream_pdf_phase(self, pc, navn: str, i: int, total: int):
+        """Phase 2: discover PDFs for one company and yield NDJSON events."""
+        from datetime import datetime as _dt
+        from threading import Thread
+        from api.db import CompanyPdfSource, SessionLocal
+        from api.services.external_apis import fetch_enhet_by_orgnr
+        from api.services.pdf_extract import _run_phase2_discovery, _extract_pending_sources
+
+        current_year = _dt.now().year
+        covered = {s.year for s in self.db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == pc.orgnr).all()}
+        missing = [y for y in range(current_year - 4, current_year + 1) if y not in covered]
+        if not missing:
+            yield json.dumps({"type": "pdf_found", "orgnr": pc.orgnr, "navn": navn, "found_years": sorted(covered), "new": False, "index": i, "total": total}) + "\n"
+            return
+        yield json.dumps({"type": "pdf_searching", "orgnr": pc.orgnr, "navn": navn, "missing_years": missing, "index": i, "total": total}) + "\n"
+        try:
+            org = fetch_enhet_by_orgnr(pc.orgnr) or {"navn": navn, "organisasjonsnummer": pc.orgnr}
+            sources = _run_phase2_discovery(pc.orgnr, org, self.db)
+            found_years = sorted({s.year for s in sources})
+            new_years = [y for y in found_years if y in missing]
+            if new_years:
+                yield json.dumps({"type": "pdf_found", "orgnr": pc.orgnr, "navn": navn, "found_years": found_years, "new_years": new_years, "new": True, "index": i, "total": total}) + "\n"
+                Thread(target=_extract_pending_sources, args=(pc.orgnr, sources, SessionLocal()), daemon=True).start()
+            else:
+                yield json.dumps({"type": "pdf_none", "orgnr": pc.orgnr, "navn": navn, "index": i, "total": total}) + "\n"
+        except Exception as exc:
+            yield json.dumps({"type": "pdf_error", "orgnr": pc.orgnr, "navn": navn, "error": str(exc)[:120], "index": i, "total": total}) + "\n"
+
+    def _stream_ingest_company(self, pc, i: int, total: int, include_pdfs: bool):
+        """Stream BRREG + optional PDF events for one portfolio company."""
+        from api.services.company import fetch_org_profile
+
+        existing = self.db.query(Company).filter(Company.orgnr == pc.orgnr).first()
+        navn = (existing.navn if existing else None) or pc.orgnr
+        if existing and existing.navn and existing.risk_score is not None:
+            yield json.dumps({"type": "skipped", "orgnr": pc.orgnr, "navn": navn, "risk_score": existing.risk_score, "index": i, "total": total}) + "\n"
+            return
+        yield json.dumps({"type": "searching", "orgnr": pc.orgnr, "navn": navn, "index": i, "total": total}) + "\n"
+        try:
+            fetch_org_profile(pc.orgnr, self.db)
+            company = self.db.query(Company).filter(Company.orgnr == pc.orgnr).first()
+            navn = company.navn if company else navn
+            yield json.dumps({"type": "done", "orgnr": pc.orgnr, "navn": navn, "risk_score": company.risk_score if company else None, "index": i, "total": total}) + "\n"
+        except Exception as exc:
+            yield json.dumps({"type": "error", "orgnr": pc.orgnr, "navn": navn, "error": str(exc)[:120], "index": i, "total": total}) + "\n"
+            return
+        if include_pdfs:
+            yield from self._stream_pdf_phase(pc, navn, i, total)
+
+    def stream_ingest(self, portfolio_id: int, include_pdfs: bool = False):
+        """Stream NDJSON progress events for portfolio ingest (BRREG + optional PDFs)."""
+        rows = self.db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+        total = len(rows)
+        yield json.dumps({"type": "start", "total": total, "include_pdfs": include_pdfs}) + "\n"
+        for i, pc in enumerate(rows):
+            yield from self._stream_ingest_company(pc, i + 1, total, include_pdfs)
+        yield json.dumps({"type": "complete", "total": total}) + "\n"
+
+    def stream_seed_norway(self, portfolio_id: int):
+        """Stream NDJSON events while adding Norway Top 100 companies to the portfolio."""
+        from api.constants import TOP_100_NO_NAMES
+        from api.services.external_apis import fetch_enhetsregisteret
+
+        existing = {pc.orgnr for pc in self.db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()}
+        total = len(TOP_100_NO_NAMES)
+        yield json.dumps({"type": "start", "total": total}) + "\n"
+        added, skipped, not_found = 0, 0, 0
+        for i, name in enumerate(TOP_100_NO_NAMES):
+            yield json.dumps({"type": "searching", "name": name, "index": i + 1, "total": total}) + "\n"
+            try:
+                results = fetch_enhetsregisteret(name, size=1)
+                if not results:
+                    yield json.dumps({"type": "not_found", "name": name, "index": i + 1, "total": total}) + "\n"
+                    not_found += 1
+                    continue
+                orgnr, found_name = results[0]["orgnr"], results[0]["navn"]
+                if orgnr in existing:
+                    yield json.dumps({"type": "skipped", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                    skipped += 1
+                    continue
+                self.db.add(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
+                self.db.commit()
+                existing.add(orgnr)
+                yield json.dumps({"type": "added", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                added += 1
+            except Exception as exc:
+                yield json.dumps({"type": "error", "name": name, "error": str(exc)[:100], "index": i + 1, "total": total}) + "\n"
+                not_found += 1
+        yield json.dumps({"type": "complete", "added": added, "skipped": skipped, "not_found": not_found}) + "\n"
+
+    def stream_batch_import(self, portfolio_id: int | None, orgnrs: list[str], invalid_count: int = 0):
+        """Stream NDJSON progress while importing companies from a list of orgnrs."""
+        from api.services import fetch_org_profile
+
+        total = len(orgnrs)
+        yield json.dumps({"type": "start", "total": total, "invalid": invalid_count}) + "\n"
+        added, failed = 0, 0
+        for i, orgnr in enumerate(orgnrs):
+            yield json.dumps({"type": "searching", "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+            try:
+                result = fetch_org_profile(orgnr, self.db)
+                navn = (result or {}).get("org", {}).get("navn", orgnr) if result else orgnr
+                if portfolio_id:
+                    self.db.merge(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
+                    self.db.commit()
+                yield json.dumps({"type": "done", "orgnr": orgnr, "navn": navn, "index": i + 1, "total": total}) + "\n"
+                added += 1
+            except Exception as exc:
+                yield json.dumps({"type": "error", "orgnr": orgnr, "error": str(exc)[:120], "index": i + 1, "total": total}) + "\n"
+                failed += 1
+        yield json.dumps({"type": "complete", "added": added, "failed": failed, "invalid": invalid_count}) + "\n"
+
+    # ── Portfolio concentration ────────────────────────────────────────────────
+
+    @staticmethod
+    def _nace_section(nace) -> str:
+        from api.constants import _NACE_SECTION_MAP
+        if not nace:
+            return "?"
+        try:
+            code = int(str(nace).split(".")[0])
+            for rng, s in _NACE_SECTION_MAP:
+                if code in rng:
+                    return s
+        except (ValueError, AttributeError):
+            pass
+        return "?"
+
+    @staticmethod
+    def _rev_band(rev) -> str:
+        if not rev:
+            return "Ukjent"
+        if rev < 10_000_000:
+            return "<10 MNOK"
+        if rev < 100_000_000:
+            return "10–100 MNOK"
+        if rev < 1_000_000_000:
+            return "100 MNOK–1 BNOK"
+        return ">1 BNOK"
+
+    def get_concentration(self, portfolio_id: int) -> dict:
+        """Return portfolio concentration breakdown by industry, geography, and revenue size."""
+        from api.constants import NACE_BENCHMARKS
+        self.get(portfolio_id)  # raises NotFoundError if missing
+        orgnrs = [r.orgnr for r in self.db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()]
+        companies = self.db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+        industry: dict[str, dict] = {}
+        geography: dict[str, int] = {}
+        size: dict[str, int] = {}
+        total_revenue = 0.0
+        for c in companies:
+            sec = self._nace_section(c.naeringskode1)
+            label = NACE_BENCHMARKS.get(sec, {}).get("industry", sec)
+            industry.setdefault(sec, {"section": sec, "label": label, "count": 0, "revenue": 0})
+            industry[sec]["count"] += 1
+            industry[sec]["revenue"] += c.sum_driftsinntekter or 0
+            geography[c.kommune or "Ukjent"] = geography.get(c.kommune or "Ukjent", 0) + 1
+            band = self._rev_band(c.sum_driftsinntekter)
+            size[band] = size.get(band, 0) + 1
+            total_revenue += c.sum_driftsinntekter or 0
+        geo_sorted = sorted(geography.items(), key=lambda x: x[1], reverse=True)[:10]
+        return {
+            "portfolio_id": portfolio_id, "total_companies": len(companies), "total_revenue": total_revenue,
+            "by_industry": sorted(industry.values(), key=lambda x: x["count"], reverse=True),
+            "by_geography": [{"kommune": k, "count": v} for k, v in geo_sorted],
+            "by_size": [{"band": k, "count": v} for k, v in size.items()],
+        }
+
     # ── Portfolio chat ─────────────────────────────────────────────────────────
 
     def chat(self, portfolio_id: int, question: str) -> dict:

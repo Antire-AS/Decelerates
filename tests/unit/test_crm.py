@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, ActivityType, User, UserRole, BrokerFirm
-from api.domain.exceptions import ForbiddenError, NotFoundError
+from api.domain.exceptions import ForbiddenError, NotFoundError, ValidationError
 from api.schemas import (
     ActivityIn, ActivityUpdate,
     ClaimIn, ClaimUpdate,
@@ -73,7 +73,7 @@ class TestPolicyServiceCreate:
         db = _mock_db()
         svc = PolicyService(db)
         body = PolicyIn(insurer="X", product_type="Y", status="nonexistent")
-        with pytest.raises(NotFoundError):
+        with pytest.raises(ValidationError):
             svc.create("123456789", firm_id=1, body=body)
 
 

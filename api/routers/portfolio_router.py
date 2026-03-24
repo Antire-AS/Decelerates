@@ -6,8 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
-from api.db import PortfolioCompany, Company, Portfolio
-from api.db import SessionLocal
+from api.db import PortfolioCompany, Company, Portfolio, SessionLocal
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.limiter import limiter
@@ -112,120 +111,15 @@ def ingest_portfolio(
 
 @router.get("/portfolio/{portfolio_id}/ingest/stream")
 def stream_ingest_portfolio(portfolio_id: int, include_pdfs: bool = False):
-    """Stream live progress of portfolio ingest as newline-delimited JSON.
+    """Stream live NDJSON progress of portfolio ingest (Phase 1: BRREG, Phase 2: PDFs).
 
-    Phase 1 (always): BRREG + risk score per company — fast, ~1-2s each.
-    Phase 2 (include_pdfs=true): Claude web-searches each company's investor
-    relations site to find annual + quarterly report PDFs, then extracts
-    5 years of financials. Takes 20-60s per company — best for demos of ≤20 companies.
-
-    Event types:
-      start | searching | done | skipped | error | complete
-      pdf_searching | pdf_found | pdf_none | pdf_error
+    Event types: start | searching | done | skipped | error | complete
+                 pdf_searching | pdf_found | pdf_none | pdf_error
     """
     def generate():
-        from api.services.company import fetch_org_profile
-        from api.services.external_apis import fetch_enhet_by_orgnr
-
         db = SessionLocal()
         try:
-            rows = db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-            total = len(rows)
-            yield json.dumps({"type": "start", "total": total, "include_pdfs": include_pdfs}) + "\n"
-
-            for i, pc in enumerate(rows):
-                existing = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
-                navn = (existing.navn if existing else None) or pc.orgnr
-
-                # ── Phase 1: BRREG + risk ──────────────────────────────────
-                if existing and existing.navn and existing.risk_score is not None:
-                    yield json.dumps({
-                        "type": "skipped", "orgnr": pc.orgnr, "navn": navn,
-                        "risk_score": existing.risk_score, "index": i + 1, "total": total,
-                    }) + "\n"
-                else:
-                    yield json.dumps({
-                        "type": "searching", "orgnr": pc.orgnr, "navn": navn,
-                        "index": i + 1, "total": total,
-                    }) + "\n"
-                    try:
-                        fetch_org_profile(pc.orgnr, db)
-                        company = db.query(Company).filter(Company.orgnr == pc.orgnr).first()
-                        navn = (company.navn if company else navn)
-                        yield json.dumps({
-                            "type": "done", "orgnr": pc.orgnr, "navn": navn,
-                            "risk_score": (company.risk_score if company else None),
-                            "index": i + 1, "total": total,
-                        }) + "\n"
-                    except Exception as exc:
-                        yield json.dumps({
-                            "type": "error", "orgnr": pc.orgnr, "navn": navn,
-                            "error": str(exc)[:120], "index": i + 1, "total": total,
-                        }) + "\n"
-                        continue
-
-                if not include_pdfs:
-                    continue
-
-                # ── Phase 2: web-search for PDFs on company website ────────
-                from datetime import datetime
-                from api.db import CompanyPdfSource
-                from api.services.pdf_extract import _run_phase2_discovery
-
-                current_year = datetime.now().year
-                target_years = list(range(current_year - 4, current_year + 1))
-                covered = {
-                    s.year for s in
-                    db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == pc.orgnr).all()
-                }
-                missing = [y for y in target_years if y not in covered]
-
-                if not missing:
-                    yield json.dumps({
-                        "type": "pdf_found", "orgnr": pc.orgnr, "navn": navn,
-                        "found_years": sorted(covered), "new": False,
-                        "index": i + 1, "total": total,
-                    }) + "\n"
-                    continue
-
-                yield json.dumps({
-                    "type": "pdf_searching", "orgnr": pc.orgnr, "navn": navn,
-                    "missing_years": missing, "index": i + 1, "total": total,
-                }) + "\n"
-
-                try:
-                    org = fetch_enhet_by_orgnr(pc.orgnr) or {"navn": navn, "organisasjonsnummer": pc.orgnr}
-                    sources = _run_phase2_discovery(pc.orgnr, org, db)
-                    found_years = sorted({s.year for s in sources})
-                    new_years = [y for y in found_years if y in missing]
-
-                    if new_years:
-                        yield json.dumps({
-                            "type": "pdf_found", "orgnr": pc.orgnr, "navn": navn,
-                            "found_years": found_years, "new_years": new_years,
-                            "new": True, "index": i + 1, "total": total,
-                        }) + "\n"
-                        # Kick off extraction in background (non-blocking)
-                        from threading import Thread
-                        from api.services.pdf_extract import _extract_pending_sources
-                        t = Thread(
-                            target=_extract_pending_sources,
-                            args=(pc.orgnr, sources, SessionLocal()),
-                            daemon=True,
-                        )
-                        t.start()
-                    else:
-                        yield json.dumps({
-                            "type": "pdf_none", "orgnr": pc.orgnr, "navn": navn,
-                            "index": i + 1, "total": total,
-                        }) + "\n"
-                except Exception as exc:
-                    yield json.dumps({
-                        "type": "pdf_error", "orgnr": pc.orgnr, "navn": navn,
-                        "error": str(exc)[:120], "index": i + 1, "total": total,
-                    }) + "\n"
-
-            yield json.dumps({"type": "complete", "total": total}) + "\n"
+            yield from PortfolioService(db).stream_ingest(portfolio_id, include_pdfs)
         finally:
             db.close()
 
@@ -234,53 +128,11 @@ def stream_ingest_portfolio(portfolio_id: int, include_pdfs: bool = False):
 
 @router.get("/portfolio/{portfolio_id}/seed-norway/stream")
 def stream_seed_norway(portfolio_id: int):
-    """Stream live progress while seeding the portfolio with Norway's Top 100 companies.
-
-    Looks each company up in BRREG by name as it goes, yielding NDJSON events.
-    """
+    """Stream live NDJSON progress while seeding the portfolio with Norway's Top 100 companies."""
     def generate():
-        from api.constants import TOP_100_NO_NAMES
-        from api.services.external_apis import fetch_enhetsregisteret
-
         db = SessionLocal()
         try:
-            existing = {
-                pc.orgnr for pc in
-                db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-            }
-            total = len(TOP_100_NO_NAMES)
-            yield json.dumps({"type": "start", "total": total}) + "\n"
-
-            added, skipped, not_found = 0, 0, 0
-            for i, name in enumerate(TOP_100_NO_NAMES):
-                yield json.dumps({"type": "searching", "name": name, "index": i + 1, "total": total}) + "\n"
-                try:
-                    results = fetch_enhetsregisteret(name, size=1)
-                    if not results:
-                        yield json.dumps({"type": "not_found", "name": name, "index": i + 1, "total": total}) + "\n"
-                        not_found += 1
-                        continue
-                    orgnr = results[0]["orgnr"]
-                    found_name = results[0]["navn"]
-                    if orgnr in existing:
-                        yield json.dumps({"type": "skipped", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-                        skipped += 1
-                        continue
-                    from datetime import datetime, timezone
-                    db.add(PortfolioCompany(
-                        portfolio_id=portfolio_id,
-                        orgnr=orgnr,
-                        added_at=datetime.now(timezone.utc).isoformat(),
-                    ))
-                    db.commit()
-                    existing.add(orgnr)
-                    yield json.dumps({"type": "added", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-                    added += 1
-                except Exception as exc:
-                    yield json.dumps({"type": "error", "name": name, "error": str(exc)[:100], "index": i + 1, "total": total}) + "\n"
-                    not_found += 1
-
-            yield json.dumps({"type": "complete", "added": added, "skipped": skipped, "not_found": not_found}) + "\n"
+            yield from PortfolioService(db).stream_seed_norway(portfolio_id)
         finally:
             db.close()
 
@@ -348,77 +200,20 @@ def get_portfolio_alerts(
 @router.get("/portfolio/{portfolio_id}/concentration")
 def get_portfolio_concentration(
     portfolio_id: int,
-    db: Session = Depends(get_db),
+    svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Return portfolio concentration breakdown by industry, geography, and revenue size."""
-    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
-    if not portfolio:
-        raise HTTPException(status_code=404, detail="Portfolio not found")
-
-    from api.constants import _NACE_SECTION_MAP, NACE_BENCHMARKS
-    orgnrs = [
-        r.orgnr for r in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-    ]
-    companies = db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
-
-    def _section(nace):
-        if not nace:
-            return "?"
-        try:
-            code = int(str(nace).split(".")[0])
-            for rng, s in _NACE_SECTION_MAP:
-                if code in rng:
-                    return s
-        except (ValueError, AttributeError):
-            pass
-        return "?"
-
-    def _rev_band(rev):
-        if not rev:
-            return "Ukjent"
-        if rev < 10_000_000:
-            return "<10 MNOK"
-        if rev < 100_000_000:
-            return "10–100 MNOK"
-        if rev < 1_000_000_000:
-            return "100 MNOK–1 BNOK"
-        return ">1 BNOK"
-
-    industry: dict[str, dict] = {}
-    geography: dict[str, int] = {}
-    size: dict[str, int] = {}
-    total_revenue = 0.0
-
-    for c in companies:
-        sec = _section(c.naeringskode1)
-        label = NACE_BENCHMARKS.get(sec, {}).get("industry", sec)
-        industry.setdefault(sec, {"section": sec, "label": label, "count": 0, "revenue": 0})
-        industry[sec]["count"] += 1
-        industry[sec]["revenue"] += c.sum_driftsinntekter or 0
-
-        kom = c.kommune or "Ukjent"
-        geography[kom] = geography.get(kom, 0) + 1
-
-        band = _rev_band(c.sum_driftsinntekter)
-        size[band] = size.get(band, 0) + 1
-        total_revenue += c.sum_driftsinntekter or 0
-
-    geo_sorted = sorted(geography.items(), key=lambda x: x[1], reverse=True)[:10]
-    return {
-        "portfolio_id": portfolio_id,
-        "total_companies": len(companies),
-        "total_revenue": total_revenue,
-        "by_industry": sorted(industry.values(), key=lambda x: x["count"], reverse=True),
-        "by_geography": [{"kommune": k, "count": v} for k, v in geo_sorted],
-        "by_size": [{"band": k, "count": v} for k, v in size.items()],
-    }
+    try:
+        return svc.get_concentration(portfolio_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/portfolio/{portfolio_id}/pdf")
 def download_portfolio_pdf(
     portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
@@ -426,14 +221,12 @@ def download_portfolio_pdf(
     from api.db import BrokerSettings
     from api.services.pdf_generate import generate_portfolio_pdf
 
-    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
-    if not portfolio:
-        raise HTTPException(status_code=404, detail="Portfolio not found")
+    try:
+        portfolio = svc.get(portfolio_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
-    orgnrs = [
-        r.orgnr for r in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-    ]
+    orgnrs = [r.orgnr for r in db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()]
     companies = [
         {
             "orgnr": c.orgnr, "navn": c.navn, "omsetning": c.sum_driftsinntekter,
@@ -444,18 +237,14 @@ def download_portfolio_pdf(
         for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
     ]
     companies.sort(key=lambda x: (x.get("risk_score") or 0), reverse=True)
-
     alerts = collect_alerts(portfolio_id, db)
-
-    concentration = get_portfolio_concentration(portfolio_id, db)
-
+    concentration = svc.get_concentration(portfolio_id)
     settings = db.query(BrokerSettings).first()
     broker = {
         "firm_name": settings.firm_name if settings else "",
         "contact_name": settings.contact_name if settings else "",
         "contact_email": settings.contact_email if settings else "",
     }
-
     pdf_bytes = generate_portfolio_pdf(
         portfolio_name=portfolio.name,
         companies=companies,
@@ -524,32 +313,9 @@ async def batch_import_csv(
         raise HTTPException(status_code=422, detail=f"Maks {_MAX_IMPORT_ROWS} orgnr per import.")
 
     def generate():
-        from datetime import datetime, timezone
-        from api.services import fetch_org_profile
-
         db = SessionLocal()
-        total = len(valid)
         try:
-            yield json.dumps({"type": "start", "total": total, "invalid": len(invalid_vals)}) + "\n"
-            added, failed = 0, 0
-            for i, orgnr in enumerate(valid):
-                yield json.dumps({"type": "searching", "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-                try:
-                    result = fetch_org_profile(orgnr, db)
-                    navn = (result or {}).get("org", {}).get("navn", orgnr) if result else orgnr
-                    if portfolio_id:
-                        db.merge(PortfolioCompany(
-                            portfolio_id=portfolio_id,
-                            orgnr=orgnr,
-                            added_at=datetime.now(timezone.utc).isoformat(),
-                        ))
-                        db.commit()
-                    yield json.dumps({"type": "done", "orgnr": orgnr, "navn": navn, "index": i + 1, "total": total}) + "\n"
-                    added += 1
-                except Exception as exc:
-                    yield json.dumps({"type": "error", "orgnr": orgnr, "error": str(exc)[:120], "index": i + 1, "total": total}) + "\n"
-                    failed += 1
-            yield json.dumps({"type": "complete", "added": added, "failed": failed, "invalid": len(invalid_vals)}) + "\n"
+            yield from PortfolioService(db).stream_batch_import(portfolio_id, valid, invalid_count=len(invalid_vals))
         finally:
             db.close()
 

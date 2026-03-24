@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from api.db import Policy, PolicyStatus, RenewalStage
-from api.domain.exceptions import NotFoundError
+from api.domain.exceptions import NotFoundError, ValidationError
 from api.schemas import PolicyIn, PolicyUpdate
 
 
@@ -112,11 +112,11 @@ class PolicyService:
         try:
             return PolicyStatus[value]
         except KeyError:
-            raise NotFoundError(f"Unknown policy status: {value}")
+            raise ValidationError(f"Unknown policy status: '{value}'")
 
     @staticmethod
     def _parse_renewal_stage(value: str) -> RenewalStage:
         try:
             return RenewalStage[value]
         except KeyError:
-            raise NotFoundError(f"Unknown renewal stage: {value}")
+            raise ValidationError(f"Unknown renewal stage: '{value}'")

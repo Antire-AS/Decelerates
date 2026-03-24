@@ -15,6 +15,10 @@ from api.container import resolve
 from api.db import Company, CompanyHistory, InsuranceOffer, BrokerSettings
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.ports.driven.notification_port import NotificationPort
+
+
+def _get_notification() -> NotificationPort:
+    return resolve(NotificationPort)  # type: ignore[return-value]
 from api.services.audit import log_audit
 from api.services.client_token_service import get_or_create_active_token
 from api.services.llm import _llm_answer_raw, _fmt_nok, _parse_json_from_llm_response
@@ -322,6 +326,7 @@ def email_forsikringstilbud(
     body: dict,
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    notification: NotificationPort = Depends(_get_notification),
 ) -> dict:
     """Email a shareable client-profile link for an existing forsikringstilbud.
 
@@ -342,7 +347,6 @@ def email_forsikringstilbud(
     ui_base = os.getenv("UI_BASE_URL", "https://ca-ui.thankfulplant-2ef6e3b0.norwayeast.azurecontainerapps.io")
     share_url = f"{ui_base}/?token={token_row.token}"
 
-    notification: NotificationPort = resolve(NotificationPort)
     sent = notification.send_forsikringstilbud(
         to=recipient_email,
         client_navn=db_obj.navn or orgnr,
