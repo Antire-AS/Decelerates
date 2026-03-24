@@ -381,6 +381,78 @@ def _render_charts(rows: list) -> None:
             st.bar_chart(rev.set_index("navn")[["MNOK"]].sort_values("MNOK", ascending=False))
 
 
+_EK_THRESHOLD = 0.20   # 20% — generally considered minimum healthy equity ratio
+
+
+def _render_benchmarks(rows: list) -> None:
+    """Cross-company equity ratio and financial health benchmark table."""
+    df = pd.DataFrame(rows)
+    if "equity_ratio" not in df.columns or df["equity_ratio"].isna().all():
+        return
+
+    ek = df[df["equity_ratio"].notna()].copy()
+    if ek.empty:
+        return
+
+    ek["EK-andel %"] = (ek["equity_ratio"] * 100).round(1)
+    avg_ek = ek["equity_ratio"].mean()
+    below_threshold = (ek["equity_ratio"] < _EK_THRESHOLD).sum()
+
+    st.markdown("#### Egenkapitalbenchmark")
+    b1, b2, b3 = st.columns(3)
+    b1.metric("Porteføljesnitt EK-andel", f"{avg_ek * 100:.1f}%")
+    b2.metric("Under 20%-grensen", int(below_threshold))
+    b3.metric("Selskapr med data", len(ek))
+
+    chart_df = (
+        ek[["navn", "EK-andel %"]]
+        .sort_values("EK-andel %", ascending=True)
+        .set_index("navn")
+    )
+    st.bar_chart(chart_df, height=280)
+
+    # Detail table with traffic-light EK column
+    def _ek_flag(v):
+        if v < 10:
+            return f"🔴 {v:.1f}%"
+        if v < 20:
+            return f"🟡 {v:.1f}%"
+        return f"🟢 {v:.1f}%"
+
+    tbl = ek[["navn", "orgnr", "EK-andel %", "revenue", "risk_score"]].copy()
+    tbl["EK-status"]  = tbl["EK-andel %"].apply(_ek_flag)
+    tbl["Omsetning"]  = tbl["revenue"].apply(_fmt_mnok)
+    tbl["Risikoscore"] = tbl["risk_score"].fillna("–").astype(str)
+    st.dataframe(
+        tbl[["navn", "orgnr", "EK-status", "Omsetning", "Risikoscore"]]
+        .rename(columns={"navn": "Selskap", "orgnr": "Orgnr"})
+        .sort_values("EK-andel %"),
+        use_container_width=True,
+        hide_index=True,
+    )
+
+
+def _render_pdf_download(portfolio_id: int, portfolio_name: str) -> None:
+    """Fetch PDF bytes and offer as a download button."""
+    if st.button("Last ned porteføljerapport (PDF)", key=f"pdf_dl_{portfolio_id}"):
+        with st.spinner("Genererer PDF…"):
+            try:
+                r = requests.get(f"{API_BASE}/portfolio/{portfolio_id}/pdf", timeout=60)
+                if r.ok:
+                    safe_name = portfolio_name.replace(" ", "_")
+                    st.download_button(
+                        label="Klikk for å laste ned PDF",
+                        data=r.content,
+                        file_name=f"portefoeljerapport_{safe_name}.pdf",
+                        mime="application/pdf",
+                        key=f"pdf_dl_btn_{portfolio_id}",
+                    )
+                else:
+                    st.error(f"Klarte ikke generere PDF: {r.status_code}")
+            except Exception as e:
+                st.error(f"PDF-feil: {e}")
+
+
 # ── Portfolio chat (Financial mode + Knowledge mode) ──────────────────────────
 
 def _render_portfolio_chat(portfolio_id: int) -> None:
@@ -700,6 +772,44 @@ def _render_alerts(portfolio_id: int) -> None:
 
 # ── Porteføljekonsentrasjon ────────────────────────────────────────────────────
 
+def _render_premium_analytics(portfolio_id: int) -> None:
+    """Show policy premium book breakdown for companies in the portfolio."""
+    data = _fetch(f"/portfolio/{portfolio_id}/analytics")
+    if not data or data.get("active_policy_count", 0) == 0:
+        return
+
+    st.markdown("#### Forsikringsbok")
+    total = data.get("total_annual_premium_nok", 0)
+    count = data.get("active_policy_count", 0)
+    r90 = data.get("upcoming_renewals_90d", 0)
+    r30 = data.get("upcoming_renewals_30d", 0)
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total årspremie", f"{total / 1_000_000:.1f} MNOK" if total else "–")
+    m2.metric("Aktive poliser", count)
+    m3.metric("Fornyelser (90d)", r90)
+    m4.metric("Fornyelser (30d)", r30, delta=f"-{r30}" if r30 else None, delta_color="inverse")
+
+    col_ins, col_prod = st.columns(2)
+    with col_ins:
+        ins = data.get("insurer_concentration", [])
+        if ins:
+            st.caption("**Fordeling per forsikringsselskap**")
+            df_ins = pd.DataFrame(ins)[["insurer", "premium_nok", "share_pct"]].copy()
+            df_ins["premium_nok"] = (df_ins["premium_nok"] / 1_000_000).round(2)
+            df_ins.rename(columns={"insurer": "Forsikringsselskap", "premium_nok": "Premie (MNOK)", "share_pct": "Andel %"}, inplace=True)
+            st.dataframe(df_ins, use_container_width=True, hide_index=True)
+
+    with col_prod:
+        prod = data.get("product_concentration", [])
+        if prod:
+            st.caption("**Fordeling per produkttype**")
+            df_prod = pd.DataFrame(prod)[["product_type", "count", "premium_nok"]].copy()
+            df_prod["premium_nok"] = (df_prod["premium_nok"] / 1_000_000).round(2)
+            df_prod.rename(columns={"product_type": "Produkttype", "count": "Antall", "premium_nok": "Premie (MNOK)"}, inplace=True)
+            st.dataframe(df_prod, use_container_width=True, hide_index=True)
+
+
 def _render_concentration(portfolio_id: int) -> None:
     data = _fetch(f"/portfolio/{portfolio_id}/concentration")
     if not data or not data.get("total_companies"):
@@ -830,14 +940,17 @@ def render_portfolio_tab() -> None:
 
         p_oversikt, p_ai, p_admin = st.tabs(["Oversikt", "AI-analyse", "Administrer"])
 
+        portfolio_name = st.session_state.get("portfolio_select_box", f"portefolje_{portfolio_id}")
+
         with p_oversikt:
             rows = _render_risk_table(portfolio_id)
             existing_orgnrs = {r["orgnr"] for r in rows}
             if rows:
-                pdf_url = f"{API_BASE}/portfolio/{portfolio_id}/pdf"
-                st.markdown(f"[📥 Last ned porteføljerapport (PDF)]({pdf_url})")
+                _render_pdf_download(portfolio_id, portfolio_name)
                 _render_alerts(portfolio_id)
                 _render_charts(rows)
+                _render_benchmarks(rows)
+                _render_premium_analytics(portfolio_id)
                 _render_concentration(portfolio_id)
             else:
                 existing_orgnrs = set()

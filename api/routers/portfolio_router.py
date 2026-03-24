@@ -319,6 +319,19 @@ def portfolio_chat(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/portfolio/{portfolio_id}/analytics")
+def get_portfolio_analytics(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Aggregate policy premium data for all companies in the portfolio."""
+    try:
+        return svc.get_analytics(portfolio_id, user.firm_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.get("/portfolio/{portfolio_id}/alerts")
 def get_portfolio_alerts(
     portfolio_id: int,

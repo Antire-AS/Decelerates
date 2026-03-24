@@ -6,7 +6,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from api.db import Portfolio, PortfolioCompany, Company, CompanyHistory, CompanyChunk
+from api.db import Portfolio, PortfolioCompany, Company, CompanyHistory, CompanyChunk, Policy, PolicyStatus
 from api.domain.exceptions import NotFoundError
 
 logger = logging.getLogger(__name__)
@@ -213,6 +213,74 @@ class PortfolioService:
         executor.shutdown(wait=False)
 
         return {"queued": len(orgnrs), "message": "PDF-innhenting kjører i bakgrunnen"}
+
+    # ── Policy premium analytics ──────────────────────────────────────────────
+
+    @staticmethod
+    def _insurer_concentration(policies: list, total_premium: float) -> list:
+        insurer_map: dict[str, dict] = {}
+        for p in policies:
+            ins = p.insurer or "Ukjent"
+            if ins not in insurer_map:
+                insurer_map[ins] = {"insurer": ins, "policy_count": 0, "premium_nok": 0.0}
+            insurer_map[ins]["policy_count"] += 1
+            insurer_map[ins]["premium_nok"] += p.annual_premium_nok or 0
+        rows = sorted(insurer_map.values(), key=lambda x: x["premium_nok"], reverse=True)
+        for row in rows:
+            row["share_pct"] = round(row["premium_nok"] / total_premium * 100, 1) if total_premium else 0
+        return rows
+
+    @staticmethod
+    def _product_concentration(policies: list) -> list:
+        product_map: dict[str, dict] = {}
+        for p in policies:
+            pt = p.product_type or "Ukjent"
+            if pt not in product_map:
+                product_map[pt] = {"product_type": pt, "count": 0, "premium_nok": 0.0}
+            product_map[pt]["count"] += 1
+            product_map[pt]["premium_nok"] += p.annual_premium_nok or 0
+        return sorted(product_map.values(), key=lambda x: x["premium_nok"], reverse=True)
+
+    def get_analytics(self, portfolio_id: int, firm_id: int) -> dict:
+        """Aggregate policy premium data for all companies in the portfolio."""
+        from datetime import date
+        self.get(portfolio_id, firm_id)  # raises NotFoundError if missing or wrong firm
+        orgnrs = [
+            pc.orgnr for pc in
+            self.db.query(PortfolioCompany)
+            .filter(PortfolioCompany.portfolio_id == portfolio_id)
+            .all()
+        ]
+        if not orgnrs:
+            return {
+                "total_annual_premium_nok": 0, "active_policy_count": 0,
+                "insurer_concentration": [], "product_concentration": [],
+                "upcoming_renewals_90d": 0, "upcoming_renewals_30d": 0,
+            }
+        policies = (
+            self.db.query(Policy)
+            .filter(Policy.orgnr.in_(orgnrs), Policy.firm_id == firm_id,
+                    Policy.status == PolicyStatus.active)
+            .all()
+        )
+        today = date.today()
+        total_premium = sum(p.annual_premium_nok or 0 for p in policies)
+        renewals_90 = sum(
+            1 for p in policies
+            if p.renewal_date and 0 <= (p.renewal_date - today).days <= 90
+        )
+        renewals_30 = sum(
+            1 for p in policies
+            if p.renewal_date and 0 <= (p.renewal_date - today).days <= 30
+        )
+        return {
+            "total_annual_premium_nok": round(total_premium),
+            "active_policy_count": len(policies),
+            "insurer_concentration": self._insurer_concentration(policies, total_premium),
+            "product_concentration": self._product_concentration(policies),
+            "upcoming_renewals_90d": renewals_90,
+            "upcoming_renewals_30d": renewals_30,
+        }
 
     # ── Portfolio chat ─────────────────────────────────────────────────────────
 
