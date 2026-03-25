@@ -51,6 +51,25 @@ def _azure_openai_embed(text: str) -> Optional[List[float]]:
         return None
 
 
+def _azure_foundry_answer(prompt: str, model: str = "gpt-5.4") -> Optional[str]:
+    """Call Azure AI Foundry (OpenAI-compatible) for chat completion. Returns text or None."""
+    base_url = os.getenv("AZURE_FOUNDRY_BASE_URL")
+    key = os.getenv("AZURE_FOUNDRY_API_KEY")
+    if not (_is_key_set(base_url) and _is_key_set(key)):
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(base_url=base_url, api_key=key)
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_completion_tokens=4096,
+        )
+        return resp.choices[0].message.content
+    except Exception:
+        return None
+
+
 def _azure_openai_answer(prompt: str) -> Optional[str]:
     """Call Azure OpenAI gpt-4o chat completion. Returns text or None."""
     endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -112,6 +131,10 @@ def _fmt_nok(value) -> str:
 
 def _llm_answer_raw(prompt: str) -> Optional[str]:
     """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
+    result = _azure_foundry_answer(prompt)
+    if result is not None:
+        return result
+
     result = _azure_openai_answer(prompt)
     if result is not None:
         return result

@@ -86,6 +86,8 @@ jobs:
             "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}"
             "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"
             "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}"
+            "AZURE_FOUNDRY_BASE_URL=${{ secrets.AZURE_FOUNDRY_BASE_URL }}"
+            "AZURE_FOUNDRY_API_KEY=${{ secrets.AZURE_FOUNDRY_API_KEY }}"
             "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}"
             "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}"
             "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o"
@@ -154,6 +156,15 @@ jobs:
             --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
+
+      - name: Set Easy Auth secret on prod UI (idempotent)
+        if: github.ref_name == 'main'
+        run: |
+          az containerapp secret set \
+            --name ca-ui \
+            --resource-group ${{ env.RG }} \
+            --secrets "microsoft-provider-authentication-secret=${{ secrets.EASY_AUTH_CLIENT_SECRET }}" \
+          || true
 
       - name: Configure API startup probe
         run: |
