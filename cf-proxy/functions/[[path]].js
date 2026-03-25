@@ -1,7 +1,8 @@
 /**
  * Cloudflare Pages Function — reverse proxy for Broker Accelerator (Streamlit UI).
  *
- * HTTP: proxies with redirect rewriting so Easy Auth login stays on pages.dev.
+ * HTTP: proxies with redirect rewriting + cookie domain stripping so Easy Auth
+ *       session cookies are scoped to pages.dev (not the Azure origin).
  * WebSocket: uses fetch() so we can forward the session Cookie to Azure Easy Auth.
  *   (new WebSocket() can't set headers — the auth cookie would be missing and Azure
  *    would reject the /_stcore/stream upgrade with a 302 redirect, giving a blank app.)
@@ -20,7 +21,7 @@ export async function onRequest({ request }) {
   return proxyHttp(request);
 }
 
-// ── HTTP proxy with auth redirect rewriting ───────────────────────────────────
+// ── HTTP proxy with auth redirect rewriting + cookie domain stripping ─────────
 
 async function proxyHttp(request) {
   const url    = new URL(request.url);
@@ -39,16 +40,39 @@ async function proxyHttp(request) {
   });
 
   if (response.status >= 300 && response.status < 400) {
-    const location = response.headers.get("Location") || "";
-    const newHeaders = new Headers(response.headers);
+    const location   = response.headers.get("Location") || "";
+    const newHeaders = rewriteCookies(response.headers);
     newHeaders.set("Location", rewriteUrl(location));
     return new Response(null, { status: response.status, headers: newHeaders });
   }
 
   return new Response(response.body, {
     status:  response.status,
-    headers: response.headers,
+    headers: rewriteCookies(response.headers),
   });
+}
+
+/**
+ * Strip the Domain= attribute from every Set-Cookie header so the browser
+ * scopes each cookie to broker-accelerator.pages.dev instead of the Azure origin.
+ * Without this, Easy Auth session cookies are stored for the wrong domain and
+ * every proxied request looks unauthenticated to Azure.
+ */
+function rewriteCookies(responseHeaders) {
+  const newHeaders = new Headers(responseHeaders);
+  const cookies    = responseHeaders.getSetCookie?.() ?? [];
+  if (cookies.length === 0) return newHeaders;
+
+  newHeaders.delete("Set-Cookie");
+  for (const cookie of cookies) {
+    const cleaned = cookie
+      .split(";")
+      .map(p => p.trim())
+      .filter(p => !p.toLowerCase().startsWith("domain="))
+      .join("; ");
+    newHeaders.append("Set-Cookie", cleaned);
+  }
+  return newHeaders;
 }
 
 function rewriteUrl(location) {
@@ -69,9 +93,8 @@ function rewriteUrl(location) {
 
 async function proxyWebSocket(request) {
   const url    = new URL(request.url);
-  const target = UI_ORIGIN + url.pathname + url.search;
+  const target = UI_WS + url.pathname + url.search;
 
-  // Build headers — must include Cookie so Easy Auth recognises the session
   const headers = new Headers();
   headers.set("Host",              UI_HOST);
   headers.set("Upgrade",           "websocket");
@@ -90,7 +113,6 @@ async function proxyWebSocket(request) {
   const origin = resp.webSocket;
 
   if (!origin) {
-    // Azure rejected the WS upgrade (likely auth issue — return status for debugging)
     return new Response(
       `WebSocket upstream failed: ${resp.status}`,
       { status: 502 }
