@@ -73,9 +73,11 @@ async function proxyWebSocket(request) {
 
   // Build headers — must include Cookie so Easy Auth recognises the session
   const headers = new Headers();
-  headers.set("Host",       UI_HOST);
-  headers.set("Upgrade",    "websocket");
-  headers.set("Connection", "Upgrade");
+  headers.set("Host",              UI_HOST);
+  headers.set("Upgrade",           "websocket");
+  headers.set("Connection",        "Upgrade");
+  headers.set("X-Forwarded-Host",  "broker-accelerator.pages.dev");
+  headers.set("X-Forwarded-Proto", "https");
 
   const cookie = request.headers.get("Cookie");
   if (cookie) headers.set("Cookie", cookie);
