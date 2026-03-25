@@ -93,7 +93,7 @@ function rewriteUrl(location) {
 
 async function proxyWebSocket(request) {
   const url    = new URL(request.url);
-  const target = UI_WS + url.pathname + url.search;
+  const target = UI_ORIGIN + url.pathname + url.search;
 
   const headers = new Headers();
   headers.set("Host",              UI_HOST);
