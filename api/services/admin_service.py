@@ -239,15 +239,20 @@ class AdminService:
 
     def seed_crm_demo(self) -> dict:
         """Seed realistic demo policies, claims, and activities for the demo companies."""
-        from api.db import BrokerFirm
-        if not self.db.query(BrokerFirm).filter(BrokerFirm.id == 1).first():
-            self.db.add(BrokerFirm(id=1, name="Default Firm", created_at=datetime.now(timezone.utc)))
-            self.db.flush()
-        now = datetime.now(timezone.utc)
-        policies_created, policies_skipped, policy_map = self._seed_policies(1, now)
-        claims_created = self._seed_claims(policy_map, 1, now)
-        activities_created = self._seed_activities(1, now)
-        return {
-            "policies_created": policies_created, "policies_skipped": policies_skipped,
-            "claims_created": claims_created, "activities_created": activities_created,
-        }
+        import traceback
+        try:
+            from api.db import BrokerFirm
+            if not self.db.query(BrokerFirm).filter(BrokerFirm.id == 1).first():
+                self.db.add(BrokerFirm(id=1, name="Default Firm", created_at=datetime.now(timezone.utc)))
+                self.db.flush()
+            now = datetime.now(timezone.utc)
+            policies_created, policies_skipped, policy_map = self._seed_policies(1, now)
+            claims_created = self._seed_claims(policy_map, 1, now)
+            activities_created = self._seed_activities(1, now)
+            return {
+                "policies_created": policies_created, "policies_skipped": policies_skipped,
+                "claims_created": claims_created, "activities_created": activities_created,
+            }
+        except Exception as exc:
+            self.db.rollback()
+            return {"error": str(exc), "trace": traceback.format_exc()}
