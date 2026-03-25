@@ -47,11 +47,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-_lang_col, _btn_col = st.columns([9, 1])
+_lang_col, _guide_col, _btn_col = st.columns([8, 1, 1])
 with _lang_col:
     _current_lang = st.session_state.get("lang", "no")
     _lang_label = "🇳🇴 Norsk" if _current_lang == "no" else "🇬🇧 English"
     st.caption(f"Språk: **{_lang_label}** — klikk for å bytte" if _current_lang == "no" else f"Language: **{_lang_label}** — click to switch")
+with _guide_col:
+    if st.button("❓", key="onboarding_trigger", help="Veiledning", type="secondary"):
+        st.session_state["onboarding_open"] = True
+        st.session_state["onboarding_step"] = 0
+        st.rerun()
 with _btn_col:
     _toggle_label = "🇬🇧 EN" if _current_lang == "no" else "🇳🇴 NO"
     if st.button(_toggle_label, key="lang_toggle", type="secondary"):

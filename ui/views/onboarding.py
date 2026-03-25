@@ -1,4 +1,4 @@
-"""Guided onboarding tour — shown once on first visit, re-triggerable via ? icon."""
+"""Guided onboarding tour — shown once on first visit, re-triggerable via ? button."""
 import streamlit as st
 
 
@@ -54,58 +54,48 @@ _STEPS = [
 ]
 
 
-def render_onboarding_button() -> None:
-    """Render a ? button in the sidebar that re-opens the onboarding tour."""
-    if st.sidebar.button("❓ Veiledning", key="onboarding_trigger", width="stretch"):
-        st.session_state["onboarding_open"] = True
-        st.session_state["onboarding_step"] = 0
+@st.dialog("Veiledning", width="large")
+def _onboarding_dialog() -> None:
+    step  = st.session_state.get("onboarding_step", 0)
+    total = len(_STEPS)
+    current = _STEPS[step]
+
+    st.progress(int((step + 1) / total * 100))
+    st.caption(f"Steg {step + 1} av {total}")
+    st.markdown(f"## {current['icon']} {current['title']}")
+    st.markdown(current["body"])
+    st.markdown("")
+
+    col_prev, col_skip, col_next = st.columns([1, 2, 1])
+    if step > 0:
+        if col_prev.button("← Forrige", key="onb_prev"):
+            st.session_state["onboarding_step"] = step - 1
+            st.rerun()
+    if col_skip.button("Hopp over", key="onb_skip"):
+        st.session_state["onboarding_open"] = False
+        st.session_state["onboarding_seen"] = True
         st.rerun()
+    label = "Neste →" if step < total - 1 else "Fullfør ✓"
+    if col_next.button(label, key="onb_next", type="primary"):
+        if step < total - 1:
+            st.session_state["onboarding_step"] = step + 1
+            st.rerun()
+        else:
+            st.session_state["onboarding_open"] = False
+            st.session_state["onboarding_seen"] = True
+            st.rerun()
 
 
 def render_onboarding_tour() -> None:
-    """Show the onboarding tour modal if active. Call this early in main render."""
-    # First-time auto-show
+    """Open the dialog if onboarding is active. Call this early in main render."""
     if "onboarding_seen" not in st.session_state:
         st.session_state["onboarding_seen"] = False
         st.session_state["onboarding_open"] = True
         st.session_state["onboarding_step"] = 0
 
-    if not st.session_state.get("onboarding_open"):
-        return
+    if st.session_state.get("onboarding_open"):
+        _onboarding_dialog()
 
-    step = st.session_state.get("onboarding_step", 0)
-    total = len(_STEPS)
-    current = _STEPS[step]
 
-    with st.container(border=True):
-        progress_pct = int((step + 1) / total * 100)
-        st.progress(progress_pct)
-        st.markdown(
-            f"<span style='color:#888;font-size:12px'>Steg {step + 1} av {total}</span>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(f"## {current['icon']} {current['title']}")
-        st.markdown(current["body"])
-        st.markdown("")
-
-        col_prev, col_skip, col_next = st.columns([1, 2, 1])
-        if step > 0:
-            if col_prev.button("← Forrige", key="onb_prev"):
-                st.session_state["onboarding_step"] = step - 1
-                st.rerun()
-        col_skip.button(
-            "Hopp over",
-            key="onb_skip",
-            on_click=lambda: st.session_state.update(
-                {"onboarding_open": False, "onboarding_seen": True}
-            ),
-        )
-        if step < total - 1:
-            if col_next.button("Neste →", key="onb_next", type="primary"):
-                st.session_state["onboarding_step"] = step + 1
-                st.rerun()
-        else:
-            if col_next.button("Fullfør ✓", key="onb_done", type="primary"):
-                st.session_state["onboarding_open"] = False
-                st.session_state["onboarding_seen"] = True
-                st.rerun()
+def render_onboarding_button() -> None:
+    """No-op — button is now rendered inline in main.py next to the language toggle."""
