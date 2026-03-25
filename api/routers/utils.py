@@ -4,7 +4,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from api.auth import CurrentUser, get_current_user
+from api.auth import CurrentUser, get_current_user, get_optional_user
 from api.container import resolve
 from api.ports.driven.notification_port import NotificationPort
 from api.dependencies import get_db
@@ -246,14 +246,14 @@ def seed_demo_documents_endpoint(db: Session = Depends(get_db)) -> dict:
 @router.get("/dashboard")
 def get_dashboard(
     db: Session = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(get_optional_user),
 ) -> dict:
     """Broker dashboard summary — renewals, claims, activities, premium book."""
     from datetime import date, timedelta
     from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity
 
     today = date.today()
-    firm_id = user.firm_id
+    firm_id = user.firm_id if user else 1
 
     # Renewals
     renewals_30 = db.query(Policy).filter(

@@ -90,6 +90,7 @@ def render_onboarding_tour() -> None:
         st.session_state["onboarding_step"] = 0
 
     if st.session_state.get("onboarding_open"):
+        st.session_state["onboarding_open"] = False  # reset so X-close doesn't reopen it
         _onboarding_dialog()
 
 

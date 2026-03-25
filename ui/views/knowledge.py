@@ -228,7 +228,7 @@ def _render_knowledge_chat() -> None:
                             }
                             st.rerun()
     else:
-        chat_col = st  # full-width chat when no video is playing
+        chat_col = st.container()  # full-width chat when no video is playing
 
     with chat_col:
         if not st.session_state["kb_messages"]:
