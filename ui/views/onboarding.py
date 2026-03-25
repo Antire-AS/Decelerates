@@ -66,17 +66,13 @@ def _onboarding_dialog() -> None:
     st.markdown(current["body"])
     st.markdown("")
 
-    col_prev, col_skip, col_next = st.columns([1, 2, 1])
+    col_prev, col_next = st.columns([1, 1])
     if step > 0:
         if col_prev.button("← Forrige", key="onb_prev"):
             st.session_state["onboarding_step"] = step - 1
             st.rerun()
-    if col_skip.button("Hopp over", key="onb_skip"):
-        st.session_state["onboarding_open"] = False
-        st.session_state["onboarding_seen"] = True
-        st.rerun()
     label = "Neste →" if step < total - 1 else "Fullfør ✓"
-    if col_next.button(label, key="onb_next", type="primary"):
+    if col_next.button(label, key="onb_next", type="primary", use_container_width=True):
         if step < total - 1:
             st.session_state["onboarding_step"] = step + 1
             st.rerun()
