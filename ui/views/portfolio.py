@@ -89,33 +89,96 @@ def _render_overview(companies: list, all_slas: list) -> None:
                 )
 
     df = pd.DataFrame(companies)
-    display_cols = {
-        "orgnr": "Orgnr", "navn": "Selskap", "kommune": "Kommune",
-        "naeringskode1_beskrivelse": "Bransje", "regnskapsår": "År",
-        "risk_score": "Risikoscore",
-    }
-    df_disp = df[[c for c in display_cols if c in df.columns]].copy()
-    df_disp.rename(columns=display_cols, inplace=True)
-    if "Risikoscore" in df_disp.columns:
-        df_disp.insert(0, "Risikonivå", df["risk_score"].apply(_risk_badge))
-        df_disp = df_disp.sort_values("Risikoscore", ascending=False, na_position="last")
-    st.dataframe(df_disp, width="stretch", hide_index=True)
 
+    # ── Risk distribution breakdown ───────────────────────────────────────────
+    st.markdown("---")
+    tbl_col, chart_col = st.columns([3, 2])
+
+    with tbl_col:
+        st.markdown("#### Alle analyserte selskaper")
+        display_cols = {
+            "orgnr": "Orgnr", "navn": "Selskap", "kommune": "Kommune",
+            "naeringskode1_beskrivelse": "Bransje", "regnskapsår": "År",
+            "risk_score": "Risikoscore",
+        }
+        df_disp = df[[c for c in display_cols if c in df.columns]].copy()
+        df_disp.rename(columns=display_cols, inplace=True)
+        if "Risikoscore" in df_disp.columns:
+            df_disp.insert(0, "Risikonivå", df["risk_score"].apply(_risk_badge))
+            df_disp = df_disp.sort_values("Risikoscore", ascending=False, na_position="last")
+        st.dataframe(df_disp, width="stretch", hide_index=True)
+
+    with chart_col:
+        st.markdown("#### Risikofordeling")
+        buckets = {"🟢 Lav (1–3)": 0, "🟡 Moderat (4–7)": 0, "🔴 Høy (8–11)": 0, "🚨 Svært høy (12+)": 0, "Ingen data": 0}
+        for s in df.get("risk_score", pd.Series(dtype=float)):
+            if s is None or (isinstance(s, float) and pd.isna(s)):
+                buckets["Ingen data"] += 1
+            elif s <= 3:
+                buckets["🟢 Lav (1–3)"] += 1
+            elif s <= 7:
+                buckets["🟡 Moderat (4–7)"] += 1
+            elif s <= 11:
+                buckets["🔴 Høy (8–11)"] += 1
+            else:
+                buckets["🚨 Svært høy (12+)"] += 1
+        risk_df = pd.DataFrame({"Nivå": list(buckets.keys()), "Selskaper": list(buckets.values())})
+        risk_df = risk_df[risk_df["Selskaper"] > 0]
+        st.dataframe(risk_df, width="stretch", hide_index=True)
+        st.bar_chart(risk_df.set_index("Nivå")["Selskaper"], height=180)
+
+    # ── Industry breakdown ────────────────────────────────────────────────────
+    if "naeringskode1_beskrivelse" in df.columns and df["naeringskode1_beskrivelse"].notna().any():
+        st.markdown("---")
+        ind_col, rev_col = st.columns(2)
+
+        with ind_col:
+            st.markdown("#### Bransjefordeling")
+            ind_counts = (
+                df[df["naeringskode1_beskrivelse"].notna()]
+                .groupby("naeringskode1_beskrivelse")
+                .size()
+                .reset_index(name="Antall")
+                .rename(columns={"naeringskode1_beskrivelse": "Bransje"})
+                .sort_values("Antall", ascending=False)
+                .head(10)
+            )
+            st.dataframe(ind_counts, width="stretch", hide_index=True)
+
+        with rev_col:
+            if "sum_driftsinntekter" in df.columns and df["sum_driftsinntekter"].notna().any():
+                st.markdown("#### Omsetning per bransje (MNOK)")
+                rev_ind = (
+                    df[df["sum_driftsinntekter"].notna() & df["naeringskode1_beskrivelse"].notna()]
+                    .groupby("naeringskode1_beskrivelse")["sum_driftsinntekter"]
+                    .sum()
+                    .div(1_000_000)
+                    .round(1)
+                    .reset_index()
+                    .rename(columns={"naeringskode1_beskrivelse": "Bransje", "sum_driftsinntekter": "MNOK"})
+                    .sort_values("MNOK", ascending=False)
+                    .head(10)
+                )
+                st.dataframe(rev_ind, width="stretch", hide_index=True)
+                st.bar_chart(rev_ind.set_index("Bransje")["MNOK"], height=200)
+
+    # ── Top risk / top revenue charts ─────────────────────────────────────────
+    st.markdown("---")
     col_left, col_right = st.columns(2)
     with col_left:
         if "risk_score" in df.columns and df["risk_score"].notna().any():
-            st.markdown("#### Risikoscore")
+            st.markdown("#### Topp 15 — høyest risiko")
             st.bar_chart(
                 df[df["risk_score"].notna()].set_index("navn")[["risk_score"]]
                 .rename(columns={"risk_score": "Score"})
-                .sort_values("Score", ascending=False).head(20)
+                .sort_values("Score", ascending=False).head(15)
             )
     with col_right:
         if "sum_driftsinntekter" in df.columns and df["sum_driftsinntekter"].notna().any():
-            st.markdown("#### Omsetning (MNOK)")
+            st.markdown("#### Topp 15 — størst omsetning")
             rev = df[df["sum_driftsinntekter"].notna()].copy()
             rev["MNOK"] = (rev["sum_driftsinntekter"] / 1_000_000).round(1)
-            st.bar_chart(rev.set_index("navn")[["MNOK"]].sort_values("MNOK", ascending=False).head(20))
+            st.bar_chart(rev.set_index("navn")[["MNOK"]].sort_values("MNOK", ascending=False).head(15))
 
 
 # ── Named portfolio management ────────────────────────────────────────────────
