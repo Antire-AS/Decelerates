@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from api.services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, _auto_extract_pdf_sources, list_companies as _list_companies
 from api.services.insurance_needs import estimate_insurance_needs, build_insurance_narrative
+from api.services.audit import log_audit
+from api.auth import get_optional_user, CurrentUser
 from api.dependencies import get_db
 from api.limiter import limiter
 
@@ -36,6 +38,7 @@ def get_org_profile(
     orgnr: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_optional_user),
 ):
     try:
         result = fetch_org_profile(orgnr, db)
@@ -45,9 +48,9 @@ def get_org_profile(
     if result is None:
         raise HTTPException(status_code=404, detail="Organisation not found")
 
-    # Phase 1 + Phase 2 background PDF extraction.
-    # Pass org dict so Phase 2 discovery has access to navn + hjemmeside if needed.
     org = (result or {}).get("org")
+    log_audit(db, "view_company", orgnr=orgnr, actor_email=user.email if user else None,
+              detail={"navn": (org or {}).get("navn")})
     background_tasks.add_task(_auto_extract_pdf_sources, orgnr, org)
 
     return result
