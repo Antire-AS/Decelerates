@@ -44,6 +44,7 @@ class Company(Base):
     sum_eiendeler = Column(Float)
     equity_ratio = Column(Float)
     risk_score = Column(Integer)
+    antall_ansatte = Column(Integer)
 
     regnskap_raw = Column(JSON)
     pep_raw = Column(JSON)
