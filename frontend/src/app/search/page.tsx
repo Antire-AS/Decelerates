@@ -1,0 +1,127 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import { searchCompanies, type SearchResult } from "@/lib/api";
+import RiskBadge from "@/components/company/RiskBadge";
+import { Search, ChevronRight, Loader2 } from "lucide-react";
+
+export default function SearchPage() {
+  const [query, setQuery]     = useState("DNB");
+  const [size, setSize]       = useState(20);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [searched, setSearched] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      try {
+        const data = await searchCompanies(query.trim(), size);
+        setResults(data);
+        setSearched(true);
+      } catch {
+        setError("Søket feilet. Sjekk at API-en kjører.");
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-[#2C3E50]">Selskapsøk</h1>
+
+      {/* Search form */}
+      <form onSubmit={handleSearch} className="broker-card space-y-4">
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+              Navn eller orgnr
+            </label>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="F.eks. DNB eller 984851006"
+              className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
+                         bg-white text-[#2C3E50] placeholder-[#C4BDB4]
+                         focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+            />
+          </div>
+          <div className="w-28">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+              Maks treff
+            </label>
+            <select
+              value={size}
+              onChange={(e) => setSize(Number(e.target.value))}
+              className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
+                         bg-white text-[#2C3E50] focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+            >
+              {[5, 10, 20, 50].map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPending || !query.trim()}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg
+                     bg-[#2C3E50] text-white text-sm font-medium
+                     hover:bg-[#3d5166] disabled:opacity-50 transition-colors"
+        >
+          {isPending
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <Search className="w-4 h-4" />}
+          Søk
+        </button>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </form>
+
+      {/* Results */}
+      {searched && (
+        <div className="broker-card">
+          <p className="text-xs text-[#8A7F74] mb-3">
+            Fant <strong>{results.length}</strong> treff
+          </p>
+
+          {results.length === 0 ? (
+            <p className="text-sm text-[#8A7F74]">Ingen selskaper funnet.</p>
+          ) : (
+            <div className="divide-y divide-[#EDE8E3]">
+              {results.map((r) => (
+                <Link
+                  key={r.orgnr}
+                  href={`/search/${r.orgnr}`}
+                  className="flex items-center gap-3 py-3 hover:bg-[#F9F7F4] -mx-5 px-5
+                             transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#2C3E50] group-hover:text-[#4A6FA5]">
+                      {r.navn}
+                    </p>
+                    <p className="text-xs text-[#8A7F74] mt-0.5">
+                      {r.orgnr}
+                      {r.organisasjonsform && ` · ${r.organisasjonsform}`}
+                      {r.kommune && ` · ${r.kommune}`}
+                      {r.postnummer && ` ${r.postnummer}`}
+                    </p>
+                    {r.naeringskode1_beskrivelse && (
+                      <p className="text-xs text-[#A09890] mt-0.5">
+                        {r.naeringskode1} {r.naeringskode1_beskrivelse}
+                      </p>
+                    )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#C4BDB4] group-hover:text-[#4A6FA5] flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

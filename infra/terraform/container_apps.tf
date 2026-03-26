@@ -67,6 +67,10 @@ resource "azurerm_container_app" "api" {
         name  = "VOYAGE_API_KEY"
         value = var.voyage_api_key
       }
+      env {
+        name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        value = azurerm_application_insights.main.connection_string
+      }
     }
   }
 

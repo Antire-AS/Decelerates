@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import time
 from typing import Optional, List, Dict, Any
 
 import anthropic
@@ -12,6 +13,7 @@ from google.genai import types as genai_types
 from api.constants import CLAUDE_MODEL, GEMINI_MODEL, VOYAGE_MODEL
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.prompts import CHAT_SYSTEM_PROMPT
+from api.telemetry import llm_calls, llm_duration_ms
 
 
 def _parse_json_from_llm_response(raw: str) -> Optional[dict]:
@@ -131,46 +133,60 @@ def _fmt_nok(value) -> str:
 
 def _llm_answer_raw(prompt: str) -> Optional[str]:
     """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
-    result = _azure_foundry_answer(prompt)
-    if result is not None:
-        return result
+    _t0 = time.monotonic()
+    _provider = "none"
+    _outcome = "success"
+    try:
+        result = _azure_foundry_answer(prompt)
+        if result is not None:
+            _provider = "azure_foundry"
+            return result
 
-    result = _azure_openai_answer(prompt)
-    if result is not None:
-        return result
+        result = _azure_openai_answer(prompt)
+        if result is not None:
+            _provider = "azure_openai"
+            return result
 
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    if _is_key_set(anthropic_key):
-        client = anthropic.Anthropic(api_key=anthropic_key)
-        msg = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return msg.content[0].text
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if _is_key_set(anthropic_key):
+            client = anthropic.Anthropic(api_key=anthropic_key)
+            msg = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            _provider = "claude"
+            return msg.content[0].text
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if _is_key_set(gemini_key):
-        client = google_genai.Client(api_key=gemini_key)
-        models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
-        seen: set = set()
-        ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-        last_exc: Optional[Exception] = None
-        for model_name in ordered:
-            try:
-                response = client.models.generate_content(model=model_name, contents=prompt)
-                return response.text
-            except Exception as exc:
-                msg = str(exc)
-                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    last_exc = exc
-                    continue
-                raise
-        raise QuotaError(
-            "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
-        )
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if _is_key_set(gemini_key):
+            client = google_genai.Client(api_key=gemini_key)
+            models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
+            seen: set = set()
+            ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
+            last_exc: Optional[Exception] = None
+            for model_name in ordered:
+                try:
+                    response = client.models.generate_content(model=model_name, contents=prompt)
+                    _provider = "gemini"
+                    return response.text
+                except Exception as exc:
+                    msg = str(exc)
+                    if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                        last_exc = exc
+                        continue
+                    raise
+            raise QuotaError(
+                "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
+            )
 
-    return None
+        return None
+    except Exception:
+        _outcome = "error"
+        raise
+    finally:
+        llm_duration_ms.record((time.monotonic() - _t0) * 1000, {"provider": _provider})
+        llm_calls.add(1, {"provider": _provider, "outcome": _outcome})
 
 
 def _compare_offers_with_llm(prompt: str) -> Optional[str]:

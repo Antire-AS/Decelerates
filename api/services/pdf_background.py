@@ -1,8 +1,11 @@
 """PDF background tasks — URL validation, phase-2 discovery, parallel extraction, service class."""
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
+
+from api.telemetry import pdf_extractions, pdf_extraction_duration_ms
 
 import requests
 from sqlalchemy.orm import Session
@@ -90,15 +93,20 @@ def _extract_pending_sources(orgnr: str, sources: List[Any], db: Session) -> Non
         return
 
     def _extract_one(src: Any) -> None:
+        _t0 = time.monotonic()
+        _outcome = "success"
         thread_db = SessionLocal()
         try:
             logger.info("[extract] Extracting financials from %s (year=%s)", src.pdf_url, src.year)
             fetch_history_from_pdf(orgnr, src.pdf_url, src.year, src.label or "", thread_db)
             logger.info("[extract] Done: %s year=%s", orgnr, src.year)
         except Exception as exc:
+            _outcome = "error"
             logger.error("[extract] Failed for %s year=%s: %s", orgnr, src.year, exc)
         finally:
             thread_db.close()
+            pdf_extraction_duration_ms.record((time.monotonic() - _t0) * 1000, {"outcome": _outcome})
+            pdf_extractions.add(1, {"outcome": _outcome})
 
     with ThreadPoolExecutor(max_workers=3) as pool:
         futures = {pool.submit(_extract_one, src): src for src in pending}

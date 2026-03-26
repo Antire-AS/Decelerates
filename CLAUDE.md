@@ -64,12 +64,13 @@ api/
     broker.py      broker settings + notes (uses BrokerService)
     company.py     /org/{orgnr}, /search, /companies
     financials.py  /org/{orgnr}/pdf-history, /pdf-sources, /history
-    knowledge.py   /org/{orgnr}/chat (RAG/chat)
+    knowledge.py   /org/{orgnr}/chat (RAG/chat); /knowledge/chat; /knowledge/index
     offers.py      insurance offer upload + comparison
     risk_router.py risk narrative + structure endpoints
     sla.py         SLA agreement endpoints (uses SlaService)
     documents.py   InsuranceDocument endpoints
-    utils.py       admin + debug endpoints; injects NotificationPort via container
+    utils.py       org-enrichment endpoints (roles, estimate, bankruptcy, koordinater, benchmark, struktur, norgesbank)
+    admin_router.py admin CRUD + debug/status + dashboard + portfolio-digest + activity-reminders
   services/        ← Business logic (Phase 2 migration target) + legacy wrappers
     broker.py      BrokerService  (db in __init__)
     sla_service.py SlaService     (db in __init__)
@@ -79,7 +80,12 @@ api/
     llm.py         LlmService     + module-level helpers
     external_apis.py ExternalApiService + module-level helpers
     company.py     CompanyService + module-level helpers
-    pdf_extract.py PdfExtractService + module-level helpers
+    pdf_extract.py backward-compat re-export shim (imports from pdf_parse/history/web/agents/background)
+    pdf_parse.py   JSON parsing, Gemini extraction, pdfplumber fallback
+    pdf_history.py DB upsert, history merge (BRREG + PDF rows)
+    pdf_web.py     DuckDuckGo helpers, HTML fetching (Playwright + requests fallback)
+    pdf_agents.py  Claude / Gemini / Azure OpenAI agent loops + orchestration
+    pdf_background.py URL validation, parallel extraction, PdfExtractService
     pdf_generate.py PdfGenerateService + module-level helpers
     blob_storage.py   BlobStorageService (legacy wrapper → AzureBlobStorageAdapter)
     notification_service.py  NotificationService (legacy wrapper → adapter)
