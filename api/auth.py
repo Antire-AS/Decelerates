@@ -124,10 +124,10 @@ def get_current_user(
     try:
         claims = _validate_token(creds.credentials)
     except Exception as exc:
-        _log.debug("Token validation failed: %s", exc)
+        _log.warning("Token validation failed: %s", exc)  # temporary: warning so it appears in logs
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail=f"Token validation failed: {exc}",  # temporary: expose error for debugging
             headers={"WWW-Authenticate": "Bearer"},
         )
 
