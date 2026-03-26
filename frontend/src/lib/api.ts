@@ -85,7 +85,26 @@ export interface SlaAgreement {
   client_orgnr: string;
   client_name: string;
   created_at: string;
+  start_date?: string;
+  status?: string;
+  signed_at?: string;
+  signed_by?: string;
+  insurance_lines?: string[];
   pdf_url?: string;
+}
+
+export interface HistoryRow {
+  year: number;
+  revenue?: number;
+  total_assets?: number;
+  equity_ratio?: number;
+  source?: string;
+  // BRREG fields
+  sumDriftsinntekter?: number;
+  arsresultat?: number;
+  sumEgenkapital?: number;
+  sumEiendeler?: number;
+  [key: string]: unknown;
 }
 
 export interface Policy {
@@ -204,7 +223,7 @@ export const getOrgRoles = (orgnr: string) =>
   apiFetch<unknown>(`/org/${orgnr}/roles`);
 
 export const getOrgHistory = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/history`);
+  apiFetch<HistoryRow[]>(`/org/${orgnr}/history`);
 
 export const getOrgBankruptcy = (orgnr: string) =>
   apiFetch<unknown>(`/org/${orgnr}/bankruptcy`);
@@ -295,6 +314,47 @@ export const getInsuranceDocuments = (orgnr?: string) => {
   const q = orgnr ? `?orgnr=${orgnr}` : "";
   return apiFetch<InsuranceDocument[]>(`/insurance-documents${q}`);
 };
+
+export const deleteInsuranceDocument = (id: number) =>
+  apiFetch<void>(`/insurance-documents/${id}`, { method: "DELETE" });
+
+export const compareInsuranceDocuments = (docIds: [number, number]) =>
+  apiFetch<{ comparison: string; docs: string[] }>("/insurance-documents/compare", {
+    method: "POST",
+    body: JSON.stringify({ doc_ids: docIds }),
+  });
+
+export const chatWithInsuranceDocument = (id: number, question: string, orgnr?: string) =>
+  apiFetch<{ answer: string }>(`/insurance-documents/${id}/chat`, {
+    method: "POST",
+    body: JSON.stringify({ question, orgnr }),
+  });
+
+export async function uploadInsuranceDocument(
+  file: File,
+  opts: { orgnr?: string; title?: string; tags?: string } = {},
+): Promise<InsuranceDocument> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts.orgnr) fd.append("orgnr", opts.orgnr);
+  if (opts.title) fd.append("title", opts.title);
+  if (opts.tags)  fd.append("tags",  opts.tags);
+  const base = typeof window === "undefined"
+    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/api";
+  const res = await fetch(`${base}/insurance-documents`, { method: "POST", body: fd });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return res.json();
+}
+
+export async function downloadInsuranceDocumentPdf(id: number, filename: string): Promise<void> {
+  const res = await fetch(`/api/insurance-documents/${id}/pdf`);
+  if (!res.ok) throw new Error(`PDF download failed: ${res.status}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ── Knowledge ────────────────────────────────────────────────────────────────
 

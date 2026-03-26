@@ -4,8 +4,8 @@ import { use, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import {
-  getOrgProfile, getSlaAgreements, getOrgPolicies,
-  type OrgProfile,
+  getOrgProfile, getSlaAgreements, getOrgPolicies, getOrgHistory,
+  type OrgProfile, type HistoryRow,
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
@@ -15,6 +15,10 @@ import ClaimsSection from "@/components/crm/ClaimsSection";
 import ActivitiesSection from "@/components/crm/ActivitiesSection";
 import ForsikringSection from "@/components/crm/ForsikringSection";
 import { ArrowLeft, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import {
+  BarChart, Bar, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 
 
 function fmt(v: unknown): string {
@@ -70,6 +74,34 @@ export default function OrgProfilePage({
   const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm">(
     "oversikt",
   );
+
+  // Lazy-load financial history only when Økonomi tab is active
+  const { data: historyData, isLoading: historyLoading } = useSWR<HistoryRow[]>(
+    activeTab === "okonomi" ? `history-${orgnr}` : null,
+    () => getOrgHistory(orgnr),
+  );
+
+  const history: HistoryRow[] = historyData ?? [];
+  const chartData = [...history]
+    .sort((a, b) => a.year - b.year)
+    .map((r) => ({
+      year: r.year,
+      omsetning: r.revenue != null
+        ? +(r.revenue / 1e6).toFixed(1)
+        : r.sumDriftsinntekter != null
+          ? +(r.sumDriftsinntekter / 1e6).toFixed(1)
+          : null,
+      resultat: r.arsresultat != null ? +(r.arsresultat / 1e6).toFixed(1) : null,
+    }))
+    .filter((r) => r.omsetning != null || r.resultat != null);
+
+  const eqData = [...history]
+    .sort((a, b) => a.year - b.year)
+    .filter((r) => r.equity_ratio != null)
+    .map((r) => ({
+      year: r.year,
+      ekAndel: +(r.equity_ratio! * 100).toFixed(1),
+    }));
 
   if (isLoading) {
     return (
@@ -231,20 +263,94 @@ export default function OrgProfilePage({
       {/* ── Økonomi ─────────────────────────────────────────────────── */}
       {activeTab === "okonomi" && (
         <div className="space-y-4">
-          <Section title="Regnskap">
-            {Object.keys(regn).length === 0 ? (
+          {historyLoading ? (
+            <div className="broker-card flex items-center gap-2 text-xs text-[#8A7F74]">
+              <Loader2 className="w-4 h-4 animate-spin" /> Henter historikk…
+            </div>
+          ) : history.length === 0 ? (
+            <Section title="Regnskapshistorikk">
               <p className="text-sm text-[#8A7F74]">
-                Ingen regnskapsdata tilgjengelig fra Regnskapsregisteret.
+                Ingen historiske regnskapsdata tilgjengelig.
                 Last opp årsrapport-PDF i Forsikring-fanen for å hente tall.
               </p>
-            ) : (
-              <div className="space-y-1">
-                {Object.entries(regn).map(([k, v]) => (
-                  <KV key={k} label={k} value={v} />
-                ))}
-              </div>
-            )}
-          </Section>
+            </Section>
+          ) : (
+            <>
+              {chartData.length > 0 && (
+                <Section title="Omsetning og resultat (MNOK)">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v: number) => `${v} MNOK`} />
+                      <Legend />
+                      <Bar dataKey="omsetning" name="Omsetning" fill="#4A6FA5" />
+                      <Bar dataKey="resultat" name="Nettoresultat" fill="#2C3E50" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Section>
+              )}
+
+              {eqData.length > 0 && (
+                <Section title="Egenkapitalandel (%)">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={eqData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} unit="%" />
+                      <Tooltip formatter={(v: number) => `${v}%`} />
+                      <Line
+                        type="monotone"
+                        dataKey="ekAndel"
+                        name="EK-andel"
+                        stroke="#4A6FA5"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Section>
+              )}
+
+              <Section title="Historikk per år">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-[#8A7F74] border-b border-[#EDE8E3]">
+                        <th className="text-left pb-1.5 font-medium">År</th>
+                        <th className="text-right pb-1.5 font-medium">Omsetning</th>
+                        <th className="text-right pb-1.5 font-medium">Nettoresultat</th>
+                        <th className="text-right pb-1.5 font-medium">Egenkapital</th>
+                        <th className="text-right pb-1.5 font-medium">EK-andel</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EDE8E3]">
+                      {[...history].sort((a, b) => b.year - a.year).map((r) => (
+                        <tr key={r.year} className="hover:bg-[#F9F7F4]">
+                          <td className="py-1.5 font-medium text-[#2C3E50]">{r.year}</td>
+                          <td className="py-1.5 text-right text-[#8A7F74]">
+                            {fmtMnok(r.revenue ?? r.sumDriftsinntekter)}
+                          </td>
+                          <td className="py-1.5 text-right text-[#8A7F74]">
+                            {fmtMnok(r.arsresultat)}
+                          </td>
+                          <td className="py-1.5 text-right text-[#8A7F74]">
+                            {fmtMnok(r.sumEgenkapital)}
+                          </td>
+                          <td className="py-1.5 text-right text-[#8A7F74]">
+                            {r.equity_ratio != null
+                              ? `${(r.equity_ratio * 100).toFixed(1)}%`
+                              : "–"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Section>
+            </>
+          )}
         </div>
       )}
 
