@@ -403,3 +403,34 @@ export const saveBrokerSettings = (data: Record<string, string>) =>
     method: "POST",
     body: JSON.stringify(data),
   });
+
+// ── SLA extras ────────────────────────────────────────────────────────────────
+
+export const signSlaAgreement = (id: number, signed_by: string) =>
+  apiFetch<void>(`/sla/${id}/sign`, { method: "PATCH", body: JSON.stringify({ signed_by }) });
+
+export async function downloadSlaPdf(id: number, filename: string): Promise<void> {
+  const res = await fetch(`/api/sla/${id}/pdf`);
+  if (!res.ok) throw new Error(`PDF download failed: ${res.status}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Offer upload (multipart) ──────────────────────────────────────────────────
+
+export async function uploadOrgOffers(
+  orgnr: string,
+  files: File[],
+): Promise<{ id: number; filename: string; insurer_name: string }[]> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+  const base = typeof window === "undefined"
+    ? (process.env.API_BASE_URL ?? "http://localhost:8000")
+    : "/api";
+  const res = await fetch(`${base}/org/${orgnr}/offers`, { method: "POST", body: fd });
+  if (!res.ok) throw new Error(`API ${res.status}: upload offers`);
+  return res.json();
+}

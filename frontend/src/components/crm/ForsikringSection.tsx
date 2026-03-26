@@ -4,10 +4,10 @@ import { useState } from "react";
 import useSWR from "swr";
 import {
   getOrgInsuranceNeeds, generateRiskOffer, generateNarrative,
-  getOrgOffers, updateOfferStatus, deleteOffer,
+  getOrgOffers, updateOfferStatus, deleteOffer, uploadOrgOffers,
   type InsuranceNeed, type InsuranceOffer,
 } from "@/lib/api";
-import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText } from "lucide-react";
+import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText, Upload } from "lucide-react";
 
 const PRIORITY_COLOR: Record<string, string> = {
   critical: "text-red-600", high: "text-orange-500",
@@ -45,6 +45,22 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
   const [riskOffer, setRiskOffer]   = useState<Record<string, unknown> | null>(null);
   const [genLoading, setGenLoading] = useState(false);
   const [genErr, setGenErr]         = useState<string | null>(null);
+
+  const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
+  const [uploading, setUploading]     = useState(false);
+  const [uploadErr, setUploadErr]     = useState<string | null>(null);
+  const [uploadOpen, setUploadOpen]   = useState(false);
+
+  async function handleUpload() {
+    if (!uploadFiles?.length) return;
+    setUploading(true); setUploadErr(null);
+    try {
+      await uploadOrgOffers(orgnr, Array.from(uploadFiles));
+      setUploadFiles(null); setUploadOpen(false);
+      mutateOffers();
+    } catch (e) { setUploadErr(String(e)); }
+    finally { setUploading(false); }
+  }
 
   async function handleGenerateNarrative() {
     setGenLoading(true); setGenErr(null);
@@ -180,6 +196,40 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
                 )}
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Offer upload */}
+      <div className="broker-card">
+        <button onClick={() => setUploadOpen((o) => !o)}
+          className="w-full flex items-center justify-between text-sm font-semibold text-[#2C3E50]">
+          <span className="flex items-center gap-1.5"><Upload className="w-4 h-4" /> Last opp tilbud (PDF)</span>
+          {uploadOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+        {uploadOpen && (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs text-[#8A7F74]">
+              Last opp én eller flere PDF-filer med forsikringstilbud. AI-agenten analyserer dem i bakgrunnen.
+            </p>
+            <input
+              type="file" accept=".pdf" multiple
+              onChange={(e) => setUploadFiles(e.target.files)}
+              className="block w-full text-xs text-[#8A7F74] file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-[#2C3E50] file:text-white hover:file:bg-[#3d5166] cursor-pointer"
+            />
+            {uploadFiles && uploadFiles.length > 0 && (
+              <p className="text-xs text-[#8A7F74]">{uploadFiles.length} fil(er) valgt</p>
+            )}
+            {uploadErr && <p className="text-xs text-red-600">{uploadErr}</p>}
+            <div className="flex gap-2">
+              <button onClick={handleUpload} disabled={uploading || !uploadFiles?.length}
+                className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
+                {uploading && <Loader2 className="w-3 h-3 animate-spin" />}
+                {uploading ? "Laster opp…" : "Last opp"}
+              </button>
+              <button type="button" onClick={() => setUploadOpen(false)}
+                className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]">Avbryt</button>
+            </div>
           </div>
         )}
       </div>
