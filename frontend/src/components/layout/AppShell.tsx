@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -17,6 +18,8 @@ import {
   Settings,
   Globe,
   Scale,
+  LogOut,
+  User,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -35,6 +38,7 @@ const NAV_ITEMS = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { lang, setLang } = useI18n();
+  const { data: session } = useSession();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -68,8 +72,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Language toggle */}
-        <div className="px-3 py-3 border-t border-[#D4C9B8]">
+        {/* Language toggle + user */}
+        <div className="px-3 py-3 border-t border-[#D4C9B8] space-y-1">
           <button
             onClick={() => setLang(lang === "no" ? "en" : "no")}
             className="nav-item w-full"
@@ -77,6 +81,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Globe className="w-4 h-4 flex-shrink-0" />
             <span>{lang === "no" ? "🇳🇴 Norsk" : "🇬🇧 English"}</span>
           </button>
+
+          {session?.user && (
+            <>
+              <div className="nav-item pointer-events-none opacity-70">
+                <User className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate text-xs">{session.user.email ?? session.user.name}</span>
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="nav-item w-full text-red-500 hover:text-red-600"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span>Logg ut</span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
 

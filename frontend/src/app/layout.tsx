@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
 import AppShell from "@/components/layout/AppShell";
+import Providers from "@/providers";
 
 export const metadata: Metadata = {
   title: "Broker Accelerator",
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="no">
       <body>
-        <LanguageProvider>
-          <AppShell>{children}</AppShell>
-        </LanguageProvider>
+        <Providers>
+          <LanguageProvider>
+            <AppShell>{children}</AppShell>
+          </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );

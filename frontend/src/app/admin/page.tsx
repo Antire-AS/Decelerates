@@ -5,7 +5,7 @@ import useSWR from "swr";
 import {
   getAdminStats, getUsers, updateUserRole, getAuditLog,
   getRenewals, getPolicies,
-  seedCrmDemo, seedDemoDocuments, loadDemo, resetData, seedNorwayTop100,
+  seedCrmDemo, seedDemoDocuments, seedFullDemo, loadDemo, resetData, seedNorwayTop100,
   sendPortfolioDigest, sendActivityReminders, sendRenewalThresholdEmails,
   type User,
 } from "@/lib/api";
@@ -325,6 +325,12 @@ function DataControlsSection() {
           title="CRM demo-data"
           subtitle="Oppretter realistiske forsikringsavtaler, skader og aktiviteter for demo-selskapene."
         />
+        <ActionButton
+          label="Seed fiktive selskaper (full demo)" loadingLabel="Seeder…"
+          disabled={loading === "fulldemo"}
+          onClick={() => run("fulldemo", seedFullDemo)}
+        />
+        <ResultMessage msg={messages.fulldemo ?? null} />
         <ActionButton
           label="Seed CRM demo-data" loadingLabel="Seeder…"
           disabled={loading === "crm"}

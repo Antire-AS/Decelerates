@@ -9,6 +9,12 @@ const API_BASE =
     ? (process.env.API_BASE_URL ?? "http://localhost:8000")
     : "/api";
 
+// Module-level token — set by the SessionSync component in providers.tsx
+let _authToken: string | undefined;
+export function setApiToken(token: string | undefined) {
+  _authToken = token;
+}
+
 async function apiFetch<T>(
   path: string,
   init?: RequestInit,
@@ -18,6 +24,7 @@ async function apiFetch<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(_authToken ? { Authorization: `Bearer ${_authToken}` } : {}),
       ...(init?.headers ?? {}),
     },
   });
@@ -289,6 +296,35 @@ export const deleteActivity = (orgnr: string, id: number) =>
 
 export const getPortfolioOverview = () =>
   apiFetch<unknown>("/portfolio/overview");
+
+export interface PortfolioItem {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export const getPortfolios = () => apiFetch<PortfolioItem[]>("/portfolio");
+
+export const createPortfolio = (name: string, description = "") =>
+  apiFetch<PortfolioItem>("/portfolio", {
+    method: "POST",
+    body: JSON.stringify({ name, description }),
+  });
+
+export const portfolioChat = (portfolioId: number, question: string) =>
+  apiFetch<{ answer: string; sources: string[] }>(`/portfolio/${portfolioId}/chat`, {
+    method: "POST",
+    body: JSON.stringify({ question }),
+  });
+
+export const seedFullDemo = () =>
+  apiFetch<{
+    companies_created: number;
+    history_rows_created: number;
+    policies_created: number;
+    message: string;
+  }>("/admin/seed-full-demo", { method: "POST" });
 
 // ── Renewals ─────────────────────────────────────────────────────────────────
 

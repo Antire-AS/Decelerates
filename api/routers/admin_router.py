@@ -64,6 +64,17 @@ def seed_demo_documents_endpoint(db: Session = Depends(get_db)) -> dict:
     return seed_demo_documents(db)
 
 
+@router.post("/admin/seed-full-demo")
+def seed_full_demo_endpoint(db: Session = Depends(get_db)) -> dict:
+    """Seed 8 fictional Norwegian companies with 5-year financial history and renewal policies.
+
+    Completely synthetic data (orgnr 999100101–108). Idempotent — skips existing records.
+    Renewal dates spread 15–91 days out for a realistic pipeline demo.
+    """
+    from api.services.demo_seed import seed_full_demo
+    return seed_full_demo(db)
+
+
 # ── Debug ──────────────────────────────────────────────────────────────────────
 
 def _has_mp4_faststart(data: bytes):

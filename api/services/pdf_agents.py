@@ -348,7 +348,7 @@ def _agent_discover_pdfs_azure_openai(
     if not endpoint or not api_key:
         return []
     from openai import AzureOpenAI
-    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
     client = AzureOpenAI(api_key=api_key, azure_endpoint=endpoint, api_version="2024-02-01")
     tools = [
         {"type": "function", "function": {
