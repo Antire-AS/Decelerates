@@ -133,11 +133,7 @@ def render_admin_tab() -> None:
     try:
         resp = requests.get(f"{API_BASE}/users", headers=headers, timeout=8)
         if resp.status_code == 401:
-            try:
-                detail = resp.json().get("detail", resp.text)
-            except Exception:
-                detail = resp.text
-            st.warning(f"401: {detail}")
+            st.warning("Du må være logget inn for å se brukere.")
             return
         users = resp.json() if resp.ok else []
     except Exception as e:
