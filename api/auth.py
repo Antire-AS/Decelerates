@@ -59,20 +59,27 @@ def _validate_token(token: str) -> dict:
     audience  = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
     if not tenant_id or not audience:
         raise ValueError("AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation")
-    jwks   = _get_jwks(tenant_id)
+
+    # Multi-tenant mode: AZURE_TENANT_ID=common accepts tokens from any Microsoft tenant.
+    # In this mode we validate the signature and audience but skip the issuer check,
+    # since each external user's token will carry their own tenant in the issuer claim.
+    multi_tenant = tenant_id.lower() == "common"
+    jwks_tenant  = "common" if multi_tenant else tenant_id
+    jwks   = _get_jwks(jwks_tenant)
     header = jwt.get_unverified_header(token)
     try:
         matching = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
     except StopIteration:
         raise jwt.InvalidTokenError("No matching key found in JWKS")
     key = jwt.algorithms.RSAAlgorithm.from_jwk(matching)
-    return jwt.decode(
-        token,
-        key,
-        algorithms=["RS256"],
-        audience=audience,
-        issuer=f"https://login.microsoftonline.com/{tenant_id}/v2.0",
-    )
+
+    decode_kwargs: dict = {"algorithms": ["RS256"], "audience": audience}
+    if multi_tenant:
+        decode_kwargs["options"] = {"verify_iss": False}
+    else:
+        decode_kwargs["issuer"] = f"https://login.microsoftonline.com/{tenant_id}/v2.0"
+
+    return jwt.decode(token, key, **decode_kwargs)
 
 
 def get_optional_user(
