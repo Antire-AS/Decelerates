@@ -55,15 +55,22 @@ def get_user() -> dict | None:
 
 
 def get_access_token() -> str | None:
-    """Return the Azure AD access token injected by Easy Auth, or None when running locally.
+    """Return the Azure AD ID token injected by Easy Auth, or None when running locally.
 
-    Azure Container Apps Easy Auth injects the user's AAD access token as the
-    X-MS-TOKEN-AAD-ACCESS-TOKEN header on every authenticated request to the UI container.
-    Streamlit 1.37+ exposes this via st.context.headers (normalised to title-case).
-    Locally (no Easy Auth) this header is absent → returns None → API uses AUTH_DISABLED bypass.
+    Easy Auth injects X-MS-TOKEN-AAD-ID-TOKEN (always has aud = the app client ID)
+    and X-MS-TOKEN-AAD-ACCESS-TOKEN (defaults to Microsoft Graph, wrong audience).
+    We use the ID token so the audience matches AUTH_AUDIENCE on the FastAPI backend.
+    Streamlit 1.37+ exposes headers via st.context.headers (normalised to title-case).
+    Locally (no Easy Auth) the header is absent → returns None → API uses AUTH_DISABLED bypass.
     """
     try:
-        return st.context.headers.get("X-Ms-Token-Aad-Access-Token") or None
+        headers = st.context.headers
+        # Prefer ID token (aud = app client ID, matches AUTH_AUDIENCE)
+        token = headers.get("X-Ms-Token-Aad-Id-Token")
+        if token:
+            return token
+        # Fallback to access token (works if Easy Auth is configured with custom login params)
+        return headers.get("X-Ms-Token-Aad-Access-Token") or None
     except Exception:
         return None
 
