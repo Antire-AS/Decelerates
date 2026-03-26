@@ -130,10 +130,31 @@ def render_admin_tab() -> None:
             f"— {me.get('email', '')}"
         )
 
+    # Debug: show token info to diagnose auth issues
+    from ui.auth import get_access_token
+    import base64, json as _json
+    _tok = get_access_token()
+    with st.expander("🔍 Auth debug (fjernes etter feilsøking)", expanded=True):
+        if _tok:
+            try:
+                _payload = _tok.split(".")[1]
+                _claims = _json.loads(base64.urlsafe_b64decode(_payload + "=="))
+                st.write(f"**Token funnet** — aud: `{_claims.get('aud')}` | iss: `{_claims.get('iss','')[:60]}` | sub: `{_claims.get('sub','')[:20]}`")
+            except Exception as _e:
+                st.write(f"Token funnet men kunne ikke dekodes: {_e} | prefix: {_tok[:30]}")
+        else:
+            st.warning("Ingen token funnet — X-Ms-Token-Aad-Id-Token og X-Ms-Token-Aad-Access-Token er begge tomme.")
+        try:
+            _hdrs = dict(st.context.headers)
+            _auth_hdrs = {k: v[:40] for k, v in _hdrs.items() if "token" in k.lower() or "principal" in k.lower() or "auth" in k.lower()}
+            st.write("Relevante headers:", _auth_hdrs)
+        except Exception as _e2:
+            st.write(f"Kunne ikke lese headers: {_e2}")
+
     try:
         resp = requests.get(f"{API_BASE}/users", headers=headers, timeout=8)
         if resp.status_code == 401:
-            st.warning("Du må være logget inn for å se brukere.")
+            st.warning(f"Du må være logget inn for å se brukere. (API svarte 401 — AUTH_AUDIENCE mismatch?)")
             return
         users = resp.json() if resp.ok else []
     except Exception as e:
