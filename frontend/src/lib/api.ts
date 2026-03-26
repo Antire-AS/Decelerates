@@ -202,6 +202,31 @@ export interface Renewal {
   renewal_date: string;
   days_until_renewal: number;
   status: string;
+  renewal_stage?: string;
+  policy_number?: string;
+  annual_premium_nok?: number;
+  product_type?: string;
+}
+
+export interface PremiumAnalytics {
+  total_premium_book: number;
+  active_policy_count: number;
+  renewals_90d_premium: number;
+  avg_premium_per_policy: number;
+  by_insurer: { insurer: string; count: number; total_premium: number; share_pct: number }[];
+  by_product: { product_type: string; count: number; total_premium: number; share_pct: number }[];
+  by_status: { status: string; count: number; total_premium: number; share_pct: number }[];
+}
+
+export interface PortfolioRiskRow {
+  orgnr: string;
+  navn?: string;
+  revenue?: number;
+  equity?: number;
+  equity_ratio?: number;
+  risk_score?: number;
+  naeringskode?: string;
+  regnskapsår?: number;
 }
 
 export interface InsuranceDocument {
@@ -403,6 +428,36 @@ export const knowledgeChat = (question: string, orgnr?: string) =>
 // ── Videos ───────────────────────────────────────────────────────────────────
 
 export const getVideos = () => apiFetch<unknown[]>("/videos");
+
+export async function uploadVideo(file: File): Promise<{ url: string; name: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const base = typeof window === "undefined"
+    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/api";
+  const res = await fetch(`${base}/videos/upload`, {
+    method: "POST",
+    body: fd,
+    headers: _authToken ? { Authorization: `Bearer ${_authToken}` } : {},
+  });
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+  return res.json();
+}
+
+// ── Analytics ────────────────────────────────────────────────────────────────
+
+export const getPremiumAnalytics = () =>
+  apiFetch<PremiumAnalytics>("/analytics/premiums");
+
+export const getPortfolioRisk = (id: number) =>
+  apiFetch<PortfolioRiskRow[]>(`/portfolio/${id}/risk`);
+
+// ── Renewal stage ─────────────────────────────────────────────────────────────
+
+export const advanceRenewalStage = (policyId: number, stage: string, notifyEmail?: string) =>
+  apiFetch<void>(`/policies/${policyId}/renewal/advance`, {
+    method: "POST",
+    body: JSON.stringify({ stage, ...(notifyEmail ? { notify_email: notifyEmail } : {}) }),
+  });
 
 // ── Forsikring / offers ──────────────────────────────────────────────────────
 

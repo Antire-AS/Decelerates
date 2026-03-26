@@ -5,6 +5,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import {
   getOrgProfile, getSlaAgreements, getOrgPolicies, getOrgHistory,
+  getOrgRoles, getOrgLicenses, getOrgBankruptcy, getOrgBenchmark,
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
@@ -14,7 +15,7 @@ import PoliciesSection from "@/components/crm/PoliciesSection";
 import ClaimsSection from "@/components/crm/ClaimsSection";
 import ActivitiesSection from "@/components/crm/ActivitiesSection";
 import ForsikringSection from "@/components/crm/ForsikringSection";
-import { ArrowLeft, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, AlertTriangle, Shield, Users, TrendingUp } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -80,6 +81,17 @@ export default function OrgProfilePage({
     activeTab === "okonomi" ? `history-${orgnr}` : null,
     () => getOrgHistory(orgnr),
   );
+
+  // Lazy-load extras for Oversikt tab
+  const { data: rolesData }     = useSWR(activeTab === "oversikt" ? `roles-${orgnr}` : null, () => getOrgRoles(orgnr));
+  const { data: licensesData }  = useSWR(activeTab === "oversikt" ? `licenses-${orgnr}` : null, () => getOrgLicenses(orgnr));
+  const { data: bankruptcyData }= useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
+  const { data: benchmarkData } = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
+
+  const roles     = rolesData     as Record<string, unknown> | null | undefined;
+  const licenses  = licensesData  as Record<string, unknown> | null | undefined;
+  const bankruptcy= bankruptcyData as Record<string, unknown> | null | undefined;
+  const benchmark = benchmarkData as Record<string, unknown> | null | undefined;
 
   const history: HistoryRow[] = historyData ?? [];
   const chartData = [...history]
@@ -246,6 +258,18 @@ export default function OrgProfilePage({
             </Section>
           )}
 
+          {/* Bankruptcy alert */}
+          {!!bankruptcy && !!(bankruptcy.konkurs || bankruptcy.underAvvikling || bankruptcy.underTvangsavviklingEllerTvangsopplosning) && (
+            <div className="broker-card border-l-4 border-red-500">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <span className="text-sm font-semibold text-red-700">
+                  {bankruptcy.konkurs ? "Konkurs" : bankruptcy.underAvvikling ? "Under avvikling" : "Under tvangsavvikling/tvangsoppløsning"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* PEP / sanctions */}
           {pep && (Object.keys(pep).length > 0) && (
             <Section title="PEP / sanksjonssjekk">
@@ -255,6 +279,70 @@ export default function OrgProfilePage({
                   {JSON.stringify(pep, null, 2)}
                 </pre>
               </div>
+            </Section>
+          )}
+
+          {/* Board members */}
+          {Array.isArray((roles as Record<string, unknown> | null)?.roller) && ((roles as Record<string, unknown>).roller as unknown[]).length > 0 && (
+            <Section title="Styremedlemmer">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <Users className="w-3.5 h-3.5" />
+                <span>Fra Brønnøysundregistrene</span>
+              </div>
+              <div className="space-y-2">
+                {((roles as Record<string, unknown>).roller as Record<string, unknown>[]).slice(0, 8).map((r, i) => {
+                  const person = (r.person ?? r) as Record<string, unknown>;
+                  const navn = [person.fornavn, person.etternavn].filter(Boolean).join(" ") || (r.navn as string) || "–";
+                  const rolle = (r.rolle as Record<string, unknown>)?.beskrivelse ?? r.tittel ?? r.type ?? "";
+                  return (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-[#2C3E50] font-medium">{navn}</span>
+                      <span className="text-[#8A7F74] text-xs">{String(rolle)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          {/* Finanstilsynet licenses */}
+          {Array.isArray((licenses as Record<string, unknown> | null)?.licences) && ((licenses as Record<string, unknown>).licences as unknown[]).length > 0 && (
+            <Section title="Finanstilsynet — konsesjoner">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Registrerte finanskonsesjoner</span>
+              </div>
+              <div className="space-y-1.5">
+                {((licenses as Record<string, unknown>).licences as Record<string, unknown>[]).slice(0, 6).map((l, i) => (
+                  <div key={i} className="text-xs text-[#2C3E50] flex items-start gap-1.5">
+                    <span className="text-[#C8A951] mt-0.5">•</span>
+                    <span>{String(l.type ?? l.name ?? l.licence_type ?? JSON.stringify(l))}</span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Industry benchmark */}
+          {benchmark && Object.keys(benchmark).length > 0 && (
+            <Section title="SSB-bransjesammenligning">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Typiske nøkkeltall for bransjen</span>
+              </div>
+              {Object.entries(benchmark as Record<string, { low: number; high: number } | number | string>)
+                .filter(([k]) => !["naeringskode", "beskrivelse", "source"].includes(k))
+                .slice(0, 5)
+                .map(([key, val]) => (
+                  <div key={key} className="flex justify-between text-sm">
+                    <span className="text-[#8A7F74] capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="text-[#2C3E50] font-medium text-xs">
+                      {typeof val === "object" && val !== null && "low" in val
+                        ? `${(val as { low: number; high: number }).low}–${(val as { low: number; high: number }).high}%`
+                        : String(val)}
+                    </span>
+                  </div>
+                ))}
             </Section>
           )}
         </div>
