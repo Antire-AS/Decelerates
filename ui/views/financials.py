@@ -75,7 +75,7 @@ def _render_comparison_table(df: pd.DataFrame, sort_col: str) -> None:
     display["Egenkapital"] = df["Egenkapital"].apply(_fmt_nok)
     display["EK-andel %"] = df["EK-andel %"].apply(lambda x: f"{x:.1f} %" if x is not None else "–")
     display["Risikoscore"] = df["Risikoscore"].apply(lambda x: f"{x:.0f}" if x is not None else "–")
-    display["År"] = df["År"].apply(lambda x: str(int(x)) if x else "–")
+    display["År"] = df["År"].apply(lambda x: str(int(x)) if pd.notna(x) and x else "–")
     cols = ["Selskap", "Omsetning", "Egenkapital", "EK-andel %", "Risikoscore", "Bransje", "År"]
     st.dataframe(display[cols], width="stretch", hide_index=True)
 
