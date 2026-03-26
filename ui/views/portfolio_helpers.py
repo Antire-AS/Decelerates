@@ -2,7 +2,7 @@
 import requests
 import streamlit as st  # noqa: F401 — imported here so sub-modules can re-use session_state pattern
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 
 def _risk_badge(score) -> str:
@@ -25,7 +25,7 @@ def _fmt_mnok(val) -> str:
 
 def _fetch(path: str, params: dict | None = None):
     try:
-        r = requests.get(f"{API_BASE}{path}", params=params, timeout=10)
+        r = requests.get(f"{API_BASE}{path}", params=params, headers=get_auth_headers(), timeout=10)
         return r.json() if r.ok else []
     except Exception:
         return []
@@ -33,7 +33,7 @@ def _fetch(path: str, params: dict | None = None):
 
 def _post(path: str, json: dict) -> dict | None:
     try:
-        r = requests.post(f"{API_BASE}{path}", json=json, timeout=30)
+        r = requests.post(f"{API_BASE}{path}", json=json, headers=get_auth_headers(), timeout=30)
         return r.json() if r.ok else None
     except Exception:
         return None
@@ -41,7 +41,7 @@ def _post(path: str, json: dict) -> dict | None:
 
 def _delete(path: str) -> bool:
     try:
-        r = requests.delete(f"{API_BASE}{path}", timeout=30)
+        r = requests.delete(f"{API_BASE}{path}", headers=get_auth_headers(), timeout=30)
         return r.ok
     except Exception:
         return False

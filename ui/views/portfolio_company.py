@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 from ui.views.portfolio_helpers import _delete, _fetch, _fmt_mnok, _post, _risk_badge
 
 _EK_THRESHOLD = 0.20  # 20% — generally considered minimum healthy equity ratio
@@ -160,7 +160,7 @@ def _render_pdf_download(portfolio_id: int, portfolio_name: str) -> None:
     if st.button("Last ned porteføljerapport (PDF)", key=f"pdf_dl_{portfolio_id}"):
         with st.spinner("Genererer PDF…"):
             try:
-                r = requests.get(f"{API_BASE}/portfolio/{portfolio_id}/pdf", timeout=60)
+                r = requests.get(f"{API_BASE}/portfolio/{portfolio_id}/pdf", headers=get_auth_headers(), timeout=60)
                 if r.ok:
                     safe_name = portfolio_name.replace(" ", "_")
                     st.download_button(

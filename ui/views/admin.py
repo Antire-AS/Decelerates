@@ -366,7 +366,7 @@ def _render_data_controls() -> None:
     if st.button("Send fornyelsesterskelvarsler", key="admin_renewal_threshold", width="stretch"):
         with st.spinner("Sjekker fornyelsesterskler og sender varsler…"):
             try:
-                r = requests.post(f"{API_BASE}/admin/renewal-threshold-emails", timeout=30)
+                r = requests.post(f"{API_BASE}/admin/renewal-threshold-emails", headers=headers, timeout=30)
                 if r.ok:
                     d = r.json()
                     total = d.get("total_notifications_sent", 0)
