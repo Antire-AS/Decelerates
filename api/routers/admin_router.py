@@ -23,29 +23,6 @@ from api.services.portfolio import collect_alerts
 router = APIRouter()
 
 
-@router.get("/debug/auth-headers")
-def debug_auth_headers(request_obj: "Request"):
-    """Temporary: return the Authorization header (first 60 chars) so we can debug audience issues."""
-    from fastapi import Request
-    auth = request_obj.headers.get("authorization", "")
-    if auth.startswith("Bearer "):
-        token = auth[7:]
-        import base64
-        # Decode JWT payload without verification
-        try:
-            payload_b64 = token.split(".")[1]
-            padding = 4 - len(payload_b64) % 4
-            payload = base64.urlsafe_b64decode(payload_b64 + "=" * padding)
-            import json
-            claims = json.loads(payload)
-            return {"aud": claims.get("aud"), "iss": claims.get("iss"), "email": claims.get("preferred_username", claims.get("email")), "token_prefix": token[:30]}
-        except Exception as e:
-            return {"error": str(e), "token_prefix": token[:30]}
-    return {"auth_header": auth[:60] or "MISSING"}
-
-
-from fastapi import Request  # noqa: E402 (used above)
-
 
 def _admin_svc(db: Session = Depends(get_db)) -> AdminService:
     return AdminService(db)
