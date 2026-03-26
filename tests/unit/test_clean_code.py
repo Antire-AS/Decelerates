@@ -78,6 +78,8 @@ _JUSTIFIED = {
     # Risk scoring rule lists
     "_check_financial_health",
     "_check_industry_age_exposure",
+    # LLM answer dispatcher — priority chain (Foundry → Azure OpenAI → Claude → Gemini)
+    "_llm_answer_raw",
     # Narrative prompt builder — just a long f-string template
     "_build_narrative_prompt",
     # RAG context builder — long field list
@@ -188,6 +190,8 @@ _JUSTIFIED = {
     "_render_exports",
     # render_admin_tab — users table + exports + role management; Streamlit imperative API
     "render_admin_tab",
+    # _render_audit_log — audit dataframe + metrics + CSV export; Streamlit imperative layout
+    "_render_audit_log",
     # send_renewal_stage_change — HTML email template with colour map + table cells; single coherent email
     "send_renewal_stage_change",
     # _render_benchmarks — equity ratio bar chart + traffic-light table; Streamlit imperative layout
@@ -198,6 +202,8 @@ _JUSTIFIED = {
     "render_onboarding_tour",
     # _render_comparison_charts — 3 side-by-side bar charts + multiselect; Streamlit imperative layout
     "_render_comparison_charts",
+    # send_renewal_threshold_emails (adapter) — HTML email with 6-column table; single coherent email template
+    "send_renewal_threshold_emails",
 }
 
 # Files excluded from function-length checks (non-production scripts)

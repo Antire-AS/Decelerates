@@ -17,6 +17,7 @@ from api.services.documents import (
 )
 from api.schemas import DocChatRequest, DocCompareRequest
 from api.dependencies import get_db
+from api.services.audit import log_audit
 
 router = APIRouter()
 
@@ -50,6 +51,8 @@ async def upload_insurance_document(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    log_audit(db, "document.upload", orgnr=orgnr,
+              detail={"title": title, "doc_id": doc.id})
     return {
         "id": doc.id,
         "title": doc.title,
@@ -131,6 +134,7 @@ def get_similar_documents(doc_id: int, db: Session = Depends(get_db)) -> list:
 def delete_insurance_document(doc_id: int, db: Session = Depends(get_db)) -> dict:
     if not remove_insurance_document(doc_id, db):
         raise HTTPException(status_code=404, detail="Document not found")
+    log_audit(db, "document.delete", detail={"doc_id": doc_id})
     return {"deleted": doc_id}
 
 

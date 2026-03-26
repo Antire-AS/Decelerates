@@ -107,6 +107,10 @@ def _render_audit_log(headers: dict) -> None:
         "Detaljer":   r.get("detail") or "–",
     } for r in rows])
     st.dataframe(df, width="stretch", hide_index=True)
+    csv_buf = io.BytesIO(df.to_csv(index=False).encode("utf-8-sig"))
+    st.download_button("⬇️ Eksporter CSV", csv_buf,
+                       f"aktivitetslogg_{date.today()}.csv", "text/csv",
+                       key="audit_csv_dl")
 
 
 def render_admin_tab() -> None:
@@ -348,6 +352,30 @@ def _render_data_controls() -> None:
                         )
                     else:
                         st.info("Ingen forfallne oppgaver i dag.")
+                else:
+                    st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
+            except Exception as e:
+                st.error(str(e))
+
+    st.markdown("---")
+    st.markdown("**🔔 Fornyelsesterskel-e-poster (90/60/30 dager)**")
+    st.caption(
+        "Sender målrettede e-poster for avtaler som forfaller innen 90, 60 og 30 dager. "
+        "Idempotent — hver avtale varsles kun én gang per terskel. Trygt å kjøre fra cron."
+    )
+    if st.button("Send fornyelsesterskelvarsler", key="admin_renewal_threshold", width="stretch"):
+        with st.spinner("Sjekker fornyelsesterskler og sender varsler…"):
+            try:
+                r = requests.post(f"{API_BASE}/admin/renewal-threshold-emails", timeout=30)
+                if r.ok:
+                    d = r.json()
+                    total = d.get("total_notifications_sent", 0)
+                    details = ", ".join(
+                        f"{t['threshold_days']}d: {t['policies_found']} avtaler"
+                        for t in d.get("thresholds_checked", [])
+                        if t["policies_found"] > 0
+                    ) or "ingen nye avtaler å varsle"
+                    st.success(f"✅ Sendt til {d['recipient']} — {total} varsler ({details})")
                 else:
                     st.error(f"Feil: {r.status_code} — {r.json().get('detail', r.text)}")
             except Exception as e:

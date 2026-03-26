@@ -88,6 +88,38 @@ def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     return {"orgnr": orgnr, "deleted_rows": deleted}
 
 
+@router.get("/org/{orgnr}/financial-commentary")
+@limiter.limit("10/minute")
+def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends(get_db)) -> dict:
+    """Generate an AI commentary on a company's multi-year financial trend."""
+    from api.services.llm import _llm_answer_raw
+    from api.db import Company
+
+    company = db.query(Company).filter(Company.orgnr == orgnr).first()
+    history = _get_full_history(orgnr, db)
+    if not history:
+        raise HTTPException(status_code=404, detail="No financial history found for this company")
+
+    navn = company.navn if company else orgnr
+    years_summary = "\n".join(
+        f"- {h['year']}: omsetning {h.get('sum_driftsinntekter') or 'N/A'} NOK, "
+        f"egenkapital {h.get('sum_egenkapital') or 'N/A'} NOK, "
+        f"eiendeler {h.get('sum_eiendeler') or 'N/A'} NOK"
+        for h in sorted(history, key=lambda x: x.get("year", 0))
+    )
+    prompt = (
+        f"Du er en norsk finansanalytiker. Gi en kortfattet kommentar (3–5 setninger, norsk) "
+        f"om det finansielle trendbildet for {navn} (orgnr {orgnr}) basert på disse tallene:\n\n"
+        f"{years_summary}\n\n"
+        "Fokuser på utvikling i omsetning, egenkapital og balanse. "
+        "Vær objektiv og profesjonell. Avslutt med ett konkret risikonivå: Lav / Moderat / Høy."
+    )
+    commentary = _llm_answer_raw(prompt)
+    if not commentary:
+        raise HTTPException(status_code=503, detail="LLM not available — check ANTHROPIC_API_KEY or GEMINI_API_KEY")
+    return {"orgnr": orgnr, "navn": navn, "commentary": commentary, "years_analyzed": len(history)}
+
+
 @router.post("/financials/query")
 @limiter.limit("20/minute")
 def nl_query(request: Request, body: dict, db: Session = Depends(get_db)) -> dict:

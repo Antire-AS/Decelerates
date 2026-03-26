@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from api.auth import CurrentUser, get_optional_user
+from api.auth import CurrentUser, get_current_user
 from api.db import Policy, PolicyStatus
 from api.dependencies import get_db
 
@@ -33,10 +33,10 @@ def _aggregate(policies: list, key: str) -> list:
 @router.get("/analytics/premiums")
 def get_premium_analytics(
     db: Session = Depends(get_db),
-    user: CurrentUser = Depends(get_optional_user),
+    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Aggregate the broker's premium book by insurer, product type, and status."""
-    firm_id = user.firm_id if user else 1
+    firm_id = user.firm_id
     all_policies = db.query(Policy).filter(Policy.firm_id == firm_id).all()
     active = [p for p in all_policies if p.status == PolicyStatus.active]
     total_book = sum(p.annual_premium_nok or 0.0 for p in active)

@@ -88,6 +88,41 @@ def render_client_view(token: str) -> None:
         eq = regn.get("equity_ratio")
         rc3.metric("EK-andel", f"{eq*100:.1f} %" if eq is not None else "–")
 
+    policies = data.get("policies") or []
+    if policies:
+        st.markdown("---")
+        st.markdown("**Aktive forsikringsavtaler**")
+        for p in policies:
+            renewal = p.get("renewal_date") or "–"
+            premium = f"kr {p['annual_premium_nok']:,.0f}" if p.get("annual_premium_nok") else "–"
+            st.markdown(
+                f"🔒 **{p['insurer']}** — {p['product_type']} &nbsp;·&nbsp; "
+                f"Fornyelse: `{renewal}` &nbsp;·&nbsp; Premie: {premium}",
+                unsafe_allow_html=True,
+            )
+
+    claims = data.get("claims") or []
+    if claims:
+        st.markdown("---")
+        st.markdown("**Skadesaker**")
+        _STATUS_LABEL = {"open": "Åpen", "under_review": "Under behandling",
+                         "settled": "Avsluttet", "rejected": "Avvist"}
+        for c in claims:
+            label = _STATUS_LABEL.get(c.get("status", ""), c.get("status", ""))
+            date_str = (c.get("incident_date") or "")[:10] or "–"
+            st.markdown(
+                f"📋 **{c.get('claim_number') or '–'}** · {label} · {date_str}"
+                + (f" — {c['description'][:80]}" if c.get("description") else "")
+            )
+
+    documents = data.get("documents") or []
+    if documents:
+        st.markdown("---")
+        st.markdown("**Dokumenter**")
+        for d in documents:
+            uploaded = (d.get("uploaded_at") or "")[:10] or "–"
+            st.markdown(f"📄 {d.get('title', '–')} · {uploaded}")
+
     st.markdown("---")
     st.caption(f"Denne rapporten utløper {data.get('expires_at', '')[:10]}. "
                "Kontakt megleren din for oppdatert analyse.")

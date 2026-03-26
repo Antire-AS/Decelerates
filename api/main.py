@@ -47,6 +47,7 @@ from api.routers import (
     broker,
     sla,
     utils,
+    admin_router,
     portfolio_router,
     users,
     contacts,
@@ -56,6 +57,7 @@ from api.routers import (
     client_token,
     analytics,
     audit,
+    gdpr,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -135,6 +137,42 @@ def on_startup():
     finally:
         db_tok.close()
 
+    # ── GDPR retention purge — hard-delete companies soft-deleted >90 days ago ─
+    db_gdpr = next(get_db())
+    try:
+        from api.services.gdpr_service import GdprService
+        purged = GdprService(db_gdpr).purge_old_deletions()
+        if purged:
+            logging.getLogger(__name__).info("GDPR purge: hard-deleted %d company records", purged)
+    except Exception:
+        db_gdpr.rollback()
+    finally:
+        db_gdpr.close()
+
+    # ── Job queue — register handlers + start worker loop ─────────────────────
+    from api.services.job_queue_service import register_handler, JobQueueService
+    from api.services.pdf_background import _auto_extract_pdf_sources
+
+    def _handle_pdf_extract(db, payload: dict):
+        orgnr = payload.get("orgnr", "")
+        org = payload.get("org", {})
+        _auto_extract_pdf_sources(orgnr, org)
+
+    register_handler("pdf_extract", _handle_pdf_extract)
+
+    import asyncio
+
+    async def _job_worker():
+        from api.db import SessionLocal as _SL
+        while True:
+            try:
+                JobQueueService.process_pending(db_factory=_SL)
+            except Exception:
+                pass
+            await asyncio.sleep(10)
+
+    asyncio.get_event_loop().create_task(_job_worker())
+
     # ── DI container ──────────────────────────────────────────────────────────
     configure(AppConfig(
         blob=BlobStorageConfig(
@@ -161,6 +199,7 @@ app.include_router(knowledge.router)
 app.include_router(broker.router)
 app.include_router(sla.router)
 app.include_router(utils.router)
+app.include_router(admin_router.router)
 app.include_router(portfolio_router.router)
 app.include_router(users.router)
 app.include_router(contacts.router)
@@ -170,5 +209,6 @@ app.include_router(activities.router)
 app.include_router(client_token.router)
 app.include_router(analytics.router)
 app.include_router(audit.router)
+app.include_router(gdpr.router)
 
 __all__ = ["app", "limiter"]

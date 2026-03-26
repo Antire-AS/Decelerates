@@ -102,6 +102,38 @@ class TestPolicyServiceList:
         assert len(PolicyService(db).list_by_firm(firm_id=1)) == 2
 
 
+class TestPolicyServiceAdvanceRenewalStage:
+    def test_advance_success(self):
+        db = _mock_db()
+        existing = _policy()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = existing
+
+        PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="ready_to_quote")
+
+        db.commit.assert_called_once()
+
+    def test_advance_invalid_stage_raises(self):
+        db = _mock_db()
+        existing = _policy()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = existing
+
+        with pytest.raises(ValidationError):
+            PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="bogus_stage")
+
+    def test_advance_not_found_raises(self):
+        db = _mock_db()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = None
+
+        with pytest.raises(NotFoundError):
+            PolicyService(db).advance_renewal_stage(policy_id=99, firm_id=1, new_stage="contacted")
+
+
 class TestPolicyServiceRenewals:
     def test_get_renewals_within_window(self):
         db = _mock_db()
@@ -224,6 +256,16 @@ class TestClaimsService:
         with pytest.raises(NotFoundError):
             svc.update(claim_id=1, firm_id=1, body=ClaimUpdate(status="bogus"))
 
+    def test_list_by_policy(self):
+        db = _mock_db()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.order_by.return_value = mock_q
+        mock_q.all.return_value = [self._claim()]
+
+        result = ClaimsService(db).list_by_policy(policy_id=1, firm_id=1)
+        assert len(result) == 1
+
     def test_delete_removes_claim(self):
         db = _mock_db()
         existing = self._claim()
@@ -277,6 +319,26 @@ class TestActivityService:
 
         with pytest.raises(NotFoundError):
             ActivityService(db).update(99, firm_id=1, body=ActivityUpdate(subject="X"))
+
+    def test_delete_removes_activity(self):
+        db = _mock_db()
+        act = MagicMock(spec=Activity)
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = act
+
+        ActivityService(db).delete(activity_id=1, firm_id=1)
+        db.delete.assert_called_once_with(act)
+        db.commit.assert_called_once()
+
+    def test_delete_not_found_raises(self):
+        db = _mock_db()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = None
+
+        with pytest.raises(NotFoundError):
+            ActivityService(db).delete(activity_id=99, firm_id=1)
 
 
 # ── UserService ───────────────────────────────────────────────────────────────

@@ -1,12 +1,13 @@
 from typing import Optional
 
 import requests
-from fastapi import APIRouter, Query, HTTPException, Depends, BackgroundTasks, Request
+from fastapi import APIRouter, Query, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 
-from api.services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, _auto_extract_pdf_sources, list_companies as _list_companies
+from api.services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, list_companies as _list_companies
 from api.services.insurance_needs import estimate_insurance_needs, build_insurance_narrative
 from api.services.audit import log_audit
+from api.services.job_queue_service import JobQueueService
 from api.auth import get_optional_user, CurrentUser
 from api.dependencies import get_db
 from api.limiter import limiter
@@ -36,7 +37,6 @@ def search_orgs(
 def get_org_profile(
     request: Request,
     orgnr: str,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_optional_user),
 ):
@@ -51,7 +51,7 @@ def get_org_profile(
     org = (result or {}).get("org")
     log_audit(db, "view_company", orgnr=orgnr, actor_email=user.email if user else None,
               detail={"navn": (org or {}).get("navn")})
-    background_tasks.add_task(_auto_extract_pdf_sources, orgnr, org)
+    JobQueueService(db).enqueue("pdf_extract", {"orgnr": orgnr, "org": org})
 
     return result
 
@@ -228,9 +228,9 @@ def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
 
 @router.get("/org-by-name")
 def get_org_by_name(
+    request: Request,
     name: str = Query(..., min_length=2),
     kommunenummer: Optional[str] = None,
-    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
 ):
     """
@@ -242,4 +242,4 @@ def get_org_by_name(
         raise HTTPException(status_code=404, detail="No organisation found for name")
 
     orgnr = candidates[0]["orgnr"]
-    return get_org_profile(orgnr=orgnr, background_tasks=background_tasks, db=db)
+    return get_org_profile(request=request, orgnr=orgnr, db=db)

@@ -48,6 +48,7 @@ class Company(Base):
 
     regnskap_raw = Column(JSON)
     pep_raw = Column(JSON)
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
 
 
 class CompanyNote(Base):
@@ -303,6 +304,7 @@ class Policy(Base):
     renewal_stage       = Column(SAEnum(RenewalStage, name="renewal_stage", create_type=False), nullable=False, default=RenewalStage.not_started)
     notes               = Column(String, nullable=True)
     document_url        = Column(String, nullable=True)
+    last_renewal_notified_days = Column(Integer, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)
     updated_at          = Column(DateTime(timezone=True), nullable=False)
 
@@ -383,6 +385,23 @@ class AuditLog(Base):
     action      = Column(String, nullable=False)   # e.g. "view_client_profile", "send_tilbud"
     detail      = Column(String, nullable=True)    # JSON-encoded extras
     created_at  = Column(DateTime(timezone=True), nullable=False, index=True)
+
+
+class JobQueue(Base):
+    """Durable background job queue backed by PostgreSQL. Replaces FastAPI BackgroundTasks."""
+    __tablename__ = "job_queue"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    job_type     = Column(String(100), nullable=False)
+    payload      = Column(JSON, nullable=True)
+    status       = Column(String(20), nullable=False, default="pending", index=True)
+    attempts     = Column(Integer, nullable=False, default=0)
+    max_attempts = Column(Integer, nullable=False, default=3)
+    created_at   = Column(DateTime(timezone=True), nullable=False)
+    scheduled_at = Column(DateTime(timezone=True), nullable=False)
+    started_at   = Column(DateTime(timezone=True), nullable=True)
+    finished_at  = Column(DateTime(timezone=True), nullable=True)
+    error        = Column(String, nullable=True)
 
 
 def init_db():

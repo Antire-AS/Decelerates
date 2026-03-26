@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from api.auth import CurrentUser, get_current_user, get_optional_user
-from api.db import ClientToken, Company
+from api.db import ClientToken, Company, Policy, PolicyStatus, Claim, InsuranceDocument
 from api.dependencies import get_db
 from api.services import fetch_org_profile
 from api.services.audit import log_audit
@@ -36,6 +36,42 @@ def create_client_token(
     return {"token": row.token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
 
 
+def _fetch_crm_snapshot(orgnr: str, db: Session) -> dict:
+    """Fetch policies, claims, documents for the client portal snapshot."""
+    policies = (
+        db.query(Policy)
+        .filter(Policy.orgnr == orgnr, Policy.status == PolicyStatus.active)
+        .order_by(Policy.renewal_date.asc().nullslast())
+        .all()
+    )
+    claims = (
+        db.query(Claim).filter(Claim.orgnr == orgnr)
+        .order_by(Claim.created_at.desc()).limit(10).all()
+    )
+    docs = (
+        db.query(InsuranceDocument).filter(InsuranceDocument.orgnr == orgnr)
+        .order_by(InsuranceDocument.uploaded_at.desc()).limit(10).all()
+    )
+    return {
+        "policies": [
+            {"insurer": p.insurer, "product_type": p.product_type, "policy_number": p.policy_number,
+             "annual_premium_nok": p.annual_premium_nok,
+             "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None}
+            for p in policies
+        ],
+        "claims": [
+            {"claim_number": c.claim_number, "status": c.status.value,
+             "incident_date": c.incident_date.isoformat() if c.incident_date else None,
+             "description": c.description}
+            for c in claims
+        ],
+        "documents": [
+            {"title": d.title, "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None}
+            for d in docs
+        ],
+    }
+
+
 @router.get("/client/{token}")
 def get_client_profile(
     token: str,
@@ -56,6 +92,7 @@ def get_client_profile(
     actor = user.email if user else "client"
     log_audit(db, "view_client_profile", orgnr=row.orgnr, actor_email=actor,
               detail={"token_label": row.label})
+    crm = _fetch_crm_snapshot(row.orgnr, db)
     return {
         "orgnr": row.orgnr,
         "navn": org.get("navn"),
@@ -67,6 +104,7 @@ def get_client_profile(
         "risk_reasons": risk.get("reasons", []),
         "regnskap": profile.get("regnskap") or {},
         "expires_at": row.expires_at.isoformat(),
+        **crm,
     }
 
 

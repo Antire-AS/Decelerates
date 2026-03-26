@@ -224,6 +224,49 @@ class AzureEmailNotificationAdapter(NotificationPort):
         """
         return self.send_email(to, subject, body_html)
 
+    def send_renewal_threshold_emails(
+        self, to: str, threshold_days: int, policies: list[dict]
+    ) -> bool:
+        """Send targeted renewal reminder for a specific threshold (90/60/30 days)."""
+        if not policies:
+            return False
+        color = "#c0392b" if threshold_days <= 30 else ("#e67e22" if threshold_days <= 60 else "#f1c40f")
+        rows_html = ""
+        for p in policies:
+            days = p.get("days_to_renewal", threshold_days)
+            rows_html += (
+                f"<tr>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee;color:{color};font-weight:bold'>"
+                f"{days} dager</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('orgnr','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('insurer','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('product_type','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
+                f"kr {p.get('annual_premium_nok') or '–'}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('renewal_date','')}</td>"
+                f"</tr>"
+            )
+        subject = f"Fornyelsespåminnelse — {len(policies)} avtaler forfaller innen {threshold_days} dager"
+        body_html = (
+            "<html><body style='font-family:Arial,sans-serif;color:#222;'>"
+            "<h2 style='color:#1a252f'>Broker Accelerator — Fornyelsespåminnelse</h2>"
+            f"<p><strong>{len(policies)}</strong> forsikringsavtaler forfaller innen "
+            f"<strong>{threshold_days} dager</strong>.</p>"
+            "<table style='border-collapse:collapse;width:100%;font-size:14px'>"
+            "<thead><tr style='background:#f5f5f5'>"
+            "<th style='padding:8px 12px;text-align:left'>Dager igjen</th>"
+            "<th style='padding:8px 12px;text-align:left'>Orgnr</th>"
+            "<th style='padding:8px 12px;text-align:left'>Forsikringsselskap</th>"
+            "<th style='padding:8px 12px;text-align:left'>Produkt</th>"
+            "<th style='padding:8px 12px;text-align:left'>Årspremie</th>"
+            "<th style='padding:8px 12px;text-align:left'>Fornyelsesdato</th>"
+            f"</tr></thead><tbody>{rows_html}</tbody></table>"
+            "<p style='margin-top:24px;font-size:12px;color:#888'>"
+            "Logg inn i Broker Accelerator for å se fornyelsespipelinen.</p>"
+            "</body></html>"
+        )
+        return self.send_email(to, subject, body_html)
+
     def send_renewal_digest(self, to: str, renewals: list[dict]) -> bool:
         if not renewals:
             return False

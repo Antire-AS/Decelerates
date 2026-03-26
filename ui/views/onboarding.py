@@ -90,8 +90,10 @@ def render_onboarding_tour() -> None:
         st.session_state["onboarding_step"] = 0
 
     if st.session_state.get("onboarding_open"):
-        st.session_state["onboarding_open"] = False  # reset so X-close doesn't reopen it
         _onboarding_dialog()
+        # Only reached when dialog closes without st.rerun() (i.e. X button).
+        # Neste/Fullfør both call st.rerun() which interrupts before this line.
+        st.session_state["onboarding_open"] = False
 
 
 def render_onboarding_button() -> None:

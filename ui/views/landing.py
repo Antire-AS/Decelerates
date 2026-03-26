@@ -80,6 +80,9 @@ def render_landing_tab() -> None:
                     unsafe_allow_html=True,
                 )
 
+    st.markdown("---")
+    _render_quickstart()
+
     # ── Companies in database ─────────────────────────────────────────────────
     if not has_crm:
         companies = _fetch_recent_companies()
@@ -101,15 +104,11 @@ def render_landing_tab() -> None:
                 score = c.get("risk_score")
                 row[3].caption(_RISK_BADGE.get(score, "🔴 Høy"))
 
-    if not has_crm:
         st.markdown("---")
         st.info(
             "**Kom i gang:** Gå til **⚙️ Admin** og trykk **Seed CRM demo-data** "
             "for å fylle opp Fornyelser, skader og aktiviteter med realistiske testdata."
         )
-
-    st.markdown("---")
-    _render_quickstart()
 
 
 def _render_quickstart() -> None:

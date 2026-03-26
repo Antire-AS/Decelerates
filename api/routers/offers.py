@@ -1,7 +1,7 @@
 import io
 from typing import Any, List
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, File, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
@@ -14,6 +14,8 @@ from api.services.documents import (
     update_offer_status, _pdf_bytes_to_text,
 )
 from api.dependencies import get_db
+from api.services.audit import log_audit
+from api.services.job_queue_service import JobQueueService, register_handler
 
 router = APIRouter()
 
@@ -81,10 +83,17 @@ async def compare_offers(
     return {"orgnr": orgnr, "offers": [o["name"] for o in offer_texts], "comparison": comparison}
 
 
+def _handle_offer_parse(db, payload: dict):
+    from api.services.documents import parse_and_store_offer
+    parse_and_store_offer(payload.get("offer_id"))
+
+
+register_handler("offer_parse", _handle_offer_parse)
+
+
 @router.post("/org/{orgnr}/offers")
 async def save_offers(
     orgnr: str,
-    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
@@ -98,9 +107,11 @@ async def save_offers(
             "extracted_text": _pdf_bytes_to_text(raw) or None,
         })
     saved = save_insurance_offers(orgnr, offer_data, db)
+    jq = JobQueueService(db)
     for item in saved:
         if item.get("id"):
-            background_tasks.add_task(parse_and_store_offer, item["id"])
+            jq.enqueue("offer_parse", {"offer_id": item["id"]})
+    log_audit(db, "offer.upload", orgnr=orgnr, detail={"count": len(saved)})
     return {"orgnr": orgnr, "saved": saved}
 
 
@@ -141,6 +152,8 @@ def set_offer_status(
         raise HTTPException(status_code=400, detail="status is required")
     if not update_offer_status(offer_id, orgnr, status, db):
         raise HTTPException(status_code=404, detail="Offer not found or invalid status")
+    log_audit(db, "offer.status_change", orgnr=orgnr,
+              detail={"offer_id": offer_id, "status": status})
     return {"id": offer_id, "status": status}
 
 
@@ -148,6 +161,7 @@ def set_offer_status(
 def delete_offer(orgnr: str, offer_id: int, db: Session = Depends(get_db)) -> dict:
     if not remove_insurance_offer(offer_id, orgnr, db):
         raise HTTPException(status_code=404, detail="Offer not found")
+    log_audit(db, "offer.delete", orgnr=orgnr, detail={"offer_id": offer_id})
     return {"deleted": offer_id}
 
 

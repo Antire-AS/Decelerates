@@ -8,6 +8,7 @@ from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.ports.driven.notification_port import NotificationPort
 from api.schemas import PolicyIn, PolicyUpdate, RenewalAdvanceIn
+from api.services.audit import log_audit
 from api.services.policy_service import PolicyService
 
 router = APIRouter()
@@ -59,12 +60,16 @@ def create_policy(
     orgnr: str,
     body: PolicyIn,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.create(orgnr, user.firm_id, body))
+        p = svc.create(orgnr, user.firm_id, body)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    log_audit(db, "policy.create", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_number": p.policy_number, "insurer": p.insurer})
+    return _serialize(p)
 
 
 @router.put("/org/{orgnr}/policies/{policy_id}")
@@ -73,14 +78,18 @@ def update_policy(
     policy_id: int,
     body: PolicyUpdate,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.update(policy_id, user.firm_id, body))
+        p = svc.update(policy_id, user.firm_id, body)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "policy.update", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_id": policy_id})
+    return _serialize(p)
 
 
 @router.delete("/org/{orgnr}/policies/{policy_id}", status_code=204)
@@ -88,12 +97,15 @@ def delete_policy(
     orgnr: str,
     policy_id: int,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> None:
     try:
         svc.delete(policy_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "policy.delete", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_id": policy_id})
 
 
 @router.get("/policies")
@@ -150,6 +162,7 @@ def advance_renewal_stage(
     policy_id: int,
     body: RenewalAdvanceIn,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     notification: NotificationPort = Depends(_get_notification),
 ) -> dict:
@@ -160,6 +173,9 @@ def advance_renewal_stage(
         raise HTTPException(status_code=422, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+    log_audit(db, "policy.renewal.stage_change", orgnr=policy.orgnr,
+              actor_email=user.email, detail={"policy_id": policy_id, "stage": body.stage})
 
     if body.notify_email:
         notification.send_renewal_stage_change(

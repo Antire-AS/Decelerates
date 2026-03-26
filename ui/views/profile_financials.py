@@ -270,6 +270,23 @@ def render_profile_financials(
         else:
             st.info("Ingen regnskapshistorikk tilgjengelig." if _lang == "no" else "No financial history available.")
 
+        with st.expander("AI-finanskommentar", expanded=False):
+            st.caption("Generer en AI-basert kommentar om selskapets finansielle trendutvikling.")
+            if st.button("Generer AI-kommentar", key="financial_commentary_btn"):
+                with st.spinner("Analyserer finansiell historikk…"):
+                    try:
+                        resp = requests.get(
+                            f"{API_BASE}/org/{selected_orgnr}/financial-commentary", timeout=30
+                        )
+                        if resp.ok:
+                            data = resp.json()
+                            st.markdown(f"**{data.get('navn', selected_orgnr)}** — {data.get('years_analyzed', 0)} år analysert")
+                            st.write(data["commentary"])
+                        else:
+                            st.error(resp.json().get("detail", resp.text))
+                    except Exception as e:
+                        st.error(str(e))
+
         with st.expander(T("Re-extract PDF history")):
             st.caption(T("Re-extract caption"))
             if st.button(T("Reset and re-extract"), key="reset_history_btn", type="secondary"):

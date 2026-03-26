@@ -82,6 +82,34 @@ class PolicyService:
         self.db.delete(policy)
         self.db.commit()
 
+    def get_policies_needing_renewal_notification(
+        self, firm_id: int, threshold_days: int
+    ) -> list[Policy]:
+        """Return active policies renewing within threshold_days that haven't been notified at this threshold."""
+        today = date.today()
+        cutoff = today + timedelta(days=threshold_days)
+        return (
+            self.db.query(Policy)
+            .filter(
+                Policy.firm_id == firm_id,
+                Policy.status == PolicyStatus.active,
+                Policy.renewal_date >= today,
+                Policy.renewal_date <= cutoff,
+                # either never notified, or last notification was at a higher threshold
+                (Policy.last_renewal_notified_days.is_(None)) |
+                (Policy.last_renewal_notified_days > threshold_days),
+            )
+            .order_by(Policy.renewal_date.asc())
+            .all()
+        )
+
+    def mark_renewal_notified(self, policy_id: int, threshold_days: int) -> None:
+        """Record that a renewal notification was sent at this threshold."""
+        self.db.query(Policy).filter(Policy.id == policy_id).update(
+            {"last_renewal_notified_days": threshold_days}
+        )
+        self.db.commit()
+
     def get_renewals(self, firm_id: int, days: int = 90) -> list[Policy]:
         today  = date.today()
         cutoff = today + timedelta(days=days)
