@@ -38,7 +38,8 @@ export default function RenewalsPage() {
   const [days, setDays] = useState(90);
   const [view, setView] = useState<"table" | "kanban">("table");
   const [stageFilter, setStageFilter] = useState<StageId | "all">("all");
-  const [advancing, setAdvancing] = useState<number | null>(null);
+  const [advancing, setAdvancing]       = useState<number | null>(null);
+  const [notifyEmails, setNotifyEmails] = useState<Record<number, string>>({});
 
   const { data: renewals, isLoading, mutate } = useSWR<Renewal[]>(
     ["renewals", days],
@@ -47,8 +48,9 @@ export default function RenewalsPage() {
 
   async function handleAdvance(renewal: Renewal, newStage: StageId) {
     setAdvancing(renewal.id);
+    const email = notifyEmails[renewal.id]?.trim() || undefined;
     try {
-      await advanceRenewalStage(renewal.id, newStage);
+      await advanceRenewalStage(renewal.id, newStage, email);
       await mutate();
     } catch {
       // ignore
@@ -220,6 +222,13 @@ export default function RenewalsPage() {
                         {r.annual_premium_nok != null && (
                           <p className="text-xs text-[#8A7F74]">kr {fmt(r.annual_premium_nok)}</p>
                         )}
+                        <input
+                          type="email"
+                          placeholder="E-post varsling (valgfri)"
+                          value={notifyEmails[r.id] ?? ""}
+                          onChange={(e) => setNotifyEmails((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                          className="w-full text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white focus:outline-none focus:border-[#4A6FA5]"
+                        />
                         <select
                           disabled={advancing === r.id}
                           value=""

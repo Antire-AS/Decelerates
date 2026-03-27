@@ -420,10 +420,13 @@ export async function downloadInsuranceDocumentPdf(id: number, filename: string)
 // ── Knowledge ────────────────────────────────────────────────────────────────
 
 export const knowledgeChat = (question: string, orgnr?: string) =>
-  apiFetch<{ answer: string }>("/knowledge/chat", {
+  apiFetch<{ answer: string; sources?: string[]; source_snippets?: Record<string, string> }>("/knowledge/chat", {
     method: "POST",
     body: JSON.stringify({ question, orgnr }),
   });
+
+export const getKnowledgeStats = () =>
+  apiFetch<{ total_chunks: number; doc_chunks: number; video_chunks: number }>("/knowledge/index/stats");
 
 // ── Videos ───────────────────────────────────────────────────────────────────
 
@@ -538,6 +541,96 @@ export const sendRenewalThresholdEmails = () =>
   apiFetch<{ recipient: string; total_notifications_sent: number; thresholds_checked: { threshold_days: number; policies_found: number }[] }>(
     "/admin/renewal-threshold-emails", { method: "POST" },
   );
+
+// ── Document extras ───────────────────────────────────────────────────────────
+
+export const getDocumentKeyPoints = (id: number) =>
+  apiFetch<Record<string, unknown>>(`/insurance-documents/${id}/keypoints`);
+
+export const getSimilarDocuments = (id: number) =>
+  apiFetch<InsuranceDocument[]>(`/insurance-documents/${id}/similar`);
+
+// ── Portfolio extras ──────────────────────────────────────────────────────────
+
+export const getPortfolioAlerts = (portfolioId: number) =>
+  apiFetch<{ orgnr: string; navn?: string; severity: string; message: string; year?: number }[]>(
+    `/portfolio/${portfolioId}/alerts`,
+  );
+
+export const getPortfolioConcentration = (portfolioId: number) =>
+  apiFetch<{
+    industry: { label: string; count: number }[];
+    geography: { label: string; count: number }[];
+    size: { label: string; count: number }[];
+  }>(`/portfolio/${portfolioId}/concentration`);
+
+export const removePortfolioCompany = (portfolioId: number, orgnr: string) =>
+  apiFetch<void>(`/portfolio/${portfolioId}/companies/${orgnr}`, { method: "DELETE" });
+
+export async function downloadPortfolioPdf(portfolioId: number, name: string): Promise<void> {
+  const res = await fetch(`/bapi/portfolio/${portfolioId}/pdf`);
+  if (!res.ok) throw new Error(`PDF download failed: ${res.status}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `portefolje_${name.replace(/\s+/g, "_")}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Org financial extras ──────────────────────────────────────────────────────
+
+export const getOrgExtractionStatus = (orgnr: string) =>
+  apiFetch<{
+    status: string;
+    source_years: number[];
+    done_years: number[];
+    pending_years: number[];
+    missing_target_years: number[];
+  }>(`/org/${orgnr}/extraction-status`);
+
+export const getOrgFinancialCommentary = (orgnr: string) =>
+  apiFetch<{ commentary: string; years_analyzed: number }>(`/org/${orgnr}/financial-commentary`);
+
+// ── Broker notes (per company) ────────────────────────────────────────────────
+
+export interface BrokerNote {
+  id: number;
+  text: string;
+  created_at: string;
+}
+
+export const getOrgBrokerNotes = (orgnr: string) =>
+  apiFetch<BrokerNote[]>(`/org/${orgnr}/broker-notes`);
+
+export const createOrgBrokerNote = (orgnr: string, text: string) =>
+  apiFetch<{ id: number; created_at: string }>(`/org/${orgnr}/broker-notes`, {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+
+export const deleteOrgBrokerNote = (orgnr: string, id: number) =>
+  apiFetch<void>(`/org/${orgnr}/broker-notes/${id}`, { method: "DELETE" });
+
+// ── PDF history (add annual report URL) ──────────────────────────────────────
+
+export const addOrgPdfHistory = (
+  orgnr: string,
+  data: { pdf_url: string; year: number; label?: string },
+) =>
+  apiFetch<{ orgnr: string; extracted: unknown }>(`/org/${orgnr}/pdf-history`, {
+    method: "POST",
+    body: JSON.stringify({ pdf_url: data.pdf_url, year: data.year, label: data.label ?? "" }),
+  });
+
+// ── Company-specific RAG chat ─────────────────────────────────────────────────
+
+export const chatWithOrg = (orgnr: string, question: string, session_id?: string) =>
+  apiFetch<{ answer: string; session_id?: string }>(`/org/${orgnr}/chat`, {
+    method: "POST",
+    body: JSON.stringify({ question, ...(session_id ? { session_id } : {}) }),
+  });
 
 // ── Risk narrative ────────────────────────────────────────────────────────────
 
