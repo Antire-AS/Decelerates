@@ -6,6 +6,12 @@ import { getVideos, uploadVideo } from "@/lib/api";
 import { Upload, Play, ExternalLink, Loader2, Video } from "lucide-react";
 
 interface VideoItem {
+  filename?: string;
+  video_url?: string;
+  blob_name?: string;
+  thumbnail_url?: string;
+  sections?: unknown;
+  // legacy fields (upload endpoint)
   name?: string;
   url?: string;
   size?: number;
@@ -122,8 +128,9 @@ export default function VideosPage() {
             </thead>
             <tbody className="divide-y divide-[#EDE8E3]">
               {videos.map((video, idx) => {
-                const name = displayName(video.name, idx);
-                const hasUrl = !!video.url;
+                const name = video.filename || displayName(video.name, idx);
+                const playUrl = video.video_url || video.url;
+                const hasUrl = !!playUrl;
                 return (
                   <tr key={idx} className="hover:bg-[#F9F7F4] group">
                     <td className="py-3">
@@ -146,7 +153,7 @@ export default function VideosPage() {
                       <div className="flex items-center justify-end gap-2">
                         {hasUrl && (
                           <button
-                            onClick={() => setPlayingUrl(video.url as string)}
+                            onClick={() => setPlayingUrl(playUrl as string)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C3E50] text-white text-xs font-medium hover:bg-[#3d5166] transition-colors"
                           >
                             <Play className="w-3 h-3" fill="currentColor" />
@@ -155,7 +162,7 @@ export default function VideosPage() {
                         )}
                         {hasUrl && (
                           <a
-                            href={video.url as string}
+                            href={playUrl as string}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 rounded-lg text-[#8A7F74] hover:bg-[#EDE8E3] transition-colors"
