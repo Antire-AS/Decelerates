@@ -135,10 +135,12 @@ function ExportsSection() {
         headers.map((h) => JSON.stringify(r[h] ?? "")).join(",")
       ),
     ].join("\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
+    a.href = url;
     a.download = filename;
     a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleRenewals() {
@@ -213,10 +215,12 @@ function AuditLogSection() {
         JSON.stringify(r.detail ?? "–"),
       ].join(",")),
     ].join("\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
+    a.href = url;
     a.download = `aktivitetslogg_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
+    URL.revokeObjectURL(url);
   }
 
   const unique_users   = new Set(rows?.map((r) => r.actor_email).filter(Boolean)).size;

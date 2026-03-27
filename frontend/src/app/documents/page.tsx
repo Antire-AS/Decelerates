@@ -131,7 +131,11 @@ export default function DocumentsPage() {
   }
 
   async function handleViewPdf(doc: InsuranceDocument) {
-    if (pdfViewDocId === doc.id) { setPdfViewDocId(null); setPdfViewUrl(null); return; }
+    if (pdfViewDocId === doc.id) {
+      if (pdfViewUrl) URL.revokeObjectURL(pdfViewUrl);
+      setPdfViewDocId(null); setPdfViewUrl(null); return;
+    }
+    if (pdfViewUrl) URL.revokeObjectURL(pdfViewUrl);
     setPdfViewDocId(doc.id); setPdfViewUrl(null);
     setPdfLoading(true);
     try {
