@@ -494,7 +494,7 @@ export const getClientTokens = (orgnr: string) =>
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
-export const getAdminStats = () => apiFetch<unknown>("/admin/stats");
+export const getAdminStats = () => apiFetch<unknown>("/dashboard");
 
 export const getUsers = () => apiFetch<User[]>("/users");
 
