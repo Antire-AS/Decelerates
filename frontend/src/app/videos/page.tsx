@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import useSWR from "swr";
 import { getVideos, uploadVideo } from "@/lib/api";
-import { Upload, Play, X, Loader2 } from "lucide-react";
+import { Upload, Play, ExternalLink, Loader2, Video } from "lucide-react";
 
 interface VideoItem {
   name?: string;
@@ -56,7 +56,7 @@ export default function VideosPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header + upload */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#2C3E50]">Videoer</h1>
@@ -85,9 +85,9 @@ export default function VideosPage() {
           <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setPlayingUrl(null)}
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 flex items-center gap-1 text-sm"
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 text-sm px-3 py-1 rounded bg-black/40"
             >
-              <X className="w-5 h-5" /> Lukk
+              Lukk ×
             </button>
             <video
               src={playingUrl}
@@ -101,65 +101,82 @@ export default function VideosPage() {
 
       {/* Loading skeleton */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="broker-card h-40 animate-pulse bg-[#EDE8E3]" />
+        <div className="broker-card space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-12 rounded animate-pulse bg-[#EDE8E3]" />
           ))}
         </div>
       )}
 
-      {/* Video grid */}
+      {/* Video list */}
       {!isLoading && videos.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {videos.map((video, idx) => {
-            const name = displayName(video.name, idx);
-            const hasUrl = !!video.url;
-            return (
-              <div key={idx} className="broker-card space-y-3">
-                {/* Thumbnail / play area */}
-                <div
-                  className={`w-full h-28 bg-[#EDE8E3] rounded-lg flex items-center justify-center relative overflow-hidden ${hasUrl ? "cursor-pointer group" : ""}`}
-                  onClick={() => hasUrl && setPlayingUrl(video.url as string)}
-                >
-                  <Play className={`w-10 h-10 text-[#8A7F74] ${hasUrl ? "group-hover:text-[#4A6FA5] transition-colors" : ""}`} fill="currentColor" />
-                  {hasUrl && (
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
-                  )}
-                </div>
-                <p className="text-sm font-medium text-[#2C3E50] truncate" title={name}>{name}</p>
-                <div className="flex items-center justify-between text-xs text-[#8A7F74]">
-                  <span>{fmtSize(video.size)}</span>
-                  <span>{fmtDate(video.last_modified)}</span>
-                </div>
-                <div className="flex gap-2">
-                  {hasUrl && (
-                    <button
-                      onClick={() => setPlayingUrl(video.url as string)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C3E50] text-white text-xs font-medium hover:bg-[#3d5166] transition-colors"
-                    >
-                      <Play className="w-3 h-3" fill="currentColor" /> Spill av
-                    </button>
-                  )}
-                  {hasUrl && (
-                    <a
-                      href={video.url as string}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-[#EDE8E3] text-[#8A7F74] text-xs font-medium hover:bg-[#DDD8D3] transition-colors"
-                    >
-                      Åpne
-                    </a>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+        <div className="broker-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                <th className="text-left pb-3 font-medium">Navn</th>
+                <th className="text-right pb-3 font-medium hidden sm:table-cell">Størrelse</th>
+                <th className="text-right pb-3 font-medium hidden md:table-cell">Dato</th>
+                <th className="text-right pb-3 font-medium">Handlinger</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EDE8E3]">
+              {videos.map((video, idx) => {
+                const name = displayName(video.name, idx);
+                const hasUrl = !!video.url;
+                return (
+                  <tr key={idx} className="hover:bg-[#F9F7F4] group">
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-[#EDE8E3] flex items-center justify-center flex-shrink-0">
+                          <Video className="w-4 h-4 text-[#8A7F74]" />
+                        </div>
+                        <span className="font-medium text-[#2C3E50] truncate max-w-[200px] sm:max-w-xs" title={name}>
+                          {name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 text-right text-xs text-[#8A7F74] hidden sm:table-cell">
+                      {fmtSize(video.size)}
+                    </td>
+                    <td className="py-3 text-right text-xs text-[#8A7F74] hidden md:table-cell">
+                      {fmtDate(video.last_modified)}
+                    </td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {hasUrl && (
+                          <button
+                            onClick={() => setPlayingUrl(video.url as string)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C3E50] text-white text-xs font-medium hover:bg-[#3d5166] transition-colors"
+                          >
+                            <Play className="w-3 h-3" fill="currentColor" />
+                            Spill av
+                          </button>
+                        )}
+                        {hasUrl && (
+                          <a
+                            href={video.url as string}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg text-[#8A7F74] hover:bg-[#EDE8E3] transition-colors"
+                            title="Åpne i ny fane"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
       {!isLoading && videos.length === 0 && (
         <div className="broker-card text-center py-16">
-          <Play className="w-10 h-10 text-[#EDE8E3] mx-auto mb-3" />
+          <Video className="w-10 h-10 text-[#EDE8E3] mx-auto mb-3" />
           <p className="text-sm font-medium text-[#2C3E50]">Ingen videoer lastet opp ennå</p>
           <p className="text-xs text-[#8A7F74] mt-1">Klikk «Last opp video» for å legge til den første.</p>
         </div>

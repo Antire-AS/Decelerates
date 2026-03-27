@@ -128,6 +128,104 @@ export default function PortfolioPage() {
         <div className="broker-card text-xs text-[#2C3E50]">{seedMsg}</div>
       )}
 
+      {/* ── Portfolio AI Chat ─────────────────────────────────────────────── */}
+      <div className="broker-card space-y-4">
+        <h2 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#4A6FA5]" />
+          Portefølje-chat
+        </h2>
+        <p className="text-xs text-[#8A7F74]">
+          Still spørsmål om selskapene i en navngitt portefølje. Opprett én portefølje og legg til
+          selskaper via selskapsprofilene, eller bruk Admin → Seed demo-data.
+        </p>
+
+        {/* Portfolio selector / creator */}
+        <div className="flex flex-wrap gap-2 items-end">
+          {portfolios.length > 0 && (
+            <div>
+              <label className="label-xs">Velg portefølje</label>
+              <select
+                value={selectedPortfolioId ?? ""}
+                onChange={(e) => setSelectedPortfolioId(e.target.value ? Number(e.target.value) : null)}
+                className="input-sm"
+              >
+                <option value="">– velg –</option>
+                {portfolios.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div>
+            <label className="label-xs">Opprett ny portefølje</label>
+            <div className="flex gap-1.5">
+              <input
+                type="text" value={newPortfolioName}
+                onChange={(e) => setNewPortfolioName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
+                placeholder="Navn…"
+                className="input-sm w-36"
+              />
+              <button
+                onClick={handleCreatePortfolio}
+                disabled={creating || !newPortfolioName.trim()}
+                className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1"
+              >
+                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                Opprett
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Chat input */}
+        {selectedPortfolioId && (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text" value={chatQuestion}
+                onChange={(e) => setChatQuestion(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleChat()}
+                placeholder="F.eks. «Hvilke selskaper har lavest egenkapitalandel?»"
+                className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50]"
+              />
+              <button
+                onClick={handleChat}
+                disabled={chatLoading || !chatQuestion.trim()}
+                className="px-4 py-2 rounded-lg bg-[#4A6FA5] text-white text-sm font-medium hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1"
+              >
+                {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                Spør
+              </button>
+            </div>
+
+            {chatErr && <p className="text-xs text-red-600">{chatErr}</p>}
+
+            {chatAnswer && (
+              <div className="bg-[#F9F7F4] rounded-lg p-3 space-y-2">
+                <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{chatAnswer}</p>
+                {chatSources.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {chatSources.map((s) => (
+                      <Link key={s} href={`/search/${s}`}
+                        className="text-xs px-2 py-0.5 rounded-full bg-[#EDE8E3] text-[#4A6FA5] hover:underline">
+                        {s}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!selectedPortfolioId && portfolios.length === 0 && (
+          <p className="text-xs text-[#8A7F74]">
+            Opprett en portefølje og legg til selskaper via selskapsprofilen for å bruke chatten.
+          </p>
+        )}
+      </div>
+
       {isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="broker-card h-20 animate-pulse bg-[#EDE8E3]" />)}
@@ -250,104 +348,6 @@ export default function PortfolioPage() {
           </div>
         </>
       )}
-
-      {/* ── Portfolio AI Chat ─────────────────────────────────────────────── */}
-      <div className="broker-card space-y-4">
-        <h2 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#4A6FA5]" />
-          Portefølje-chat
-        </h2>
-        <p className="text-xs text-[#8A7F74]">
-          Still spørsmål om selskapene i en navngitt portefølje. Opprett én portefølje og legg til
-          selskaper via selskapsprofilene, eller bruk Admin → Seed demo-data.
-        </p>
-
-        {/* Portfolio selector / creator */}
-        <div className="flex flex-wrap gap-2 items-end">
-          {portfolios.length > 0 && (
-            <div>
-              <label className="label-xs">Velg portefølje</label>
-              <select
-                value={selectedPortfolioId ?? ""}
-                onChange={(e) => setSelectedPortfolioId(e.target.value ? Number(e.target.value) : null)}
-                className="input-sm"
-              >
-                <option value="">– velg –</option>
-                {portfolios.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div>
-            <label className="label-xs">Opprett ny portefølje</label>
-            <div className="flex gap-1.5">
-              <input
-                type="text" value={newPortfolioName}
-                onChange={(e) => setNewPortfolioName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
-                placeholder="Navn…"
-                className="input-sm w-36"
-              />
-              <button
-                onClick={handleCreatePortfolio}
-                disabled={creating || !newPortfolioName.trim()}
-                className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1"
-              >
-                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-                Opprett
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Chat input */}
-        {selectedPortfolioId && (
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <input
-                type="text" value={chatQuestion}
-                onChange={(e) => setChatQuestion(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleChat()}
-                placeholder="F.eks. «Hvilke selskaper har lavest egenkapitalandel?»"
-                className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50]"
-              />
-              <button
-                onClick={handleChat}
-                disabled={chatLoading || !chatQuestion.trim()}
-                className="px-4 py-2 rounded-lg bg-[#4A6FA5] text-white text-sm font-medium hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1"
-              >
-                {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-                Spør
-              </button>
-            </div>
-
-            {chatErr && <p className="text-xs text-red-600">{chatErr}</p>}
-
-            {chatAnswer && (
-              <div className="bg-[#F9F7F4] rounded-lg p-3 space-y-2">
-                <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{chatAnswer}</p>
-                {chatSources.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {chatSources.map((s) => (
-                      <Link key={s} href={`/search/${s}`}
-                        className="text-xs px-2 py-0.5 rounded-full bg-[#EDE8E3] text-[#4A6FA5] hover:underline">
-                        {s}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!selectedPortfolioId && portfolios.length === 0 && (
-          <p className="text-xs text-[#8A7F74]">
-            Opprett en portefølje og legg til selskaper via selskapsprofilen for å bruke chatten.
-          </p>
-        )}
-      </div>
 
       {!isLoading && !companies && (
         <div className="broker-card text-center py-10">

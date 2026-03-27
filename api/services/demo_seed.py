@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from api.db import (
     Company, CompanyHistory, Policy, PolicyStatus,
-    Claim, ClaimStatus, Activity,
+    Claim, ClaimStatus, Activity, ActivityType, BrokerFirm,
 )
 
 random.seed(42)  # Reproducible but looks realistic
@@ -149,7 +149,15 @@ def _build_history_rows(c: dict) -> list[dict]:
 def seed_full_demo(db: Session) -> dict:
     """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
     today = date.today()
-    now_iso = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
+
+    # Resolve default firm (first in DB) — required for all CRM records
+    firm = db.query(BrokerFirm).order_by(BrokerFirm.id).first()
+    if not firm:
+        firm = BrokerFirm(name="Demo Meglerfirma", created_at=now)
+        db.add(firm)
+        db.flush()
+    firm_id = firm.id
 
     companies_created = 0
     history_created = 0
@@ -212,28 +220,36 @@ def seed_full_demo(db: Session) -> dict:
 
         existing_policy = (
             db.query(Policy)
-            .filter(Policy.orgnr == orgnr, Policy.insurance_type == c["insurance_type"])
+            .filter(Policy.orgnr == orgnr, Policy.product_type == c["insurance_type"])
             .first()
         )
+        policy_id = None
         if not existing_policy:
             renewal_date = today + timedelta(days=c["renewal_offset_days"])
             start_date = renewal_date.replace(year=renewal_date.year - 1)
-            # Premium: ~1.5–2.5% of revenue
             premium = round(c["base_revenue"] * random.uniform(0.015, 0.025) / 1000) * 1000
 
-            db.add(Policy(
+            policy = Policy(
                 orgnr=orgnr,
-                insurance_type=c["insurance_type"],
+                firm_id=firm_id,
+                product_type=c["insurance_type"],
                 insurer=c["insurer"],
                 policy_number=f"POL-{orgnr[-4:]}-{random.randint(1000, 9999)}",
                 annual_premium_nok=float(premium),
                 coverage_amount_nok=float(c["base_assets"] * random.uniform(1.0, 2.5)),
-                start_date=start_date.isoformat(),
-                renewal_date=renewal_date.isoformat(),
+                start_date=start_date,
+                renewal_date=renewal_date,
                 status=PolicyStatus.active,
                 notes="Demo-polise",
-            ))
+                created_at=now,
+                updated_at=now,
+            )
+            db.add(policy)
+            db.flush()
+            policy_id = policy.id
             policies_created += 1
+        else:
+            policy_id = existing_policy.id
 
         # ── Claim (for high-risk companies) ──────────────────────────────────
 
@@ -243,12 +259,16 @@ def seed_full_demo(db: Session) -> dict:
                 incident_date = today - timedelta(days=random.randint(30, 120))
                 db.add(Claim(
                     orgnr=orgnr,
+                    firm_id=firm_id,
+                    policy_id=policy_id,
                     status=ClaimStatus.open,
-                    incident_date=incident_date.isoformat(),
-                    reported_date=(incident_date + timedelta(days=random.randint(1, 5))).isoformat(),
+                    incident_date=incident_date,
+                    reported_date=incident_date + timedelta(days=random.randint(1, 5)),
                     estimated_amount_nok=float(random.randint(50_000, 500_000)),
                     description="Demo-skademelding",
                     notes="Under behandling",
+                    created_at=now,
+                    updated_at=now,
                 ))
                 claims_created += 1
 
@@ -259,12 +279,14 @@ def seed_full_demo(db: Session) -> dict:
             due = today + timedelta(days=random.randint(3, 21))
             db.add(Activity(
                 orgnr=orgnr,
-                activity_type="call",
+                firm_id=firm_id,
+                created_by_email="demo@broker.no",
+                activity_type=ActivityType.call,
                 subject=f"Fornyelsessamtale — {c['navn']}",
                 body=f"Ta kontakt med kunden angående fornyelse {c['renewal_offset_days']} dager frem i tid.",
-                due_date=due.isoformat(),
+                due_date=due,
                 completed=False,
-                created_at=now_iso,
+                created_at=now,
             ))
             activities_created += 1
 
