@@ -23,7 +23,6 @@ ENV API_BASE_URL=http://api:8000
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
