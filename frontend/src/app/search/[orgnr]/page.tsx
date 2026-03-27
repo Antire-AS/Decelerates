@@ -1,14 +1,18 @@
 "use client";
 
 import { use, useState, Fragment } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import useSWR from "swr";
 import {
   getOrgProfile, getSlaAgreements, getOrgPolicies, getOrgHistory,
   getOrgRoles, getOrgLicenses, getOrgBankruptcy, getOrgBenchmark,
+  getOrgKoordinater,
   addOrgPdfHistory, getOrgExtractionStatus, getOrgFinancialCommentary,
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
+
+const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
 import RiskBadge from "@/components/company/RiskBadge";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
 import ContactsSection from "@/components/crm/ContactsSection";
@@ -104,10 +108,11 @@ export default function OrgProfilePage({
   );
 
   // Lazy-load extras for Oversikt tab
-  const { data: rolesData }     = useSWR(activeTab === "oversikt" ? `roles-${orgnr}` : null, () => getOrgRoles(orgnr));
-  const { data: licensesData }  = useSWR(activeTab === "oversikt" ? `licenses-${orgnr}` : null, () => getOrgLicenses(orgnr));
-  const { data: bankruptcyData }= useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
-  const { data: benchmarkData } = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
+  const { data: rolesData }      = useSWR(activeTab === "oversikt" ? `roles-${orgnr}` : null, () => getOrgRoles(orgnr));
+  const { data: licensesData }   = useSWR(activeTab === "oversikt" ? `licenses-${orgnr}` : null, () => getOrgLicenses(orgnr));
+  const { data: bankruptcyData } = useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
+  const { data: benchmarkData }  = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
+  const { data: koordinaterData }= useSWR(activeTab === "oversikt" ? `koordinater-${orgnr}` : null, () => getOrgKoordinater(orgnr));
 
   const roles     = rolesData     as Record<string, unknown> | null | undefined;
   const licenses  = licensesData  as Record<string, unknown> | null | undefined;
@@ -266,6 +271,16 @@ export default function OrgProfilePage({
               </div>
             )}
           </Section>
+
+          {/* Map */}
+          {(() => {
+            const coords = (koordinaterData as { coordinates?: { lat: number; lon: number } } | null)?.coordinates;
+            return coords?.lat && coords?.lon ? (
+              <Section title="Lokasjon">
+                <CompanyMap lat={coords.lat} lon={coords.lon} label={String(org.navn ?? org.orgnr)} />
+              </Section>
+            ) : null;
+          })()}
 
           <Section title="Risikoscore">
             <div className="flex items-center gap-3">
