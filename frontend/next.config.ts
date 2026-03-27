@@ -6,12 +6,18 @@ const nextConfig: NextConfig = {
   // the backend URL in production (avoids CORS and token forwarding complexity).
   async rewrites() {
     const apiBase = process.env.API_BASE_URL ?? "http://localhost:8000";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiBase}/:path*`,
-      },
-    ];
+    return {
+      // afterFiles: Next.js checks its own route handlers first (e.g. /api/auth/...
+      // for NextAuth), then falls through to these rewrites for unmatched paths.
+      beforeFiles: [],
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${apiBase}/:path*`,
+        },
+      ],
+      fallback: [],
+    };
   },
 };
 
