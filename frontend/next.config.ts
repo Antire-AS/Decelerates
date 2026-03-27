@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       beforeFiles: [],
       afterFiles: [
         {
-          source: "/api/:path*",
+          source: "/bapi/:path*",
           destination: `${apiBase}/:path*`,
         },
       ],

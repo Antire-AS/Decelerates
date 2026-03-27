@@ -7,7 +7,7 @@
 const API_BASE =
   typeof window === "undefined"
     ? (process.env.API_BASE_URL ?? "http://localhost:8000")
-    : "/api";
+    : "/bapi";
 
 // Module-level token — set by the SessionSync component in providers.tsx
 let _authToken: string | undefined;
@@ -401,14 +401,14 @@ export async function uploadInsuranceDocument(
   if (opts.title) fd.append("title", opts.title);
   if (opts.tags)  fd.append("tags",  opts.tags);
   const base = typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/api";
+    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/bapi";
   const res = await fetch(`${base}/insurance-documents`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`API ${res.status}`);
   return res.json();
 }
 
 export async function downloadInsuranceDocumentPdf(id: number, filename: string): Promise<void> {
-  const res = await fetch(`/api/insurance-documents/${id}/pdf`);
+  const res = await fetch(`/bapi/insurance-documents/${id}/pdf`);
   if (!res.ok) throw new Error(`PDF download failed: ${res.status}`);
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
@@ -433,7 +433,7 @@ export async function uploadVideo(file: File): Promise<{ url: string; name: stri
   const fd = new FormData();
   fd.append("file", file);
   const base = typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/api";
+    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/bapi";
   const res = await fetch(`${base}/videos/upload`, {
     method: "POST",
     body: fd,
@@ -561,7 +561,7 @@ export const signSlaAgreement = (id: number, signed_by: string) =>
   apiFetch<void>(`/sla/${id}/sign`, { method: "PATCH", body: JSON.stringify({ signed_by }) });
 
 export async function downloadSlaPdf(id: number, filename: string): Promise<void> {
-  const res = await fetch(`/api/sla/${id}/pdf`);
+  const res = await fetch(`/bapi/sla/${id}/pdf`);
   if (!res.ok) throw new Error(`PDF download failed: ${res.status}`);
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
@@ -580,7 +580,7 @@ export async function uploadOrgOffers(
   for (const f of files) fd.append("files", f);
   const base = typeof window === "undefined"
     ? (process.env.API_BASE_URL ?? "http://localhost:8000")
-    : "/api";
+    : "/bapi";
   const res = await fetch(`${base}/org/${orgnr}/offers`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`API ${res.status}: upload offers`);
   return res.json();
