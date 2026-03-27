@@ -78,18 +78,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.frontend
-          push: true
-          tags: |
-            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }}
-            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ steps.config.outputs.env }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Deploy API
         run: |
           # Shared env-vars block used by both create and update
@@ -149,6 +137,20 @@ jobs:
             --resource-group ${{ env.RG }} \
             --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }}
+            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ steps.config.outputs.env }}
+          build-args: |
+            API_BASE_URL=${{ steps.api.outputs.url }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy UI
         run: |
