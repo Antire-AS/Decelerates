@@ -1,19 +1,26 @@
 "use client";
 
-import { SessionProvider, useSession } from "next-auth/react";
-import { type ReactNode } from "react";
+import { SessionProvider, useSession, signIn } from "next-auth/react";
+import { useEffect, type ReactNode } from "react";
 import { setApiToken } from "@/lib/api";
 
 /**
  * Sets the auth token synchronously during render (before children mount) and
  * holds rendering until the session is resolved so SWR calls never fire without
- * a token.
+ * a token. If the background token refresh fails, triggers a re-login.
  */
 function AuthGate({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
 
   // Set synchronously during render — by the time children mount the token is ready.
   setApiToken((session as { idToken?: string } | null)?.idToken);
+
+  // If the silent id_token refresh failed, force the user to re-authenticate.
+  useEffect(() => {
+    if ((session as { error?: string } | null)?.error === "RefreshIdTokenError") {
+      void signIn("azure-ad");
+    }
+  }, [session]);
 
   if (status === "loading") {
     return (
