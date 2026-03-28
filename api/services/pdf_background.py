@@ -18,6 +18,35 @@ from api.services.pdf_web import _DDG_UA
 
 logger = logging.getLogger(__name__)
 
+_ANNUAL_REPORTS_CONTAINER = "annual-reports"
+
+
+def _upload_pdf_to_blob(pdf_url: str, orgnr: str, year: int, label: str) -> Optional[str]:
+    """Download PDF bytes from *pdf_url* and upload to Azure Blob Storage.
+
+    Returns the blob URL on success, None if download or upload fails.
+    Never raises — callers fall back to the external URL transparently.
+    """
+    from api.services.blob_storage import BlobStorageService
+    try:
+        resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": _DDG_UA})
+        resp.raise_for_status()
+        pdf_bytes = resp.content
+    except Exception as exc:
+        logger.warning("[blob] Could not download PDF %s for upload: %s", pdf_url, exc)
+        return None
+
+    blob_name = f"{orgnr}/{year}_{label or 'report'}.pdf"
+    try:
+        svc = BlobStorageService()
+        url = svc.upload(_ANNUAL_REPORTS_CONTAINER, blob_name, pdf_bytes)
+        if url:
+            logger.info("[blob] Uploaded annual report -> %s", url)
+        return url
+    except Exception as exc:
+        logger.warning("[blob] Upload failed for %s: %s", blob_name, exc)
+        return None
+
 
 def _validate_pdf_urls(discovered: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter discovered PDF items to those reachable via HTTP HEAD (status < 400)."""
@@ -62,11 +91,14 @@ def _run_phase2_discovery(orgnr: str, org: Dict[str, Any], db: Session) -> List[
             .first()
         )
         if not existing:
+            label = item.get("label", "")
+            blob_url = _upload_pdf_to_blob(item["pdf_url"], orgnr, item["year"], label)
             db.add(CompanyPdfSource(
                 orgnr=orgnr,
                 year=item["year"],
                 pdf_url=item["pdf_url"],
-                label=item.get("label", ""),
+                blob_url=blob_url,
+                label=label,
                 added_at=datetime.now(timezone.utc).isoformat(),
             ))
     if discovered:
@@ -97,8 +129,10 @@ def _extract_pending_sources(orgnr: str, sources: List[Any], db: Session) -> Non
         _outcome = "success"
         thread_db = SessionLocal()
         try:
-            logger.info("[extract] Extracting financials from %s (year=%s)", src.pdf_url, src.year)
-            fetch_history_from_pdf(orgnr, src.pdf_url, src.year, src.label or "", thread_db)
+            effective_url = getattr(src, "blob_url", None) or src.pdf_url
+            logger.info("[extract] Extracting financials from %s (year=%s, source=%s)",
+                        effective_url, src.year, "blob" if effective_url != src.pdf_url else "external")
+            fetch_history_from_pdf(orgnr, effective_url, src.year, src.label or "", thread_db)
             logger.info("[extract] Done: %s year=%s", orgnr, src.year)
         except Exception as exc:
             _outcome = "error"

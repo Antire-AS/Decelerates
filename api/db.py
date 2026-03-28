@@ -95,7 +95,8 @@ class CompanyPdfSource(Base):
     id       = Column(Integer, primary_key=True, index=True)
     orgnr    = Column(String(9), index=True, nullable=False)
     year     = Column(Integer, nullable=False)
-    pdf_url  = Column(String, nullable=False)
+    pdf_url  = Column(String, nullable=False)   # original external URL
+    blob_url = Column(String, nullable=True)    # Azure Blob copy (None if not yet uploaded)
     label    = Column(String)
     added_at = Column(String)
 

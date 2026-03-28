@@ -11,7 +11,8 @@ class PdfSourcesService:
         self.db = db
 
     def upsert_pdf_source(self, orgnr: str, year: int, url: str, label: str) -> CompanyPdfSource:
-        """Insert or update a CompanyPdfSource row."""
+        """Insert or update a CompanyPdfSource row, uploading PDF to Azure Blob if configured."""
+        from api.services.pdf_background import _upload_pdf_to_blob
         existing = (
             self.db.query(CompanyPdfSource)
             .filter(CompanyPdfSource.orgnr == orgnr, CompanyPdfSource.year == year)
@@ -23,6 +24,9 @@ class PdfSourcesService:
         existing.pdf_url = url
         existing.label = label
         existing.added_at = datetime.now(timezone.utc).isoformat()
+        # Upload to blob if not already stored (skip re-upload on subsequent upserts)
+        if not getattr(existing, "blob_url", None):
+            existing.blob_url = _upload_pdf_to_blob(url, orgnr, year, label)
         self.db.commit()
         return existing
 
