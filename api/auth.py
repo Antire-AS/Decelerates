@@ -29,6 +29,12 @@ from api.dependencies import get_db
 _log = logging.getLogger(__name__)
 _bearer = HTTPBearer(auto_error=False)
 
+# ── Auth toggle ───────────────────────────────────────────────────────────────
+# Set to True to bypass all Azure AD auth (no login required).
+# Set to False (and configure AZURE_TENANT_ID + AUTH_AUDIENCE) to re-enable.
+_AUTH_DISABLED = True  # TODO: re-enable when brokers are ready to log in
+# ─────────────────────────────────────────────────────────────────────────────
+
 # JWKS cache — populated lazily on first token validation, one entry per worker
 _jwks_cache: Optional[dict] = None
 
@@ -87,7 +93,7 @@ def get_optional_user(
     db: Session = Depends(get_db),
 ) -> Optional[CurrentUser]:
     """Like get_current_user but returns None instead of 401 when no token is present."""
-    if os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+    if _AUTH_DISABLED or os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
         return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
     if not creds:
         return None
@@ -112,7 +118,7 @@ def get_current_user(
     With AUTH_DISABLED=true returns a dev user without hitting Azure AD.
     On first login, auto-provisions the user in the users table.
     """
-    if os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+    if _AUTH_DISABLED or os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
         return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
 
     if not creds:
