@@ -1,0 +1,669 @@
+@startuml classes_BrokerAccelerator
+set namespaceSeparator none
+class "api.adapters.blob_storage_adapter.AzureBlobStorageAdapter" as api.adapters.blob_storage_adapter.AzureBlobStorageAdapter {
+  delete(container: str, blob_name: str) -> bool
+  download(container: str, blob_name: str) -> Optional[bytes]
+  download_json(container: str, blob_name: str) -> Optional[dict]
+  generate_sas_url(container: str, blob_name: str, hours: int) -> Optional[str]
+  get_blob_size(container: str, blob_name: str) -> Optional[int]
+  is_configured() -> bool
+  list_blobs(container: str) -> list[str]
+  stream_range(container: str, blob_name: str, offset: int, length: Optional[int])
+  upload(container: str, blob_name: str, data: bytes) -> Optional[str]
+}
+class "api.adapters.blob_storage_adapter.BlobStorageConfig" as api.adapters.blob_storage_adapter.BlobStorageConfig {
+  endpoint : Optional[str]
+}
+class "api.adapters.notification_adapter.AzureEmailNotificationAdapter" as api.adapters.notification_adapter.AzureEmailNotificationAdapter {
+  is_configured() -> bool
+  send_activity_reminders(to: str, overdue: list[dict], due_today: list[dict]) -> bool
+  send_email(to: str, subject: str, body_html: str) -> bool
+  send_forsikringstilbud(to: str, client_navn: str, orgnr: str, share_url: str) -> bool
+  send_portfolio_digest(to: str, portfolio_name: str, alerts: list[dict]) -> bool
+  send_renewal_digest(to: str, renewals: list[dict]) -> bool
+  send_renewal_stage_change(to: str, policy_number: str, insurer: str, product_type: str, stage: str) -> bool
+  send_renewal_threshold_emails(to: str, threshold_days: int, policies: list[dict]) -> bool
+  send_risk_report_ready(to: str, orgnr: str, navn: str) -> bool
+  send_sla_generated(to: str, client_navn: str) -> bool
+}
+class "api.adapters.notification_adapter.NotificationConfig" as api.adapters.notification_adapter.NotificationConfig {
+  conn_str : Optional[str]
+  sender : str
+}
+class "api.auth.CurrentUser" as api.auth.CurrentUser {
+  email : str
+  firm_id : int
+  name : str
+  oid : str
+}
+class "api.container.AppConfig" as api.container.AppConfig {
+  blob
+  notification
+}
+class "api.container.ContainerFactory" as api.container.ContainerFactory {
+  container : Container
+  build() -> punq.Container
+}
+class "api.db.Activity" as api.db.Activity {
+  activity_type
+  body
+  claim_id
+  completed
+  created_at
+  created_by_email
+  due_date
+  firm_id
+  id
+  orgnr
+  policy_id
+  subject
+}
+class "api.db.ActivityType" as api.db.ActivityType {
+  name
+}
+class "api.db.AuditLog" as api.db.AuditLog {
+  action
+  actor_email
+  created_at
+  detail
+  id
+  orgnr
+}
+class "api.db.BrokerFirm" as api.db.BrokerFirm {
+  created_at
+  id
+  name
+  orgnr
+}
+class "api.db.BrokerNote" as api.db.BrokerNote {
+  created_at
+  id
+  orgnr
+  text
+}
+class "api.db.BrokerSettings" as api.db.BrokerSettings {
+  address
+  contact_email
+  contact_name
+  contact_phone
+  firm_name
+  id
+  orgnr
+  updated_at
+}
+class "api.db.Claim" as api.db.Claim {
+  claim_number
+  created_at
+  description
+  estimated_amount_nok
+  firm_id
+  id
+  incident_date
+  insurer_contact
+  notes
+  orgnr
+  policy_id
+  reported_date
+  settled_amount_nok
+  status
+  updated_at
+}
+class "api.db.ClaimStatus" as api.db.ClaimStatus {
+  name
+}
+class "api.db.ClientToken" as api.db.ClientToken {
+  created_at
+  expires_at
+  id
+  label
+  orgnr
+  token
+}
+class "api.db.Company" as api.db.Company {
+  antall_ansatte
+  deleted_at
+  equity_ratio
+  id
+  kommune
+  land
+  naeringskode1
+  naeringskode1_beskrivelse
+  navn
+  organisasjonsform_kode
+  orgnr
+  pep_raw
+  regnskap_raw
+  regnskapsår
+  risk_score
+  sum_driftsinntekter
+  sum_egenkapital
+  sum_eiendeler
+}
+class "api.db.CompanyChunk" as api.db.CompanyChunk {
+  chunk_text
+  created_at
+  embedding
+  id
+  orgnr
+  source
+}
+class "api.db.CompanyHistory" as api.db.CompanyHistory {
+  antall_ansatte
+  currency
+  equity
+  equity_ratio
+  id
+  long_term_debt
+  net_result
+  orgnr
+  pdf_url
+  raw
+  revenue
+  short_term_debt
+  source
+  total_assets
+  year
+}
+class "api.db.CompanyNote" as api.db.CompanyNote {
+  answer
+  created_at
+  embedding
+  id
+  orgnr
+  question
+  session_id
+}
+class "api.db.CompanyPdfSource" as api.db.CompanyPdfSource {
+  added_at
+  id
+  label
+  orgnr
+  pdf_url
+  year
+}
+class "api.db.ContactPerson" as api.db.ContactPerson {
+  created_at
+  email
+  id
+  is_primary
+  name
+  notes
+  orgnr
+  phone
+  title
+}
+class "api.db.InsuranceDocument" as api.db.InsuranceDocument {
+  category
+  extracted_text
+  filename
+  id
+  insurer
+  orgnr
+  pdf_content
+  period
+  tags
+  title
+  uploaded_at
+  year
+}
+class "api.db.InsuranceOffer" as api.db.InsuranceOffer {
+  extracted_text
+  filename
+  id
+  insurer_name
+  orgnr
+  parsed_dekning
+  parsed_egenandel
+  parsed_premie
+  parsed_styrker
+  parsed_svakheter
+  parsed_vilkaar
+  pdf_content
+  status
+  uploaded_at
+}
+class "api.db.JobQueue" as api.db.JobQueue {
+  attempts
+  created_at
+  error
+  finished_at
+  id
+  job_type
+  max_attempts
+  payload
+  scheduled_at
+  started_at
+  status
+}
+class "api.db.OfferStatus" as api.db.OfferStatus {
+  name
+}
+class "api.db.Policy" as api.db.Policy {
+  annual_premium_nok
+  contact_person_id
+  coverage_amount_nok
+  created_at
+  document_url
+  firm_id
+  id
+  insurer
+  last_renewal_notified_days
+  notes
+  orgnr
+  policy_number
+  product_type
+  renewal_date
+  renewal_stage
+  start_date
+  status
+  updated_at
+}
+class "api.db.PolicyStatus" as api.db.PolicyStatus {
+  name
+}
+class "api.db.Portfolio" as api.db.Portfolio {
+  created_at
+  description
+  firm_id
+  id
+  name
+}
+class "api.db.PortfolioCompany" as api.db.PortfolioCompany {
+  added_at
+  orgnr
+  portfolio_id
+}
+class "api.db.RenewalStage" as api.db.RenewalStage {
+  name
+}
+class "api.db.SlaAgreement" as api.db.SlaAgreement {
+  account_manager
+  broker_snapshot
+  client_adresse
+  client_kontakt
+  client_navn
+  client_orgnr
+  created_at
+  fee_structure
+  form_data
+  id
+  insurance_lines
+  signed_at
+  signed_by
+  start_date
+  status
+}
+class "api.db.User" as api.db.User {
+  azure_oid
+  created_at
+  email
+  firm_id
+  id
+  name
+  role
+}
+class "api.db.UserRole" as api.db.UserRole {
+  name
+}
+class "<color:red>api.domain.exceptions.BrokerError</color>" as api.domain.exceptions.BrokerError {
+}
+class "<color:red>api.domain.exceptions.ExternalApiError</color>" as api.domain.exceptions.ExternalApiError {
+}
+class "<color:red>api.domain.exceptions.ForbiddenError</color>" as api.domain.exceptions.ForbiddenError {
+}
+class "<color:red>api.domain.exceptions.LlmUnavailableError</color>" as api.domain.exceptions.LlmUnavailableError {
+}
+class "<color:red>api.domain.exceptions.NotFoundError</color>" as api.domain.exceptions.NotFoundError {
+}
+class "<color:red>api.domain.exceptions.PdfExtractionError</color>" as api.domain.exceptions.PdfExtractionError {
+}
+class "<color:red>api.domain.exceptions.QuotaError</color>" as api.domain.exceptions.QuotaError {
+}
+class "<color:red>api.domain.exceptions.ValidationError</color>" as api.domain.exceptions.ValidationError {
+}
+class "api.ports.driven.blob_storage_port.BlobStoragePort" as api.ports.driven.blob_storage_port.BlobStoragePort {
+  {abstract}delete(container: str, blob_name: str) -> bool
+  {abstract}download(container: str, blob_name: str) -> Optional[bytes]
+  {abstract}download_json(container: str, blob_name: str) -> Optional[dict]
+  {abstract}generate_sas_url(container: str, blob_name: str, hours: int) -> Optional[str]
+  {abstract}get_blob_size(container: str, blob_name: str) -> Optional[int]
+  {abstract}is_configured() -> bool
+  {abstract}list_blobs(container: str) -> list[str]
+  {abstract}stream_range(container: str, blob_name: str, offset: int, length: Optional[int])
+  {abstract}upload(container: str, blob_name: str, data: bytes) -> Optional[str]
+}
+class "api.ports.driven.notification_port.NotificationPort" as api.ports.driven.notification_port.NotificationPort {
+  {abstract}is_configured() -> bool
+  {abstract}send_activity_reminders(to: str, overdue: list[dict], due_today: list[dict]) -> bool
+  {abstract}send_email(to: str, subject: str, body_html: str) -> bool
+  {abstract}send_forsikringstilbud(to: str, client_navn: str, orgnr: str, share_url: str) -> bool
+  {abstract}send_portfolio_digest(to: str, portfolio_name: str, alerts: list[dict]) -> bool
+  {abstract}send_renewal_digest(to: str, renewals: list[dict]) -> bool
+  {abstract}send_renewal_stage_change(to: str, policy_number: str, insurer: str, product_type: str, stage: str) -> bool
+  {abstract}send_renewal_threshold_emails(to: str, threshold_days: int, policies: list[dict]) -> bool
+  {abstract}send_risk_report_ready(to: str, orgnr: str, navn: str) -> bool
+  {abstract}send_sla_generated(to: str, client_navn: str) -> bool
+}
+class "api.schemas.ActivityIn" as api.schemas.ActivityIn {
+  activity_type : str
+  body : Optional[str]
+  claim_id : Optional[int]
+  completed : bool
+  due_date : Optional[date]
+  policy_id : Optional[int]
+  subject : str
+}
+class "api.schemas.ActivityUpdate" as api.schemas.ActivityUpdate {
+  body : Optional[str]
+  completed : Optional[bool]
+  due_date : Optional[date]
+  subject : Optional[str]
+}
+class "api.schemas.BrokerSettingsIn" as api.schemas.BrokerSettingsIn {
+  address : Optional[str]
+  contact_email : Optional[str]
+  contact_name : Optional[str]
+  contact_phone : Optional[str]
+  firm_name : str
+  orgnr : Optional[str]
+}
+class "api.schemas.ChatRequest" as api.schemas.ChatRequest {
+  question : str
+}
+class "api.schemas.ClaimIn" as api.schemas.ClaimIn {
+  claim_number : Optional[str]
+  description : Optional[str]
+  estimated_amount_nok : Optional[float]
+  incident_date : Optional[date]
+  insurer_contact : Optional[str]
+  notes : Optional[str]
+  policy_id : int
+  reported_date : Optional[date]
+  status : str
+}
+class "api.schemas.ClaimUpdate" as api.schemas.ClaimUpdate {
+  claim_number : Optional[str]
+  description : Optional[str]
+  estimated_amount_nok : Optional[float]
+  incident_date : Optional[date]
+  insurer_contact : Optional[str]
+  notes : Optional[str]
+  reported_date : Optional[date]
+  settled_amount_nok : Optional[float]
+  status : Optional[str]
+}
+class "api.schemas.ContactPersonIn" as api.schemas.ContactPersonIn {
+  email : Optional[str]
+  is_primary : bool
+  name : str
+  notes : Optional[str]
+  phone : Optional[str]
+  title : Optional[str]
+}
+class "api.schemas.ContactPersonUpdate" as api.schemas.ContactPersonUpdate {
+  email : Optional[str]
+  is_primary : Optional[bool]
+  name : Optional[str]
+  notes : Optional[str]
+  phone : Optional[str]
+  title : Optional[str]
+}
+class "api.schemas.DocChatRequest" as api.schemas.DocChatRequest {
+  question : str
+}
+class "api.schemas.DocCompareRequest" as api.schemas.DocCompareRequest {
+  doc_ids : List[int]
+}
+class "api.schemas.ForsikringstilbudRequest" as api.schemas.ForsikringstilbudRequest {
+  anbefalinger : list
+  sammendrag : str
+  total_premieanslag : str
+}
+class "api.schemas.IngestKnowledgeRequest" as api.schemas.IngestKnowledgeRequest {
+  source : str
+  text : str
+}
+class "api.schemas.PdfHistoryRequest" as api.schemas.PdfHistoryRequest {
+  label : str
+  pdf_url : str
+  year : int
+}
+class "api.schemas.PolicyIn" as api.schemas.PolicyIn {
+  annual_premium_nok : Optional[float]
+  contact_person_id : Optional[int]
+  coverage_amount_nok : Optional[float]
+  document_url : Optional[str]
+  insurer : str
+  notes : Optional[str]
+  policy_number : Optional[str]
+  product_type : str
+  renewal_date : Optional[date]
+  renewal_stage : Optional[str]
+  start_date : Optional[date]
+  status : str
+}
+class "api.schemas.PolicyUpdate" as api.schemas.PolicyUpdate {
+  annual_premium_nok : Optional[float]
+  contact_person_id : Optional[int]
+  coverage_amount_nok : Optional[float]
+  document_url : Optional[str]
+  insurer : Optional[str]
+  notes : Optional[str]
+  policy_number : Optional[str]
+  product_type : Optional[str]
+  renewal_date : Optional[date]
+  renewal_stage : Optional[str]
+  start_date : Optional[date]
+  status : Optional[str]
+}
+class "api.schemas.PortfolioAddCompany" as api.schemas.PortfolioAddCompany {
+  orgnr : str
+}
+class "api.schemas.PortfolioCreate" as api.schemas.PortfolioCreate {
+  description : Optional[str]
+  name : str
+}
+class "api.schemas.RenewalAdvanceIn" as api.schemas.RenewalAdvanceIn {
+  notify_email : Optional[str]
+  stage : str
+}
+class "api.schemas.SlaIn" as api.schemas.SlaIn {
+  form_data : Dict[str, Any]
+}
+class "api.schemas.UserRoleUpdate" as api.schemas.UserRoleUpdate {
+  role : str
+}
+class "api.schemas._BrokerNoteBody" as api.schemas._BrokerNoteBody {
+  text : str
+}
+class "api.services.activity_service.ActivityService" as api.services.activity_service.ActivityService {
+  db
+  create(orgnr: str, firm_id: int, created_by: str, body: ActivityIn) -> Activity
+  delete(activity_id: int, firm_id: int) -> None
+  list_by_orgnr(orgnr: str, firm_id: int, limit: int) -> list[Activity]
+  update(activity_id: int, firm_id: int, body: ActivityUpdate) -> Activity
+}
+class "api.services.admin_service.AdminService" as api.services.admin_service.AdminService {
+  db
+  reset() -> dict
+  seed_crm_demo() -> dict
+  seed_demo() -> dict
+  seed_norway_top100() -> dict
+}
+class "api.services.blob_storage.BlobStorageService" as api.services.blob_storage.BlobStorageService {
+}
+class "api.services.broker.BrokerService" as api.services.broker.BrokerService {
+  db
+  create_note(orgnr: str, body: _BrokerNoteBody) -> BrokerNote
+  delete_note(note_id: int, orgnr: str) -> None
+  get_settings() -> Optional[BrokerSettings]
+  list_notes(orgnr: str) -> List[BrokerNote]
+  save_settings(body: BrokerSettingsIn) -> Dict[str, Any]
+}
+class "api.services.claims_service.ClaimsService" as api.services.claims_service.ClaimsService {
+  db
+  create(orgnr: str, firm_id: int, body: ClaimIn) -> Claim
+  delete(claim_id: int, firm_id: int) -> None
+  list_by_orgnr(orgnr: str, firm_id: int, skip: int, limit: int) -> list[Claim]
+  list_by_policy(policy_id: int, firm_id: int) -> list[Claim]
+  update(claim_id: int, firm_id: int, body: ClaimUpdate) -> Claim
+}
+class "api.services.company.CompanyService" as api.services.company.CompanyService {
+  db
+  fetch_org_profile(orgnr: str)
+  list_companies(limit: int, kommune)
+  seed_pdf_sources()
+}
+class "api.services.contacts_service.ContactsService" as api.services.contacts_service.ContactsService {
+  db
+  create_contact(orgnr: str, body: ContactPersonIn) -> ContactPerson
+  delete_contact(contact_id: int, orgnr: str) -> None
+  list_contacts(orgnr: str) -> list[ContactPerson]
+  update_contact(contact_id: int, orgnr: str, body: ContactPersonUpdate) -> ContactPerson
+}
+class "api.services.document_intelligence.DocumentIntelligenceService" as api.services.document_intelligence.DocumentIntelligenceService {
+  analyze_pdf(pdf_bytes: bytes) -> Optional[str]
+  is_configured() -> bool
+}
+class "api.services.documents.DocumentAnalysisService" as api.services.documents.DocumentAnalysisService {
+  answer_document_question(doc: InsuranceDocument, question: str) -> str
+  compare_two_documents(a: InsuranceDocument, b: InsuranceDocument) -> dict
+  get_document_keypoints(doc: InsuranceDocument) -> dict
+}
+class "api.services.documents.DocumentService" as api.services.documents.DocumentService {
+  db
+  find_similar(doc: InsuranceDocument, limit: int) -> list
+  remove_document(doc_id: int) -> bool
+  remove_offer(offer_id: int, orgnr: str) -> bool
+  save_offers(orgnr: str, offer_data: List[dict]) -> List[dict]
+  store_document(pdf_bytes: bytes, filename: str, title: str, category: str, insurer: str, year: Optional[int], period: str, orgnr: Optional[str], tags: Optional[str]) -> InsuranceDocument
+}
+class "api.services.external_apis.ExternalApiService" as api.services.external_apis.ExternalApiService {
+  fetch_board_members(orgnr: str)
+  fetch_enhet(orgnr: str)
+  fetch_koordinater(org: dict)
+  fetch_licenses(orgnr: str)
+  fetch_regnskap(orgnr: str)
+  fetch_regnskap_history(orgnr: str)
+  fetch_ssb_benchmark(nace_code: str)
+  pep_screen(name: str)
+  search(name: str, kommunenummer, size: int)
+}
+class "api.services.gdpr_service.GdprService" as api.services.gdpr_service.GdprService {
+  db
+  erase_company(orgnr: str) -> dict
+  export_company_data(orgnr: str) -> dict[str, Any]
+  purge_old_deletions() -> int
+}
+class "api.services.job_queue_service.JobQueueService" as api.services.job_queue_service.JobQueueService {
+  db
+  enqueue(job_type: str, payload: dict[str, Any] | None) -> JobQueue
+  process_pending(db_factory) -> int
+}
+class "api.services.llm.LlmService" as api.services.llm.LlmService {
+  answer(context: str, question: str) -> str
+  answer_raw(prompt: str)
+  compare_offers(prompt: str)
+  embed(text: str)
+  parse_json(raw: str)
+}
+class "api.services.notification_service.NotificationService" as api.services.notification_service.NotificationService {
+}
+class "api.services.pdf_background.PdfExtractService" as api.services.pdf_background.PdfExtractService {
+  db
+  fetch_history_from_pdf(orgnr: str, pdf_url: str, year: int, label: str)
+  get_full_history(orgnr: str)
+  parse_financials_from_pdf(pdf_url: str, orgnr: str, year: int)
+}
+class "api.services.pdf_generate.PdfGenerateService" as api.services.pdf_generate.PdfGenerateService {
+  generate_forsikringstilbud() -> bytes
+  generate_portfolio() -> bytes
+  generate_risk_report() -> bytes
+  generate_sla(agreement) -> bytes
+}
+class "api.services.pdf_risk._RiskPDF" as api.services.pdf_risk._RiskPDF {
+  navn : str
+  today : str
+  footer() -> None
+  header() -> None
+}
+class "api.services.pdf_sla._PDF" as api.services.pdf_sla.generate_sla_pdf._PDF {
+  footer()
+}
+class "api.services.pdf_sources.PdfSourcesService" as api.services.pdf_sources.PdfSourcesService {
+  db
+  delete_history_year(orgnr: str) -> int
+  save_insurance_document(orgnr: str, navn: str, filename: str, pdf_bytes: bytes) -> InsuranceDocument
+  upsert_pdf_source(orgnr: str, year: int, url: str, label: str) -> CompanyPdfSource
+}
+class "api.services.policy_service.PolicyService" as api.services.policy_service.PolicyService {
+  db
+  advance_renewal_stage(policy_id: int, firm_id: int, new_stage: str) -> Policy
+  create(orgnr: str, firm_id: int, body: PolicyIn) -> Policy
+  delete(policy_id: int, firm_id: int) -> None
+  get_policies_needing_renewal_notification(firm_id: int, threshold_days: int) -> list[Policy]
+  get_renewals(firm_id: int, days: int) -> list[Policy]
+  list_by_firm(firm_id: int, skip: int, limit: int) -> list[Policy]
+  list_by_orgnr(orgnr: str, firm_id: int, skip: int, limit: int) -> list[Policy]
+  mark_renewal_notified(policy_id: int, threshold_days: int) -> None
+  update(policy_id: int, firm_id: int, body: PolicyUpdate) -> Policy
+}
+class "api.services.portfolio.PortfolioService" as api.services.portfolio.PortfolioService {
+  db
+  add_company(portfolio_id: int, orgnr: str) -> None
+  chat(portfolio_id: int, question: str) -> dict
+  create(name: str, firm_id: int, description: str) -> Portfolio
+  delete(portfolio_id: int, firm_id: int) -> None
+  enrich_pdfs_background(portfolio_id: int) -> dict
+  get(portfolio_id: int, firm_id: Optional[int]) -> Portfolio
+  get_analytics(portfolio_id: int, firm_id: int) -> dict
+  get_concentration(portfolio_id: int) -> dict
+  get_risk_summary(portfolio_id: int) -> list[dict]
+  ingest_companies(portfolio_id: int) -> dict
+  list_portfolios(firm_id: int) -> list[Portfolio]
+  remove_company(portfolio_id: int, orgnr: str) -> None
+  seed_norway_top100(portfolio_id: int) -> dict
+  stream_batch_import(portfolio_id: int | None, orgnrs: list[str], invalid_count: int) -> Iterator[str]
+  stream_ingest(portfolio_id: int, include_pdfs: bool) -> Iterator[str]
+  stream_seed_norway(portfolio_id: int) -> Iterator[str]
+}
+class "api.services.rag.RagService" as api.services.rag.RagService {
+  db
+  chunk_and_store(orgnr: str, source: str, text: str) -> int
+  retrieve_chunks(orgnr: str, question: str, limit: int) -> list[str]
+  save_qa_note(orgnr: str, question: str, answer: str, session_id: str | None) -> int
+  save_to_rag(orgnr: str, label: str, content: str) -> None
+}
+class "api.services.search_service.SearchService" as api.services.search_service.SearchService {
+  delete_chunks(orgnr: str) -> int
+  ensure_index() -> None
+  index_chunk(orgnr: str, source: str, chunk_text: str, embedding: list) -> str
+  is_configured() -> bool
+  search_chunks(orgnr: str, question_embedding: list, limit: int) -> list[str]
+}
+class "api.services.sla_service.SlaService" as api.services.sla_service.SlaService {
+  db
+  create_agreement(body: SlaIn) -> SlaAgreement
+  mark_signed(sla_id: int, signed_by: Optional[str]) -> Optional[SlaAgreement]
+}
+class "api.services.user_service.UserService" as api.services.user_service.UserService {
+  db
+  get_by_oid(oid: str) -> Optional[User]
+  get_or_create(oid: str, email: str, name: str) -> User
+  list_users(firm_id: int) -> list[User]
+  update_role(user_id: int, body: UserRoleUpdate, requester_role: str) -> User
+}
+api.adapters.blob_storage_adapter.AzureBlobStorageAdapter --|> api.ports.driven.blob_storage_port.BlobStoragePort
+api.adapters.notification_adapter.AzureEmailNotificationAdapter --|> api.ports.driven.notification_port.NotificationPort
+api.domain.exceptions.ExternalApiError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.ForbiddenError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.LlmUnavailableError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.NotFoundError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.PdfExtractionError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.QuotaError --|> api.domain.exceptions.BrokerError
+api.domain.exceptions.ValidationError --|> api.domain.exceptions.BrokerError
+api.services.blob_storage.BlobStorageService --|> api.adapters.blob_storage_adapter.AzureBlobStorageAdapter
+api.services.notification_service.NotificationService --|> api.adapters.notification_adapter.AzureEmailNotificationAdapter
+api.container.AppConfig --> api.adapters.blob_storage_adapter.BlobStorageConfig : blob
+api.container.AppConfig --> api.adapters.notification_adapter.NotificationConfig : notification
+@enduml
