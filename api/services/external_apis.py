@@ -1,4 +1,6 @@
 """External API helpers — BRREG, SSB, Norges Bank, Kartverket, OpenSanctions, Finanstilsynet."""
+import logging
+import threading
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 
@@ -9,8 +11,29 @@ from api.constants import (
     KARTVERKET_ADRESSE_URL, NACE_BENCHMARKS, _NACE_SECTION_MAP,
 )
 
+_log = logging.getLogger(__name__)
+
 
 # ── BRREG Enhetsregisteret ────────────────────────────────────────────────────
+
+def _build_enhet_dict(e: dict) -> dict:
+    """Extract the common fields shared by both enhet list and detail responses."""
+    addr = e.get("forretningsadresse") or {}
+    orgform = e.get("organisasjonsform") or {}
+    naeringskode1 = e.get("naeringskode1") or {}
+    return {
+        "orgnr": e.get("organisasjonsnummer"),
+        "navn": e.get("navn"),
+        "organisasjonsform": orgform.get("beskrivelse"),
+        "organisasjonsform_kode": orgform.get("kode"),
+        "kommune": addr.get("kommune"),
+        "postnummer": addr.get("postnummer"),
+        "land": addr.get("land"),
+        "naeringskode1": naeringskode1.get("kode"),
+        "naeringskode1_beskrivelse": naeringskode1.get("beskrivelse"),
+        "_addr": addr,  # kept private for fetch_enhet_by_orgnr to read extra fields
+    }
+
 
 def fetch_enhetsregisteret(
     name: str,
@@ -29,23 +52,9 @@ def fetch_enhetsregisteret(
     results: List[Dict[str, Any]] = []
 
     for e in enheter:
-        addr = e.get("forretningsadresse") or {}
-        orgform = e.get("organisasjonsform") or {}
-        naeringskode1 = e.get("naeringskode1") or {}
-
-        results.append(
-            {
-                "orgnr": e.get("organisasjonsnummer"),
-                "navn": e.get("navn"),
-                "organisasjonsform": orgform.get("beskrivelse"),
-                "organisasjonsform_kode": orgform.get("kode"),
-                "kommune": addr.get("kommune"),
-                "postnummer": addr.get("postnummer"),
-                "land": addr.get("land"),
-                "naeringskode1": naeringskode1.get("kode"),
-                "naeringskode1_beskrivelse": naeringskode1.get("beskrivelse"),
-            }
-        )
+        row = _build_enhet_dict(e)
+        row.pop("_addr", None)
+        results.append(row)
 
     return results
 
@@ -62,23 +71,13 @@ def fetch_enhet_by_orgnr(orgnr: str) -> Optional[Dict[str, Any]]:
         return None
 
     e = enheter[0]
-    addr = e.get("forretningsadresse") or {}
-    orgform = e.get("organisasjonsform") or {}
-    naeringskode1 = e.get("naeringskode1") or {}
-
+    row = _build_enhet_dict(e)
+    addr = row.pop("_addr")
     return {
-        "orgnr": e.get("organisasjonsnummer"),
-        "navn": e.get("navn"),
-        "organisasjonsform": orgform.get("beskrivelse"),
-        "organisasjonsform_kode": orgform.get("kode"),
-        "kommune": addr.get("kommune"),
+        **row,
         "kommunenummer": addr.get("kommunenummer"),
-        "postnummer": addr.get("postnummer"),
         "poststed": addr.get("poststed"),
         "adresse": addr.get("adresse") or [],
-        "land": addr.get("land"),
-        "naeringskode1": naeringskode1.get("kode"),
-        "naeringskode1_beskrivelse": naeringskode1.get("beskrivelse"),
         "stiftelsesdato": e.get("stiftelsesdato"),
         "hjemmeside": e.get("hjemmeside"),
         "konkurs": e.get("konkurs", False),
@@ -407,7 +406,8 @@ def fetch_koordinater(org: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "lon": lon,
             "adressetekst": addresses[0].get("adressetekst", ""),
         }
-    except Exception:
+    except Exception as exc:
+        _log.warning("fetch_koordinater failed: %s", exc)
         return None
 
 
@@ -434,6 +434,7 @@ def fetch_losore(orgnr: str) -> Dict[str, Any]:
             })
         return {"auth_required": False, "count": count, "pledges": pledges}
     except Exception as exc:
+        _log.warning("fetch_losore(%s) failed: %s", orgnr, exc)
         return {"error": str(exc), "count": None, "pledges": []}
 
 
@@ -453,15 +454,17 @@ def _nace_to_section(nace_code: str) -> Optional[str]:
 
 
 _SSB_CACHE: Dict[str, Any] = {}
+_SSB_CACHE_LOCK = threading.Lock()
 _SSB_TTL = 86400  # 24 h
 
 
 def _fetch_ssb_live(section: str) -> Optional[Dict[str, Any]]:
     """Try to fetch live equity ratio + profit margin from SSB PxWebAPI."""
-    cached = _SSB_CACHE.get(section)
     now = datetime.now(timezone.utc).timestamp()
-    if cached and now - cached["ts"] < _SSB_TTL:
-        return cached["data"]
+    with _SSB_CACHE_LOCK:
+        cached = _SSB_CACHE.get(section)
+        if cached and now - cached["ts"] < _SSB_TTL:
+            return cached["data"]
 
     for table_id in ["12813", "12814"]:
         try:
@@ -492,12 +495,15 @@ def _fetch_ssb_live(section: str) -> Optional[Dict[str, Any]]:
                     "year":     year,
                     "table":    table_id,
                 }
-                _SSB_CACHE[section] = {"data": result, "ts": now}
+                with _SSB_CACHE_LOCK:
+                    _SSB_CACHE[section] = {"data": result, "ts": now}
                 return result
-        except Exception:
+        except Exception as exc:
+            _log.warning("_fetch_ssb_live(%s, table=%s) failed: %s", section, table_id, exc)
             continue
 
-    _SSB_CACHE[section] = {"data": None, "ts": now}
+    with _SSB_CACHE_LOCK:
+        _SSB_CACHE[section] = {"data": None, "ts": now}
     return None
 
 
@@ -537,6 +543,7 @@ def fetch_ssb_benchmark(nace_code: str) -> Optional[Dict[str, Any]]:
 # ── Norges Bank exchange rate ─────────────────────────────────────────────────
 
 _NB_RATE_CACHE: Dict[str, Any] = {}
+_NB_RATE_CACHE_LOCK = threading.Lock()
 _NB_TTL = 3600  # 1 h
 
 
@@ -545,10 +552,11 @@ def fetch_norgesbank_rate(currency: str) -> float:
     if not currency or currency.upper() == "NOK":
         return 1.0
     ccy = currency.upper()
-    cached = _NB_RATE_CACHE.get(ccy)
     now = datetime.now(timezone.utc).timestamp()
-    if cached and now - cached["ts"] < _NB_TTL:
-        return cached["rate"]
+    with _NB_RATE_CACHE_LOCK:
+        cached = _NB_RATE_CACHE.get(ccy)
+        if cached and now - cached["ts"] < _NB_TTL:
+            return cached["rate"]
     try:
         resp = requests.get(
             f"https://data.norges-bank.no/api/data/EXR/B.{ccy}.NOK.SP",
@@ -560,10 +568,11 @@ def fetch_norgesbank_rate(currency: str) -> float:
             series = next(iter(sets.values()))
             obs = series["observations"]
             rate = float(obs[max(obs.keys(), key=int)][0])
-            _NB_RATE_CACHE[ccy] = {"rate": rate, "ts": now}
+            with _NB_RATE_CACHE_LOCK:
+                _NB_RATE_CACHE[ccy] = {"rate": rate, "ts": now}
             return rate
-    except Exception:
-        pass
+    except Exception as exc:
+        _log.warning("fetch_norgesbank_rate(%s) failed: %s", ccy, exc)
     return 1.0
 
 
@@ -588,8 +597,8 @@ def fetch_company_struktur(orgnr: str) -> Dict[str, Any]:
                         "organisasjonsform": (p.get("organisasjonsform") or {}).get("beskrivelse"),
                         "kommune": (p.get("forretningsadresse") or {}).get("kommune"),
                     }
-    except Exception:
-        pass
+    except Exception as exc:
+        _log.warning("fetch_company_struktur(%s) parent lookup failed: %s", orgnr, exc)
 
     try:
         resp = requests.get(f"{BRREG_ENHETER_URL}/{orgnr}/underenheter", timeout=8)
@@ -606,8 +615,8 @@ def fetch_company_struktur(orgnr: str) -> Dict[str, Any]:
                 }
                 for u in units[:25]
             ]
-    except Exception:
-        pass
+    except Exception as exc:
+        _log.warning("fetch_company_struktur(%s) sub-units lookup failed: %s", orgnr, exc)
 
     return result
 

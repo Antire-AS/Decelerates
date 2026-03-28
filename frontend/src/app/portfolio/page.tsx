@@ -13,7 +13,12 @@ import {
   type Company, type PortfolioItem, type PortfolioRiskRow,
 } from "@/lib/api";
 import Link from "next/link";
-import { Loader2, Plus, MessageSquare, Sparkles, Download, Trash2, AlertTriangle, BarChart2 } from "lucide-react";
+import { Loader2, Plus, Sparkles, Download, BarChart2 } from "lucide-react";
+import { PortfolioRiskTable } from "@/components/portfolio/PortfolioRiskTable";
+import { PortfolioAlerts } from "@/components/portfolio/PortfolioAlerts";
+import { PortfolioConcentration } from "@/components/portfolio/PortfolioConcentration";
+import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
+import { PortfolioChat } from "@/components/portfolio/PortfolioChat";
 
 const RISK_BANDS = [
   { label: "Lav (0–39)",      min: 0,  max: 39,  color: "#27AE60" },
@@ -27,11 +32,6 @@ function band(score?: number) {
   if (score < 40) return 0;
   if (score < 70) return 1;
   return 2;
-}
-
-function fmtMnok(v?: number) {
-  if (!v) return "–";
-  return `${(v / 1e6).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} MNOK`;
 }
 
 export default function PortfolioPage() {
@@ -184,7 +184,7 @@ export default function PortfolioPage() {
 
       {seedMsg && <div className="broker-card text-xs text-[#2C3E50]">{seedMsg}</div>}
 
-      {/* ── Portfolio selector + chat ────────────────────────────────── */}
+      {/* ── Portfolio selector + sub-components ─────────────────────── */}
       <div className="broker-card space-y-4">
         <h2 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#4A6FA5]" /> Navngitt portefølje
@@ -225,138 +225,33 @@ export default function PortfolioPage() {
           )}
         </div>
 
-        {/* Alerts */}
         {portfolioAlerts && portfolioAlerts.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-[#2C3E50] flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Varsler
-            </p>
-            {portfolioAlerts.map((a, i) => (
-              <div key={i} className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${
-                a.severity === "high" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                <span><strong>{a.navn ?? a.orgnr}</strong>: {a.message}</span>
-              </div>
-            ))}
-          </div>
+          <PortfolioAlerts alerts={portfolioAlerts} />
         )}
 
-        {/* Concentration */}
         {concentration && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {(["industry", "geography", "size"] as const).map((key) => {
-              const items = concentration[key] ?? [];
-              const labels: Record<string, string> = { industry: "Bransje", geography: "Geografi", size: "Størrelse" };
-              return (
-                <div key={key}>
-                  <p className="text-xs font-semibold text-[#2C3E50] mb-1">{labels[key]}</p>
-                  <div className="space-y-1">
-                    {items.slice(0, 5).map((item: { label: string; count: number }) => (
-                      <div key={item.label} className="flex justify-between text-xs">
-                        <span className="text-[#8A7F74] truncate max-w-[120px]">{item.label}</span>
-                        <span className="font-medium text-[#2C3E50]">{item.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <PortfolioConcentration concentration={concentration} />
         )}
 
-        {/* Portfolio risk table with remove */}
         {portfolioRisk && portfolioRisk.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-[#2C3E50] mb-2">
-              Selskaper i «{selectedPortfolio?.name}» ({portfolioRisk.length})
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-[#8A7F74] border-b border-[#EDE8E3]">
-                    <th className="text-left pb-1.5 font-medium">Selskap</th>
-                    <th className="text-right pb-1.5 font-medium hidden sm:table-cell">Omsetning</th>
-                    <th className="text-right pb-1.5 font-medium hidden md:table-cell">Egenkapital</th>
-                    <th className="text-right pb-1.5 font-medium hidden md:table-cell">EK-andel</th>
-                    <th className="text-right pb-1.5 font-medium">Risiko</th>
-                    <th className="w-8 pb-1.5"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EDE8E3]">
-                  {portfolioRisk.map((r) => (
-                    <tr key={r.orgnr} className="hover:bg-[#F9F7F4]">
-                      <td className="py-1.5">
-                        <Link href={`/search/${r.orgnr}`} className="font-medium text-[#4A6FA5] hover:underline">
-                          {r.navn ?? r.orgnr}
-                        </Link>
-                      </td>
-                      <td className="py-1.5 text-right text-[#8A7F74] hidden sm:table-cell">
-                        {fmtMnok(r.revenue)}
-                      </td>
-                      <td className="py-1.5 text-right text-[#8A7F74] hidden md:table-cell">
-                        {fmtMnok(r.equity)}
-                      </td>
-                      <td className="py-1.5 text-right text-[#8A7F74] hidden md:table-cell">
-                        {r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}
-                      </td>
-                      <td className="py-1.5 text-right">
-                        {r.risk_score != null ? (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                            style={{
-                              background: RISK_BANDS[band(r.risk_score)].color + "20",
-                              color: RISK_BANDS[band(r.risk_score)].color,
-                            }}>{r.risk_score}</span>
-                        ) : <span className="text-[#8A7F74]">–</span>}
-                      </td>
-                      <td className="py-1.5 text-right">
-                        <button onClick={() => handleRemove(r.orgnr)}
-                          disabled={removingOrgnr === r.orgnr}
-                          className="text-[#C4BDB4] hover:text-red-500 disabled:opacity-50">
-                          {removingOrgnr === r.orgnr
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <Trash2 className="w-3.5 h-3.5" />}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <PortfolioRiskTable
+            portfolioRisk={portfolioRisk}
+            portfolioName={selectedPortfolio?.name}
+            removingOrgnr={removingOrgnr}
+            onRemove={handleRemove}
+          />
         )}
 
-        {/* Portfolio chat */}
         {selectedPortfolioId && (
-          <div className="space-y-3 pt-2 border-t border-[#EDE8E3]">
-            <p className="text-xs font-semibold text-[#2C3E50] flex items-center gap-1.5">
-              <MessageSquare className="w-3.5 h-3.5" /> Portefølje-chat
-            </p>
-            <div className="flex gap-2">
-              <input type="text" value={chatQuestion} onChange={(e) => setChatQuestion(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleChat()}
-                placeholder="F.eks. «Hvilke selskaper har lavest egenkapitalandel?»"
-                className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50]" />
-              <button onClick={handleChat} disabled={chatLoading || !chatQuestion.trim()}
-                className="px-4 py-2 rounded-lg bg-[#4A6FA5] text-white text-sm font-medium hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1">
-                {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-                Spør
-              </button>
-            </div>
-            {chatErr && <p className="text-xs text-red-600">{chatErr}</p>}
-            {chatAnswer && (
-              <div className="bg-[#F9F7F4] rounded-lg p-3 space-y-2">
-                <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{chatAnswer}</p>
-                {chatSources.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {chatSources.map((s) => (
-                      <Link key={s} href={`/search/${s}`}
-                        className="text-xs px-2 py-0.5 rounded-full bg-[#EDE8E3] text-[#4A6FA5] hover:underline">{s}</Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <PortfolioChat
+            chatQuestion={chatQuestion}
+            setChatQuestion={setChatQuestion}
+            chatAnswer={chatAnswer}
+            chatSources={chatSources}
+            chatLoading={chatLoading}
+            chatErr={chatErr}
+            onSubmit={handleChat}
+          />
         )}
 
         {!selectedPortfolioId && portfolios.length === 0 && (
@@ -396,7 +291,6 @@ export default function PortfolioPage() {
 
           {/* ── Analytics charts ──────────────────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Risk distribution pie */}
             {pieData.length > 0 && (
               <div className="broker-card">
                 <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Risikofordeling</h2>
@@ -413,7 +307,6 @@ export default function PortfolioPage() {
               </div>
             )}
 
-            {/* Industry breakdown */}
             {industryData.length > 0 && (
               <div className="broker-card">
                 <div className="flex items-center gap-2 mb-3">
@@ -433,42 +326,13 @@ export default function PortfolioPage() {
             )}
           </div>
 
-          {/* Top 15 risk chart */}
           {top15Risk.length > 0 && (
-            <div className="broker-card">
-              <div className="flex items-center gap-2 mb-3">
-                <button onClick={() => setAnalyticsTab("industry")}
-                  className={`text-xs px-2.5 py-1 rounded-lg ${analyticsTab === "industry" ? "bg-[#2C3E50] text-white" : "text-[#8A7F74] hover:bg-[#EDE8E3]"}`}>
-                  Bransje
-                </button>
-                <button onClick={() => setAnalyticsTab("top-risk")}
-                  className={`text-xs px-2.5 py-1 rounded-lg ${analyticsTab === "top-risk" ? "bg-[#2C3E50] text-white" : "text-[#8A7F74] hover:bg-[#EDE8E3]"}`}>
-                  Top 15 risiko
-                </button>
-              </div>
-              {analyticsTab === "top-risk" && (
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={top15Risk} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 10 }} domain={[0, 100]} />
-                    <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9 }} />
-                    <Tooltip formatter={(v: number) => [`${v} / 100`]} />
-                    <Bar dataKey="score" name="Risikoscore" fill="#C0392B" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-              {analyticsTab === "industry" && (
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={industryData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9 }} />
-                    <Tooltip formatter={(v: number) => [`${v} selskaper`]} />
-                    <Bar dataKey="count" name="Selskaper" fill="#4A6FA5" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+            <PortfolioAnalytics
+              industryData={industryData}
+              top15Risk={top15Risk}
+              analyticsTab={analyticsTab}
+              setAnalyticsTab={setAnalyticsTab}
+            />
           )}
 
           {/* Company table */}

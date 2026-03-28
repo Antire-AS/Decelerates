@@ -9,69 +9,12 @@ import {
   type SlaAgreement,
 } from "@/lib/api";
 import { Loader2, Download, CheckCircle2 } from "lucide-react";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const INSURANCE_LINES: Record<string, string[]> = {
-  "Skadeforsikringer": ["Ting / Avbrudd", "Bedrift-/Produktansvar", "Transport", "Motorvogn", "Prosjektforsikring"],
-  "Financial Lines": ["Styreansvar (D&O)", "Kriminalitetsforsikring", "Profesjonsansvar", "Cyber", "Spesialforsikring"],
-  "Personforsikringer": ["Yrkesskade", "Ulykke", "Gruppeliv", "Sykdom", "Reise", "Helseforsikring"],
-  "Pensjonsforsikringer": ["Ytelsespensjon", "Innskuddspensjon", "Lederpensjon"],
-  "Spesialdekning": ["Reassuranse", "Marine", "Energi", "Garanti"],
-};
-
-const STANDARD_VILKAAR = `Avtalen gjelder for ett år med automatisk fornyelse, med mindre den sies opp skriftlig med fire måneders varsel.
-
-All skriftlig kommunikasjon mellom partene skjer elektronisk, som utgangspunkt på norsk.
-
-Kunden plikter å gi megler korrekt og fullstendig informasjon om forsikringsgjenstandene og risikoen, samt opplyse om tidligere forsikringsforhold og anmeldte skader.
-
-Forsikringsselskapets premiefaktura sendes til Kunden for betaling direkte til forsikringsselskapet.
-
-Meglers ansvar for rådgivningsfeil er begrenset til NOK 25 000 000 per oppdrag og NOK 50 000 000 per kalenderår.`;
-
-type SlaData = {
-  client_orgnr?: string; client_navn?: string; client_adresse?: string; client_kontakt?: string;
-  start_date?: string; account_manager?: string; insurance_lines?: string[]; other_lines?: string;
-  fee_structure?: { lines: { line: string; type: string; rate?: number | null }[] };
-  kyc_id_type?: string; kyc_id_ref?: string; kyc_signatory?: string; kyc_firmadato?: string;
-};
-
-// ── Step components ───────────────────────────────────────────────────────────
-
-function StepHeader({ step, total, label }: { step: number; total: number; label: string }) {
-  return (
-    <div className="mb-4">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="h-1.5 flex-1 bg-[#EDE8E3] rounded-full overflow-hidden">
-          <div className="h-full bg-[#2C3E50] rounded-full transition-all" style={{ width: `${(step / total) * 100}%` }} />
-        </div>
-        <span className="text-xs text-[#8A7F74] whitespace-nowrap">Steg {step} av {total}</span>
-      </div>
-      <h2 className="text-sm font-semibold text-[#2C3E50]">{label}</h2>
-    </div>
-  );
-}
-
-function NavButtons({ onBack, onNext, nextLabel = "Neste →", nextDisabled = false, loading = false }: {
-  onBack?: () => void; onNext: () => void; nextLabel?: string; nextDisabled?: boolean; loading?: boolean;
-}) {
-  return (
-    <div className="flex gap-2 mt-4">
-      {onBack && (
-        <button onClick={onBack}
-          className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3]">
-          ← Tilbake
-        </button>
-      )}
-      <button onClick={onNext} disabled={nextDisabled || loading}
-        className="px-4 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
-        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-        {nextLabel}
-      </button>
-    </div>
-  );
-}
+import { StepHeader, NavButtons } from "@/components/sla/SlaShared";
+import { type SlaData } from "@/components/sla/slaConstants";
+import { Step1ClientDetails } from "@/components/sla/Step1ClientDetails";
+import { Step2Services } from "@/components/sla/Step2Services";
+import { Step3Fees } from "@/components/sla/Step3Fees";
+import { Step4TermsKyc } from "@/components/sla/Step4TermsKyc";
 
 // ── New Agreement Wizard ──────────────────────────────────────────────────────
 
@@ -86,7 +29,14 @@ function NewAgreementWizard() {
   const total = 5;
   const set = (patch: Partial<SlaData>) => setData((d) => ({ ...d, ...patch }));
 
-  // Step 1: Client details
+  const allLines = [...(data.insurance_lines ?? []), ...(data.other_lines ? [data.other_lines] : [])];
+
+  const toggleLine = (line: string) => {
+    const lines = new Set(data.insurance_lines ?? []);
+    lines.has(line) ? lines.delete(line) : lines.add(line);
+    set({ insurance_lines: Array.from(lines) });
+  };
+
   async function handleLookup() {
     if (!data.client_orgnr?.trim()) return;
     setLookupLoading(true);
@@ -101,14 +51,6 @@ function NewAgreementWizard() {
     finally { setLookupLoading(false); }
   }
 
-  // Step 2: insurance lines toggle
-  const toggleLine = (line: string) => {
-    const lines = new Set(data.insurance_lines ?? []);
-    lines.has(line) ? lines.delete(line) : lines.add(line);
-    set({ insurance_lines: Array.from(lines) });
-  };
-
-  // Step 5: generate
   async function handleGenerate() {
     setGenerating(true); setErr(null);
     try {
@@ -123,203 +65,37 @@ function NewAgreementWizard() {
     finally { setGenerating(false); }
   }
 
-  const allLines = [...(data.insurance_lines ?? []), ...(data.other_lines ? [data.other_lines] : [])];
-
   return (
     <div className="broker-card max-w-2xl">
       {step === 1 && (
-        <>
-          <StepHeader step={1} total={total} label="Klientdetaljer" />
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="label-xs">Org.nr *</label>
-                <input value={data.client_orgnr ?? ""} onChange={(e) => set({ client_orgnr: e.target.value })}
-                  placeholder="9 siffer" className="input-sm w-full" />
-              </div>
-              <button onClick={handleLookup} disabled={lookupLoading}
-                className="self-end px-3 py-1.5 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1">
-                {lookupLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                Slå opp
-              </button>
-            </div>
-            <div>
-              <label className="label-xs">Klientnavn *</label>
-              <input value={data.client_navn ?? ""} onChange={(e) => set({ client_navn: e.target.value })}
-                className="input-sm w-full" />
-            </div>
-            <div>
-              <label className="label-xs">Adresse</label>
-              <textarea value={data.client_adresse ?? ""} onChange={(e) => set({ client_adresse: e.target.value })}
-                rows={2} className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
-            </div>
-            <div>
-              <label className="label-xs">Kontaktperson (navn + e-post)</label>
-              <input value={data.client_kontakt ?? ""} onChange={(e) => set({ client_kontakt: e.target.value })}
-                className="input-sm w-full" />
-            </div>
-          </div>
-          {err && <p className="text-xs text-red-600 mt-2">{err}</p>}
-          <NavButtons onNext={() => { if (!data.client_navn?.trim()) { setErr("Klientnavn er påkrevd."); return; } setErr(null); setStep(2); }} />
-        </>
+        <Step1ClientDetails
+          data={data} set={set} err={err} setErr={setErr}
+          lookupLoading={lookupLoading} onLookup={handleLookup}
+          onNext={() => setStep(2)}
+        />
       )}
 
       {step === 2 && (
-        <>
-          <StepHeader step={2} total={total} label="Tjenester (Vedlegg A)" />
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label-xs">Avtalestartdato</label>
-                <input type="date" value={data.start_date ?? new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => set({ start_date: e.target.value })} className="input-sm w-full" />
-              </div>
-              <div>
-                <label className="label-xs">Kundeansvarlig</label>
-                <input value={data.account_manager ?? ""} onChange={(e) => set({ account_manager: e.target.value })}
-                  className="input-sm w-full" />
-              </div>
-            </div>
-            <div>
-              <p className="label-xs mb-2">Forsikringslinjer som megleres:</p>
-              {Object.entries(INSURANCE_LINES).map(([cat, lines]) => (
-                <div key={cat} className="mb-3">
-                  <p className="text-xs font-medium text-[#8A7F74] mb-1">{cat}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {lines.map((line) => (
-                      <label key={line}
-                        className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border cursor-pointer transition-colors ${
-                          data.insurance_lines?.includes(line)
-                            ? "bg-[#2C3E50] text-white border-[#2C3E50]"
-                            : "border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3]"
-                        }`}>
-                        <input type="checkbox" className="hidden"
-                          checked={!!data.insurance_lines?.includes(line)}
-                          onChange={() => toggleLine(line)} />
-                        {line}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <div>
-                <label className="label-xs">Andre (spesifiser)</label>
-                <input value={data.other_lines ?? ""} onChange={(e) => set({ other_lines: e.target.value })}
-                  className="input-sm w-full" />
-              </div>
-            </div>
-          </div>
-          <NavButtons
-            onBack={() => setStep(1)}
-            onNext={() => {
-              if (!allLines.length) { setErr("Velg minst én forsikringslinje."); return; }
-              setErr(null); setStep(3);
-            }}
-          />
-          {err && <p className="text-xs text-red-600 mt-2">{err}</p>}
-        </>
+        <Step2Services
+          data={data} set={set} err={err} setErr={setErr}
+          allLines={allLines} toggleLine={toggleLine}
+          onBack={() => setStep(1)} onNext={() => setStep(3)}
+        />
       )}
 
       {step === 3 && (
-        <>
-          <StepHeader step={3} total={total} label="Honorar (Vedlegg B)" />
-          <div className="space-y-4">
-            {allLines.map((line) => {
-              const existing = data.fee_structure?.lines.find((f) => f.line === line) ?? { line, type: "provisjon", rate: null };
-              const update = (patch: Partial<typeof existing>) => {
-                const lines = [...(data.fee_structure?.lines ?? [])];
-                const idx = lines.findIndex((f) => f.line === line);
-                const updated = { ...existing, ...patch };
-                if (idx >= 0) lines[idx] = updated; else lines.push(updated);
-                set({ fee_structure: { lines } });
-              };
-              return (
-                <div key={line} className="p-3 bg-[#F9F7F4] rounded-lg">
-                  <p className="text-xs font-semibold text-[#2C3E50] mb-2">{line}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="label-xs">Honorartype</label>
-                      <select value={existing.type} onChange={(e) => update({ type: e.target.value, rate: null })}
-                        className="input-sm w-full">
-                        <option value="provisjon">Provisjon (%)</option>
-                        <option value="fast">Fast honorar (NOK/år)</option>
-                        <option value="ikke_avklart">Ikke avklart</option>
-                      </select>
-                    </div>
-                    {existing.type !== "ikke_avklart" && (
-                      <div>
-                        <label className="label-xs">{existing.type === "provisjon" ? "Sats (%)" : "Beløp (NOK/år)"}</label>
-                        <input type="number" min={0} value={existing.rate ?? ""}
-                          onChange={(e) => update({ rate: e.target.value ? Number(e.target.value) : null })}
-                          className="input-sm w-full" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <NavButtons onBack={() => setStep(2)} onNext={() => { setStep(4); }} />
-        </>
+        <Step3Fees
+          data={data} set={set}
+          allLines={allLines}
+          onBack={() => setStep(2)} onNext={() => setStep(4)}
+        />
       )}
 
       {step === 4 && (
-        <>
-          <StepHeader step={4} total={total} label="Vilkår og KYC" />
-          <div className="space-y-4">
-            <div className="bg-[#F9F7F4] rounded-lg p-3 max-h-48 overflow-y-auto">
-              <p className="text-xs text-[#2C3E50] whitespace-pre-line">{STANDARD_VILKAAR}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label-xs">Type legitimasjon</label>
-                <select value={data.kyc_id_type ?? "Pass"} onChange={(e) => set({ kyc_id_type: e.target.value })}
-                  className="input-sm w-full">
-                  {["Pass", "Nasjonalt ID-kort", "Bankkort med bilde", "Annet"].map((v) => <option key={v}>{v}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label-xs">Dokumentreferanse / ID-nummer</label>
-                <input value={data.kyc_id_ref ?? ""} onChange={(e) => set({ kyc_id_ref: e.target.value })}
-                  placeholder="e.g. N12345678" className="input-sm w-full" />
-              </div>
-              <div>
-                <label className="label-xs">Signatarens navn</label>
-                <input value={data.kyc_signatory ?? ""} onChange={(e) => set({ kyc_signatory: e.target.value })}
-                  className="input-sm w-full" />
-              </div>
-              <div>
-                <label className="label-xs">Firmaattest dato</label>
-                <input value={data.kyc_firmadato ?? ""} onChange={(e) => set({ kyc_firmadato: e.target.value })}
-                  placeholder="DD.MM.ÅÅÅÅ" className="input-sm w-full" />
-              </div>
-            </div>
-            {[
-              "Kunden bekrefter å ha lest og forstått vilkårene.",
-              "Kunden bekrefter at kundekontroll (KYC/AML) er gjennomført og legitimasjon er fremlagt.",
-            ].map((label, i) => {
-              const key = `kyc_accept_${i}` as keyof SlaData;
-              return (
-                <label key={i} className="flex items-start gap-2 text-xs text-[#2C3E50] cursor-pointer">
-                  <input type="checkbox" className="mt-0.5 accent-[#4A6FA5]"
-                    checked={!!(data as Record<string, unknown>)[key]}
-                    onChange={(e) => set({ [key]: e.target.checked } as Partial<SlaData>)} />
-                  {label}
-                </label>
-              );
-            })}
-          </div>
-          <NavButtons
-            onBack={() => setStep(3)}
-            onNext={() => {
-              const kyc = data.kyc_id_ref && data.kyc_signatory && data.kyc_firmadato;
-              const accepted = (data as Record<string, unknown>).kyc_accept_0 && (data as Record<string, unknown>).kyc_accept_1;
-              if (!kyc || !accepted) { setErr("Fyll ut alle KYC-felt og bekreft vilkårene."); return; }
-              setErr(null); setStep(5);
-            }}
-          />
-          {err && <p className="text-xs text-red-600 mt-2">{err}</p>}
-        </>
+        <Step4TermsKyc
+          data={data} set={set} err={err} setErr={setErr}
+          onBack={() => setStep(3)} onNext={() => setStep(5)}
+        />
       )}
 
       {step === 5 && (

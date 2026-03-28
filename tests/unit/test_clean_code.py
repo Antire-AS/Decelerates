@@ -145,6 +145,9 @@ _JUSTIFIED = {
     # Admin seed endpoints — multi-phase BRREG lookup + background PDF agent setup;
     # complexity is inherent to the two-phase seeding protocol
     "admin_demo",
+    # Demo seed — multi-entity idempotent insert (companies + history + policies + claims +
+    # activities) in a single DB transaction; splitting would break atomicity
+    "seed_full_demo",
     "admin_seed_norway_top100",
     # Portfolio RAG chat — builds context + calls LLM in one coherent flow
     "chat",
