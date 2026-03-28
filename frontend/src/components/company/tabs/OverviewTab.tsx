@@ -1,9 +1,9 @@
 "use client";
 
-import { Fragment } from "react";
 import dynamic from "next/dynamic";
 import { ExternalLink, AlertTriangle, Shield, Users, TrendingUp } from "lucide-react";
 import RiskBadge from "@/components/company/RiskBadge";
+import type { HistoryRow } from "@/lib/api-types";
 
 const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
 
@@ -42,6 +42,7 @@ function KV({ label, value }: { label: string; value: unknown }) {
 interface OverviewTabProps {
   org: Record<string, unknown>;
   regn: Record<string, unknown>;
+  history?: HistoryRow[];
   risk: {
     score?: number;
     reasons?: string[];
@@ -58,6 +59,7 @@ interface OverviewTabProps {
 export default function OverviewTab({
   org,
   regn,
+  history,
   risk,
   pep,
   koordinaterData,
@@ -66,6 +68,17 @@ export default function OverviewTab({
   bankruptcy,
   benchmark,
 }: OverviewTabProps) {
+  // Fall back to most recent history row when BRREG has no financial data (e.g. banks)
+  const latestRow = history && history.length > 0
+    ? [...history].sort((a, b) => b.year - a.year)[0]
+    : null;
+  const finansData = Object.keys(regn).length > 0 ? regn : (latestRow ? {
+    sumDriftsinntekter: latestRow.revenue ?? latestRow.sumDriftsinntekter,
+    arsresultat: latestRow.arsresultat,
+    sumEgenkapital: latestRow.sumEgenkapital,
+    _year: latestRow.year,
+  } : {});
+
   return (
     <div className="space-y-4">
       <Section title="Selskapsinfo">
@@ -119,12 +132,12 @@ export default function OverviewTab({
         )}
       </Section>
 
-      {/* Key financials summary */}
-      {Object.keys(regn).length > 0 && (
-        <Section title="Nøkkeltall">
-          <KV label="Omsetning"    value={fmtMnok(regn.sumDriftsinntekter)} />
-          <KV label="Nettoresultat" value={fmtMnok(regn.arsresultat)} />
-          <KV label="Egenkapital"  value={fmtMnok(regn.sumEgenkapital)} />
+      {/* Key financials summary — falls back to PDF-extracted history for banks */}
+      {Object.keys(finansData).length > 0 && (
+        <Section title={finansData._year ? `Nøkkeltall (${finansData._year})` : "Nøkkeltall"}>
+          <KV label="Omsetning"    value={fmtMnok(finansData.sumDriftsinntekter)} />
+          <KV label="Nettoresultat" value={fmtMnok(finansData.arsresultat)} />
+          <KV label="Egenkapital"  value={fmtMnok(finansData.sumEgenkapital)} />
           <KV label="Egenkapitalandel"
             value={risk.equity_ratio != null
               ? `${(Number(risk.equity_ratio) * 100).toFixed(1)}%`

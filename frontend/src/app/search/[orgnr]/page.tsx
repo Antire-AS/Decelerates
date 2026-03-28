@@ -59,9 +59,9 @@ export default function OrgProfilePage({
   const [commentaryLoading, setCommentaryLoading] = useState(false);
   const [commentaryErr, setCommentaryErr]         = useState<string | null>(null);
 
-  // Lazy-load financial history only when Økonomi tab is active
+  // Load history for both tabs — Oversikt uses the latest row as fallback when BRREG has no data (e.g. banks)
   const { data: historyData, isLoading: historyLoading } = useSWR<HistoryRow[]>(
-    activeTab === "okonomi" ? `history-${orgnr}` : null,
+    `history-${orgnr}`,
     () => getOrgHistory(orgnr),
   );
   const { data: extractionStatus } = useSWR(
@@ -193,6 +193,7 @@ export default function OrgProfilePage({
         <OverviewTab
           org={org as Record<string, unknown>}
           regn={regn as Record<string, unknown>}
+          history={history}
           risk={risk as { score?: number; reasons?: string[]; equity_ratio?: number }}
           pep={pep as Record<string, unknown>}
           koordinaterData={koordinaterData}
