@@ -72,12 +72,22 @@ export default function OverviewTab({
   const latestRow = history && history.length > 0
     ? [...history].sort((a, b) => b.year - a.year)[0]
     : null;
-  const finansData = Object.keys(regn).length > 0 ? regn : (latestRow ? {
-    sumDriftsinntekter: latestRow.revenue ?? latestRow.sumDriftsinntekter,
-    arsresultat: latestRow.arsresultat,
-    sumEgenkapital: latestRow.sumEgenkapital,
-    _year: latestRow.year,
-  } : {});
+  // Normalize: BRREG returns camelCase, history-fallback returns snake_case
+  const finansData: Record<string, unknown> | null = Object.keys(regn).length > 0
+    ? {
+        sumDriftsinntekter: regn.sumDriftsinntekter ?? regn.sum_driftsinntekter,
+        arsresultat:        regn.arsresultat ?? regn.aarsresultat,
+        sumEgenkapital:     regn.sumEgenkapital ?? regn.sum_egenkapital,
+        _year:              regn._year ?? regn.regnskapsår,
+      }
+    : latestRow
+      ? {
+          sumDriftsinntekter: latestRow.revenue ?? latestRow.sumDriftsinntekter,
+          arsresultat:        latestRow.arsresultat,
+          sumEgenkapital:     latestRow.sumEgenkapital,
+          _year:              latestRow.year,
+        }
+      : null;
 
   return (
     <div className="space-y-4">
@@ -133,7 +143,7 @@ export default function OverviewTab({
       </Section>
 
       {/* Key financials summary — falls back to PDF-extracted history for banks */}
-      {Object.keys(finansData).length > 0 && (
+      {finansData && (
         <Section title={finansData._year ? `Nøkkeltall (${finansData._year})` : "Nøkkeltall"}>
           <KV label="Omsetning"    value={fmtMnok(finansData.sumDriftsinntekter)} />
           <KV label="Nettoresultat" value={fmtMnok(finansData.arsresultat)} />

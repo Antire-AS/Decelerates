@@ -7,7 +7,7 @@ import RiskBadge from "@/components/company/RiskBadge";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 
 export default function SearchPage() {
-  const [query, setQuery]     = useState("DNB");
+  const [query, setQuery]     = useState("");
   const [size, setSize]       = useState(20);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searched, setSearched] = useState(false);
@@ -42,7 +42,7 @@ export default function SearchPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="F.eks. DNB eller 984851006"
+              placeholder="F.eks. DNB BANK ASA eller 984851006"
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
                          bg-white text-[#2C3E50] placeholder-[#C4BDB4]
                          focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"

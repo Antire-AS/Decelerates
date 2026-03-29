@@ -88,7 +88,10 @@ function PremiumTab() {
             <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Premie per produkttype</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={productData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, pct }) => `${name.slice(0, 12)} ${pct.toFixed(0)}%`} labelLine={false}>
+                <Pie data={productData} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                  innerRadius={50} outerRadius={90}
+                  label={({ percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ""}
+                  labelLine={false}>
                   {productData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: number) => `kr ${fmt(v)}`} />

@@ -100,7 +100,8 @@ export const getOrgRoles = (orgnr: string) =>
   apiFetch<unknown>(`/org/${orgnr}/roles`);
 
 export const getOrgHistory = (orgnr: string) =>
-  apiFetch<HistoryRow[]>(`/org/${orgnr}/history`);
+  apiFetch<{ orgnr: string; years: HistoryRow[] }>(`/org/${orgnr}/history`)
+    .then((r) => r.years ?? []);
 
 export const getOrgBankruptcy = (orgnr: string) =>
   apiFetch<unknown>(`/org/${orgnr}/bankruptcy`);

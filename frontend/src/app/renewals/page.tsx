@@ -137,8 +137,9 @@ export default function RenewalsPage() {
                 <th className="text-left pb-2 font-medium">Forsikringstype</th>
                 <th className="text-left pb-2 font-medium">Forsikringsgiver</th>
                 <th className="text-right pb-2 font-medium">Premie (kr)</th>
+                <th className="text-right pb-2 font-medium">Tegnet</th>
                 <th className="text-right pb-2 font-medium">Fornyelsesdato</th>
-                <th className="text-right pb-2 font-medium">Dager</th>
+                <th className="text-right pb-2 font-medium">Dager igjen</th>
                 <th className="text-center pb-2 font-medium">Steg</th>
                 <th className="text-center pb-2 font-medium">Flytt</th>
               </tr>
@@ -158,6 +159,9 @@ export default function RenewalsPage() {
                     <td className="py-2 text-[#8A7F74]">{r.insurer}</td>
                     <td className="py-2 text-right font-medium text-[#2C3E50]">
                       {fmt(r.annual_premium_nok ?? r.premium)}
+                    </td>
+                    <td className="py-2 text-right text-[#8A7F74]">
+                      {r.start_date ? fmtDate(r.start_date) : "–"}
                     </td>
                     <td className="py-2 text-right text-[#8A7F74]">{fmtDate(r.renewal_date)}</td>
                     <td className="py-2 text-right">
@@ -214,7 +218,10 @@ export default function RenewalsPage() {
                           <p className="text-xs text-[#8A7F74]">{r.product_type ?? r.insurance_type}</p>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-[#8A7F74]">{fmtDate(r.renewal_date)}</span>
+                          <div className="text-xs text-[#8A7F74]">
+                            {r.start_date && <p>Tegnet: {fmtDate(r.start_date)}</p>}
+                            <p>Fornyes: {fmtDate(r.renewal_date)}</p>
+                          </div>
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`}>
                             {r.days_until_renewal}d
                           </span>

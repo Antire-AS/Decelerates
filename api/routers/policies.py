@@ -119,6 +119,27 @@ def list_all_policies(
     return [_serialize(p) for p in svc.list_by_firm(user.firm_id, skip=skip, limit=limit)]
 
 
+def _enrich_renewals(policies: list, svc: PolicyService) -> list:
+    """Add days_until_renewal and client_name to serialized renewal policies."""
+    from datetime import date
+    from api.db import Company as CompanyModel
+    today = date.today()
+    orgnrs = [p.orgnr for p in policies]
+    company_map = {
+        c.orgnr: c.navn
+        for c in svc.db.query(CompanyModel).filter(CompanyModel.orgnr.in_(orgnrs)).all()
+        if c.navn
+    }
+    result = []
+    for p in policies:
+        serialized = _serialize(p)
+        if p.renewal_date:
+            serialized["days_until_renewal"] = (p.renewal_date - today).days
+        serialized["client_name"] = company_map.get(p.orgnr) or p.orgnr
+        result.append(serialized)
+    return result
+
+
 @router.get("/renewals")
 def get_renewals(
     days: int = Query(default=90, ge=1, le=365),
@@ -126,16 +147,7 @@ def get_renewals(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Active policies renewing within the next N days (default 90)."""
-    from datetime import date
-    policies = svc.get_renewals(user.firm_id, days)
-    today = date.today()
-    result = []
-    for p in policies:
-        serialized = _serialize(p)
-        if p.renewal_date:
-            serialized["days_to_renewal"] = (p.renewal_date - today).days
-        result.append(serialized)
-    return result
+    return _enrich_renewals(svc.get_renewals(user.firm_id, days), svc)
 
 
 @router.get("/renewals/upcoming")
@@ -145,16 +157,7 @@ def get_upcoming_renewals(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Alias for /renewals with a 30-day default window."""
-    from datetime import date
-    policies = svc.get_renewals(user.firm_id, days)
-    today = date.today()
-    result = []
-    for p in policies:
-        serialized = _serialize(p)
-        if p.renewal_date:
-            serialized["days_to_renewal"] = (p.renewal_date - today).days
-        result.append(serialized)
-    return result
+    return _enrich_renewals(svc.get_renewals(user.firm_id, days), svc)
 
 
 @router.post("/policies/{policy_id}/renewal/advance")

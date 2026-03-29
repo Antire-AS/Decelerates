@@ -172,6 +172,7 @@ export interface Renewal {
   policy_number?: string;
   annual_premium_nok?: number;
   product_type?: string;
+  start_date?: string;
 }
 
 export interface PremiumAnalytics {

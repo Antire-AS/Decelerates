@@ -297,7 +297,8 @@ export default function PortfolioPage() {
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}
-                      label={({ name, percent }) => `${name.split(" ")[0]} ${(percent * 100).toFixed(0)}%`}>
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}>
                       {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                     </Pie>
                     <Tooltip formatter={(v: number) => [`${v} selskaper`]} />
@@ -313,11 +314,11 @@ export default function PortfolioPage() {
                   <h2 className="text-sm font-semibold text-[#2C3E50]">Bransjefordeling</h2>
                   <BarChart2 className="w-4 h-4 text-[#8A7F74]" />
                 </div>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={industryData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
                     <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9 }} />
+                    <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 9 }} />
                     <Tooltip formatter={(v: number) => [`${v} selskaper`]} />
                     <Bar dataKey="count" name="Selskaper" fill="#4A6FA5" radius={[0, 4, 4, 0]} />
                   </BarChart>
