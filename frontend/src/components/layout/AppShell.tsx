@@ -20,7 +20,9 @@ import {
   Scale,
   LogOut,
   User,
+  HelpCircle,
 } from "lucide-react";
+import OnboardingTour from "./OnboardingTour";
 
 const NAV_ITEMS = [
   { href: "/dashboard",  label: "Hjem",          icon: LayoutDashboard },
@@ -76,6 +78,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Language toggle + user */}
         <div className="px-3 py-3 border-t border-[#D4C9B8] space-y-1">
           <button
+            onClick={() => (window as unknown as Record<string, unknown>).__openOnboarding?.()}
+            className="nav-item w-full"
+          >
+            <HelpCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Veiledning</span>
+          </button>
+          <button
             onClick={() => setLang(lang === "no" ? "en" : "no")}
             className="nav-item w-full"
           >
@@ -100,6 +109,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </aside>
+
+      <OnboardingTour />
 
       {/* ── Main content ────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto bg-[#F5F0EB]">
