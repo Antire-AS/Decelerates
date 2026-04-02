@@ -28,6 +28,7 @@ const NAV_ITEMS = [
   { href: "/portfolio",  label: "Portefølje",    icon: BarChart2 },
   { href: "/finans",     label: "Finans",        icon: TrendingUp },
   { href: "/renewals",   label: "Fornyelser",    icon: RotateCcw },
+  { href: "/idd",        label: "IDD / Behov",   icon: Scale },
   { href: "/sla",        label: "Avtaler",       icon: FileText },
   { href: "/documents",  label: "Dokumenter",    icon: FolderOpen },
   { href: "/videos",     label: "Videoer",       icon: Video },

@@ -44,16 +44,18 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
   const [saving, setSaving]     = useState(false);
   const [err, setErr]           = useState<string | null>(null);
 
-  const [insurer, setInsurer]           = useState("");
-  const [productType, setProductType]   = useState(PRODUCT_TYPES[0]);
-  const [policyNumber, setPolicyNumber] = useState("");
-  const [status, setStatus]             = useState("active");
-  const [premium, setPremium]           = useState("");
-  const [coverage, setCoverage]         = useState("");
-  const [startDate, setStartDate]       = useState("");
-  const [renewalDate, setRenewalDate]   = useState("");
-  const [docUrl, setDocUrl]             = useState("");
-  const [notes, setNotes]               = useState("");
+  const [insurer, setInsurer]               = useState("");
+  const [productType, setProductType]       = useState(PRODUCT_TYPES[0]);
+  const [policyNumber, setPolicyNumber]     = useState("");
+  const [status, setStatus]                 = useState("active");
+  const [premium, setPremium]               = useState("");
+  const [coverage, setCoverage]             = useState("");
+  const [startDate, setStartDate]           = useState("");
+  const [renewalDate, setRenewalDate]       = useState("");
+  const [docUrl, setDocUrl]                 = useState("");
+  const [notes, setNotes]                   = useState("");
+  const [commissionRate, setCommissionRate] = useState("");
+  const [commissionAmt, setCommissionAmt]   = useState("");
 
   async function handleDelete(id: number) {
     await deletePolicy(orgnr, id);
@@ -72,9 +74,12 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
         coverage_amount_nok: coverage ? Number(coverage) : undefined,
         start_date: startDate || undefined, renewal_date: renewalDate || undefined,
         document_url: docUrl || undefined, notes: notes || undefined,
+        commission_rate_pct: commissionRate ? Number(commissionRate) : undefined,
+        commission_amount_nok: commissionAmt ? Number(commissionAmt) : undefined,
       });
       setInsurer(""); setPolicyNumber(""); setPremium(""); setCoverage("");
-      setStartDate(""); setRenewalDate(""); setDocUrl(""); setNotes(""); setFormOpen(false);
+      setStartDate(""); setRenewalDate(""); setDocUrl(""); setNotes("");
+      setCommissionRate(""); setCommissionAmt(""); setFormOpen(false);
       mutate();
     } catch (e) { setErr(String(e)); }
     finally { setSaving(false); }
@@ -105,6 +110,7 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
                         {[
                           p.policy_number && `Avtalenr: ${p.policy_number}`,
                           fmtNok(p.annual_premium_nok) && `Premie: ${fmtNok(p.annual_premium_nok)}`,
+                          p.commission_rate_pct != null && `Provisjon: ${p.commission_rate_pct}%`,
                         ].filter(Boolean).join(" · ")}
                       </p>
                       {p.document_url && (
@@ -174,6 +180,16 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
               <div>
                 <label className="label-xs">Fornyelsesdato</label>
                 <input type="date" value={renewalDate} onChange={(e) => setRenewalDate(e.target.value)} className="input-sm w-full" />
+              </div>
+              <div>
+                <label className="label-xs">Provisjonssats (%)</label>
+                <input type="number" value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)}
+                  min="0" max="100" step="0.1" placeholder="f.eks. 12.5" className="input-sm w-full" />
+              </div>
+              <div>
+                <label className="label-xs">Provisjonsbeløp (kr)</label>
+                <input type="number" value={commissionAmt} onChange={(e) => setCommissionAmt(e.target.value)}
+                  min="0" step="100" placeholder="Beregnes automatisk om tomt" className="input-sm w-full" />
               </div>
             </div>
             <div>

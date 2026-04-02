@@ -98,6 +98,8 @@ export interface Policy {
   status: string;
   document_url?: string;
   notes?: string;
+  commission_rate_pct?: number;
+  commission_amount_nok?: number;
 }
 
 export interface Contact {
