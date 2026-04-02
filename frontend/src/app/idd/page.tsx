@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle } from "lucide-react";
@@ -313,7 +313,7 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
   );
 }
 
-export default function IddPage() {
+function IddContent() {
   const searchParams = useSearchParams();
   const orgnr = searchParams.get("orgnr") ?? "";
   const [showForm, setShowForm] = useState(false);
@@ -390,5 +390,13 @@ export default function IddPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function IddPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>}>
+      <IddContent />
+    </Suspense>
   );
 }

@@ -40,6 +40,11 @@ const NAV_ITEMS = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // Public routes (client portal) — render without the broker shell
+  if (pathname.startsWith("/portal")) {
+    return <>{children}</>;
+  }
   const { lang, setLang } = useI18n();
   const { data: session } = useSession();
 
