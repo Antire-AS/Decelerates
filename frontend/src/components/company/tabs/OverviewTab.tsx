@@ -54,6 +54,7 @@ interface OverviewTabProps {
   licenses: Record<string, unknown> | null | undefined;
   bankruptcy: Record<string, unknown> | null | undefined;
   benchmark: Record<string, unknown> | null | undefined;
+  struktur?: Record<string, unknown> | null;
 }
 
 export default function OverviewTab({
@@ -67,6 +68,7 @@ export default function OverviewTab({
   licenses,
   bankruptcy,
   benchmark,
+  struktur,
 }: OverviewTabProps) {
   // Fall back to most recent history row when BRREG has no financial data (e.g. banks)
   const latestRow = history && history.length > 0
@@ -169,16 +171,44 @@ export default function OverviewTab({
       )}
 
       {/* PEP / sanctions */}
-      {pep && (Object.keys(pep).length > 0) && (
-        <Section title="PEP / sanksjonssjekk">
-          <div className="flex items-start gap-2 text-sm">
-            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-            <pre className="text-xs text-[#2C3E50] whitespace-pre-wrap overflow-auto max-h-40">
-              {JSON.stringify(pep, null, 2)}
-            </pre>
-          </div>
-        </Section>
-      )}
+      {pep && (Object.keys(pep).length > 0) && (() => {
+        const hitCount = (pep.hit_count as number | undefined) ?? 0;
+        const query = pep.query as string | undefined;
+        const hits = (pep.hits as Record<string, unknown>[] | undefined) ?? [];
+        return (
+          <Section title="PEP / sanksjonssjekk">
+            <div className="flex items-center gap-2 mb-2">
+              {hitCount === 0 ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                  Ingen treff
+                </span>
+              ) : (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {hitCount} treff
+                </span>
+              )}
+              {query && <span className="text-xs text-[#8A7F74]">Søk: {query}</span>}
+            </div>
+            {hits.length > 0 && (
+              <div className="space-y-2">
+                {hits.map((h, i) => {
+                  const datasets = (h.datasets as string[] | undefined) ?? [];
+                  const topics   = (h.topics   as string[] | undefined) ?? [];
+                  return (
+                    <div key={i} className="text-xs border border-[#EDE8E3] rounded-lg p-2 space-y-0.5">
+                      <p className="font-semibold text-[#2C3E50]">{String(h.name ?? "–")}</p>
+                      {!!h.schema  && <p className="text-[#8A7F74]">Type: {String(h.schema)}</p>}
+                      {datasets.length > 0 && <p className="text-[#8A7F74]">Datasett: {datasets.join(", ")}</p>}
+                      {topics.length   > 0 && <p className="text-[#8A7F74]">Emner: {topics.join(", ")}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        );
+      })()}
 
       {/* Board members */}
       {Array.isArray((roles as Record<string, unknown> | null)?.roller) && ((roles as Record<string, unknown>).roller as unknown[]).length > 0 && (
@@ -241,6 +271,45 @@ export default function OverviewTab({
                 </span>
               </div>
             ))}
+        </Section>
+      )}
+
+      {/* Konsernstruktur */}
+      {struktur && (struktur.parent || (struktur.sub_units as unknown[] | undefined)?.length) && (
+        <Section title="Konsernstruktur">
+          {!!struktur.parent && (() => {
+            const p = struktur.parent as Record<string, unknown>;
+            return (
+              <div className="rounded-lg bg-[#F0F4FB] border border-[#C5D0E8] px-3 py-2 mb-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#4A6FA5] mb-1">Morselskap</p>
+                <p className="text-sm font-semibold text-[#2C3E50]">{String(p.navn ?? "–")}</p>
+                <p className="text-xs text-[#8A7F74]">
+                  {[p.orgnr, p.kommune, p.organisasjonsform].filter(Boolean).join(" · ")}
+                </p>
+              </div>
+            );
+          })()}
+          {(struktur.sub_units as Record<string, unknown>[] | undefined)?.length ? (
+            <div>
+              <p className="text-xs font-medium text-[#8A7F74] mb-1.5">
+                Underenheter ({(struktur.total_sub_units as number | undefined) ?? (struktur.sub_units as unknown[]).length})
+              </p>
+              <div className="space-y-1">
+                {(struktur.sub_units as Record<string, unknown>[]).slice(0, 8).map((s, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span className="text-[#2C3E50] font-medium">{String(s.navn ?? "–")}</span>
+                    <span className="text-[#8A7F74]">{String(s.orgnr ?? "")}</span>
+                  </div>
+                ))}
+                {(struktur.total_sub_units as number | undefined) != null &&
+                  (struktur.total_sub_units as number) > 8 && (
+                  <p className="text-xs text-[#8A7F74]">
+                    + {(struktur.total_sub_units as number) - 8} flere
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
         </Section>
       )}
     </div>

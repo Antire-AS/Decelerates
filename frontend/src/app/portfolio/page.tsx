@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import useSWR from "swr";
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
@@ -19,6 +20,11 @@ import { PortfolioAlerts } from "@/components/portfolio/PortfolioAlerts";
 import { PortfolioConcentration } from "@/components/portfolio/PortfolioConcentration";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
 import { PortfolioChat } from "@/components/portfolio/PortfolioChat";
+
+const PortfolioMap = dynamic(
+  () => import("@/components/portfolio/PortfolioMap"),
+  { ssr: false },
+);
 
 const RISK_BANDS = [
   { label: "Lav (0–39)",      min: 0,  max: 39,  color: "#27AE60" },
@@ -240,6 +246,13 @@ export default function PortfolioPage() {
             removingOrgnr={removingOrgnr}
             onRemove={handleRemove}
           />
+        )}
+
+        {portfolioRisk && portfolioRisk.length > 0 && (
+          <div className="broker-card">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Geografisk oversikt</h3>
+            <PortfolioMap rows={portfolioRisk} />
+          </div>
         )}
 
         {selectedPortfolioId && (

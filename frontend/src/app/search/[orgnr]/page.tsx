@@ -6,7 +6,7 @@ import useSWR from "swr";
 import {
   getOrgProfile, getSlaAgreements, getOrgPolicies, getOrgHistory,
   getOrgRoles, getOrgLicenses, getOrgBankruptcy, getOrgBenchmark,
-  getOrgKoordinater,
+  getOrgKoordinater, getOrgStruktur,
   addOrgPdfHistory, getOrgExtractionStatus, getOrgFinancialCommentary,
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
@@ -60,7 +60,7 @@ export default function OrgProfilePage({
   const [commentaryErr, setCommentaryErr]         = useState<string | null>(null);
 
   // Load history for both tabs — Oversikt uses the latest row as fallback when BRREG has no data (e.g. banks)
-  const { data: historyData, isLoading: historyLoading } = useSWR<HistoryRow[]>(
+  const { data: historyData, isLoading: historyLoading, mutate: mutateHistory } = useSWR<HistoryRow[]>(
     `history-${orgnr}`,
     () => getOrgHistory(orgnr),
   );
@@ -75,6 +75,7 @@ export default function OrgProfilePage({
   const { data: bankruptcyData } = useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
   const { data: benchmarkData }  = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
   const { data: koordinaterData }= useSWR(activeTab === "oversikt" ? `koordinater-${orgnr}` : null, () => getOrgKoordinater(orgnr));
+  const { data: strukturData }   = useSWR(activeTab === "oversikt" ? `struktur-${orgnr}`    : null, () => getOrgStruktur(orgnr));
 
   const roles     = rolesData     as Record<string, unknown> | null | undefined;
   const licenses  = licensesData  as Record<string, unknown> | null | undefined;
@@ -201,14 +202,17 @@ export default function OrgProfilePage({
           licenses={licenses}
           bankruptcy={bankruptcy}
           benchmark={benchmark}
+          struktur={strukturData as Record<string, unknown> | null | undefined}
         />
       )}
 
       {/* ── Økonomi ─────────────────────────────────────────────────── */}
       {activeTab === "okonomi" && (
         <FinancialsTab
+          orgnr={orgnr}
           history={history}
           historyLoading={historyLoading}
+          onHistoryRefetch={() => mutateHistory()}
           extractionStatus={extractionStatus}
           expandedYear={expandedYear}
           setExpandedYear={setExpandedYear}

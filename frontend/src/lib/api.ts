@@ -115,6 +115,12 @@ export const getOrgKoordinater = (orgnr: string) =>
 export const getOrgBenchmark = (orgnr: string) =>
   apiFetch<unknown>(`/org/${orgnr}/benchmark`);
 
+export const getExchangeRate = (currency: string) =>
+  apiFetch<{ currency: string; nok_rate: number }>(`/norgesbank/rate/${currency}`);
+
+export const deleteOrgHistory = (orgnr: string) =>
+  apiFetch<{ deleted_rows: number }>(`/org/${orgnr}/history`, { method: "DELETE" });
+
 export const getCompanies = (limit = 20, sort_by = "navn") =>
   apiFetch<Company[]>(`/companies?limit=${limit}&sort_by=${sort_by}`);
 

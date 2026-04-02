@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment } from "react";
-import { Loader2, Link2, Info, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { Fragment, useState, useEffect } from "react";
+import { Loader2, Link2, Info, Sparkles, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import type { HistoryRow } from "@/lib/api";
+import { getExchangeRate, deleteOrgHistory } from "@/lib/api";
 
 function fmt(v: unknown): string {
   if (v == null) return "–";
@@ -40,8 +41,10 @@ interface ExtractionStatus {
 }
 
 interface FinancialsTabProps {
+  orgnr: string;
   history: HistoryRow[];
   historyLoading: boolean;
+  onHistoryRefetch?: () => void;
   extractionStatus: ExtractionStatus | undefined;
   expandedYear: number | null;
   setExpandedYear: (year: number | null) => void;
@@ -63,8 +66,10 @@ interface FinancialsTabProps {
 }
 
 export default function FinancialsTab({
+  orgnr,
   history,
   historyLoading,
+  onHistoryRefetch,
   extractionStatus,
   expandedYear,
   setExpandedYear,
@@ -84,6 +89,40 @@ export default function FinancialsTab({
   handleAddPdf,
   setPdfOk,
 }: FinancialsTabProps) {
+  // Currency detection
+  const foreignCurrencies = [...new Set(
+    history.map((r) => (r.currency as string | undefined)).filter((c): c is string => !!c && c !== "NOK")
+  )];
+  const [fxRates, setFxRates] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!foreignCurrencies.length) return;
+    Promise.all(
+      foreignCurrencies.map((c) => getExchangeRate(c).then((d) => [c, d.nok_rate] as const).catch(() => null))
+    ).then((results) => {
+      const rates: Record<string, number> = {};
+      for (const r of results) if (r) rates[r[0]] = r[1];
+      setFxRates(rates);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history.length]);
+
+  // Re-extract state
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
+
+  async function handleReset() {
+    setResetLoading(true); setResetMsg(null);
+    try {
+      const r = await deleteOrgHistory(orgnr);
+      setResetMsg(`Slettet ${r.deleted_rows} rader. Last inn siden på nytt for å hente data på nytt.`);
+      onHistoryRefetch?.();
+    } catch (e) {
+      setResetMsg(`Feil: ${String(e)}`);
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   const chartData = [...history]
     .sort((a, b) => a.year - b.year)
     .map((r) => ({
@@ -183,6 +222,20 @@ export default function FinancialsTab({
         </Section>
       ) : (
         <>
+          {/* Foreign currency banner */}
+          {foreignCurrencies.length > 0 && (
+            <div className="broker-card border-l-4 border-[#4A6FA5] flex items-start gap-2">
+              <Info className="w-4 h-4 text-[#4A6FA5] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-[#2C3E50]">
+                <span className="font-medium">Fremmed valuta</span> — tall i{" "}
+                {foreignCurrencies.join(", ")}.
+                {Object.entries(fxRates).map(([ccy, rate]) => (
+                  <span key={ccy}> Dagskurs: 1 {ccy} = {rate.toFixed(4)} NOK.</span>
+                ))}
+              </p>
+            </div>
+          )}
+
           {/* Estimated data warning */}
           {history.some((r) => r.source === "pdf" || r.source === "estimated") && (
             <div className="broker-card border-l-4 border-[#C8A951] flex items-start gap-2">
@@ -385,6 +438,47 @@ export default function FinancialsTab({
           </div>
 
           {/* YoY History table with drill-down */}
+          {(() => {
+            const sorted = [...history].sort((a, b) => a.year - b.year);
+            // Precompute per-year deltas (oldest→newest order, then we reverse for display)
+            type YearMeta = {
+              row: typeof sorted[number];
+              rev: number | undefined;
+              net: number | undefined;
+              margin: number | null;
+              revYoy: string | null;
+              marginDelta: string | null;
+              ekDelta: string | null;
+            };
+            const meta: YearMeta[] = sorted.map((r, i) => {
+              const rev = (r.revenue ?? r.sumDriftsinntekter) as number | undefined;
+              const net = r.arsresultat as number | undefined;
+              const margin = rev && net ? (net / rev) * 100 : null;
+              const prev = i > 0 ? sorted[i - 1] : null;
+              const prevRev = prev ? ((prev.revenue ?? prev.sumDriftsinntekter) as number | undefined) : null;
+              const prevNet = prev ? (prev.arsresultat as number | undefined) : null;
+              const prevMargin = prevRev && prevNet ? (prevNet / prevRev) * 100 : null;
+              const prevEq = prev?.equity_ratio;
+
+              const revYoy = rev != null && prevRev != null && prevRev !== 0
+                ? `${((rev - prevRev) / Math.abs(prevRev) * 100) >= 0 ? "+" : ""}${((rev - prevRev) / Math.abs(prevRev) * 100).toFixed(1)}%`
+                : null;
+              const marginDelta = margin != null && prevMargin != null
+                ? `${(margin - prevMargin) >= 0 ? "+" : ""}${(margin - prevMargin).toFixed(1)}pp`
+                : null;
+              const ekDelta = r.equity_ratio != null && prevEq != null
+                ? `${((r.equity_ratio - prevEq) * 100) >= 0 ? "+" : ""}${((r.equity_ratio - prevEq) * 100).toFixed(1)}pp`
+                : null;
+
+              return { row: r, rev, net, margin, revYoy, marginDelta, ekDelta };
+            });
+
+            function deltaClass(val: string | null): string {
+              if (!val) return "text-[#8A7F74]";
+              return val.startsWith("+") ? "text-green-600" : "text-red-600";
+            }
+
+            return (
           <Section title="Historikk per år — klikk rad for detaljer">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -392,19 +486,19 @@ export default function FinancialsTab({
                   <tr className="text-[#8A7F74] border-b border-[#EDE8E3]">
                     <th className="text-left pb-1.5 font-medium">År</th>
                     <th className="text-right pb-1.5 font-medium">Omsetning</th>
+                    <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Rev YoY</th>
                     <th className="text-right pb-1.5 font-medium">Nettoresultat</th>
                     <th className="text-right pb-1.5 font-medium hidden sm:table-cell">Margin</th>
+                    <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Margin Δ</th>
                     <th className="text-right pb-1.5 font-medium">Egenkapital</th>
                     <th className="text-right pb-1.5 font-medium">EK-andel</th>
+                    <th className="text-right pb-1.5 font-medium hidden lg:table-cell">EK Δ</th>
                     <th className="text-right pb-1.5 font-medium hidden md:table-cell">Ansatte</th>
                     <th className="w-6 pb-1.5"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[...history].sort((a, b) => b.year - a.year).map((r) => {
-                    const rev = (r.revenue ?? r.sumDriftsinntekter) as number | undefined;
-                    const net = r.arsresultat as number | undefined;
-                    const margin = rev && net ? ((net / rev) * 100).toFixed(1) : null;
+                  {[...meta].reverse().map(({ row: r, rev, net, margin, revYoy, marginDelta, ekDelta }) => {
                     const isExp = expandedYear === r.year;
                     return (
                       <Fragment key={r.year}>
@@ -419,15 +513,24 @@ export default function FinancialsTab({
                             )}
                           </td>
                           <td className="py-1.5 text-right text-[#8A7F74]">{fmtMnok(rev)}</td>
+                          <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(revYoy)}`}>
+                            {revYoy ?? "–"}
+                          </td>
                           <td className="py-1.5 text-right" style={{ color: net != null && net < 0 ? "#C0392B" : "#2C3E50" }}>
                             {fmtMnok(net)}
                           </td>
                           <td className="py-1.5 text-right text-[#8A7F74] hidden sm:table-cell">
-                            {margin != null ? `${margin}%` : "–"}
+                            {margin != null ? `${margin.toFixed(1)}%` : "–"}
+                          </td>
+                          <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(marginDelta)}`}>
+                            {marginDelta ?? "–"}
                           </td>
                           <td className="py-1.5 text-right text-[#8A7F74]">{fmtMnok(r.sumEgenkapital)}</td>
                           <td className="py-1.5 text-right text-[#8A7F74]">
                             {r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}
+                          </td>
+                          <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(ekDelta)}`}>
+                            {ekDelta ?? "–"}
                           </td>
                           <td className="py-1.5 text-right text-[#8A7F74] hidden md:table-cell">
                             {fmt(r.antallAnsatte) !== "–" ? fmt(r.antallAnsatte) : "–"}
@@ -438,7 +541,7 @@ export default function FinancialsTab({
                         </tr>
                         {isExp && (
                           <tr key={`${r.year}-detail`} className="bg-[#F9F7F4]">
-                            <td colSpan={8} className="py-3 px-2">
+                            <td colSpan={11} className="py-3 px-2">
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {/* P&L */}
                                 <div>
@@ -454,9 +557,15 @@ export default function FinancialsTab({
                                     ["Driftsresultat", r.driftsresultat],
                                     ["Finansinntekter", r.sumFinansinntekter],
                                     ["Finanskostnader", r.sumFinanskostnader],
+                                    ["Netto finans", r.nettoFinans ?? (
+                                      r.sumFinansinntekter != null && r.sumFinanskostnader != null
+                                        ? (r.sumFinansinntekter as number) - (r.sumFinanskostnader as number)
+                                        : null
+                                    )],
                                     ["Resultat før skatt", r.ordinaertResultatForSkattekostnad],
                                     ["Skattekostnad", r.skattekostnadOrdOgEkstraordinaerAktivitet],
                                     ["Årsresultat", r.arsresultat],
+                                    ["Totalresultat", r.totalresultat],
                                   ].map(([label, val]) => val != null ? (
                                     <div key={String(label)} className="flex justify-between text-xs py-0.5 border-b border-[#EDE8E3]">
                                       <span className="text-[#8A7F74]">{String(label)}</span>
@@ -472,13 +581,18 @@ export default function FinancialsTab({
                                   {[
                                     ["Varer", r.sumVarer],
                                     ["Fordringer", r.sumFordringer],
+                                    ["Investeringer", r.sumInvesteringer],
                                     ["Bankinnskudd", r.bankinnskuddOgKontanter],
                                     ["Omløpsmidler", r.sumOmlopsmidler],
+                                    ["Goodwill", r.goodwill],
                                     ["Anleggsmidler", r.sumAnleggsmidler],
                                     ["Sum eiendeler", r.sumEiendeler],
+                                    ["Innbetalt egenkapital", r.sumInnskuttEgenkapital],
+                                    ["Opptjent egenkapital", r.sumOpptjentEgenkapital],
                                     ["Egenkapital", r.sumEgenkapital],
                                     ["Langsiktig gjeld", r.sumLangsiktigGjeld],
                                     ["Kortsiktig gjeld", r.sumKortsiktigGjeld],
+                                    ["Sum gjeld", r.sumGjeld],
                                     ["Sum gjeld + EK", r.sumGjeldOgEgenkapital],
                                   ].map(([label, val]) => val != null ? (
                                     <div key={String(label)} className="flex justify-between text-xs py-0.5 border-b border-[#EDE8E3]">
@@ -498,8 +612,33 @@ export default function FinancialsTab({
               </table>
             </div>
           </Section>
+            );
+          })()}
+
+          {/* Re-extract PDF history */}
+          <details className="broker-card group">
+            <summary className="cursor-pointer text-xs text-[#8A7F74] flex items-center gap-1.5 select-none">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Tilbakestill og hent historikk på nytt
+            </summary>
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-[#8A7F74]">
+                Sletter alle lagrede regnskapsrader for dette selskapet og utløser ny henting fra PDF-kildene.
+              </p>
+              <button
+                onClick={handleReset}
+                disabled={resetLoading}
+                className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {resetLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                {resetLoading ? "Sletter…" : "Tilbakestill historikk"}
+              </button>
+              {resetMsg && <p className="text-xs text-[#2C3E50]">{resetMsg}</p>}
+            </div>
+          </details>
         </>
       )}
     </div>
   );
 }
+

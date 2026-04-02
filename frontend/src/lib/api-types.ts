@@ -51,6 +51,10 @@ export interface Company {
   risk_score?: number;
   naeringskode1_beskrivelse?: string;
   kommune?: string;
+  omsetning?: number;
+  sum_egenkapital?: number;
+  egenkapitalandel?: number;
+  regnskapsår?: number;
 }
 
 export interface SlaAgreement {
