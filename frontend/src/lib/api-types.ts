@@ -220,3 +220,83 @@ export interface BrokerNote {
   text: string;
   created_at: string;
 }
+
+export interface CommissionAnalytics {
+  total_commission_nok: number;
+  policy_count: number;
+  by_product: {
+    product_type: string;
+    count: number;
+    commission: number;
+    premium: number;
+    avg_rate_pct: number;
+    share_pct: number;
+  }[];
+  by_insurer: {
+    insurer: string;
+    count: number;
+    commission: number;
+    premium: number;
+    avg_rate_pct: number;
+    share_pct: number;
+  }[];
+}
+
+export interface IddBehovsanalyse {
+  id: number;
+  orgnr: string;
+  created_by_email?: string;
+  created_at: string;
+  client_name?: string;
+  client_contact_name?: string;
+  client_contact_email?: string;
+  existing_insurance?: { insurer: string; product: string; premium?: number }[];
+  risk_appetite?: string;
+  property_owned: boolean;
+  has_employees: boolean;
+  has_vehicles: boolean;
+  has_professional_liability: boolean;
+  has_cyber_risk: boolean;
+  annual_revenue_nok?: number;
+  special_requirements?: string;
+  recommended_products?: string[];
+  advisor_notes?: string;
+  suitability_basis?: string;
+  fee_basis?: string;
+  fee_amount_nok?: number;
+}
+
+export interface ClientToken {
+  token: string;
+  label?: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface ClientPortalProfile {
+  orgnr: string;
+  navn?: string;
+  kommune?: string;
+  naeringskode1_beskrivelse?: string;
+  antall_ansatte?: number;
+  risk_score?: number;
+  risk_reasons?: string[];
+  expires_at: string;
+  policies: {
+    insurer: string;
+    product_type: string;
+    policy_number?: string;
+    annual_premium_nok?: number;
+    renewal_date?: string;
+  }[];
+  claims: {
+    claim_number?: string;
+    status: string;
+    incident_date?: string;
+    description?: string;
+  }[];
+  documents: {
+    title: string;
+    uploaded_at?: string;
+  }[];
+}

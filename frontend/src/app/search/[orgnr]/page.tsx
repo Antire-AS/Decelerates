@@ -17,11 +17,12 @@ import PoliciesSection from "@/components/crm/PoliciesSection";
 import ClaimsSection from "@/components/crm/ClaimsSection";
 import ActivitiesSection from "@/components/crm/ActivitiesSection";
 import ForsikringSection from "@/components/crm/ForsikringSection";
+import ClientPortalSection from "@/components/crm/ClientPortalSection";
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, FileText } from "lucide-react";
 
 export default function OrgProfilePage({
   params,
@@ -242,10 +243,16 @@ export default function OrgProfilePage({
       {/* ── CRM ─────────────────────────────────────────────────────── */}
       {activeTab === "crm" && (
         <div className="space-y-4">
+          <Link href={`/idd?orgnr=${orgnr}`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+            <FileText className="w-3.5 h-3.5" />
+            IDD behovsanalyse
+          </Link>
           <ContactsSection orgnr={orgnr} />
           <PoliciesSection orgnr={orgnr} />
           <ClaimsSection orgnr={orgnr} policies={policies} />
           <ActivitiesSection orgnr={orgnr} />
+          <ClientPortalSection orgnr={orgnr} />
         </div>
       )}
 

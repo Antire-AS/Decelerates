@@ -39,6 +39,8 @@ def _serialize(p) -> dict:
         "renewal_stage":       p.renewal_stage.value if p.renewal_stage else "not_started",
         "notes":               p.notes,
         "document_url":        p.document_url,
+        "commission_rate_pct":  p.commission_rate_pct,
+        "commission_amount_nok": p.commission_amount_nok,
         "created_at":          p.created_at.isoformat() if p.created_at else None,
         "updated_at":          p.updated_at.isoformat() if p.updated_at else None,
     }

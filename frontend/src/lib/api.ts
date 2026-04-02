@@ -25,6 +25,10 @@ import type {
   InsuranceDocument,
   PortfolioItem,
   BrokerNote,
+  CommissionAnalytics,
+  IddBehovsanalyse,
+  ClientToken,
+  ClientPortalProfile,
 } from "./api-types";
 
 export type {
@@ -48,6 +52,10 @@ export type {
   InsuranceDocument,
   PortfolioItem,
   BrokerNote,
+  CommissionAnalytics,
+  IddBehovsanalyse,
+  ClientToken,
+  ClientPortalProfile,
 } from "./api-types";
 
 import { downloadFile } from "./api-utils";
@@ -500,3 +508,36 @@ export async function uploadOrgOffers(
   if (!res.ok) throw new Error(`API ${res.status}: upload offers`);
   return res.json();
 }
+
+// ── Commission analytics ──────────────────────────────────────────────────────
+
+export const getCommissionAnalytics = () =>
+  apiFetch<CommissionAnalytics>("/analytics/commissions");
+
+// ── IDD behovsanalyse ─────────────────────────────────────────────────────────
+
+export const getOrgIdd = (orgnr: string) =>
+  apiFetch<IddBehovsanalyse[]>(`/org/${orgnr}/idd`);
+
+export const createOrgIdd = (orgnr: string, body: Partial<IddBehovsanalyse>) =>
+  apiFetch<IddBehovsanalyse>(`/org/${orgnr}/idd`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const deleteOrgIdd = (orgnr: string, iddId: number) =>
+  apiFetch<void>(`/org/${orgnr}/idd/${iddId}`, { method: "DELETE" });
+
+// ── Client tokens ─────────────────────────────────────────────────────────────
+
+export const getOrgClientTokens = (orgnr: string) =>
+  apiFetch<ClientToken[]>(`/org/${orgnr}/client-tokens`);
+
+export const createOrgClientToken = (orgnr: string, label?: string) =>
+  apiFetch<{ token: string; orgnr: string; expires_days: number }>(
+    `/org/${orgnr}/client-token${label ? `?label=${encodeURIComponent(label)}` : ""}`,
+    { method: "POST" },
+  );
+
+export const getClientPortalProfile = (token: string) =>
+  apiFetch<ClientPortalProfile>(`/client/${token}`);

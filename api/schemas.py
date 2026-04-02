@@ -81,33 +81,57 @@ class ContactPersonUpdate(BaseModel):
 # ── Policies ────────────────────────────────────────────────────────────────
 
 class PolicyIn(BaseModel):
-    insurer:             str
-    product_type:        str
-    policy_number:       Optional[str] = None
-    contact_person_id:   Optional[int] = None
-    coverage_amount_nok: Optional[float] = None
-    annual_premium_nok:  Optional[float] = None
-    start_date:          Optional[date] = None
-    renewal_date:        Optional[date] = None
-    status:              str = "active"
-    renewal_stage:       Optional[str] = None
-    notes:               Optional[str] = None
-    document_url:        Optional[str] = None
+    insurer:              str
+    product_type:         str
+    policy_number:        Optional[str] = None
+    contact_person_id:    Optional[int] = None
+    coverage_amount_nok:  Optional[float] = None
+    annual_premium_nok:   Optional[float] = None
+    start_date:           Optional[date] = None
+    renewal_date:         Optional[date] = None
+    status:               str = "active"
+    renewal_stage:        Optional[str] = None
+    notes:                Optional[str] = None
+    document_url:         Optional[str] = None
+    commission_rate_pct:  Optional[float] = None
+    commission_amount_nok: Optional[float] = None
 
 
 class PolicyUpdate(BaseModel):
-    insurer:             Optional[str] = None
-    product_type:        Optional[str] = None
-    policy_number:       Optional[str] = None
-    contact_person_id:   Optional[int] = None
-    coverage_amount_nok: Optional[float] = None
-    annual_premium_nok:  Optional[float] = None
-    start_date:          Optional[date] = None
-    renewal_date:        Optional[date] = None
-    status:              Optional[str] = None
-    renewal_stage:       Optional[str] = None
-    notes:               Optional[str] = None
-    document_url:        Optional[str] = None
+    insurer:              Optional[str] = None
+    product_type:         Optional[str] = None
+    policy_number:        Optional[str] = None
+    contact_person_id:    Optional[int] = None
+    coverage_amount_nok:  Optional[float] = None
+    annual_premium_nok:   Optional[float] = None
+    start_date:           Optional[date] = None
+    renewal_date:         Optional[date] = None
+    status:               Optional[str] = None
+    renewal_stage:        Optional[str] = None
+    notes:                Optional[str] = None
+    document_url:         Optional[str] = None
+    commission_rate_pct:  Optional[float] = None
+    commission_amount_nok: Optional[float] = None
+
+
+class IddBehovsanalyseIn(BaseModel):
+    client_name:                Optional[str] = None
+    client_contact_name:        Optional[str] = None
+    client_contact_email:       Optional[str] = None
+    existing_insurance:         Optional[List[Dict[str, Any]]] = None
+    risk_appetite:              Optional[str] = None  # lav / middels / høy
+    property_owned:             bool = False
+    has_employees:              bool = False
+    has_vehicles:               bool = False
+    has_professional_liability: bool = False
+    has_cyber_risk:             bool = False
+    annual_revenue_nok:         Optional[float] = None
+    special_requirements:       Optional[str] = None
+    recommended_products:       Optional[List[str]] = None
+    advisor_notes:              Optional[str] = None
+    suitability_basis:          Optional[str] = None
+    fee_basis:                  Optional[str] = None  # provisjon / honorar / begge
+    fee_amount_nok:             Optional[float] = None
 
 
 class RenewalAdvanceIn(BaseModel):

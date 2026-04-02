@@ -306,6 +306,8 @@ class Policy(Base):
     notes               = Column(String, nullable=True)
     document_url        = Column(String, nullable=True)
     last_renewal_notified_days = Column(Integer, nullable=True)
+    commission_rate_pct = Column(Float, nullable=True)
+    commission_amount_nok = Column(Float, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)
     updated_at          = Column(DateTime(timezone=True), nullable=False)
 
@@ -374,6 +376,34 @@ class ClientToken(Base):
     label      = Column(String, nullable=True)     # e.g. "Sendt til kontakt 23.03.2026"
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class IddBehovsanalyse(Base):
+    """IDD-compliant needs assessment (behovsanalyse) per client company."""
+    __tablename__ = "idd_behovsanalyse"
+
+    id                         = Column(Integer, primary_key=True, index=True)
+    orgnr                      = Column(String(9), nullable=False, index=True)
+    firm_id                    = Column(Integer, nullable=False)
+    created_by_email           = Column(String, nullable=True)
+    created_at                 = Column(DateTime(timezone=True), nullable=False)
+    client_name                = Column(String, nullable=True)
+    client_contact_name        = Column(String, nullable=True)
+    client_contact_email       = Column(String, nullable=True)
+    existing_insurance         = Column(JSON, nullable=True)
+    risk_appetite              = Column(String, nullable=True)
+    property_owned             = Column(Boolean, default=False)
+    has_employees              = Column(Boolean, default=False)
+    has_vehicles               = Column(Boolean, default=False)
+    has_professional_liability = Column(Boolean, default=False)
+    has_cyber_risk             = Column(Boolean, default=False)
+    annual_revenue_nok         = Column(Float, nullable=True)
+    special_requirements       = Column(String, nullable=True)
+    recommended_products       = Column(JSON, nullable=True)
+    advisor_notes              = Column(String, nullable=True)
+    suitability_basis          = Column(String, nullable=True)
+    fee_basis                  = Column(String, nullable=True)
+    fee_amount_nok             = Column(Float, nullable=True)
 
 
 class AuditLog(Base):

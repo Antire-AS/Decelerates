@@ -56,3 +56,53 @@ def get_premium_analytics(
         "by_product": _aggregate(active, "product_type"),
         "by_status": _aggregate(all_policies, "status"),
     }
+
+
+@router.get("/analytics/commissions")
+def get_commission_analytics(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Aggregate commission income from the broker's policy book."""
+    policies = db.query(Policy).filter(
+        Policy.firm_id == user.firm_id,
+        Policy.status == PolicyStatus.active,
+    ).all()
+
+    total_commission = 0.0
+    by_product: dict[str, dict] = {}
+    by_insurer: dict[str, dict] = {}
+
+    for p in policies:
+        # Prefer stored amount; fall back to rate × premium
+        comm = p.commission_amount_nok
+        if comm is None and p.commission_rate_pct is not None and p.annual_premium_nok:
+            comm = p.annual_premium_nok * p.commission_rate_pct / 100
+        if comm is None:
+            comm = 0.0
+        total_commission += comm
+
+        for bucket, key in [(by_product, p.product_type or "Ukjent"),
+                            (by_insurer, p.insurer or "Ukjent")]:
+            if key not in bucket:
+                bucket[key] = {"count": 0, "commission": 0.0, "premium": 0.0}
+            bucket[key]["count"] += 1
+            bucket[key]["commission"] += comm
+            bucket[key]["premium"] += p.annual_premium_nok or 0.0
+
+    def _fmt_bucket(bucket: dict, key_name: str) -> list:
+        total = total_commission or 1
+        return sorted(
+            [{key_name: k, **v,
+              "avg_rate_pct": round(v["commission"] / v["premium"] * 100, 1) if v["premium"] else 0,
+              "share_pct": round(v["commission"] / total * 100, 1)}
+             for k, v in bucket.items()],
+            key=lambda x: x["commission"], reverse=True,
+        )
+
+    return {
+        "total_commission_nok": round(total_commission),
+        "policy_count": len(policies),
+        "by_product": _fmt_bucket(by_product, "product_type"),
+        "by_insurer": _fmt_bucket(by_insurer, "insurer"),
+    }
