@@ -19,9 +19,7 @@ def log_audit(
     detail: Optional[dict] = None,
 ) -> None:
     """Append an immutable audit entry. Swallows all exceptions — never blocks the caller."""
-    # TODO: re-enable when activity tracking is needed again
-    return  # audit logging disabled
-    try:  # noqa: unreachable
+    try:
         entry = AuditLog(
             orgnr=orgnr,
             actor_email=actor_email,

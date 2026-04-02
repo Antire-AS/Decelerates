@@ -58,6 +58,17 @@ def get_premium_analytics(
     }
 
 
+def _fmt_commission_bucket(bucket: dict, key_name: str, total_commission: float) -> list:
+    total = total_commission or 1
+    return sorted(
+        [{key_name: k, **v,
+          "avg_rate_pct": round(v["commission"] / v["premium"] * 100, 1) if v["premium"] else 0,
+          "share_pct": round(v["commission"] / total * 100, 1)}
+         for k, v in bucket.items()],
+        key=lambda x: x["commission"], reverse=True,
+    )
+
+
 @router.get("/analytics/commissions")
 def get_commission_analytics(
     db: Session = Depends(get_db),
@@ -90,19 +101,9 @@ def get_commission_analytics(
             bucket[key]["commission"] += comm
             bucket[key]["premium"] += p.annual_premium_nok or 0.0
 
-    def _fmt_bucket(bucket: dict, key_name: str) -> list:
-        total = total_commission or 1
-        return sorted(
-            [{key_name: k, **v,
-              "avg_rate_pct": round(v["commission"] / v["premium"] * 100, 1) if v["premium"] else 0,
-              "share_pct": round(v["commission"] / total * 100, 1)}
-             for k, v in bucket.items()],
-            key=lambda x: x["commission"], reverse=True,
-        )
-
     return {
         "total_commission_nok": round(total_commission),
         "policy_count": len(policies),
-        "by_product": _fmt_bucket(by_product, "product_type"),
-        "by_insurer": _fmt_bucket(by_insurer, "insurer"),
+        "by_product": _fmt_commission_bucket(by_product, "product_type", total_commission),
+        "by_insurer": _fmt_commission_bucket(by_insurer, "insurer", total_commission),
     }

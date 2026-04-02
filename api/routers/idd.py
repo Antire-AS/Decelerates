@@ -4,17 +4,21 @@ Covers behovsanalyse (needs assessment) as required by
 forsikringsformidlingsloven §§ 5-4, 7-1 to 7-10 and
 Finanstilsynet circular 9/2019.
 """
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
 from api.db import IddBehovsanalyse
 from api.dependencies import get_db
+from api.domain.exceptions import NotFoundError
 from api.schemas import IddBehovsanalyseIn
+from api.services.idd import IddService
 
 router = APIRouter()
+
+
+def _get_idd_service(db: Session = Depends(get_db)) -> IddService:
+    return IddService(db)
 
 
 def _serialize(row: IddBehovsanalyse) -> dict:
@@ -63,20 +67,11 @@ def list_behovsanalyser(
 def create_behovsanalyse(
     orgnr: str,
     body: IddBehovsanalyseIn,
-    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
 ) -> dict:
     """Create a new IDD behovsanalyse for a company."""
-    row = IddBehovsanalyse(
-        orgnr=orgnr,
-        firm_id=user.firm_id,
-        created_by_email=user.email,
-        created_at=datetime.now(timezone.utc),
-        **body.model_dump(),
-    )
-    db.add(row)
-    db.commit()
-    db.refresh(row)
+    row = svc.create(orgnr, user.firm_id, user.email, body.model_dump())
     return _serialize(row)
 
 
@@ -84,15 +79,12 @@ def create_behovsanalyse(
 def get_behovsanalyse(
     orgnr: str,
     idd_id: int,
-    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
 ) -> dict:
-    row = db.query(IddBehovsanalyse).filter(
-        IddBehovsanalyse.id == idd_id,
-        IddBehovsanalyse.orgnr == orgnr,
-        IddBehovsanalyse.firm_id == user.firm_id,
-    ).first()
-    if not row:
+    try:
+        row = svc.get(orgnr, user.firm_id, idd_id)
+    except NotFoundError:
         raise HTTPException(status_code=404, detail="Behovsanalyse not found")
     return _serialize(row)
 
@@ -101,15 +93,10 @@ def get_behovsanalyse(
 def delete_behovsanalyse(
     orgnr: str,
     idd_id: int,
-    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
 ) -> None:
-    row = db.query(IddBehovsanalyse).filter(
-        IddBehovsanalyse.id == idd_id,
-        IddBehovsanalyse.orgnr == orgnr,
-        IddBehovsanalyse.firm_id == user.firm_id,
-    ).first()
-    if not row:
+    try:
+        svc.delete(orgnr, user.firm_id, idd_id)
+    except NotFoundError:
         raise HTTPException(status_code=404, detail="Behovsanalyse not found")
-    db.delete(row)
-    db.commit()
