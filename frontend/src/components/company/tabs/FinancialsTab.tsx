@@ -167,47 +167,54 @@ export default function FinancialsTab({
         </div>
       )}
 
-      {/* Add annual report PDF */}
-      <Section title="Legg til årsrapport-PDF">
-        <div className="flex items-center gap-1.5 mb-3 text-xs text-[#8A7F74]">
-          <Link2 className="w-3.5 h-3.5" />
-          <span>Lim inn URL til PDF-årsrapport — AI henter ut regnskapstall automatisk</span>
-        </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
+      {/* Add annual report PDF — collapsed by default, open when years are missing */}
+      <details
+        className="broker-card group"
+        open={!!(extractionStatus?.missing_target_years?.length && !extractionStatus?.pending_years?.length)}
+      >
+        <summary className="cursor-pointer flex items-center gap-1.5 text-sm font-semibold text-[#2C3E50] select-none list-none">
+          <Link2 className="w-4 h-4 text-[#4A6FA5]" />
+          Legg til årsrapport-PDF
+          <span className="ml-auto text-xs text-[#8A7F74] font-normal group-open:hidden">klikk for å åpne</span>
+        </summary>
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-[#8A7F74]">Lim inn URL til PDF-årsrapport — AI henter ut regnskapstall automatisk</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
+            <input
+              type="url"
+              value={pdfUrl}
+              onChange={(e) => { setPdfUrl(e.target.value); setPdfOk(false); }}
+              placeholder="https://example.com/arsrapport-2023.pdf"
+              className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+            />
+            <input
+              type="number"
+              value={pdfYear}
+              onChange={(e) => setPdfYear(Number(e.target.value))}
+              min={2000}
+              max={new Date().getFullYear()}
+              className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+            />
+            <button
+              onClick={handleAddPdf}
+              disabled={pdfLoading || !pdfUrl.trim()}
+              className="px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+            >
+              {pdfLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+              {pdfLoading ? "Henter…" : "Hent tall"}
+            </button>
+          </div>
           <input
-            type="url"
-            value={pdfUrl}
-            onChange={(e) => { setPdfUrl(e.target.value); setPdfOk(false); }}
-            placeholder="https://example.com/arsrapport-2023.pdf"
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+            type="text"
+            value={pdfLabel}
+            onChange={(e) => setPdfLabel(e.target.value)}
+            placeholder="Etikett (valgfri, f.eks. «Konsern»)"
+            className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
           />
-          <input
-            type="number"
-            value={pdfYear}
-            onChange={(e) => setPdfYear(Number(e.target.value))}
-            min={2000}
-            max={new Date().getFullYear()}
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
-          />
-          <button
-            onClick={handleAddPdf}
-            disabled={pdfLoading || !pdfUrl.trim()}
-            className="px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
-          >
-            {pdfLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-            {pdfLoading ? "Henter…" : "Hent tall"}
-          </button>
+          {pdfErr && <p className="text-xs text-red-600">{pdfErr}</p>}
+          {pdfOk  && <p className="text-xs text-green-700">Regnskapstall hentet og lagret.</p>}
         </div>
-        <input
-          type="text"
-          value={pdfLabel}
-          onChange={(e) => setPdfLabel(e.target.value)}
-          placeholder="Etikett (valgfri, f.eks. «Konsern»)"
-          className="mt-2 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
-        />
-        {pdfErr && <p className="text-xs text-red-600 mt-1">{pdfErr}</p>}
-        {pdfOk  && <p className="text-xs text-green-700 mt-1">Regnskapstall hentet og lagret.</p>}
-      </Section>
+      </details>
 
       {historyLoading ? (
         <div className="broker-card flex items-center gap-2 text-xs text-[#8A7F74]">
@@ -355,24 +362,7 @@ export default function FinancialsTab({
             );
           })()}
 
-          {/* Revenue + result bar chart */}
-          {chartData.length > 0 && (
-            <Section title="Omsetning og resultat (MNOK)">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
-                  <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v: number) => `${v} MNOK`} />
-                  <Legend />
-                  <Bar dataKey="omsetning" name="Omsetning" fill="#4A6FA5" />
-                  <Bar dataKey="resultat" name="Nettoresultat" fill="#2C3E50" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Section>
-          )}
-
-          {/* Debt breakdown chart */}
+          {/* Charts — 2-column grid on medium+ screens */}
           {(() => {
             const debtData = [...history]
               .sort((a, b) => a.year - b.year)
@@ -382,60 +372,82 @@ export default function FinancialsTab({
                 langsiktig: r.sumLangsiktigGjeld != null ? +((r.sumLangsiktigGjeld as number) / 1e6).toFixed(1) : null,
                 kortsiktig: r.sumKortsiktigGjeld != null ? +((r.sumKortsiktigGjeld as number) / 1e6).toFixed(1) : null,
               }));
-            return debtData.length > 0 ? (
-              <Section title="Gjeldsstruktur (MNOK)">
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={debtData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: number) => `${v} MNOK`} />
-                    <Legend />
-                    <Bar dataKey="langsiktig" name="Langsiktig gjeld" fill="#C8A951" stackId="a" />
-                    <Bar dataKey="kortsiktig" name="Kortsiktig gjeld" fill="#E8D5A0" stackId="a" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Section>
-            ) : null;
-          })()}
-
-          {/* Equity ratio trend */}
-          {eqData.length > 0 && (
-            <Section title="Egenkapitalandel (%)">
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={eqData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
-                  <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip formatter={(v: number) => `${v}%`} />
-                  <Line type="monotone" dataKey="ekAndel" name="EK-andel" stroke="#4A6FA5" strokeWidth={2} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Section>
-          )}
-
-          {/* AI commentary */}
-          <div className="broker-card">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> AI-finanskommentar
-              </h3>
-              <button
-                onClick={handleCommentary}
-                disabled={commentaryLoading}
-                className="px-3 py-1 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1"
-              >
-                {commentaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                Generer kommentar
-              </button>
-            </div>
-            {commentaryErr && <p className="text-xs text-red-600 mt-2">{commentaryErr}</p>}
-            {commentary && (
-              <div className="mt-3 bg-[#F9F7F4] rounded-lg p-3">
-                <p className="text-xs text-[#2C3E50] whitespace-pre-wrap leading-relaxed">{commentary}</p>
+            const hasDebt = debtData.length > 0;
+            const hasEq   = eqData.length > 0;
+            const hasRev  = chartData.length > 0;
+            if (!hasRev && !hasDebt && !hasEq) return null;
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {hasRev && (
+                  <Section title="Omsetning og resultat (MNOK)">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                        <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip formatter={(v: number) => `${v} MNOK`} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="omsetning" name="Omsetning" fill="#4A6FA5" />
+                        <Bar dataKey="resultat" name="Nettoresultat" fill="#2C3E50" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Section>
+                )}
+                {hasEq && (
+                  <Section title="Egenkapitalandel (%)">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={eqData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                        <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} unit="%" />
+                        <Tooltip formatter={(v: number) => `${v}%`} />
+                        <Line type="monotone" dataKey="ekAndel" name="EK-andel" stroke="#4A6FA5" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Section>
+                )}
+                {hasDebt && (
+                  <Section title="Gjeldsstruktur (MNOK)">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={debtData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                        <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip formatter={(v: number) => `${v} MNOK`} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="langsiktig" name="Langsiktig gjeld" fill="#C8A951" stackId="a" />
+                        <Bar dataKey="kortsiktig" name="Kortsiktig gjeld" fill="#E8D5A0" stackId="a" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Section>
+                )}
+                {/* AI commentary sits in the grid alongside the charts */}
+                <div className="broker-card flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4" /> AI-finanskommentar
+                    </h3>
+                    <button
+                      onClick={handleCommentary}
+                      disabled={commentaryLoading}
+                      className="px-3 py-1 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {commentaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      Generer
+                    </button>
+                  </div>
+                  {commentaryErr && <p className="text-xs text-red-600">{commentaryErr}</p>}
+                  {commentary ? (
+                    <div className="mt-1 bg-[#F9F7F4] rounded-lg p-3 flex-1">
+                      <p className="text-xs text-[#2C3E50] whitespace-pre-wrap leading-relaxed">{commentary}</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[#C4BDB4] mt-2">Klikk «Generer» for AI-analyse av finansiell trendutvikling.</p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* YoY History table with drill-down */}
           {(() => {
