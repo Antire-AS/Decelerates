@@ -29,6 +29,10 @@
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.5"
   },
+  "overrides": {
+    "lodash": ">=4.18.0",
+    "brace-expansion": ">=1.1.13"
+  },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
