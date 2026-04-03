@@ -83,7 +83,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Language toggle + user */}
         <div className="px-3 py-3 border-t border-[#D4C9B8] space-y-1">
           <button
-            onClick={() => (window as unknown as Record<string, unknown>).__openOnboarding?.()}
+            onClick={() => (window as { __openOnboarding?: () => void }).__openOnboarding?.()}
             className="nav-item w-full"
           >
             <HelpCircle className="w-4 h-4 flex-shrink-0" />
