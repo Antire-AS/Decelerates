@@ -237,15 +237,7 @@ def test_no_function_exceeds_40_lines():
 # Router files with justified DB writes (pre-existing; extracting to services
 # would require splitting tightly coupled multi-step atomic flows).
 # See CLAUDE.md "Architecture Deviations" for rationale.
-_ROUTER_DB_WRITE_EXEMPT = {
-    # Admin seed/reset endpoints — multi-phase BRREG + background agent setup;
-    # each is a single atomic operation that cannot be split across router + service
-    # without losing transactional integrity.
-    "utils.py",
-    # Streaming NDJSON batch import + portfolio-company junction CRUD;
-    # the SSE generator protocol requires all state in one async function.
-    "portfolio_router.py",
-}
+_ROUTER_DB_WRITE_EXEMPT: set[str] = set()
 
 
 def test_no_db_writes_in_routers():
