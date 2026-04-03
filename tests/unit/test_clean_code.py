@@ -219,6 +219,10 @@ _JUSTIFIED = {
     "generate_recommendation_pdf",
     # recommendation_service.create — LLM draft + DB persist + optional IDD link; single atomic flow
     "create",
+    # Streamlit expander helpers — each wraps one expander with tightly coupled widget sequence
+    "_render_insurance_needs_expander",
+    "_render_insurance_recommendation_expander",
+    "_render_insurance_offers_expander",
 }
 
 # Files excluded from function-length checks (non-production scripts)

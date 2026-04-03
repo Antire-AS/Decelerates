@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from api.db import (
     Company, CompanyHistory, Policy, PolicyStatus,
     Claim, ClaimStatus, Activity, ActivityType, BrokerFirm,
+    ContactPerson, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
 )
 
 random.seed(42)  # Reproducible but looks realistic
@@ -112,6 +113,30 @@ _COMPANIES = [
 _CURRENT_YEAR = date.today().year
 _HISTORY_YEARS = [_CURRENT_YEAR - i for i in range(1, 6)]  # 5 years back
 
+# ── Demo insurer data ─────────────────────────────────────────────────────────
+
+_DEMO_INSURERS = [
+    {"name": "If Skadeforsikring",     "org_number": "986529551", "contact_name": "Anders Holm",     "contact_email": "anders.holm@if.no",     "appetite": ["Eiendom", "Ansvar", "Cyber", "Motor"]},
+    {"name": "Gjensidige Forsikring",  "org_number": "995568217", "contact_name": "Lise Bakke",      "contact_email": "lise.bakke@gjensidige.no","appetite": ["Eiendom", "Ansvar", "Yrkesskade", "Transport"]},
+    {"name": "Tryg Forsikring",        "org_number": "991567078", "contact_name": "Mats Eriksen",    "contact_email": "mats.eriksen@tryg.no",   "appetite": ["Eiendom", "Ansvar", "Marine", "Entreprise"]},
+    {"name": "Fremtind Forsikring",    "org_number": "921698408", "contact_name": "Nina Strand",     "contact_email": "nina.strand@fremtind.no","appetite": ["Motor", "Eiendom", "Ansvar", "Yrkesskade"]},
+    {"name": "Storebrand Forsikring",  "org_number": "930553506", "contact_name": "Erik Lie",        "contact_email": "erik.lie@storebrand.no", "appetite": ["Styreansvar", "Eiendom", "Ansvar", "Cyber"]},
+]
+
+# (orgnr, name, title, email, is_primary)
+_DEMO_CONTACTS = [
+    ("999100101", "Kari Bergstrand",    "Daglig leder",       "kari@bergstrand-eiendom.no",   True),
+    ("999100101", "Per Olsen",          "Økonomisjef",        "per.olsen@bergstrand-eiendom.no", False),
+    ("999100102", "Jonas Haug",         "CEO",                "jonas@nordvind.no",            True),
+    ("999100102", "Silje Nygård",       "Risk Manager",       "silje@nordvind.no",            False),
+    ("999100103", "Bjørn Fjord",        "Daglig leder",       "bjorn@fjordbygg.no",           True),
+    ("999100104", "Trond Solhavn",      "Eier",               "trond@solhavn-transport.no",   True),
+    ("999100105", "Mette Dalheim",      "Administrasjonsleder","mette@dalheimfisk.no",         True),
+    ("999100106", "Lars Aker",          "Managing Partner",   "lars@aker-konsulent.no",       True),
+    ("999100107", "Anita Grønbøl",      "Butikksjef",         "anita@gronbol.no",             True),
+    ("999100108", "Rolf Vestfjord",     "Reder",              "rolf@vestfjord-shipping.no",   True),
+]
+
 
 def _perturb(value: float, pct: float = 0.10) -> float:
     """Apply ±pct% random noise to keep numbers looking authentic."""
@@ -146,6 +171,96 @@ def _build_history_rows(c: dict) -> list[dict]:
     return rows
 
 
+def _seed_insurers(db: Session, firm_id: int, now: datetime) -> dict[str, int]:
+    """Seed demo insurers and return name → id map."""
+    insurer_map: dict[str, int] = {}
+    for ins in _DEMO_INSURERS:
+        existing = db.query(Insurer).filter(
+            Insurer.firm_id == firm_id, Insurer.name == ins["name"]
+        ).first()
+        if existing:
+            insurer_map[ins["name"]] = existing.id
+        else:
+            row = Insurer(
+                firm_id=firm_id, name=ins["name"], org_number=ins["org_number"],
+                contact_name=ins["contact_name"], contact_email=ins["contact_email"],
+                appetite=ins["appetite"], created_at=now,
+            )
+            db.add(row)
+            db.flush()
+            insurer_map[ins["name"]] = row.id
+    return insurer_map
+
+
+def _seed_contacts(db: Session, now: datetime) -> int:
+    """Seed demo contact persons. Returns created count."""
+    created = 0
+    for orgnr, name, title, email, is_primary in _DEMO_CONTACTS:
+        if db.query(ContactPerson).filter(
+            ContactPerson.orgnr == orgnr, ContactPerson.email == email
+        ).first():
+            continue
+        db.add(ContactPerson(
+            orgnr=orgnr, name=name, title=title, email=email,
+            is_primary=is_primary, created_at=now,
+        ))
+        created += 1
+    return created
+
+
+def _seed_idd(db: Session, firm_id: int, now: datetime) -> int:
+    """Seed IDD needs analyses for all demo companies. Returns created count."""
+    created = 0
+    for c in _COMPANIES:
+        orgnr = c["orgnr"]
+        if db.query(IddBehovsanalyse).filter(
+            IddBehovsanalyse.orgnr == orgnr, IddBehovsanalyse.firm_id == firm_id
+        ).first():
+            continue
+        db.add(IddBehovsanalyse(
+            orgnr=orgnr, firm_id=firm_id,
+            created_by_email="demo@broker.no", created_at=now,
+            client_name=c["navn"],
+            risk_appetite="Moderat" if c["risk_score"] < 55 else "Lav",
+            has_employees=c["antall_ansatte"] > 0,
+            has_vehicles=c["naeringskode1"].startswith("49"),
+            has_professional_liability=c["naeringskode1"].startswith("70"),
+            has_cyber_risk=c["naeringskode1"].startswith("62"),
+            annual_revenue_nok=float(c["base_revenue"]),
+            recommended_products=[c["insurance_type"]],
+            advisor_notes="Demo-behovsanalyse",
+        ))
+        created += 1
+    return created
+
+
+def _seed_submissions(db: Session, firm_id: int, insurer_map: dict[str, int], now: datetime) -> int:
+    """Seed market submissions (one quoted submission per company). Returns created count."""
+    created = 0
+    for c in _COMPANIES:
+        orgnr = c["orgnr"]
+        insurer_id = insurer_map.get(c["insurer"])
+        if not insurer_id:
+            continue
+        if db.query(Submission).filter(
+            Submission.orgnr == orgnr, Submission.firm_id == firm_id,
+            Submission.insurer_id == insurer_id,
+        ).first():
+            continue
+        premium = round(c["base_revenue"] * random.uniform(0.015, 0.025) / 1000) * 1000
+        db.add(Submission(
+            orgnr=orgnr, firm_id=firm_id, insurer_id=insurer_id,
+            product_type=c["insurance_type"],
+            requested_at=date.today() - timedelta(days=random.randint(5, 20)),
+            status=SubmissionStatus.quoted,
+            premium_offered_nok=float(premium),
+            notes="Demo-tilbud mottatt",
+            created_by_email="demo@broker.no", created_at=now,
+        ))
+        created += 1
+    return created
+
+
 def seed_full_demo(db: Session) -> dict:
     """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
     today = date.today()
@@ -158,6 +273,9 @@ def seed_full_demo(db: Session) -> dict:
         db.add(firm)
         db.flush()
     firm_id = firm.id
+
+    insurer_map = _seed_insurers(db, firm_id, now)
+    contacts_created = _seed_contacts(db, now)
 
     companies_created = 0
     history_created = 0
@@ -290,6 +408,9 @@ def seed_full_demo(db: Session) -> dict:
             ))
             activities_created += 1
 
+    idd_created = _seed_idd(db, firm_id, now)
+    submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
+
     db.commit()
     return {
         "companies_created": companies_created,
@@ -297,8 +418,13 @@ def seed_full_demo(db: Session) -> dict:
         "policies_created": policies_created,
         "claims_created": claims_created,
         "activities_created": activities_created,
+        "contacts_created": contacts_created,
+        "insurers_created": len([k for k in insurer_map]),
+        "idd_created": idd_created,
+        "submissions_created": submissions_created,
         "message": (
             f"Demo-data seeded: {companies_created} selskaper, "
-            f"{history_created} historikkrader, {policies_created} poliser"
+            f"{history_created} historikkrader, {policies_created} poliser, "
+            f"{contacts_created} kontakter, {idd_created} IDD-analyser"
         ),
     }

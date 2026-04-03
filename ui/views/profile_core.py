@@ -342,24 +342,7 @@ def _render_client_share(selected_orgnr: str) -> None:
                 st.caption(f"• {t['label'] or '(ingen etikett)'}  —  utløper {t['expires_at'][:10]}")
 
 
-def render_forsikring_section(
-    selected_orgnr: str,
-    org: dict,
-    regn: dict,
-    risk: dict,
-    risk_summary: dict,
-    pep: dict,
-    lic,
-    roles_data,
-    konkurs_data,
-    struktur_data,
-    koordinater_data,
-    benchmark_data,
-    prof: dict,
-) -> None:
-    _lang = st.session_state.get("lang", "no")
-
-    # ── 5) Insurance needs estimator ───────────────────
+def _render_insurance_needs_expander(selected_orgnr: str) -> None:
     with st.expander("📋 Forsikringsbehovsestimator", expanded=False):
         _needs_key = f"insurance_needs_{selected_orgnr}"
         _needs_err_key = f"insurance_needs_err_{selected_orgnr}"
@@ -414,7 +397,7 @@ def render_forsikring_section(
             else:
                 st.info("Ingen forsikringsbehov identifisert.")
 
-    # ── 5) Insurance recommendation ────────────────────
+def _render_insurance_recommendation_expander(selected_orgnr: str, _lang: str) -> None:
     with st.expander(T("Insurance recommendation"), expanded=False):
         if "risk_offer" not in st.session_state:
             st.session_state["risk_offer"] = None
@@ -525,7 +508,7 @@ def render_forsikring_section(
                 st.session_state["risk_offer"] = None
                 st.rerun()
 
-    # ── 5) AI risk narrative ───────────────────────────
+def _render_risk_narrative_expander(selected_orgnr: str, _lang: str) -> None:
     with st.expander(T("AI risk narrative"), expanded=False):
         if st.session_state["narrative"]:
             st.info(st.session_state["narrative"])
@@ -546,7 +529,7 @@ def render_forsikring_section(
                     except Exception as e:
                         st.error(f"Narrative generation failed: {e}")
 
-    # ── 6) Insurance offers ────────────────────────────
+def _render_insurance_offers_expander(selected_orgnr: str, _lang: str) -> None:
     with st.expander(T("Insurance offers"), expanded=True):
         stored_offers = []
         try:
@@ -711,6 +694,28 @@ def render_forsikring_section(
                 if st.button(T("Clear"), key="clear_gap_btn"):
                     st.session_state["coverage_gap"] = None
                     st.rerun()
+
+
+def render_forsikring_section(
+    selected_orgnr: str,
+    org: dict,
+    regn: dict,
+    risk: dict,
+    risk_summary: dict,
+    pep: dict,
+    lic,
+    roles_data,
+    konkurs_data,
+    struktur_data,
+    koordinater_data,
+    benchmark_data,
+    prof: dict,
+) -> None:
+    _lang = st.session_state.get("lang", "no")
+    _render_insurance_needs_expander(selected_orgnr)
+    _render_insurance_recommendation_expander(selected_orgnr, _lang)
+    _render_risk_narrative_expander(selected_orgnr, _lang)
+    _render_insurance_offers_expander(selected_orgnr, _lang)
 
 
 def render_profile_core(
