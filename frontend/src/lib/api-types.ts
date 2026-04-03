@@ -275,6 +275,18 @@ export interface ClientToken {
   created_at: string;
 }
 
+export interface Recommendation {
+  id: number;
+  orgnr: string;
+  created_by_email?: string;
+  created_at: string;
+  idd_id?: number;
+  submission_ids?: number[];
+  recommended_insurer: string;
+  rationale_text?: string;
+  has_pdf: boolean;
+}
+
 export interface Insurer {
   id: number;
   firm_id: number;

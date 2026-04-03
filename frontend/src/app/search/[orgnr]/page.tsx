@@ -8,7 +8,7 @@ import {
   getOrgRoles, getOrgLicenses, getOrgBankruptcy, getOrgBenchmark,
   getOrgKoordinater, getOrgStruktur,
   addOrgPdfHistory, getOrgExtractionStatus, getOrgFinancialCommentary,
-  getOrgSubmissions, downloadCertificatePdf,
+  getOrgSubmissions, downloadCertificatePdf, getOrgRecommendations,
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
@@ -46,6 +46,10 @@ export default function OrgProfilePage({
   const { data: submissions = [] } = useSWR(
     `submissions-${orgnr}`,
     () => getOrgSubmissions(orgnr),
+  );
+  const { data: recommendations = [] } = useSWR(
+    `recommendations-${orgnr}`,
+    () => getOrgRecommendations(orgnr),
   );
 
   const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat">(
@@ -140,7 +144,7 @@ export default function OrgProfilePage({
     { label: "Risikovurdering",  desc: "Risikoscore og AI-narrativ",         done: risk.score != null },
     { label: "Behovsanalyse",    desc: "Forsikringsbehov estimert",          done: false },
     { label: "Tilbud innhentet", desc: "Tilbud fra forsikringsselskaper",    done: submissions.some((s) => s.status === "quoted") },
-    { label: "Tilbudsanalyse",   desc: "AI-sammenligning fullført",          done: false },
+    { label: "Tilbudsanalyse",   desc: "AI-sammenligning fullført",          done: recommendations.length > 0 },
     { label: "Presentasjon",     desc: "Forsikringstilbud PDF generert",     done: false },
     { label: "Kontrakt",         desc: "Tjenesteavtale signert i Avtaler",   done: hasContract },
   ];

@@ -228,3 +228,12 @@ class SubmissionUpdate(BaseModel):
     premium_offered_nok: Optional[float] = None
     requested_at:        Optional[date] = None
     notes:               Optional[str] = None
+
+
+# ── Recommendations ───────────────────────────────────────────────────────────
+
+class RecommendationIn(BaseModel):
+    recommended_insurer: str
+    submission_ids:      Optional[List[int]] = None
+    idd_id:              Optional[int] = None
+    rationale_text:      Optional[str] = None   # broker can override LLM draft

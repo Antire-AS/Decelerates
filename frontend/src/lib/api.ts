@@ -31,6 +31,7 @@ import type {
   ClientPortalProfile,
   Insurer,
   Submission,
+  Recommendation,
 } from "./api-types";
 
 export type {
@@ -60,6 +61,7 @@ export type {
   ClientPortalProfile,
   Insurer,
   Submission,
+  Recommendation,
 } from "./api-types";
 
 import { downloadFile } from "./api-utils";
@@ -531,6 +533,26 @@ export const createOrgIdd = (orgnr: string, body: Partial<IddBehovsanalyse>) =>
 
 export const deleteOrgIdd = (orgnr: string, iddId: number) =>
   apiFetch<void>(`/org/${orgnr}/idd/${iddId}`, { method: "DELETE" });
+
+// ── Recommendations ───────────────────────────────────────────────────────────
+
+export const getOrgRecommendations = (orgnr: string) =>
+  apiFetch<Recommendation[]>(`/org/${orgnr}/recommendations`);
+
+export const createRecommendation = (
+  orgnr: string,
+  data: { recommended_insurer: string; submission_ids?: number[]; idd_id?: number; rationale_text?: string },
+) =>
+  apiFetch<Recommendation>(`/org/${orgnr}/recommendations`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const downloadRecommendationPdf = (orgnr: string, recId: number) =>
+  downloadFile(`/bapi/org/${orgnr}/recommendations/${recId}/pdf`, `anbefaling_${orgnr}_${recId}.pdf`);
+
+export const deleteRecommendation = (orgnr: string, recId: number) =>
+  apiFetch<void>(`/org/${orgnr}/recommendations/${recId}`, { method: "DELETE" });
 
 // ── Certificate of Insurance ──────────────────────────────────────────────────
 

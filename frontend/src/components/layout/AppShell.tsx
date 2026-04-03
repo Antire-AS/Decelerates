@@ -22,6 +22,7 @@ import {
   User,
   HelpCircle,
   Building2,
+  ClipboardCheck,
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
 
@@ -32,7 +33,8 @@ const NAV_ITEMS = [
   { href: "/finans",     label: "Finans",        icon: TrendingUp },
   { href: "/renewals",   label: "Fornyelser",    icon: RotateCcw },
   { href: "/idd",        label: "IDD / Behov",   icon: Scale },
-  { href: "/insurers",   label: "Forsikringsselskaper", icon: Building2 },
+  { href: "/insurers",        label: "Forsikringsselskaper", icon: Building2 },
+  { href: "/recommendations", label: "Anbefalingsbrev",     icon: ClipboardCheck },
   { href: "/sla",        label: "Avtaler",       icon: FileText },
   { href: "/documents",  label: "Dokumenter",    icon: FolderOpen },
   { href: "/videos",     label: "Videoer",       icon: Video },

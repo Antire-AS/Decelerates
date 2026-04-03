@@ -446,6 +446,22 @@ class Submission(Base):
     created_at          = Column(DateTime(timezone=True), nullable=False)
 
 
+class Recommendation(Base):
+    """A formal recommendation letter — broker's advised insurer(s) for a client."""
+    __tablename__ = "recommendations"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=False, index=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    created_by_email    = Column(String, nullable=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False)
+    idd_id              = Column(Integer, ForeignKey("idd_behovsanalyse.id", ondelete="SET NULL"), nullable=True)
+    submission_ids      = Column(JSON, nullable=True)       # [int, ...]
+    recommended_insurer = Column(String, nullable=True)     # name of recommended insurer
+    rationale_text      = Column(String, nullable=True)     # LLM-generated rationale
+    pdf_content         = Column(LargeBinary, nullable=True)
+
+
 class AuditLog(Base):
     """Immutable audit trail — records key broker actions for compliance and debugging."""
     __tablename__ = "audit_log"
