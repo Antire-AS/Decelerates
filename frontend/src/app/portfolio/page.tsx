@@ -1,30 +1,18 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import dynamic from "next/dynamic";
 import useSWR from "swr";
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import {
-  getCompanies, getPortfolios, createPortfolio, portfolioChat,
-  seedFullDemo, getPortfolioRisk, getPortfolioAlerts,
-  getPortfolioConcentration, removePortfolioCompany, downloadPortfolioPdf,
-  type Company, type PortfolioItem, type PortfolioRiskRow,
+  getCompanies, getPortfolios, createPortfolio, seedFullDemo,
+  type Company, type PortfolioItem,
 } from "@/lib/api";
 import Link from "next/link";
-import { Loader2, Plus, Sparkles, Download, BarChart2 } from "lucide-react";
-import { PortfolioRiskTable } from "@/components/portfolio/PortfolioRiskTable";
-import { PortfolioAlerts } from "@/components/portfolio/PortfolioAlerts";
-import { PortfolioConcentration } from "@/components/portfolio/PortfolioConcentration";
+import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
-import { PortfolioChat } from "@/components/portfolio/PortfolioChat";
-
-const PortfolioMap = dynamic(
-  () => import("@/components/portfolio/PortfolioMap"),
-  { ssr: false },
-);
 
 const RISK_BANDS = [
   { label: "Lav (0–39)",      min: 0,  max: 39,  color: "#27AE60" },
@@ -52,37 +40,11 @@ export default function PortfolioPage() {
   const [riskFilter, setRiskFilter] = useState<number | null>(null);
   const [analyticsTab, setAnalyticsTab] = useState<"industry" | "top-risk">("industry");
 
-  // Portfolio management
-  const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
-  const [newPortfolioName, setNewPortfolioName]       = useState("");
-  const [creating, setCreating]                       = useState(false);
-  const [removingOrgnr, setRemovingOrgnr]             = useState<string | null>(null);
-  const [pdfDownloading, setPdfDownloading]           = useState(false);
+  const [newPortfolioName, setNewPortfolioName] = useState("");
+  const [creating, setCreating]                 = useState(false);
 
-  // Portfolio chat
-  const [chatQuestion, setChatQuestion] = useState("");
-  const [chatAnswer, setChatAnswer]     = useState<string | null>(null);
-  const [chatSources, setChatSources]   = useState<string[]>([]);
-  const [chatLoading, setChatLoading]   = useState(false);
-  const [chatErr, setChatErr]           = useState<string | null>(null);
-
-  // Demo seed
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState<string | null>(null);
-
-  // Portfolio-specific data (lazy)
-  const { data: portfolioRisk, mutate: mutateRisk } = useSWR<PortfolioRiskRow[]>(
-    selectedPortfolioId ? `portfolio-risk-${selectedPortfolioId}` : null,
-    () => getPortfolioRisk(selectedPortfolioId!),
-  );
-  const { data: portfolioAlerts } = useSWR(
-    selectedPortfolioId ? `portfolio-alerts-${selectedPortfolioId}` : null,
-    () => getPortfolioAlerts(selectedPortfolioId!),
-  );
-  const { data: concentration } = useSWR(
-    selectedPortfolioId ? `portfolio-concentration-${selectedPortfolioId}` : null,
-    () => getPortfolioConcentration(selectedPortfolioId!),
-  );
 
   const filtered = useMemo(() => {
     if (!companies) return [];
@@ -126,22 +88,10 @@ export default function PortfolioPage() {
     if (!newPortfolioName.trim()) return;
     setCreating(true);
     try {
-      const p = await createPortfolio(newPortfolioName.trim());
+      await createPortfolio(newPortfolioName.trim());
       setNewPortfolioName("");
       mutatePortfolios();
-      setSelectedPortfolioId(p.id);
     } finally { setCreating(false); }
-  }
-
-  async function handleChat() {
-    if (!selectedPortfolioId || !chatQuestion.trim()) return;
-    setChatLoading(true); setChatErr(null); setChatAnswer(null);
-    try {
-      const r = await portfolioChat(selectedPortfolioId, chatQuestion);
-      setChatAnswer(r.answer);
-      setChatSources(r.sources ?? []);
-    } catch (e) { setChatErr(String(e)); }
-    finally { setChatLoading(false); }
   }
 
   async function handleSeedDemo() {
@@ -153,26 +103,6 @@ export default function PortfolioPage() {
     } catch (e) { setSeedMsg(`Feil: ${String(e)}`); }
     finally { setSeeding(false); }
   }
-
-  async function handleRemove(orgnr: string) {
-    if (!selectedPortfolioId) return;
-    setRemovingOrgnr(orgnr);
-    try {
-      await removePortfolioCompany(selectedPortfolioId, orgnr);
-      mutateRisk();
-    } finally { setRemovingOrgnr(null); }
-  }
-
-  async function handleDownloadPdf() {
-    if (!selectedPortfolioId) return;
-    const p = portfolios.find((x) => x.id === selectedPortfolioId);
-    setPdfDownloading(true);
-    try {
-      await downloadPortfolioPdf(selectedPortfolioId, p?.name ?? "rapport");
-    } finally { setPdfDownloading(false); }
-  }
-
-  const selectedPortfolio = portfolios.find((p) => p.id === selectedPortfolioId);
 
   return (
     <div className="space-y-6">
@@ -190,91 +120,56 @@ export default function PortfolioPage() {
 
       {seedMsg && <div className="broker-card text-xs text-[#2C3E50]">{seedMsg}</div>}
 
-      {/* ── Portfolio selector + sub-components ─────────────────────── */}
+      {/* ── Named portfolios ── */}
       <div className="broker-card space-y-4">
-        <h2 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#4A6FA5]" /> Navngitt portefølje
-        </h2>
-
-        <div className="flex flex-wrap gap-2 items-end">
-          {portfolios.length > 0 && (
-            <div>
-              <label className="label-xs">Velg portefølje</label>
-              <select value={selectedPortfolioId ?? ""}
-                onChange={(e) => setSelectedPortfolioId(e.target.value ? Number(e.target.value) : null)}
-                className="input-sm">
-                <option value="">– velg –</option>
-                {portfolios.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-          )}
-          <div>
-            <label className="label-xs">Opprett ny portefølje</label>
-            <div className="flex gap-1.5">
-              <input type="text" value={newPortfolioName} onChange={(e) => setNewPortfolioName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
-                placeholder="Navn…" className="input-sm w-36" />
-              <button onClick={handleCreatePortfolio} disabled={creating || !newPortfolioName.trim()}
-                className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
-                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-                Opprett
-              </button>
-            </div>
-          </div>
-
-          {selectedPortfolioId && (
-            <button onClick={handleDownloadPdf} disabled={pdfDownloading}
-              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-50">
-              {pdfDownloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-              Last ned PDF-rapport
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-sm font-semibold text-[#2C3E50]">Navngitte porteføljer</h2>
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={newPortfolioName}
+              onChange={(e) => setNewPortfolioName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
+              placeholder="Nytt navn…"
+              className="input-sm w-36"
+            />
+            <button
+              onClick={handleCreatePortfolio}
+              disabled={creating || !newPortfolioName.trim()}
+              className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1"
+            >
+              {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+              Opprett
             </button>
-          )}
+          </div>
         </div>
 
-        {portfolioAlerts && portfolioAlerts.length > 0 && (
-          <PortfolioAlerts alerts={portfolioAlerts} />
-        )}
-
-        {concentration && (
-          <PortfolioConcentration concentration={concentration} />
-        )}
-
-        {portfolioRisk && portfolioRisk.length > 0 && (
-          <PortfolioRiskTable
-            portfolioRisk={portfolioRisk}
-            portfolioName={selectedPortfolio?.name}
-            removingOrgnr={removingOrgnr}
-            onRemove={handleRemove}
-          />
-        )}
-
-        {portfolioRisk && portfolioRisk.length > 0 && (
-          <div className="broker-card">
-            <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Geografisk oversikt</h3>
-            <PortfolioMap rows={portfolioRisk} />
-          </div>
-        )}
-
-        {selectedPortfolioId && (
-          <PortfolioChat
-            chatQuestion={chatQuestion}
-            setChatQuestion={setChatQuestion}
-            chatAnswer={chatAnswer}
-            chatSources={chatSources}
-            chatLoading={chatLoading}
-            chatErr={chatErr}
-            onSubmit={handleChat}
-          />
-        )}
-
-        {!selectedPortfolioId && portfolios.length === 0 && (
+        {portfolios.length === 0 ? (
           <p className="text-xs text-[#8A7F74]">
-            Opprett en portefølje og legg til selskaper via selskapsprofilen for å bruke chatten.
+            Ingen porteføljer ennå. Opprett en for å gruppere selskaper og bruke AI-chat.
           </p>
+        ) : (
+          <div className="space-y-1.5">
+            {portfolios.map((p) => (
+              <Link
+                key={p.id}
+                href={`/portfolio/${p.id}`}
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-[#EDE8E3] hover:bg-[#F9F7F4] hover:border-[#C5D8F0] transition-colors group"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[#2C3E50] group-hover:text-[#4A6FA5]">{p.name}</p>
+                  {p.description && (
+                    <p className="text-xs text-[#8A7F74] mt-0.5">{p.description}</p>
+                  )}
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#C4BDB4] group-hover:text-[#4A6FA5]" />
+              </Link>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* ── Summary cards ─────────────────────────────────────────────── */}
+      {/* ── Summary metrics ── */}
       {isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="broker-card h-20 animate-pulse bg-[#EDE8E3]" />)}
@@ -302,7 +197,7 @@ export default function PortfolioPage() {
             })}
           </div>
 
-          {/* ── Analytics charts ──────────────────────────────────────── */}
+          {/* ── Analytics charts ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {pieData.length > 0 && (
               <div className="broker-card">
@@ -349,7 +244,7 @@ export default function PortfolioPage() {
             />
           )}
 
-          {/* Company table */}
+          {/* ── Company table ── */}
           <div className="broker-card">
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <input value={search} onChange={(e) => setSearch(e.target.value)}

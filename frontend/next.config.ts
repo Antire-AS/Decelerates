@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Suppress the "multiple lockfiles" workspace-root warning from the monorepo structure
+  outputFileTracingRoot: path.join(__dirname, "../"),
   // Proxy /api/* to the FastAPI backend so the browser never needs to know
   // the backend URL in production (avoids CORS and token forwarding complexity).
   async rewrites() {
