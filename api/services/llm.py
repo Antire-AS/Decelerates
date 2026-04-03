@@ -1,9 +1,12 @@
 """LLM and embedding helpers — Claude, Gemini, Voyage AI."""
 import json
+import logging
 import os
 import re
 import time
 from typing import Optional, List, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 import anthropic
 import voyageai
@@ -103,8 +106,8 @@ def _embed(text: str) -> List[float]:
             vo = voyageai.Client(api_key=voyage_key)
             result = vo.embed([text], model=VOYAGE_MODEL)
             return result.embeddings[0] if result.embeddings else []
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Voyage AI embed failed: %s", exc)
 
     gemini_key = os.getenv("GEMINI_API_KEY")
     if _is_key_set(gemini_key):
@@ -116,8 +119,8 @@ def _embed(text: str) -> List[float]:
                 config=genai_types.EmbedContentConfig(output_dimensionality=512),
             )
             return result.embeddings[0].values
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Gemini embed failed: %s", exc)
 
     return []
 
@@ -208,10 +211,11 @@ def _gemini_generate_with_fallback(
             try:
                 resp = client.models.generate_content(model=model, contents=parts, config=config)
                 return resp.text
-            except Exception:
+            except Exception as exc:
+                logger.warning("Gemini model %s failed: %s", model, exc)
                 continue
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error("Gemini generate_with_fallback failed: %s", exc)
     return None
 
 

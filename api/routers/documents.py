@@ -1,9 +1,23 @@
 import io
+import os
+import re
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Depends, File, Request, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
+
+from api.limiter import limiter
+
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+_ALLOWED_MIME_TYPES = {"application/pdf"}
+
+
+def _safe_filename(name: str) -> str:
+    """Strip path components and non-safe characters from a filename."""
+    name = os.path.basename(name)
+    name = re.sub(r"[^\w.\-]", "_", name)
+    return name or "document.pdf"
 
 from api.db import InsuranceDocument
 from api.domain.exceptions import LlmUnavailableError
@@ -23,7 +37,9 @@ router = APIRouter()
 
 
 @router.post("/insurance-documents")
+@limiter.limit("30/minute")
 async def upload_insurance_document(
+    request: Request,
     file: UploadFile = File(...),
     title: str = Form(...),
     category: str = Form("annet"),
@@ -35,11 +51,16 @@ async def upload_insurance_document(
     db: Session = Depends(get_db),
 ) -> dict:
     """Upload and store an insurance document PDF."""
+    if file.content_type not in _ALLOWED_MIME_TYPES:
+        raise HTTPException(status_code=415, detail="Only PDF files are accepted")
     pdf_bytes = await file.read()
+    if len(pdf_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 50 MB limit")
+    safe_name = _safe_filename(file.filename or "document.pdf")
     try:
         doc = store_insurance_document(
             pdf_bytes=pdf_bytes,
-            filename=file.filename or "document.pdf",
+            filename=safe_name,
             title=title,
             category=category,
             insurer=insurer,

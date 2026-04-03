@@ -29,8 +29,12 @@ class InsurerService:
             **data,
         )
         self.db.add(row)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def update_insurer(self, firm_id: int, insurer_id: int, data: dict) -> Insurer:
@@ -38,14 +42,22 @@ class InsurerService:
         for key, val in data.items():
             if val is not None:
                 setattr(row, key, val)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def delete_insurer(self, firm_id: int, insurer_id: int) -> None:
         row = self._get_insurer_or_raise(firm_id, insurer_id)
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_insurer_or_raise(self, firm_id: int, insurer_id: int) -> Insurer:
         row = (
@@ -85,8 +97,12 @@ class InsurerService:
             **data,
         )
         self.db.add(row)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def update_submission(self, firm_id: int, submission_id: int, data: dict) -> Submission:
@@ -99,14 +115,22 @@ class InsurerService:
         for key, val in data.items():
             if val is not None:
                 setattr(row, key, val)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def delete_submission(self, firm_id: int, submission_id: int) -> None:
         row = self._get_submission_or_raise(firm_id, submission_id)
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_submission_or_raise(self, firm_id: int, submission_id: int) -> Submission:
         row = (

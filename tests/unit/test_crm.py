@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, ActivityType, User, UserRole, BrokerFirm
+import pydantic
 from api.domain.exceptions import ForbiddenError, NotFoundError, ValidationError
 from api.schemas import (
     ActivityIn, ActivityUpdate,
@@ -70,11 +71,9 @@ class TestPolicyServiceCreate:
         db.commit.assert_called_once()
 
     def test_create_unknown_status_raises(self):
-        db = _mock_db()
-        svc = PolicyService(db)
-        body = PolicyIn(insurer="X", product_type="Y", status="nonexistent")
-        with pytest.raises(ValidationError):
-            svc.create("123456789", firm_id=1, body=body)
+        # Pydantic now validates status at schema construction time
+        with pytest.raises(pydantic.ValidationError):
+            PolicyIn(insurer="X", product_type="Y", status="nonexistent")
 
 
 class TestPolicyServiceList:
@@ -246,15 +245,9 @@ class TestClaimsService:
         db.commit.assert_called_once()
 
     def test_update_unknown_status_raises(self):
-        db = _mock_db()
-        existing = self._claim()
-        mock_q = db.query.return_value
-        mock_q.filter.return_value = mock_q
-        mock_q.first.return_value = existing
-
-        svc = ClaimsService(db)
-        with pytest.raises(NotFoundError):
-            svc.update(claim_id=1, firm_id=1, body=ClaimUpdate(status="bogus"))
+        # Pydantic now validates status at schema construction time
+        with pytest.raises(pydantic.ValidationError):
+            ClaimUpdate(status="bogus")
 
     def test_list_by_policy(self):
         db = _mock_db()

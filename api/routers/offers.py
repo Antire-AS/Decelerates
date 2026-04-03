@@ -1,10 +1,22 @@
 import io
+import os
+import re
 from typing import Any, List
 
 from fastapi import APIRouter, HTTPException, Depends, File, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import pdfplumber
+
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+_ALLOWED_MIME_TYPES = {"application/pdf"}
+_MAX_FILES = 20
+
+
+def _safe_filename(name: str) -> str:
+    name = os.path.basename(name)
+    name = re.sub(r"[^\w.\-]", "_", name)
+    return name or "offer.pdf"
 
 from api.db import Company, InsuranceOffer
 from api.limiter import limiter
@@ -62,12 +74,18 @@ async def compare_offers(
     db: Session = Depends(get_db),
 ):
     """Extract text from uploaded offer PDFs and return an AI comparison."""
+    if len(files) > _MAX_FILES:
+        raise HTTPException(status_code=400, detail=f"Maximum {_MAX_FILES} files per request")
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
     company_ctx = _company_context_str(company, orgnr)
 
     offer_texts = []
     for f in files:
+        if f.content_type not in _ALLOWED_MIME_TYPES:
+            raise HTTPException(status_code=415, detail=f"{f.filename}: only PDF files are accepted")
         raw = await f.read()
+        if len(raw) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail=f"{f.filename}: file exceeds 50 MB limit")
         try:
             with pdfplumber.open(io.BytesIO(raw)) as pdf:
                 text = "\n".join(p.extract_text() or "" for p in pdf.pages[:40])
@@ -92,17 +110,25 @@ register_handler("offer_parse", _handle_offer_parse)
 
 
 @router.post("/org/{orgnr}/offers")
+@limiter.limit("30/minute")
 async def save_offers(
+    request: Request,
     orgnr: str,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
     """Upload and persist offer PDFs; schedules background LLM parsing of structured fields."""
+    if len(files) > _MAX_FILES:
+        raise HTTPException(status_code=400, detail=f"Maximum {_MAX_FILES} files per request")
     offer_data = []
     for f in files:
+        if f.content_type not in _ALLOWED_MIME_TYPES:
+            raise HTTPException(status_code=415, detail=f"{f.filename}: only PDF files are accepted")
         raw = await f.read()
+        if len(raw) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail=f"{f.filename}: file exceeds 50 MB limit")
         offer_data.append({
-            "filename": f.filename or "offer.pdf",
+            "filename": _safe_filename(f.filename or "offer.pdf"),
             "raw_bytes": raw,
             "extracted_text": _pdf_bytes_to_text(raw) or None,
         })

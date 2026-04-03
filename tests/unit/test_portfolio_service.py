@@ -227,18 +227,32 @@ def test_remove_company_is_noop_when_not_member():
 # ── get_risk_summary ──────────────────────────────────────────────────────────
 
 def _db_for_risk_summary(pc_list, company=None, hist=None):
-    """Return a mock DB wired for get_risk_summary queries.
+    """Return a mock DB wired for get_risk_summary batch queries.
 
-    get_risk_summary uses two distinct query chains per company:
-      Company:  .query().filter().first()
-      History:  .query().filter().order_by().first()
+    get_risk_summary now uses 3 queries:
+      1. PortfolioCompany: .filter().all()       → pc_list
+      2. Company: .filter().all()                → company_list (batch)
+      3. CompanyHistory subquery + join: via _fetch_latest_hist_map
     """
+    company_list = [company] if company else []
+    hist_list = [hist] if hist else []
+
+    def _query(*args):
+        m = MagicMock()
+        first = args[0] if args else None
+        if first is PortfolioCompany:
+            m.filter.return_value.all.return_value = pc_list
+        elif first is Company:
+            m.filter.return_value.all.return_value = company_list
+        elif first is CompanyHistory:
+            m.join.return_value.all.return_value = hist_list
+        else:
+            # subquery: .filter().group_by().subquery()
+            m.filter.return_value.group_by.return_value.subquery.return_value = MagicMock()
+        return m
+
     db = _mock_db()
-    db.query.return_value.filter.return_value.all.return_value = pc_list
-    # Company lookup: .filter().first()
-    db.query.return_value.filter.return_value.first.return_value = company
-    # History lookup: .filter().order_by().first()
-    db.query.return_value.filter.return_value.order_by.return_value.first.return_value = hist
+    db.query.side_effect = _query
     return db
 
 
@@ -289,15 +303,24 @@ def test_get_risk_summary_prefers_hist_revenue_over_company():
 def test_get_risk_summary_sorted_by_risk_score_desc():
     pc1 = _mock_pc(orgnr="111111111")
     pc2 = _mock_pc(orgnr="222222222")
+    c1 = _mock_company(orgnr="111111111", risk_score=2)
+    c2 = _mock_company(orgnr="222222222", risk_score=5)
+
+    def _query(*args):
+        m = MagicMock()
+        first = args[0] if args else None
+        if first is PortfolioCompany:
+            m.filter.return_value.all.return_value = [pc1, pc2]
+        elif first is Company:
+            m.filter.return_value.all.return_value = [c1, c2]
+        elif first is CompanyHistory:
+            m.join.return_value.all.return_value = []
+        else:
+            m.filter.return_value.group_by.return_value.subquery.return_value = MagicMock()
+        return m
+
     db = _mock_db()
-    db.query.return_value.filter.return_value.all.return_value = [pc1, pc2]
-    # Company: .filter().first() — return low-risk then high-risk
-    db.query.return_value.filter.return_value.first.side_effect = [
-        _mock_company(orgnr="111111111", risk_score=2),
-        _mock_company(orgnr="222222222", risk_score=5),
-    ]
-    # History: .filter().order_by().first() — no history needed
-    db.query.return_value.filter.return_value.order_by.return_value.first.return_value = None
+    db.query.side_effect = _query
     result = PortfolioService(db).get_risk_summary(1)
     assert result[0]["risk_score"] == 5
 
@@ -318,9 +341,15 @@ def _db_for_alerts(orgnrs, histories_by_orgnr, companies=None):
         pcs,
         companies or [_mock_company(orgnr=o, navn=f"Co {o}") for o in orgnrs],
     ]
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.side_effect = [
-        histories_by_orgnr.get(o, []) for o in orgnrs
-    ]
+    # Batch history: flat list with orgnr injected (new non-N+1 implementation)
+    all_hist = []
+    for o in orgnrs:
+        for h in histories_by_orgnr.get(o, []):
+            all_hist.append(SimpleNamespace(
+                orgnr=o, year=h.year, revenue=h.revenue,
+                equity_ratio=h.equity_ratio, antall_ansatte=h.antall_ansatte,
+            ))
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = all_hist
     return db
 
 

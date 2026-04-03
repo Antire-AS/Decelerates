@@ -155,26 +155,27 @@ def _fetch_html(url: str) -> Optional[str]:
         from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                user_agent=(
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/120.0.0.0 Safari/537.36"
-                )
-            )
-            page = ctx.new_page()
             try:
-                page.goto(url, timeout=20000, wait_until="domcontentloaded")
-                page.wait_for_load_state("networkidle", timeout=10000)
-            except PWTimeout:
-                pass  # use whatever content loaded so far
-            html = page.content()
-            browser.close()
-            return html
+                ctx = browser.new_context(
+                    user_agent=(
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/120.0.0.0 Safari/537.36"
+                    )
+                )
+                page = ctx.new_page()
+                try:
+                    page.goto(url, timeout=20000, wait_until="domcontentloaded")
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                except PWTimeout:
+                    pass  # use whatever content loaded so far
+                return page.content()
+            finally:
+                browser.close()
     except ImportError:
         pass  # Playwright not installed
-    except Exception:
-        pass  # Playwright failed
+    except Exception as exc:
+        logger.warning("[fetch_html] Playwright failed for %s: %s", url, exc)
     return _fetch_html_requests(url)
 
 

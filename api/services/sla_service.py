@@ -20,8 +20,12 @@ class SlaService:
         row.signed_at = datetime.now(timezone.utc)
         row.signed_by = signed_by
         row.status = "active"
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def create_agreement(self, body: SlaIn) -> SlaAgreement:
@@ -54,6 +58,10 @@ class SlaService:
             form_data=fd,
         )
         self.db.add(agreement)
-        self.db.commit()
-        self.db.refresh(agreement)
+        try:
+            self.db.commit()
+            self.db.refresh(agreement)
+        except Exception:
+            self.db.rollback()
+            raise
         return agreement

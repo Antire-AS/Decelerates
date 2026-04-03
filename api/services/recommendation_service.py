@@ -105,8 +105,12 @@ class RecommendationService:
             rationale_text=rationale,
         )
         self.db.add(row)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def get(self, orgnr: str, firm_id: int, rec_id: int) -> Recommendation:
@@ -116,12 +120,20 @@ class RecommendationService:
         row = self.db.query(Recommendation).filter(Recommendation.id == rec_id).first()
         if row:
             row.pdf_content = pdf_bytes
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise
 
     def delete(self, orgnr: str, firm_id: int, rec_id: int) -> None:
         row = self._get_or_raise(orgnr, firm_id, rec_id)
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_or_raise(self, orgnr: str, firm_id: int, rec_id: int) -> Recommendation:
         row = (

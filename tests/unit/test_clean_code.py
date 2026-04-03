@@ -207,6 +207,18 @@ _JUSTIFIED = {
     "_render_comparison_charts",
     # send_renewal_threshold_emails (adapter) — HTML email with 6-column table; single coherent email template
     "send_renewal_threshold_emails",
+    # upload_insurance_document — FastAPI endpoint; validation + audit log + service call in one cohesive flow
+    "upload_insurance_document",
+    # get_recommendation_pdf — PDF generation endpoint with multi-step: DB lookup + LLM + PDF bytes; single flow
+    "get_recommendation_pdf",
+    # analyze_coverage_gap — rule engine: per-product-type coverage checks; rule list not decomposable
+    "analyze_coverage_gap",
+    # generate_certificate_pdf — fpdf2 imperative API; each section is one mandatory layout call
+    "generate_certificate_pdf",
+    # generate_recommendation_pdf — fpdf2 imperative API; section-by-section layout calls
+    "generate_recommendation_pdf",
+    # recommendation_service.create — LLM draft + DB persist + optional IDD link; single atomic flow
+    "create",
 }
 
 # Files excluded from function-length checks (non-production scripts)

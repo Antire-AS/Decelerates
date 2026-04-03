@@ -1,6 +1,6 @@
 from datetime import date
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from typing import Any, Dict, List, Literal, Optional
+from pydantic import BaseModel, Field
 
 
 class ChatRequest(BaseModel):
@@ -85,16 +85,16 @@ class PolicyIn(BaseModel):
     product_type:         str
     policy_number:        Optional[str] = None
     contact_person_id:    Optional[int] = None
-    coverage_amount_nok:  Optional[float] = None
-    annual_premium_nok:   Optional[float] = None
+    coverage_amount_nok:  Optional[float] = Field(None, ge=0)
+    annual_premium_nok:   Optional[float] = Field(None, ge=0)
     start_date:           Optional[date] = None
     renewal_date:         Optional[date] = None
-    status:               str = "active"
-    renewal_stage:        Optional[str] = None
+    status:               Literal["active", "expired", "cancelled", "pending"] = "active"
+    renewal_stage:        Optional[Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]] = None
     notes:                Optional[str] = None
     document_url:         Optional[str] = None
-    commission_rate_pct:  Optional[float] = None
-    commission_amount_nok: Optional[float] = None
+    commission_rate_pct:  Optional[float] = Field(None, ge=0, le=100)
+    commission_amount_nok: Optional[float] = Field(None, ge=0)
 
 
 class PolicyUpdate(BaseModel):
@@ -102,16 +102,16 @@ class PolicyUpdate(BaseModel):
     product_type:         Optional[str] = None
     policy_number:        Optional[str] = None
     contact_person_id:    Optional[int] = None
-    coverage_amount_nok:  Optional[float] = None
-    annual_premium_nok:   Optional[float] = None
+    coverage_amount_nok:  Optional[float] = Field(None, ge=0)
+    annual_premium_nok:   Optional[float] = Field(None, ge=0)
     start_date:           Optional[date] = None
     renewal_date:         Optional[date] = None
-    status:               Optional[str] = None
-    renewal_stage:        Optional[str] = None
+    status:               Optional[Literal["active", "expired", "cancelled", "pending"]] = None
+    renewal_stage:        Optional[Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]] = None
     notes:                Optional[str] = None
     document_url:         Optional[str] = None
-    commission_rate_pct:  Optional[float] = None
-    commission_amount_nok: Optional[float] = None
+    commission_rate_pct:  Optional[float] = Field(None, ge=0, le=100)
+    commission_amount_nok: Optional[float] = Field(None, ge=0)
 
 
 class IddBehovsanalyseIn(BaseModel):
@@ -146,9 +146,9 @@ class ClaimIn(BaseModel):
     claim_number:         Optional[str] = None
     incident_date:        Optional[date] = None
     reported_date:        Optional[date] = None
-    status:               str = "open"
+    status:               Literal["open", "in_review", "settled", "rejected"] = "open"
     description:          Optional[str] = None
-    estimated_amount_nok: Optional[float] = None
+    estimated_amount_nok: Optional[float] = Field(None, ge=0)
     insurer_contact:      Optional[str] = None
     notes:                Optional[str] = None
 
@@ -157,10 +157,10 @@ class ClaimUpdate(BaseModel):
     claim_number:         Optional[str] = None
     incident_date:        Optional[date] = None
     reported_date:        Optional[date] = None
-    status:               Optional[str] = None
+    status:               Optional[Literal["open", "in_review", "settled", "rejected"]] = None
     description:          Optional[str] = None
-    estimated_amount_nok: Optional[float] = None
-    settled_amount_nok:   Optional[float] = None
+    estimated_amount_nok: Optional[float] = Field(None, ge=0)
+    settled_amount_nok:   Optional[float] = Field(None, ge=0)
     insurer_contact:      Optional[str] = None
     notes:                Optional[str] = None
 
@@ -218,14 +218,14 @@ class SubmissionIn(BaseModel):
     insurer_id:          int
     product_type:        str
     requested_at:        Optional[date] = None
-    status:              str = "pending"   # pending | quoted | declined | withdrawn
-    premium_offered_nok: Optional[float] = None
+    status:              Literal["pending", "quoted", "declined", "withdrawn"] = "pending"
+    premium_offered_nok: Optional[float] = Field(None, ge=0)
     notes:               Optional[str] = None
 
 
 class SubmissionUpdate(BaseModel):
-    status:              Optional[str] = None
-    premium_offered_nok: Optional[float] = None
+    status:              Optional[Literal["pending", "quoted", "declined", "withdrawn"]] = None
+    premium_offered_nok: Optional[float] = Field(None, ge=0)
     requested_at:        Optional[date] = None
     notes:               Optional[str] = None
 

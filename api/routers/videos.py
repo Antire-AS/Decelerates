@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from api.services.blob_storage import BlobStorageService
 
 _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
+_MAX_VIDEO_BYTES = 500 * 1024 * 1024  # 500 MB
 _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 
 # Maps MP4 file stem → (sections_json_prefix, display_name, max_seconds|None)
@@ -66,6 +67,8 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
     if content_type not in _ALLOWED_VIDEO_TYPES:
         raise HTTPException(status_code=400, detail="Filtype ikke støttet. Bruk .mp4, .mov eller .avi")
     video_bytes = await file.read()
+    if len(video_bytes) > _MAX_VIDEO_BYTES:
+        raise HTTPException(status_code=413, detail="Filen er for stor. Maks 500 MB.")
     blob_name = f"{uuid.uuid4()}_{file.filename}"
     svc = BlobStorageService()
     if not svc.is_configured():

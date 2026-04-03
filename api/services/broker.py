@@ -39,7 +39,11 @@ class BrokerService:
                 updated_at=now,
             )
             self.db.add(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return {"status": "ok", "updated_at": now}
 
     def list_notes(self, orgnr: str) -> List[BrokerNote]:
@@ -57,8 +61,12 @@ class BrokerService:
             created_at=datetime.now(timezone.utc).isoformat(),
         )
         self.db.add(note)
-        self.db.commit()
-        self.db.refresh(note)
+        try:
+            self.db.commit()
+            self.db.refresh(note)
+        except Exception:
+            self.db.rollback()
+            raise
         return note
 
     def delete_note(self, note_id: int, orgnr: str) -> None:
@@ -70,4 +78,8 @@ class BrokerService:
         if not row:
             raise NotFoundError(f"Note {note_id} not found for orgnr {orgnr}")
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

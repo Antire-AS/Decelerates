@@ -28,8 +28,12 @@ class UserService:
             created_at=datetime.now(timezone.utc),
         )
         self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
+        try:
+            self.db.commit()
+            self.db.refresh(user)
+        except Exception:
+            self.db.rollback()
+            raise
         return user
 
     def get_by_oid(self, oid: str) -> Optional[User]:
@@ -49,8 +53,12 @@ class UserService:
         if not user:
             raise NotFoundError(f"User {user_id} not found")
         user.role = new_role
-        self.db.commit()
-        self.db.refresh(user)
+        try:
+            self.db.commit()
+            self.db.refresh(user)
+        except Exception:
+            self.db.rollback()
+            raise
         return user
 
     def _ensure_default_firm(self) -> BrokerFirm:

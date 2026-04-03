@@ -51,8 +51,12 @@ class PolicyService:
             updated_at=now,
         )
         self.db.add(policy)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def update(self, policy_id: int, firm_id: int, body: PolicyUpdate) -> Policy:
@@ -65,22 +69,34 @@ class PolicyService:
         for field, value in data.items():
             setattr(policy, field, value)
         policy.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def advance_renewal_stage(self, policy_id: int, firm_id: int, new_stage: str) -> Policy:
         policy = self._get_or_raise(policy_id, firm_id)
         policy.renewal_stage = self._parse_renewal_stage(new_stage)
         policy.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def delete(self, policy_id: int, firm_id: int) -> None:
         policy = self._get_or_raise(policy_id, firm_id)
         self.db.delete(policy)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def get_policies_needing_renewal_notification(
         self, firm_id: int, threshold_days: int

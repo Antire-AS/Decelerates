@@ -20,8 +20,12 @@ class IddService:
             **data,
         )
         self.db.add(row)
-        self.db.commit()
-        self.db.refresh(row)
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
         return row
 
     def get(self, orgnr: str, firm_id: int, idd_id: int) -> IddBehovsanalyse:
@@ -30,7 +34,11 @@ class IddService:
     def delete(self, orgnr: str, firm_id: int, idd_id: int) -> None:
         row = self._get_or_raise(orgnr, firm_id, idd_id)
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_or_raise(self, orgnr: str, firm_id: int, idd_id: int) -> IddBehovsanalyse:
         row = (

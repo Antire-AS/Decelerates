@@ -211,8 +211,12 @@ class DocumentService:
             tags=tags or None,
         )
         self.db.add(doc)
-        self.db.commit()
-        self.db.refresh(doc)
+        try:
+            self.db.commit()
+            self.db.refresh(doc)
+        except Exception:
+            self.db.rollback()
+            raise
         return doc
 
     def remove_document(self, doc_id: int) -> bool:
@@ -221,7 +225,11 @@ class DocumentService:
         if not doc:
             return False
         self.db.delete(doc)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return True
 
     def find_similar(self, doc: InsuranceDocument, limit: int = 3) -> list:
@@ -270,7 +278,11 @@ class DocumentService:
             self.db.add(row)
             self.db.flush()
             saved.append({"id": row.id, "filename": row.filename, "insurer_name": row.insurer_name})
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return saved
 
     def remove_offer(self, offer_id: int, orgnr: str) -> bool:
@@ -281,7 +293,11 @@ class DocumentService:
         if not row:
             return False
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return True
 
 
@@ -335,7 +351,11 @@ def update_offer_status(offer_id: int, orgnr: str, status: str, db: Session) -> 
         row.status = OfferStatus(status)
     except ValueError:
         return False
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return True
 
 

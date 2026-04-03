@@ -382,8 +382,8 @@ def _agent_discover_pdfs_azure_openai(
             if m:
                 try:
                     return json.loads(m.group())
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Azure OpenAI agent JSON parse failed: %s", exc)
             return []
         if not msg.tool_calls:
             break

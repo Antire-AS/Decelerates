@@ -38,7 +38,11 @@ class GdprService:
             .filter(CompanyChunk.orgnr == orgnr)
             .delete(synchronize_session=False)
         )
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return {"orgnr": orgnr, "deleted_at": now.isoformat(), "chunks_removed": chunks_deleted}
 
     def export_company_data(self, orgnr: str) -> dict[str, Any]:
@@ -108,7 +112,11 @@ class GdprService:
                 self.db.query(model).filter(model.orgnr == orgnr).delete(synchronize_session=False)
             self.db.delete(company)
             count += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return count
 
     def _get_company(self, orgnr: str) -> Company:

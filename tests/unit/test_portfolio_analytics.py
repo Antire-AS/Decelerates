@@ -321,8 +321,15 @@ def _db_for_alerts(orgnrs, histories):
     pcs = [SimpleNamespace(orgnr=o) for o in orgnrs]
     companies = [SimpleNamespace(orgnr=o, navn=f"Co {o}") for o in orgnrs]
     db.query.return_value.filter.return_value.all.side_effect = [pcs, companies]
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .limit.return_value.all.side_effect = [histories.get(o, []) for o in orgnrs]
+    # Batch history: flat list with orgnr injected (new non-N+1 implementation)
+    all_hist = []
+    for o in orgnrs:
+        for h in histories.get(o, []):
+            all_hist.append(SimpleNamespace(
+                orgnr=o, year=h.year, revenue=h.revenue,
+                equity_ratio=h.equity_ratio, antall_ansatte=h.antall_ansatte,
+            ))
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = all_hist
     return db
 
 

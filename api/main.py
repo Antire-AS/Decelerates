@@ -67,12 +67,13 @@ from api.routers import (
 app = FastAPI(title="Broker Accelerator API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-_cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_methods=["GET", "HEAD", "OPTIONS"],
-    allow_headers=["*"],
+    allow_methods=["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
     expose_headers=["Content-Range", "Accept-Ranges", "Content-Length"],
 )
 
@@ -166,13 +167,15 @@ def on_startup():
 
     import asyncio
 
+    _job_logger = logging.getLogger("api.job_worker")
+
     async def _job_worker():
         from api.db import SessionLocal as _SL
         while True:
             try:
                 JobQueueService.process_pending(db_factory=_SL)
-            except Exception:
-                pass
+            except Exception as _exc:
+                _job_logger.error("Job worker error: %s", _exc, exc_info=True)
             await asyncio.sleep(10)
 
     asyncio.get_event_loop().create_task(_job_worker())

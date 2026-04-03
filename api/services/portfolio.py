@@ -29,8 +29,12 @@ class PortfolioService:
             created_at=datetime.now(timezone.utc).isoformat(),
         )
         self.db.add(p)
-        self.db.commit()
-        self.db.refresh(p)
+        try:
+            self.db.commit()
+            self.db.refresh(p)
+        except Exception:
+            self.db.rollback()
+            raise
         return p
 
     def list_portfolios(self, firm_id: int) -> list[Portfolio]:
@@ -53,7 +57,11 @@ class PortfolioService:
     def delete(self, portfolio_id: int, firm_id: int) -> None:
         p = self.get(portfolio_id, firm_id)
         self.db.delete(p)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def add_company(self, portfolio_id: int, orgnr: str) -> None:
         self.get(portfolio_id)  # raises if missing
@@ -68,7 +76,11 @@ class PortfolioService:
                 orgnr=orgnr,
                 added_at=datetime.now(timezone.utc).isoformat(),
             ))
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise
 
     def remove_company(self, portfolio_id: int, orgnr: str) -> None:
         row = (
@@ -78,9 +90,33 @@ class PortfolioService:
         )
         if row:
             self.db.delete(row)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise
 
     # ── Risk summary ──────────────────────────────────────────────────────────
+
+    def _fetch_latest_hist_map(self, orgnrs: list) -> dict:
+        """Batch-load the most recent CompanyHistory row for each orgnr. Returns {orgnr: hist}."""
+        from sqlalchemy import func
+        sq = (
+            self.db.query(
+                CompanyHistory.orgnr,
+                func.max(CompanyHistory.year).label("max_year"),
+            )
+            .filter(CompanyHistory.orgnr.in_(orgnrs))
+            .group_by(CompanyHistory.orgnr)
+            .subquery()
+        )
+        return {
+            h.orgnr: h
+            for h in self.db.query(CompanyHistory).join(
+                sq,
+                (CompanyHistory.orgnr == sq.c.orgnr) & (CompanyHistory.year == sq.c.max_year),
+            ).all()
+        }
 
     def get_risk_summary(self, portfolio_id: int) -> list[dict]:
         """Return one risk row per company in the portfolio, merging DB + latest history."""
@@ -89,28 +125,28 @@ class PortfolioService:
             .filter(PortfolioCompany.portfolio_id == portfolio_id)
             .all()
         )
+        if not rows:
+            return []
+        orgnrs = [pc.orgnr for pc in rows]
+        company_map = {
+            c.orgnr: c
+            for c in self.db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+        }
+        hist_map = self._fetch_latest_hist_map(orgnrs)
         result = []
         for pc in rows:
-            company = self.db.query(Company).filter(Company.orgnr == pc.orgnr).first()
-            hist = (
-                self.db.query(CompanyHistory)
-                .filter(CompanyHistory.orgnr == pc.orgnr)
-                .order_by(CompanyHistory.year.desc())
-                .first()
-            )
+            company = company_map.get(pc.orgnr)
+            hist = hist_map.get(pc.orgnr)
             if company:
-                revenue = (hist.revenue if hist else None) or company.sum_driftsinntekter
-                equity = (hist.equity if hist else None) or company.sum_egenkapital
-                equity_ratio = (hist.equity_ratio if hist else None) or company.equity_ratio
                 result.append({
                     "orgnr": pc.orgnr,
                     "navn": company.navn or pc.orgnr,
                     "kommune": company.kommune,
                     "naeringskode": company.naeringskode1_beskrivelse,
                     "regnskapsår": hist.year if hist else company.regnskapsår,
-                    "revenue": revenue,
-                    "equity": equity,
-                    "equity_ratio": equity_ratio,
+                    "revenue": (hist.revenue if hist else None) or company.sum_driftsinntekter,
+                    "equity": (hist.equity if hist else None) or company.sum_egenkapital,
+                    "equity_ratio": (hist.equity_ratio if hist else None) or company.equity_ratio,
                     "risk_score": company.risk_score,
                     "added_at": pc.added_at,
                 })
@@ -252,15 +288,22 @@ def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
         c.orgnr: c.navn
         for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
     }
+    # Batch-load last 2 history rows per orgnr (avoids N+1)
+    all_history = (
+        db.query(CompanyHistory)
+        .filter(CompanyHistory.orgnr.in_(orgnrs))
+        .order_by(CompanyHistory.orgnr, CompanyHistory.year.desc())
+        .all()
+    )
+    hist_map: dict[str, list] = {}
+    for h in all_history:
+        bucket = hist_map.setdefault(h.orgnr, [])
+        if len(bucket) < 2:
+            bucket.append(h)
+
     alerts: list[dict] = []
     for orgnr in orgnrs:
-        history = (
-            db.query(CompanyHistory)
-            .filter(CompanyHistory.orgnr == orgnr)
-            .order_by(CompanyHistory.year.desc())
-            .limit(2)
-            .all()
-        )
+        history = hist_map.get(orgnr, [])
         if len(history) < 2:
             continue
         curr, prev = history[0], history[1]

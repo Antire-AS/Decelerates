@@ -27,7 +27,11 @@ class PdfSourcesService:
         # Upload to blob if not already stored (skip re-upload on subsequent upserts)
         if not getattr(existing, "blob_url", None):
             existing.blob_url = _upload_pdf_to_blob(url, orgnr, year, label)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return existing
 
     def save_insurance_document(
@@ -47,7 +51,11 @@ class PdfSourcesService:
             uploaded_at=datetime.now(timezone.utc).isoformat(),
         )
         self.db.add(doc)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return doc
 
     def delete_history_year(self, orgnr: str) -> int:
@@ -57,7 +65,11 @@ class PdfSourcesService:
             .filter(CompanyHistory.orgnr == orgnr)
             .delete()
         )
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return deleted
 
 

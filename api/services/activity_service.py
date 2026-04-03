@@ -40,22 +40,34 @@ class ActivityService:
             created_at=datetime.now(timezone.utc),
         )
         self.db.add(activity)
-        self.db.commit()
-        self.db.refresh(activity)
+        try:
+            self.db.commit()
+            self.db.refresh(activity)
+        except Exception:
+            self.db.rollback()
+            raise
         return activity
 
     def update(self, activity_id: int, firm_id: int, body: ActivityUpdate) -> Activity:
         activity = self._get_or_raise(activity_id, firm_id)
         for field, value in body.model_dump(exclude_none=True).items():
             setattr(activity, field, value)
-        self.db.commit()
-        self.db.refresh(activity)
+        try:
+            self.db.commit()
+            self.db.refresh(activity)
+        except Exception:
+            self.db.rollback()
+            raise
         return activity
 
     def delete(self, activity_id: int, firm_id: int) -> None:
         activity = self._get_or_raise(activity_id, firm_id)
         self.db.delete(activity)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_or_raise(self, activity_id: int, firm_id: int) -> Activity:
         a = (

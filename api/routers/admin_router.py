@@ -9,8 +9,10 @@ Covers:
 import os
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+
+from api.limiter import limiter
 
 from api.auth import CurrentUser, get_current_user, get_optional_user
 from api.container import resolve
@@ -35,25 +37,29 @@ def _get_notification() -> NotificationPort:
 # ── Admin: reset + demo seed ───────────────────────────────────────────────────
 
 @router.delete("/admin/reset")
-def admin_reset(svc: AdminService = Depends(_admin_svc)) -> dict:
+@limiter.limit("5/hour")
+def admin_reset(request: Request, svc: AdminService = Depends(_admin_svc)) -> dict:
     """Reset collected company data so it will be re-fetched fresh from the web."""
     return svc.reset()
 
 
 @router.post("/admin/demo")
-def admin_demo(svc: AdminService = Depends(_admin_svc)) -> dict:
+@limiter.limit("10/hour")
+def admin_demo(request: Request, svc: AdminService = Depends(_admin_svc)) -> dict:
     """Seed demo portfolio with 8 major Norwegian companies and trigger PDF extraction."""
     return svc.seed_demo()
 
 
 @router.post("/admin/seed-norway-top100")
-def admin_seed_norway_top100(svc: AdminService = Depends(_admin_svc)) -> dict:
+@limiter.limit("10/hour")
+def admin_seed_norway_top100(request: Request, svc: AdminService = Depends(_admin_svc)) -> dict:
     """Seed Norges Topp 100 portfolio, fetch BRREG profiles, queue PDF extraction."""
     return svc.seed_norway_top100()
 
 
 @router.post("/admin/seed-crm-demo")
-def seed_crm_demo(svc: AdminService = Depends(_admin_svc)) -> dict:
+@limiter.limit("10/hour")
+def seed_crm_demo(request: Request, svc: AdminService = Depends(_admin_svc)) -> dict:
     """Seed realistic demo policies, claims, and activities for the demo companies."""
     return svc.seed_crm_demo()
 
