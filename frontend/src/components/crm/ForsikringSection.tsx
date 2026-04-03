@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText, Upload } from "lucide-react";
 import { fmtNok } from "@/lib/format";
+import CoverageGapSection from "@/components/crm/CoverageGapSection";
 
 const PRIORITY_COLOR: Record<string, string> = {
   critical: "text-red-600", high: "text-orange-500",
@@ -94,6 +95,7 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
 
   return (
     <div className="space-y-2">
+      <CoverageGapSection orgnr={orgnr} />
       {/* Insurance needs */}
       <div className="broker-card">
         <button onClick={() => setNeedsOpen((o) => !o)}

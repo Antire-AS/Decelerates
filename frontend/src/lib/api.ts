@@ -32,6 +32,8 @@ import type {
   Insurer,
   Submission,
   Recommendation,
+  CoverageGap,
+  CoverageGapItem,
 } from "./api-types";
 
 export type {
@@ -62,6 +64,8 @@ export type {
   Insurer,
   Submission,
   Recommendation,
+  CoverageGap,
+  CoverageGapItem,
 } from "./api-types";
 
 import { downloadFile } from "./api-utils";
@@ -533,6 +537,11 @@ export const createOrgIdd = (orgnr: string, body: Partial<IddBehovsanalyse>) =>
 
 export const deleteOrgIdd = (orgnr: string, iddId: number) =>
   apiFetch<void>(`/org/${orgnr}/idd/${iddId}`, { method: "DELETE" });
+
+// ── Coverage gap ──────────────────────────────────────────────────────────────
+
+export const getOrgCoverageGap = (orgnr: string) =>
+  apiFetch<CoverageGap>(`/org/${orgnr}/coverage-gap`);
 
 // ── Recommendations ───────────────────────────────────────────────────────────
 

@@ -61,6 +61,7 @@ from api.routers import (
     idd,
     insurers,
     recommendations,
+    coverage,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -214,6 +215,7 @@ app.include_router(analytics.router)
 app.include_router(idd.router)
 app.include_router(insurers.router)
 app.include_router(recommendations.router)
+app.include_router(coverage.router)
 app.include_router(audit.router)
 app.include_router(gdpr.router)
 

@@ -275,6 +275,26 @@ export interface ClientToken {
   created_at: string;
 }
 
+export interface CoverageGapItem {
+  type: string;
+  priority: "Kritisk" | "Anbefalt" | "Vurder";
+  reason: string;
+  status: "covered" | "gap";
+  estimated_coverage_nok?: number;
+  actual_coverage_nok?: number;
+  actual_insurer?: string;
+  actual_policy_number?: string;
+  coverage_note?: string;
+}
+
+export interface CoverageGap {
+  orgnr: string;
+  items: CoverageGapItem[];
+  covered_count: number;
+  gap_count: number;
+  total_count: number;
+}
+
 export interface Recommendation {
   id: number;
   orgnr: string;
