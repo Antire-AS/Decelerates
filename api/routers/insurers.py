@@ -1,0 +1,155 @@
+"""Insurer entity and submission tracking endpoints."""
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from api.auth import CurrentUser, get_current_user
+from api.db import Insurer, Submission
+from api.dependencies import get_db
+from api.domain.exceptions import NotFoundError
+from api.schemas import InsurerIn, InsurerUpdate, SubmissionIn, SubmissionUpdate
+from api.services.insurer_service import InsurerService
+
+router = APIRouter()
+
+
+def _get_svc(db: Session = Depends(get_db)) -> InsurerService:
+    return InsurerService(db)
+
+
+def _serialize_insurer(row: Insurer) -> dict:
+    return {
+        "id":            row.id,
+        "firm_id":       row.firm_id,
+        "name":          row.name,
+        "org_number":    row.org_number,
+        "contact_name":  row.contact_name,
+        "contact_email": row.contact_email,
+        "contact_phone": row.contact_phone,
+        "appetite":      row.appetite or [],
+        "notes":         row.notes,
+        "created_at":    row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+def _serialize_submission(row: Submission, insurer_name: str | None = None) -> dict:
+    return {
+        "id":                  row.id,
+        "orgnr":               row.orgnr,
+        "insurer_id":          row.insurer_id,
+        "insurer_name":        insurer_name,
+        "product_type":        row.product_type,
+        "requested_at":        row.requested_at.isoformat() if row.requested_at else None,
+        "status":              row.status.value if row.status else "pending",
+        "premium_offered_nok": row.premium_offered_nok,
+        "notes":               row.notes,
+        "created_by_email":    row.created_by_email,
+        "created_at":          row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+# ── Insurer CRUD ──────────────────────────────────────────────────────────────
+
+@router.get("/insurers")
+def list_insurers(
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> list:
+    rows = svc.list_insurers(user.firm_id)
+    return [_serialize_insurer(r) for r in rows]
+
+
+@router.post("/insurers", status_code=201)
+def create_insurer(
+    body: InsurerIn,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> dict:
+    row = svc.create_insurer(user.firm_id, body.model_dump())
+    return _serialize_insurer(row)
+
+
+@router.put("/insurers/{insurer_id}")
+def update_insurer(
+    insurer_id: int,
+    body: InsurerUpdate,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> dict:
+    try:
+        row = svc.update_insurer(user.firm_id, insurer_id, body.model_dump(exclude_none=True))
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Insurer not found")
+    return _serialize_insurer(row)
+
+
+@router.delete("/insurers/{insurer_id}", status_code=204)
+def delete_insurer(
+    insurer_id: int,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> None:
+    try:
+        svc.delete_insurer(user.firm_id, insurer_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Insurer not found")
+
+
+# ── Submission CRUD ───────────────────────────────────────────────────────────
+
+@router.get("/org/{orgnr}/submissions")
+def list_submissions(
+    orgnr: str,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> list:
+    rows = svc.list_submissions(orgnr, user.firm_id)
+    insurer_map = {
+        r.id: r.name
+        for r in db.query(Insurer).filter(
+            Insurer.id.in_([s.insurer_id for s in rows])
+        ).all()
+    }
+    return [_serialize_submission(r, insurer_map.get(r.insurer_id)) for r in rows]
+
+
+@router.post("/org/{orgnr}/submissions", status_code=201)
+def create_submission(
+    orgnr: str,
+    body: SubmissionIn,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
+) -> dict:
+    data = body.model_dump()
+    row = svc.create_submission(orgnr, user.firm_id, user.email, data)
+    insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
+    return _serialize_submission(row, insurer.name if insurer else None)
+
+
+@router.put("/submissions/{submission_id}")
+def update_submission(
+    submission_id: int,
+    body: SubmissionUpdate,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        row = svc.update_submission(user.firm_id, submission_id, body.model_dump(exclude_none=True))
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
+    return _serialize_submission(row, insurer.name if insurer else None)
+
+
+@router.delete("/submissions/{submission_id}", status_code=204)
+def delete_submission(
+    submission_id: int,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> None:
+    try:
+        svc.delete_submission(user.firm_id, submission_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Submission not found")

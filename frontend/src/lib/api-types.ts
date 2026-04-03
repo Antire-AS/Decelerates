@@ -275,6 +275,33 @@ export interface ClientToken {
   created_at: string;
 }
 
+export interface Insurer {
+  id: number;
+  firm_id: number;
+  name: string;
+  org_number?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  appetite?: string[];
+  notes?: string;
+  created_at: string;
+}
+
+export interface Submission {
+  id: number;
+  orgnr: string;
+  insurer_id: number;
+  insurer_name?: string;
+  product_type: string;
+  requested_at?: string;
+  status: "pending" | "quoted" | "declined" | "withdrawn";
+  premium_offered_nok?: number;
+  notes?: string;
+  created_by_email?: string;
+  created_at: string;
+}
+
 export interface ClientPortalProfile {
   orgnr: string;
   navn?: string;

@@ -1,14 +1,17 @@
 """Policy register and renewal pipeline endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
 from api.container import resolve
+from api.db import BrokerSettings
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.ports.driven.notification_port import NotificationPort
 from api.schemas import PolicyIn, PolicyUpdate, RenewalAdvanceIn
 from api.services.audit import log_audit
+from api.services.pdf_certificate import generate_certificate_pdf
 from api.services.policy_service import PolicyService
 
 router = APIRouter()
@@ -108,6 +111,38 @@ def delete_policy(
         raise HTTPException(status_code=404, detail=str(e))
     log_audit(db, "policy.delete", orgnr=orgnr, actor_email=user.email,
               detail={"policy_id": policy_id})
+
+
+@router.get("/org/{orgnr}/certificate/pdf")
+def get_certificate_pdf(
+    orgnr: str,
+    db: Session = Depends(get_db),
+    svc: PolicyService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> Response:
+    """Generate a Forsikringsbevis PDF for all active policies of a client."""
+    from api.db import Company
+    company = db.query(Company).filter(Company.orgnr == orgnr).first()
+    company_name = company.navn if company else orgnr
+
+    policies = [_serialize(p) for p in svc.list_by_orgnr(orgnr, user.firm_id)]
+    broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+    broker = {}
+    if broker_row:
+        broker = {
+            "firm_name":     broker_row.firm_name,
+            "contact_name":  broker_row.contact_name,
+            "contact_email": broker_row.contact_email,
+            "contact_phone": broker_row.contact_phone,
+        }
+
+    pdf_bytes = generate_certificate_pdf(orgnr, company_name, policies, broker)
+    filename = f"forsikringsbevis_{orgnr}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/policies")

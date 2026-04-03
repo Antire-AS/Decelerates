@@ -406,6 +406,46 @@ class IddBehovsanalyse(Base):
     fee_amount_nok             = Column(Float, nullable=True)
 
 
+class SubmissionStatus(enum.Enum):
+    pending   = "pending"
+    quoted    = "quoted"
+    declined  = "declined"
+    withdrawn = "withdrawn"
+
+
+class Insurer(Base):
+    """A known insurance company the broker places business with."""
+    __tablename__ = "insurers"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    firm_id       = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    name          = Column(String, nullable=False)
+    org_number    = Column(String(9), nullable=True)
+    contact_name  = Column(String, nullable=True)
+    contact_email = Column(String, nullable=True)
+    contact_phone = Column(String, nullable=True)
+    appetite      = Column(JSON, nullable=True)   # ["Eiendom", "Ansvar", "Cyber", ...]
+    notes         = Column(String, nullable=True)
+    created_at    = Column(DateTime(timezone=True), nullable=False)
+
+
+class Submission(Base):
+    """A market approach — broker approached an insurer on behalf of a client."""
+    __tablename__ = "submissions"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=False, index=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    insurer_id          = Column(Integer, ForeignKey("insurers.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_type        = Column(String, nullable=False)
+    requested_at        = Column(Date, nullable=True)
+    status              = Column(SAEnum(SubmissionStatus, name="submission_status", create_type=False), nullable=False, default=SubmissionStatus.pending)
+    premium_offered_nok = Column(Float, nullable=True)
+    notes               = Column(String, nullable=True)
+    created_by_email    = Column(String, nullable=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False)
+
+
 class AuditLog(Base):
     """Immutable audit trail — records key broker actions for compliance and debugging."""
     __tablename__ = "audit_log"

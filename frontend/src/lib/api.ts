@@ -29,6 +29,8 @@ import type {
   IddBehovsanalyse,
   ClientToken,
   ClientPortalProfile,
+  Insurer,
+  Submission,
 } from "./api-types";
 
 export type {
@@ -56,6 +58,8 @@ export type {
   IddBehovsanalyse,
   ClientToken,
   ClientPortalProfile,
+  Insurer,
+  Submission,
 } from "./api-types";
 
 import { downloadFile } from "./api-utils";
@@ -527,6 +531,39 @@ export const createOrgIdd = (orgnr: string, body: Partial<IddBehovsanalyse>) =>
 
 export const deleteOrgIdd = (orgnr: string, iddId: number) =>
   apiFetch<void>(`/org/${orgnr}/idd/${iddId}`, { method: "DELETE" });
+
+// ── Certificate of Insurance ──────────────────────────────────────────────────
+
+export const downloadCertificatePdf = (orgnr: string) =>
+  downloadFile(`/bapi/org/${orgnr}/certificate/pdf`, `forsikringsbevis_${orgnr}.pdf`);
+
+// ── Insurers ──────────────────────────────────────────────────────────────────
+
+export const getInsurers = () =>
+  apiFetch<Insurer[]>("/insurers");
+
+export const createInsurer = (data: Omit<Insurer, "id" | "firm_id" | "created_at">) =>
+  apiFetch<Insurer>("/insurers", { method: "POST", body: JSON.stringify(data) });
+
+export const updateInsurer = (id: number, data: Partial<Omit<Insurer, "id" | "firm_id" | "created_at">>) =>
+  apiFetch<Insurer>(`/insurers/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteInsurer = (id: number) =>
+  apiFetch<void>(`/insurers/${id}`, { method: "DELETE" });
+
+// ── Submissions ───────────────────────────────────────────────────────────────
+
+export const getOrgSubmissions = (orgnr: string) =>
+  apiFetch<Submission[]>(`/org/${orgnr}/submissions`);
+
+export const createSubmission = (orgnr: string, data: Omit<Submission, "id" | "orgnr" | "insurer_name" | "created_by_email" | "created_at">) =>
+  apiFetch<Submission>(`/org/${orgnr}/submissions`, { method: "POST", body: JSON.stringify(data) });
+
+export const updateSubmission = (id: number, data: Pick<Submission, "status"> & Partial<Pick<Submission, "premium_offered_nok" | "requested_at" | "notes">>) =>
+  apiFetch<Submission>(`/submissions/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteSubmission = (id: number) =>
+  apiFetch<void>(`/submissions/${id}`, { method: "DELETE" });
 
 // ── Client tokens ─────────────────────────────────────────────────────────────
 

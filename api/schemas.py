@@ -188,3 +188,43 @@ class ActivityUpdate(BaseModel):
 
 class UserRoleUpdate(BaseModel):
     role: str  # "admin" | "broker" | "viewer"
+
+
+# ── Insurers ─────────────────────────────────────────────────────────────────
+
+class InsurerIn(BaseModel):
+    name:          str
+    org_number:    Optional[str] = None
+    contact_name:  Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    appetite:      Optional[List[str]] = None
+    notes:         Optional[str] = None
+
+
+class InsurerUpdate(BaseModel):
+    name:          Optional[str] = None
+    org_number:    Optional[str] = None
+    contact_name:  Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    appetite:      Optional[List[str]] = None
+    notes:         Optional[str] = None
+
+
+# ── Submissions ───────────────────────────────────────────────────────────────
+
+class SubmissionIn(BaseModel):
+    insurer_id:          int
+    product_type:        str
+    requested_at:        Optional[date] = None
+    status:              str = "pending"   # pending | quoted | declined | withdrawn
+    premium_offered_nok: Optional[float] = None
+    notes:               Optional[str] = None
+
+
+class SubmissionUpdate(BaseModel):
+    status:              Optional[str] = None
+    premium_offered_nok: Optional[float] = None
+    requested_at:        Optional[date] = None
+    notes:               Optional[str] = None
