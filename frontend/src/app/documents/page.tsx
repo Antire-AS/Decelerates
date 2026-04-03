@@ -10,10 +10,7 @@ import {
 } from "@/lib/api";
 import { Loader2, Upload, Trash2, Download, MessageSquare, Sparkles, FileText, Link2, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-
-function fmtDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
+import { fmtDate } from "@/lib/format";
 
 const KEYPOINT_LABELS: Record<string, string> = {
   om_dokumentet: "Om dokumentet",

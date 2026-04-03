@@ -4,22 +4,9 @@ import dynamic from "next/dynamic";
 import { ExternalLink, AlertTriangle, Shield, Users, TrendingUp } from "lucide-react";
 import RiskBadge from "@/components/company/RiskBadge";
 import type { HistoryRow } from "@/lib/api-types";
+import { fmt, fmtMnok } from "@/lib/format";
 
 const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
-
-function fmt(v: unknown): string {
-  if (v == null) return "–";
-  if (typeof v === "number")
-    return new Intl.NumberFormat("nb-NO").format(v);
-  return String(v);
-}
-
-function fmtMnok(v: unknown): string {
-  if (v == null || v === "") return "–";
-  const n = Number(v);
-  if (isNaN(n)) return "–";
-  return `${(n / 1_000_000).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} MNOK`;
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

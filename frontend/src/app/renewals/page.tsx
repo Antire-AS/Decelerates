@@ -3,14 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { getRenewals, advanceRenewalStage, type Renewal } from "@/lib/api";
-
-function fmt(n: number) {
-  return new Intl.NumberFormat("nb-NO").format(n);
-}
-
-function fmtDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
+import { fmt, fmtDate } from "@/lib/format";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";

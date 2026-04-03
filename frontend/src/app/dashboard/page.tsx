@@ -7,14 +7,12 @@ import { getDashboard, getCompanies, type DashboardData, type Company } from "@/
 import MetricCard from "@/components/dashboard/MetricCard";
 import RiskBadge from "@/components/company/RiskBadge";
 import { Search, RotateCcw, BarChart2, FolderOpen, AlertTriangle } from "lucide-react";
+import { fmt } from "@/lib/format";
 
 const ACTIVITY_ICONS: Record<string, string> = {
   call: "📞", email: "📧", meeting: "🤝", note: "📝", task: "✅",
 };
 
-function fmt(n: number) {
-  return new Intl.NumberFormat("nb-NO").format(n);
-}
 
 export default function DashboardPage() {
   const { data, isLoading: dashLoading } = useSWR<DashboardData>(

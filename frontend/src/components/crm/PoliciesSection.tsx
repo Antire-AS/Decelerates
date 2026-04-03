@@ -7,6 +7,7 @@ import {
 } from "@/lib/api";
 import { Trash2, Plus, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { fmtNok } from "@/lib/format";
 
 const PRODUCT_TYPES = [
   "Yrkesskade", "Ansvarsforsikring", "Eiendomsforsikring", "Cyberforsikring",
@@ -23,9 +24,6 @@ function daysBadge(renewalDate?: string) {
   return <span className="text-xs text-green-700">🟢 {days} dager</span>;
 }
 
-function fmtNok(n?: number) {
-  return n ? `kr ${new Intl.NumberFormat("nb-NO").format(n)}` : null;
-}
 
 export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
   orgnr: string;
@@ -109,7 +107,7 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
                       <p className="text-xs text-[#8A7F74] mt-0.5">
                         {[
                           p.policy_number && `Avtalenr: ${p.policy_number}`,
-                          fmtNok(p.annual_premium_nok) && `Premie: ${fmtNok(p.annual_premium_nok)}`,
+                          p.annual_premium_nok && `Premie: ${fmtNok(p.annual_premium_nok)}`,
                           p.commission_rate_pct != null && `Provisjon: ${p.commission_rate_pct}%`,
                         ].filter(Boolean).join(" · ")}
                       </p>

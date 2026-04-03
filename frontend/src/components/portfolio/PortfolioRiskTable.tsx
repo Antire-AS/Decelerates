@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Loader2, Trash2 } from "lucide-react";
 import { type PortfolioRiskRow } from "@/lib/api";
+import { fmtMnok } from "@/lib/format";
 
 const RISK_BANDS = [
   { label: "Lav (0–39)",      min: 0,  max: 39,  color: "#27AE60" },
@@ -16,11 +17,6 @@ function band(score?: number) {
   if (score < 40) return 0;
   if (score < 70) return 1;
   return 2;
-}
-
-function fmtMnok(v?: number) {
-  if (!v) return "–";
-  return `${(v / 1e6).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} MNOK`;
 }
 
 interface Props {

@@ -6,6 +6,7 @@ import {
   getOrgClaims, createClaim, deleteClaim, type Claim, type Policy,
 } from "@/lib/api";
 import { Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { fmtNok } from "@/lib/format";
 
 const STATUS_ICON: Record<string, string> = {
   open: "🔵", in_review: "🟡", settled: "🟢", rejected: "🔴",
@@ -14,9 +15,6 @@ const STATUS_LABEL: Record<string, string> = {
   open: "Åpen", in_review: "Under behandling", settled: "Avgjort", rejected: "Avvist",
 };
 
-function fmtNok(n?: number) {
-  return n ? `kr ${new Intl.NumberFormat("nb-NO").format(n)}` : null;
-}
 
 export default function ClaimsSection({ orgnr, policies }: {
   orgnr: string;
@@ -89,8 +87,8 @@ export default function ClaimsSection({ orgnr, policies }: {
                       <p className="text-xs text-[#8A7F74]">
                         {[
                           c.incident_date && `Hendelse: ${c.incident_date}`,
-                          fmtNok(c.estimated_amount_nok) && `Estimert: ${fmtNok(c.estimated_amount_nok)}`,
-                          fmtNok(c.settled_amount_nok) && `Oppgjort: ${fmtNok(c.settled_amount_nok)}`,
+                          c.estimated_amount_nok && `Estimert: ${fmtNok(c.estimated_amount_nok)}`,
+                          c.settled_amount_nok && `Oppgjort: ${fmtNok(c.settled_amount_nok)}`,
                         ].filter(Boolean).join(" · ")}
                       </p>
                     </div>

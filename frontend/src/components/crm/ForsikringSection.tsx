@@ -8,6 +8,7 @@ import {
   type InsuranceNeed, type InsuranceOffer,
 } from "@/lib/api";
 import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText, Upload } from "lucide-react";
+import { fmtNok } from "@/lib/format";
 
 const PRIORITY_COLOR: Record<string, string> = {
   critical: "text-red-600", high: "text-orange-500",
@@ -20,9 +21,6 @@ const OFFER_STATUS_LABEL: Record<string, string> = {
   pending: "Venter", reviewed: "Gjennomgått", accepted: "Akseptert", rejected: "Avvist",
 };
 
-function fmtNok(n?: number) {
-  return n ? `kr ${new Intl.NumberFormat("nb-NO").format(n)}` : "–";
-}
 
 function fmtRange(r?: { low: number; mid: number; high: number }) {
   if (!r) return "–";
