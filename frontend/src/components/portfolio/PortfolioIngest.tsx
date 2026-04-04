@@ -65,7 +65,9 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
     const ac = new AbortController();
     abortRef.current = ac;
 
-    const url = `/bapi/portfolio/${portfolioId}/ingest/stream${includePdfs ? "?include_pdfs=true" : ""}`;
+    // Use the dedicated streaming Route Handler (/api/portfolio/[id]/ingest-stream)
+    // rather than the /bapi rewrite, which may buffer chunks before forwarding.
+    const url = `/api/portfolio/${portfolioId}/ingest-stream${includePdfs ? "?include_pdfs=true" : ""}`;
 
     try {
       const res = await fetch(url, { signal: ac.signal });
