@@ -79,9 +79,7 @@ class CommissionService:
         policy_list = []
 
         for p in policies:
-            comm = p.commission_amount_nok or 0.0
-            if comm == 0.0 and p.commission_rate_pct and p.annual_premium_nok:
-                comm = p.annual_premium_nok * p.commission_rate_pct / 100.0
+            comm = _calc_policy_commission(p)
             total_lifetime += comm
             if p.created_at and p.created_at.year == now.year:
                 total_ytd += comm
