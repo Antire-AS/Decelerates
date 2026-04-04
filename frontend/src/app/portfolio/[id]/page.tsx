@@ -6,7 +6,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import {
-  getPortfolios,
+  getPortfolio,
   getPortfolioRisk,
   getPortfolioAlerts,
   getPortfolioConcentration,
@@ -36,8 +36,10 @@ export default function PortfolioDetailPage({
   const { id } = use(params);
   const portfolioId = Number(id);
 
-  const { data: portfolios } = useSWR<PortfolioItem[]>("portfolios", getPortfolios);
-  const portfolio = portfolios?.find((p) => p.id === portfolioId);
+  const { data: portfolio } = useSWR<PortfolioItem>(
+    `portfolio-${portfolioId}`,
+    () => getPortfolio(portfolioId),
+  );
 
   const { data: risk, mutate: mutateRisk } = useSWR<PortfolioRiskRow[]>(
     `portfolio-risk-${portfolioId}`,
@@ -96,7 +98,7 @@ export default function PortfolioDetailPage({
     }
   }
 
-  if (!portfolios) {
+  if (!portfolio && portfolio !== null) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" />

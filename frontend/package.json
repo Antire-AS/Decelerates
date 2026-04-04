@@ -26,6 +26,7 @@
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
     "recharts": "^2.15.0",
+    "sonner": "^1.7.4",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.5"
   },

@@ -4,6 +4,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import AppShell from "@/components/layout/AppShell";
 import Providers from "@/providers";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Broker Accelerator",
@@ -24,6 +25,7 @@ export default function RootLayout({
               <ErrorBoundary>{children}</ErrorBoundary>
             </AppShell>
           </LanguageProvider>
+          <Toaster richColors closeButton position="top-right" />
         </Providers>
       </body>
     </html>

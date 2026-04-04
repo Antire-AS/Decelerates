@@ -13,13 +13,15 @@ import {
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
-import ContactsSection from "@/components/crm/ContactsSection";
-import PoliciesSection from "@/components/crm/PoliciesSection";
-import ClaimsSection from "@/components/crm/ClaimsSection";
-import ActivitiesSection from "@/components/crm/ActivitiesSection";
-import ForsikringSection from "@/components/crm/ForsikringSection";
-import ClientPortalSection from "@/components/crm/ClientPortalSection";
-import SubmissionsSection from "@/components/crm/SubmissionsSection";
+import dynamic from "next/dynamic";
+
+const ContactsSection    = dynamic(() => import("@/components/crm/ContactsSection"));
+const PoliciesSection    = dynamic(() => import("@/components/crm/PoliciesSection"));
+const ClaimsSection      = dynamic(() => import("@/components/crm/ClaimsSection"));
+const ActivitiesSection  = dynamic(() => import("@/components/crm/ActivitiesSection"));
+const ForsikringSection  = dynamic(() => import("@/components/crm/ForsikringSection"));
+const ClientPortalSection = dynamic(() => import("@/components/crm/ClientPortalSection"));
+const SubmissionsSection = dynamic(() => import("@/components/crm/SubmissionsSection"));
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
@@ -33,14 +35,18 @@ export default function OrgProfilePage({
 }) {
   const { orgnr } = use(params);
 
+  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat">(
+    "oversikt",
+  );
+
   const { data: prof, isLoading } = useSWR<OrgProfile>(
     `org-${orgnr}`,
     () => getOrgProfile(orgnr),
   );
   const { data: slaList } = useSWR<unknown[]>("sla", getSlaAgreements);
-  // Policies are fetched here to pass into ClaimsSection (requires policy selector)
+  // Policies only needed in CRM tab — defer until tab is active
   const { data: policies = [] } = useSWR(
-    `policies-${orgnr}`,
+    activeTab === "crm" ? `policies-${orgnr}` : null,
     () => getOrgPolicies(orgnr),
   );
   const { data: submissions = [] } = useSWR(
@@ -50,10 +56,6 @@ export default function OrgProfilePage({
   const { data: recommendations = [] } = useSWR(
     `recommendations-${orgnr}`,
     () => getOrgRecommendations(orgnr),
-  );
-
-  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat">(
-    "oversikt",
   );
 
   // PDF history form state

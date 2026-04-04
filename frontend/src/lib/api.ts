@@ -194,6 +194,8 @@ export const getPortfolioOverview = () =>
 
 export const getPortfolios = () => apiFetch<PortfolioItem[]>("/portfolio");
 
+export const getPortfolio = (id: number) => apiFetch<PortfolioItem>(`/portfolio/${id}`);
+
 export const createPortfolio = (name: string, description = "") =>
   apiFetch<PortfolioItem>("/portfolio", {
     method: "POST",

@@ -43,6 +43,19 @@ def list_portfolios(
     ]
 
 
+@router.get("/portfolio/{portfolio_id}")
+def get_portfolio(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    try:
+        p = svc.get(portfolio_id, user.firm_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
+
+
 @router.delete("/portfolio/{portfolio_id}")
 def delete_portfolio(
     portfolio_id: int,

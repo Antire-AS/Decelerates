@@ -78,6 +78,25 @@ app.add_middleware(
 )
 
 
+def _run_migrations_with_lock(alembic_cfg) -> None:
+    """Run Alembic migrations under a Postgres session-level advisory lock.
+
+    Multiple replicas may start simultaneously; only one acquires the lock and
+    runs migrations. The others wait, then find nothing to do once they proceed.
+    """
+    from sqlalchemy import text
+    from api.db import engine
+
+    _LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
+
+    with engine.connect() as lock_conn:
+        lock_conn.execute(text(f"SELECT pg_advisory_lock({_LOCK_ID})"))
+        try:
+            alembic_command.upgrade(alembic_cfg, "head")
+        finally:
+            lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
+
+
 def _stamp_existing_db_if_needed(alembic_cfg) -> None:
     """If the DB has tables but Alembic hasn't tracked them, stamp the initial revision.
 
@@ -106,7 +125,7 @@ def _stamp_existing_db_if_needed(alembic_cfg) -> None:
 def on_startup():
     alembic_cfg = AlembicConfig("alembic.ini")
     _stamp_existing_db_if_needed(alembic_cfg)
-    alembic_command.upgrade(alembic_cfg, "head")
+    _run_migrations_with_lock(alembic_cfg)
     init_db()
     SearchService().ensure_index()
     db = next(get_db())
