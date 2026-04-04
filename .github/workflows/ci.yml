@@ -59,3 +59,24 @@ jobs:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.18.0
     with:
       ignore-patterns: "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock"
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check and build
+        run: npm run build

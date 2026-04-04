@@ -3,6 +3,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
 import AppShell from "@/components/layout/AppShell";
 import Providers from "@/providers";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "Broker Accelerator",
@@ -19,7 +20,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <LanguageProvider>
-            <AppShell>{children}</AppShell>
+            <AppShell>
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </AppShell>
           </LanguageProvider>
         </Providers>
       </body>

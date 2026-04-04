@@ -20,6 +20,8 @@ import { PortfolioRiskTable } from "@/components/portfolio/PortfolioRiskTable";
 import { PortfolioAlerts } from "@/components/portfolio/PortfolioAlerts";
 import { PortfolioConcentration } from "@/components/portfolio/PortfolioConcentration";
 import { PortfolioChat } from "@/components/portfolio/PortfolioChat";
+import { PortfolioIngest } from "@/components/portfolio/PortfolioIngest";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const PortfolioMap = dynamic(
   () => import("@/components/portfolio/PortfolioMap"),
@@ -185,12 +187,18 @@ export default function PortfolioDetailPage({
       {risk && risk.length > 0 && (
         <div className="broker-card">
           <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Geografisk oversikt</h2>
-          <PortfolioMap rows={risk} />
+          <ErrorBoundary>
+            <PortfolioMap rows={risk} />
+          </ErrorBoundary>
         </div>
       )}
 
-      {/* ── Portfolio chat ── */}
-      <div className="broker-card">
+      {/* ── Ingest + chat ── */}
+      <div className="broker-card space-y-0">
+        <PortfolioIngest
+          portfolioId={portfolioId}
+          onDone={() => { mutateRisk(); }}
+        />
         <PortfolioChat
           chatQuestion={chatQuestion}
           setChatQuestion={setChatQuestion}
@@ -201,6 +209,7 @@ export default function PortfolioDetailPage({
           onSubmit={handleChat}
         />
       </div>
+
     </div>
   );
 }
