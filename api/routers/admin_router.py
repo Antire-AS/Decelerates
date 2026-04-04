@@ -412,3 +412,79 @@ def send_activity_reminders(
         [_to_dict(a) for a in due_today_list],
     )
     return {"sent": sent, "overdue": len(overdue), "due_today": len(due_today_list), "recipient": recipient}
+
+
+@router.post("/admin/trigger-coverage-gap-alerts")
+def trigger_coverage_gap_alerts(
+    db: Session = Depends(get_db),
+    notification: NotificationPort = Depends(_get_notification),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Scan all active clients for coverage gaps and email the broker. Safe for cron."""
+    from api.db import BrokerSettings
+    from api.services.coverage_gap import get_companies_with_gaps
+    from api.services.audit import log_audit
+
+    settings = db.query(BrokerSettings).first()
+    recipient = settings.contact_email if settings else None
+    if not recipient:
+        raise HTTPException(status_code=422, detail="Ingen broker contact_email konfigurert.")
+
+    companies_with_gaps = get_companies_with_gaps(user.firm_id, db)
+    if not companies_with_gaps:
+        return {"sent": False, "companies_with_gaps": 0, "reason": "no gaps found"}
+
+    gap_lines = "\n".join(
+        f"- {c['navn']} ({c['orgnr']}): {c['gap_count']} gap(s) — "
+        + ", ".join(g["type"] for g in c["gaps"])
+        for c in companies_with_gaps
+    )
+    body_html = (
+        "<h2>Dekningsgap-rapport</h2>"
+        f"<p>{len(companies_with_gaps)} kunder har manglende forsikringsdekning:</p>"
+        f"<pre>{gap_lines}</pre>"
+    )
+    sent = notification.send_email(recipient, "Dekningsgap oppdaget i porteføljen", body_html)
+    log_audit(db, "coverage_gap_alert_sent", actor_email=user.email,
+              detail={"companies": len(companies_with_gaps), "recipient": recipient})
+    return {"sent": sent, "companies_with_gaps": len(companies_with_gaps), "recipient": recipient}
+
+
+@router.post("/admin/trigger-renewal-digest")
+def trigger_renewal_digest(
+    db: Session = Depends(get_db),
+    notification: NotificationPort = Depends(_get_notification),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Send a renewal digest for policies expiring within 30 days. Safe for cron."""
+    from api.db import BrokerSettings
+
+    settings = db.query(BrokerSettings).first()
+    recipient = settings.contact_email if settings else None
+    if not recipient:
+        raise HTTPException(status_code=422, detail="Ingen broker contact_email konfigurert.")
+    if not notification.is_configured():
+        raise HTTPException(status_code=503, detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.")
+
+    today = date.today()
+    cutoff = today + timedelta(days=30)
+    policies = db.query(Policy).filter(
+        Policy.firm_id == user.firm_id,
+        Policy.status == PolicyStatus.active,
+        Policy.renewal_date >= today,
+        Policy.renewal_date <= cutoff,
+    ).order_by(Policy.renewal_date.asc()).all()
+
+    renewal_dicts = [
+        {
+            "orgnr": p.orgnr,
+            "insurer": p.insurer,
+            "product_type": p.product_type,
+            "annual_premium_nok": p.annual_premium_nok,
+            "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
+            "days_to_renewal": (p.renewal_date - today).days if p.renewal_date else 0,
+        }
+        for p in policies
+    ]
+    sent = notification.send_renewal_digest(recipient, renewal_dicts)
+    return {"recipient": recipient, "policies_included": len(renewal_dicts), "sent": sent}

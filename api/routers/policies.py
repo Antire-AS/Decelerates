@@ -197,6 +197,19 @@ def get_upcoming_renewals(
     return _enrich_renewals(svc.get_renewals(user.firm_id, days), svc)
 
 
+@router.post("/policies/run-renewal-notifications")
+def run_renewal_notifications(
+    svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+    notification: NotificationPort = Depends(_get_notification),
+) -> dict:
+    """Send renewal threshold emails for all near-expiry active policies."""
+    broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+    broker_email = broker_row.contact_email if broker_row else user.email
+    return svc.run_renewal_notifications(user.firm_id, notification, broker_email, db)
+
+
 @router.post("/policies/{policy_id}/renewal/advance")
 def advance_renewal_stage(
     policy_id: int,
@@ -227,3 +240,20 @@ def advance_renewal_stage(
         )
 
     return _serialize(policy)
+
+
+@router.post("/policies/{policy_id}/renewal-brief")
+def get_renewal_brief(
+    policy_id: int,
+    svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Generate an AI renewal brief for a policy (coverage gaps + market history)."""
+    from api.services.renewal_agent import RenewalAgentService
+    try:
+        policy = svc._get_or_raise(policy_id, user.firm_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    brief = RenewalAgentService().generate_renewal_brief(policy, db)
+    return {"policy_id": policy_id, "renewal_brief": brief}

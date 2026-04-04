@@ -4,7 +4,10 @@ import logging
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Optional, List, Dict, Any
+
+_LLM_TIMEOUT_SECONDS = 30
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,32 @@ from api.constants import CLAUDE_MODEL, GEMINI_MODEL, VOYAGE_MODEL
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.prompts import CHAT_SYSTEM_PROMPT
 from api.telemetry import llm_calls, llm_duration_ms
+
+
+_INJECTION_PATTERNS = re.compile(
+    r"(ignore\s+previous|system\s*:|assistant\s*:|human\s*:|<\s*/?system\s*>)",
+    re.IGNORECASE,
+)
+
+
+def _sanitize_user_input(text: str, max_chars: int = 4000) -> str:
+    """Strip common prompt injection patterns and hard-cap length."""
+    sanitized = _INJECTION_PATTERNS.sub("", text)
+    return sanitized[:max_chars]
+
+
+def _validate_llm_json(raw: str, required_keys: list[str]) -> dict:
+    """Parse JSON from LLM response and verify required keys are present.
+
+    Raises LlmUnavailableError if the response cannot be parsed or is missing keys.
+    """
+    parsed = _parse_json_from_llm_response(raw)
+    if not isinstance(parsed, dict):
+        raise LlmUnavailableError(f"LLM returned non-JSON response: {raw[:200]}")
+    missing = [k for k in required_keys if k not in parsed]
+    if missing:
+        raise LlmUnavailableError(f"LLM JSON missing required keys: {missing}")
+    return parsed
 
 
 def _parse_json_from_llm_response(raw: str) -> Optional[dict]:
@@ -157,6 +186,7 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
                 model=CLAUDE_MODEL,
                 max_tokens=1024,
                 messages=[{"role": "user", "content": prompt}],
+                timeout=_LLM_TIMEOUT_SECONDS,
             )
             _provider = "claude"
             return msg.content[0].text
@@ -170,9 +200,16 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
             last_exc: Optional[Exception] = None
             for model_name in ordered:
                 try:
-                    response = client.models.generate_content(model=model_name, contents=prompt)
+                    with ThreadPoolExecutor(max_workers=1) as _pool:
+                        future = _pool.submit(
+                            client.models.generate_content, model_name, prompt
+                        )
+                        response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
                     _provider = "gemini"
                     return response.text
+                except FuturesTimeoutError:
+                    logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
+                    continue
                 except Exception as exc:
                     msg = str(exc)
                     if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
@@ -243,6 +280,7 @@ def _llm_answer(context: str, question: str) -> str:
             max_tokens=1024,
             system=CHAT_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": f"Company data:\n{context}\n\nQuestion: {question}"}],
+            timeout=_LLM_TIMEOUT_SECONDS,
         )
         return message.content[0].text
 

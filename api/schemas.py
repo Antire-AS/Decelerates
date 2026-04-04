@@ -237,3 +237,30 @@ class RecommendationIn(BaseModel):
     submission_ids:      Optional[List[int]] = None
     idd_id:              Optional[int] = None
     rationale_text:      Optional[str] = None   # broker can override LLM draft
+
+
+class PolicyCommissionOut(BaseModel):
+    id:                    int
+    policy_number:         Optional[str] = None
+    product_type:          str
+    insurer:               str
+    status:                str
+    annual_premium_nok:    Optional[float] = None
+    commission_rate_pct:   Optional[float] = None
+    commission_amount_nok: float
+
+
+class CommissionSummaryOut(BaseModel):
+    total_commission_ytd:       float
+    total_premium_managed:      float
+    active_policy_count:        int
+    revenue_by_product_type:    dict
+    revenue_by_insurer:         dict
+    renewal_commission_vs_new:  dict
+
+
+class CommissionClientOut(BaseModel):
+    orgnr:                      str
+    total_commission_lifetime:  float
+    total_commission_ytd:       float
+    policies:                   List[PolicyCommissionOut]

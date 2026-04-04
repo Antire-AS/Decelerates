@@ -4,7 +4,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
-from api.db import BrokerSettings, Company, Recommendation, Submission
+from api.db import BrokerSettings, Company, IddBehovsanalyse, Recommendation, Submission
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.schemas import RecommendationIn
@@ -61,6 +61,21 @@ def create_recommendation(
     user: CurrentUser = Depends(get_current_user),
     svc: RecommendationService = Depends(_get_svc),
 ) -> dict:
+    idd_check = (
+        db.query(IddBehovsanalyse)
+        .filter(
+            IddBehovsanalyse.orgnr == orgnr,
+            IddBehovsanalyse.firm_id == user.firm_id,
+        )
+        .order_by(IddBehovsanalyse.created_at.desc())
+        .first()
+    )
+    if not idd_check:
+        raise HTTPException(
+            status_code=422,
+            detail="IDD behovsanalyse må fullføres før en anbefaling kan utstedes.",
+        )
+
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
     company_name = company.navn if company else orgnr
 

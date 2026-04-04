@@ -100,3 +100,18 @@ def delete_behovsanalyse(
         svc.delete(orgnr, user.firm_id, idd_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Behovsanalyse not found")
+
+
+@router.post("/org/{orgnr}/idd/{idd_id}/generate-suitability")
+def generate_suitability(
+    orgnr: str,
+    idd_id: int,
+    user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
+) -> dict:
+    """Generate and store an LLM-written suitability justification for this behovsanalyse."""
+    try:
+        reasoning = svc.generate_suitability_reasoning(orgnr, user.firm_id, idd_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Behovsanalyse not found")
+    return {"idd_id": idd_id, "suitability_basis": reasoning}

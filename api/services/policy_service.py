@@ -8,6 +8,20 @@ from api.db import Policy, PolicyStatus, RenewalStage
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.schemas import PolicyIn, PolicyUpdate
 
+_RENEWAL_THRESHOLDS = [90, 60, 30, 14, 7]
+
+
+def _policy_to_dict(p: Policy) -> dict:
+    return {
+        "id":                 p.id,
+        "policy_number":      p.policy_number or str(p.id),
+        "insurer":            p.insurer,
+        "product_type":       p.product_type,
+        "renewal_date":       p.renewal_date.isoformat() if p.renewal_date else "",
+        "orgnr":              p.orgnr,
+        "annual_premium_nok": p.annual_premium_nok,
+    }
+
 
 class PolicyService:
     def __init__(self, db: Session) -> None:
@@ -140,6 +154,40 @@ class PolicyService:
             .order_by(Policy.renewal_date.asc())
             .all()
         )
+
+    def _notify_threshold(
+        self, firm_id: int, threshold: int, notif_port, broker_email: str, db
+    ) -> tuple[int, int]:
+        """Process one renewal threshold. Returns (notified, skipped) counts."""
+        from api.services.audit import log_audit
+
+        policies = self.get_policies_needing_renewal_notification(firm_id, threshold)
+        if not policies:
+            return 0, 0
+        sent = notif_port.send_renewal_threshold_emails(
+            broker_email, threshold, [_policy_to_dict(p) for p in policies]
+        )
+        if sent:
+            for p in policies:
+                self.mark_renewal_notified(p.id, threshold)
+                log_audit(
+                    db, action="renewal_notification_sent", orgnr=p.orgnr,
+                    actor_email=broker_email,
+                    detail={"threshold_days": threshold, "policy_id": p.id},
+                )
+            return len(policies), 0
+        return 0, len(policies)
+
+    def run_renewal_notifications(
+        self, firm_id: int, notif_port, broker_email: str, db
+    ) -> dict:
+        """Send renewal threshold emails and update last_renewal_notified_days."""
+        notified, skipped = 0, 0
+        for threshold in _RENEWAL_THRESHOLDS:
+            n, s = self._notify_threshold(firm_id, threshold, notif_port, broker_email, db)
+            notified += n
+            skipped += s
+        return {"notified_count": notified, "skipped_count": skipped}
 
     def _get_or_raise(self, policy_id: int, firm_id: int) -> Policy:
         p = (

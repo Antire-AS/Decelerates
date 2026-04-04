@@ -207,6 +207,8 @@ _JUSTIFIED = {
     "_render_comparison_charts",
     # send_renewal_threshold_emails (adapter) — HTML email with 6-column table; single coherent email template
     "send_renewal_threshold_emails",
+    # trigger_renewal_digest — guard checks + DB query + list comprehension + send; single cohesive flow
+    "trigger_renewal_digest",
     # upload_insurance_document — FastAPI endpoint; validation + audit log + service call in one cohesive flow
     "upload_insurance_document",
     # get_recommendation_pdf — PDF generation endpoint with multi-step: DB lookup + LLM + PDF bytes; single flow

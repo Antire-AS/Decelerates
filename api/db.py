@@ -491,6 +491,28 @@ class JobQueue(Base):
     error        = Column(String, nullable=True)
 
 
+class LawfulBasis(enum.Enum):
+    consent               = "consent"
+    legitimate_interest   = "legitimate_interest"
+    contract              = "contract"
+    legal_obligation      = "legal_obligation"
+
+
+class ConsentRecord(Base):
+    """GDPR consent and lawful-basis records per client company."""
+    __tablename__ = "consent_records"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    orgnr             = Column(String(9), nullable=False, index=True)
+    firm_id           = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at        = Column(DateTime(timezone=True), nullable=False)
+    lawful_basis      = Column(SAEnum(LawfulBasis, name="lawful_basis", create_type=False), nullable=False)
+    purpose           = Column(String, nullable=False)   # "insurance_advice" | "credit_check" | "marketing"
+    captured_by_email = Column(String, nullable=False)
+    withdrawn_at      = Column(DateTime(timezone=True), nullable=True)
+    withdrawal_reason = Column(String, nullable=True)
+
+
 def init_db():
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))

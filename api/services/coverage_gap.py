@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from api.db import Company, CompanyHistory, Policy, PolicyStatus
+from api.db import BrokerFirm, Company, CompanyHistory, Policy, PolicyStatus
 from api.use_cases.insurance_needs import estimate_insurance_needs
 
 
@@ -163,3 +163,34 @@ def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any
         "gap_count":     len(items) - covered,
         "total_count":   len(items),
     }
+
+
+def get_companies_with_gaps(firm_id: int, db: Session) -> list[dict]:
+    """Return all companies in the firm's book that have at least one coverage gap."""
+    orgnrs = [
+        r.orgnr
+        for r in db.query(Policy.orgnr)
+        .filter(Policy.firm_id == firm_id, Policy.status == PolicyStatus.active)
+        .distinct()
+        .all()
+    ]
+    results = []
+    for orgnr in orgnrs:
+        try:
+            analysis = analyze_coverage_gap(orgnr, firm_id, db)
+            if analysis["gap_count"] > 0:
+                company = db.query(Company).filter(Company.orgnr == orgnr).first()
+                results.append({
+                    "orgnr":       orgnr,
+                    "navn":        company.navn if company else orgnr,
+                    "gap_count":   analysis["gap_count"],
+                    "total_count": analysis["total_count"],
+                    "gaps": [
+                        {"type": i["type"], "priority": i["priority"]}
+                        for i in analysis["items"]
+                        if i["status"] == "gap"
+                    ],
+                })
+        except Exception:
+            continue
+    return results

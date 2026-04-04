@@ -153,3 +153,39 @@ def delete_submission(
         svc.delete_submission(user.firm_id, submission_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
+
+
+# ── Analytics ────────────────────────────────────────────────────────────────
+
+@router.get("/insurers/match")
+def match_appetite(
+    product_type: str,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> list:
+    """Insurers whose appetite matches the given product type, ranked by fit."""
+    rows = svc.match_appetite(user.firm_id, product_type)
+    return [_serialize_insurer(r) for r in rows]
+
+
+@router.get("/insurers/win-loss")
+def get_win_loss_summary(
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> dict:
+    """Win/loss analysis across all submissions for the firm."""
+    return svc.get_win_loss_summary(user.firm_id)
+
+
+@router.post("/submissions/{submission_id}/draft-email")
+def draft_submission_email(
+    submission_id: int,
+    user: CurrentUser = Depends(get_current_user),
+    svc: InsurerService = Depends(_get_svc),
+) -> dict:
+    """Generate a professional Norwegian submission email to the insurer via LLM."""
+    try:
+        draft = svc.draft_submission_email(user.firm_id, submission_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    return {"submission_id": submission_id, "draft_email": draft}

@@ -40,6 +40,33 @@ class IddService:
             self.db.rollback()
             raise
 
+    def generate_suitability_reasoning(self, orgnr: str, firm_id: int, idd_id: int) -> str:
+        """Use LLM to explain why recommended products are suitable for this client."""
+        from api.services.llm import _llm_answer_raw
+        row = self._get_or_raise(orgnr, firm_id, idd_id)
+        products = ", ".join(row.recommended_products or []) or "ikke spesifisert"
+        prompt = (
+            f"Du er en forsikringsrådgiver. Forklar på norsk (2-3 setninger) "
+            f"hvorfor følgende forsikringsprodukter er egnet for denne kunden:\n"
+            f"Produkter: {products}\n"
+            f"Risikoappetitt: {row.risk_appetite or 'middels'}\n"
+            f"Har ansatte: {'ja' if row.has_employees else 'nei'}\n"
+            f"Har eiendom: {'ja' if row.property_owned else 'nei'}\n"
+            f"Cyber-risiko: {'ja' if row.has_cyber_risk else 'nei'}\n"
+            f"Årsomsetning: {int(row.annual_revenue_nok or 0):,} NOK\n"
+            f"Spesielle krav: {row.special_requirements or 'ingen'}\n\n"
+            "Svar med kun egnethetsvurderingen, ingen introduksjon."
+        )
+        reasoning = _llm_answer_raw(prompt) or ""
+        row.suitability_basis = reasoning
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
+        return reasoning
+
     def _get_or_raise(self, orgnr: str, firm_id: int, idd_id: int) -> IddBehovsanalyse:
         row = (
             self.db.query(IddBehovsanalyse)
