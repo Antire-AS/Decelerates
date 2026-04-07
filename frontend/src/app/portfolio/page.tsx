@@ -111,11 +111,18 @@ export default function PortfolioPage() {
           <h1 className="text-2xl font-bold text-[#2C3E50]">Portefølje</h1>
           <p className="text-sm text-[#8A7F74] mt-1">Oversikt over alle kunder og risikofordeling</p>
         </div>
-        <button onClick={handleSeedDemo} disabled={seeding}
-          className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-50">
-          {seeding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-          Seed demo-data
-        </button>
+        <div className="flex items-center gap-2">
+          <Link href="/portfolio/analytics"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+            <BarChart2 className="w-3 h-3" />
+            Analyse
+          </Link>
+          <button onClick={handleSeedDemo} disabled={seeding}
+            className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-50">
+            {seeding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+            Seed demo-data
+          </button>
+        </div>
       </div>
 
       {seedMsg && <div className="broker-card text-xs text-[#2C3E50]">{seedMsg}</div>}

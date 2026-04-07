@@ -10,11 +10,8 @@ import {
   LayoutDashboard,
   Search,
   BarChart2,
-  TrendingUp,
   RotateCcw,
   FileText,
-  FolderOpen,
-  Video,
   BookOpen,
   Settings,
   Globe,
@@ -23,26 +20,28 @@ import {
   User,
   HelpCircle,
   Building2,
-  ClipboardCheck,
+  Crosshair,
   Menu,
   X,
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
 
+// IA cleanup (2026-04):
+//   - /documents and /videos are now sub-tabs of /knowledge
+//   - /finans is now /portfolio/analytics
+//   - /recommendations now lives inside the company profile CRM tab
+// The standalone routes still exist as redirects so old bookmarks work.
 const NAV_ITEMS = [
-  { href: "/dashboard",       label: "Hjem",                   icon: LayoutDashboard },
-  { href: "/search",          label: "Selskapsøk",             icon: Search },
-  { href: "/portfolio",       label: "Portefølje",             icon: BarChart2 },
-  { href: "/finans",          label: "Finans",                 icon: TrendingUp },
-  { href: "/renewals",        label: "Fornyelser",             icon: RotateCcw },
-  { href: "/idd",             label: "IDD / Behov",            icon: Scale },
-  { href: "/insurers",        label: "Forsikringsselskaper",   icon: Building2 },
-  { href: "/recommendations", label: "Anbefalingsbrev",        icon: ClipboardCheck },
-  { href: "/sla",             label: "Avtaler",                icon: FileText },
-  { href: "/documents",       label: "Dokumenter",             icon: FolderOpen },
-  { href: "/videos",          label: "Videoer",                icon: Video },
-  { href: "/knowledge",       label: "Kunnskapsbase",          icon: BookOpen },
-  { href: "/admin",           label: "Admin",                  icon: Settings },
+  { href: "/dashboard",   label: "Hjem",                 icon: LayoutDashboard },
+  { href: "/search",      label: "Selskapsøk",           icon: Search },
+  { href: "/portfolio",   label: "Portefølje",           icon: BarChart2 },
+  { href: "/prospecting", label: "Prospektering",        icon: Crosshair },
+  { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw },
+  { href: "/idd",         label: "IDD / Behov",          icon: Scale },
+  { href: "/insurers",    label: "Forsikringsselskaper", icon: Building2 },
+  { href: "/sla",         label: "Avtaler",              icon: FileText },
+  { href: "/knowledge",   label: "Kunnskapsbase",        icon: BookOpen },
+  { href: "/admin",       label: "Admin",                icon: Settings },
 ];
 
 function SidebarContent({
