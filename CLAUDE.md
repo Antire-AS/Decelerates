@@ -354,6 +354,35 @@ PDF extraction is **one-time per year** — once stored in `company_history` it 
 
 ---
 
+## Frontend ↔ backend type sync
+
+The frontend imports its API response types from a generated file, **not** hand-written interfaces. This is the safety net for the silent field-name mismatch bug class — if a backend field is renamed and the frontend is not updated, CI fails the PR with a concrete diff.
+
+```
+api/schemas.py                          ← single source of truth (Pydantic)
+  ↓ FastAPI's app.openapi() walks routes
+scripts/dump_openapi.py                 ← Python: dumps schema to JSON
+  ↓
+frontend/src/lib/openapi-schema.json    ← intermediate (gitignored)
+  ↓ openapi-typescript codegen
+frontend/src/lib/api-schema.ts          ← committed; consumers import from here
+  ↓
+frontend/src/lib/api.ts                 ← wrappers re-export the generated types
+```
+
+**To regenerate after a backend response model change:**
+```bash
+cd frontend
+npm run gen:api-types       # runs scripts/dump_openapi.py + openapi-typescript
+git add src/lib/api-schema.ts
+```
+
+**CI verifies it's fresh** via the `api-types-fresh` job in `.github/workflows/ci.yml`. If you rename a field in `api/schemas.py` and forget the codegen step, the PR fails with a diff like `under_avvikling → under_dissolution`.
+
+**Adding new typed endpoints** — for any router endpoint the frontend reads, add `response_model=SomethingOut` to the decorator and define `SomethingOut` in `api/schemas.py`. The codegen picks it up automatically. Endpoints returning bare `dict` produce loose `unknown` types in the TS output, which is exactly how the silent bugs slipped in before.
+
+---
+
 ## Tests
 
 Tests are split into three categories:

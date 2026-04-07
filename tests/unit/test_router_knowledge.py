@@ -189,11 +189,15 @@ def test_trigger_knowledge_index_clears_when_force(client):
 # ── GET /knowledge/index/stats ────────────────────────────────────────────────
 
 def test_knowledge_index_stats_returns_200(client):
-    stats = {"total_chunks": 42, "docs": 5, "videos": 2}
+    # Real get_stats returns total_chunks/doc_chunks/video_chunks
+    stats = {"total_chunks": 42, "doc_chunks": 5, "video_chunks": 2}
     with patch("api.services.knowledge_index.get_stats", return_value=stats):
         resp = client.get("/knowledge/index/stats")
     assert resp.status_code == 200
-    assert resp.json()["total_chunks"] == 42
+    body = resp.json()
+    assert body["total_chunks"] == 42
+    assert body["doc_chunks"] == 5
+    assert body["video_chunks"] == 2
 
 
 # ── POST /knowledge/chat ──────────────────────────────────────────────────────

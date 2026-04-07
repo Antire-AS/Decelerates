@@ -34,11 +34,13 @@ import type {
   Recommendation,
   CoverageGap,
   CoverageGapItem,
+  RiskFactor,
 } from "./api-types";
 
 export type {
   SearchResult,
   OrgProfile,
+  RiskFactor,
   DashboardData,
   Activity,
   Company,
@@ -69,6 +71,27 @@ export type {
 } from "./api-types";
 
 import { downloadFile } from "./api-utils";
+import type { components } from "./api-schema";
+
+// Aliases for generated schema types — re-exported here so callers can do
+// `import { BankruptcyOut } from "@/lib/api"`. To regenerate after a backend
+// change, run `npm run gen:api-types` from frontend/.
+type Schema = components["schemas"];
+export type BankruptcyOut       = Schema["BankruptcyOut"];
+export type BoardMembersOut     = Schema["BoardMembersOut"];
+export type BoardMember         = Schema["BoardMember"];
+export type LicensesOut         = Schema["LicensesOut"];
+export type LicenseItem         = Schema["LicenseItem"];
+export type KoordinaterOut      = Schema["KoordinaterOut"];
+export type StrukturOut         = Schema["StrukturOut"];
+export type BenchmarkOut        = Schema["BenchmarkOut"];
+export type PeerBenchmarkOut    = Schema["PeerBenchmarkOut"];
+export type HistoryOut          = Schema["HistoryOut"];
+export type HistoryRowOut       = Schema["HistoryRowOut"];
+export type ExtractionStatusOut = Schema["ExtractionStatusOut"];
+export type EstimateOut         = Schema["EstimateOut"];
+export type KnowledgeStatsOut   = Schema["KnowledgeStatsOut"];
+export type KnowledgeIndexOut   = Schema["KnowledgeIndexOut"];
 
 const API_BASE =
   typeof window === "undefined"
@@ -112,26 +135,32 @@ export const getOrgProfile = (orgnr: string) =>
   apiFetch<OrgProfile>(`/org/${orgnr}`);
 
 export const getOrgLicenses = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/licenses`);
+  apiFetch<LicensesOut>(`/org/${orgnr}/licenses`);
 
 export const getOrgRoles = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/roles`);
+  apiFetch<BoardMembersOut>(`/org/${orgnr}/roles`);
 
 export const getOrgHistory = (orgnr: string) =>
-  apiFetch<{ orgnr: string; years: HistoryRow[] }>(`/org/${orgnr}/history`)
-    .then((r) => r.years ?? []);
+  apiFetch<HistoryOut>(`/org/${orgnr}/history`)
+    .then((r) => (r.years ?? []) as unknown as HistoryRow[]);
 
 export const getOrgBankruptcy = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/bankruptcy`);
+  apiFetch<BankruptcyOut>(`/org/${orgnr}/bankruptcy`);
 
 export const getOrgStruktur = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/struktur`);
+  apiFetch<StrukturOut>(`/org/${orgnr}/struktur`);
 
 export const getOrgKoordinater = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/koordinater`);
+  apiFetch<KoordinaterOut>(`/org/${orgnr}/koordinater`);
 
 export const getOrgBenchmark = (orgnr: string) =>
-  apiFetch<unknown>(`/org/${orgnr}/benchmark`);
+  apiFetch<BenchmarkOut>(`/org/${orgnr}/benchmark`);
+
+export const getOrgPeerBenchmark = (orgnr: string) =>
+  apiFetch<PeerBenchmarkOut>(`/org/${orgnr}/peer-benchmark`);
+
+export const getOrgEstimate = (orgnr: string) =>
+  apiFetch<EstimateOut>(`/org/${orgnr}/estimate`);
 
 export const getExchangeRate = (currency: string) =>
   apiFetch<{ currency: string; nok_rate: number }>(`/norgesbank/rate/${currency}`);
@@ -139,8 +168,27 @@ export const getExchangeRate = (currency: string) =>
 export const deleteOrgHistory = (orgnr: string) =>
   apiFetch<{ deleted_rows: number }>(`/org/${orgnr}/history`, { method: "DELETE" });
 
-export const getCompanies = (limit = 20, sort_by = "navn") =>
-  apiFetch<Company[]>(`/companies?limit=${limit}&sort_by=${sort_by}`);
+export const getCompanies = (
+  limit = 20,
+  sort_by = "navn",
+  opts: {
+    nace_section?: string;
+    min_revenue?: number;
+    max_revenue?: number;
+    min_risk?: number;
+    max_risk?: number;
+    kommune?: string;
+  } = {},
+) => {
+  const params = new URLSearchParams({ limit: String(limit), sort_by });
+  if (opts.nace_section) params.set("nace_section", opts.nace_section);
+  if (opts.min_revenue != null) params.set("min_revenue", String(opts.min_revenue));
+  if (opts.max_revenue != null) params.set("max_revenue", String(opts.max_revenue));
+  if (opts.min_risk != null)    params.set("min_risk",    String(opts.min_risk));
+  if (opts.max_risk != null)    params.set("max_risk",    String(opts.max_risk));
+  if (opts.kommune) params.set("kommune", opts.kommune);
+  return apiFetch<Company[]>(`/companies?${params}`);
+};
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
@@ -285,7 +333,29 @@ export const knowledgeChat = (question: string, orgnr?: string) =>
   });
 
 export const getKnowledgeStats = () =>
-  apiFetch<{ total_chunks: number; doc_chunks: number; video_chunks: number }>("/knowledge/index/stats");
+  apiFetch<KnowledgeStatsOut>("/knowledge/index/stats");
+
+export const knowledgeSearch = (query: string, limit = 10) => {
+  const params = new URLSearchParams({ query, limit: String(limit) });
+  return apiFetch<Array<{ source: string; chunk_text: string; orgnr: string; created_at?: string }>>(
+    `/knowledge?${params}`,
+  );
+};
+
+export const knowledgeIndex = (force = false) =>
+  apiFetch<KnowledgeIndexOut>(`/knowledge/index?force=${force}`, { method: "POST" });
+
+export const knowledgeSeedRegulations = () =>
+  apiFetch<{ seeded: Array<{ name: string; status: string; chunks?: number }> }>(
+    "/knowledge/seed-regulations",
+    { method: "POST" },
+  );
+
+export const knowledgeIngest = (orgnr: string, text: string, source = "custom_note") =>
+  apiFetch<{ orgnr: string; chunks_stored: number }>(
+    `/org/${orgnr}/ingest-knowledge`,
+    { method: "POST", body: JSON.stringify({ text, source }) },
+  );
 
 // ── Videos ───────────────────────────────────────────────────────────────────
 
@@ -611,3 +681,19 @@ export const createOrgClientToken = (orgnr: string, label?: string) =>
 
 export const getClientPortalProfile = (token: string) =>
   apiFetch<ClientPortalProfile>(`/client/${token}`);
+
+// ── Portfolio company management ──────────────────────────────────────────────
+
+export const addCompanyToPortfolio = (portfolioId: number, orgnr: string) =>
+  apiFetch<void>(`/portfolio/${portfolioId}/companies`, {
+    method: "POST",
+    body: JSON.stringify({ orgnr }),
+  });
+
+// ── NL-to-SQL ─────────────────────────────────────────────────────────────────
+
+export const nlQuery = (question: string) =>
+  apiFetch<{ sql: string; columns: string[]; rows: unknown[][]; error: string | null }>(
+    "/financials/query",
+    { method: "POST", body: JSON.stringify({ question }) },
+  );

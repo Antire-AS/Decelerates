@@ -7,14 +7,21 @@ from api.db import CompanyHistory, CompanyPdfSource
 from api.limiter import limiter
 from api.services import _get_full_history, fetch_history_from_pdf
 from api.services.pdf_sources import upsert_pdf_source, delete_history_year
-from api.schemas import PdfHistoryRequest
+from api.schemas import (
+    PdfHistoryRequest,
+    HistoryOut,
+    ExtractionStatusOut,
+    PdfSourcesOut,
+    DeleteHistoryOut,
+    FinancialCommentaryOut,
+)
 from api.domain.exceptions import PdfExtractionError
 from api.dependencies import get_db
 
 router = APIRouter()
 
 
-@router.get("/org/{orgnr}/history")
+@router.get("/org/{orgnr}/history", response_model=HistoryOut)
 def get_org_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     history = _get_full_history(orgnr, db)
     return {"orgnr": orgnr, "years": history}
@@ -33,7 +40,7 @@ def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(g
     return {"orgnr": orgnr, "extracted": row}
 
 
-@router.get("/org/{orgnr}/pdf-sources")
+@router.get("/org/{orgnr}/pdf-sources", response_model=PdfSourcesOut)
 def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """List known PDF annual report sources for an org."""
     sources = (
@@ -51,7 +58,7 @@ def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)) -> dict:
     }
 
 
-@router.get("/org/{orgnr}/extraction-status")
+@router.get("/org/{orgnr}/extraction-status", response_model=ExtractionStatusOut)
 def get_extraction_status(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Return whether background PDF extraction has data, is pending, or is complete."""
     sources = db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all()
@@ -81,14 +88,14 @@ def get_extraction_status(orgnr: str, db: Session = Depends(get_db)) -> dict:
     }
 
 
-@router.delete("/org/{orgnr}/history")
+@router.delete("/org/{orgnr}/history", response_model=DeleteHistoryOut)
 def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Delete all company_history rows for this org so extraction re-runs on next load."""
     deleted = delete_history_year(orgnr, db)
     return {"orgnr": orgnr, "deleted_rows": deleted}
 
 
-@router.get("/org/{orgnr}/financial-commentary")
+@router.get("/org/{orgnr}/financial-commentary", response_model=FinancialCommentaryOut)
 @limiter.limit("10/minute")
 def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Generate an AI commentary on a company's multi-year financial trend."""

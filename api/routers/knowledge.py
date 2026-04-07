@@ -19,7 +19,14 @@ from api.services import (
 )
 from api.services.rag import save_qa_note, clear_chat_session as _clear_chat_session
 from api.rag_chain import build_rag_chain
-from api.schemas import ChatRequest, IngestKnowledgeRequest
+from api.schemas import (
+    ChatRequest,
+    IngestKnowledgeRequest,
+    IngestKnowledgeOut,
+    KnowledgeStatsOut,
+    KnowledgeIndexOut,
+    SeedRegulationsOut,
+)
 from api.dependencies import get_db
 from api.limiter import limiter
 from api.prompts import CHAT_SYSTEM_PROMPT, KNOWLEDGE_CHAT_SYSTEM_PROMPT
@@ -125,7 +132,7 @@ def chat_about_org(
     return {"orgnr": orgnr, "question": body.question, "answer": answer, "session_id": active_session}
 
 
-@router.post("/org/{orgnr}/ingest-knowledge")
+@router.post("/org/{orgnr}/ingest-knowledge", response_model=IngestKnowledgeOut)
 def ingest_knowledge(orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)) -> dict:
     """Manually chunk and embed text into the company's knowledge base."""
     if not body.text.strip():
@@ -297,7 +304,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
     return {"question": body.question, "answer": answer, "sources": sources, "source_snippets": source_snippets}
 
 
-@router.post("/knowledge/index")
+@router.post("/knowledge/index", response_model=KnowledgeIndexOut)
 def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) -> dict:
     """Trigger (re-)indexing of all video transcripts and insurance documents.
     Set force=true to wipe existing knowledge chunks before re-indexing."""
@@ -316,7 +323,7 @@ def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) 
     }
 
 
-@router.get("/knowledge/index/stats")
+@router.get("/knowledge/index/stats", response_model=KnowledgeStatsOut)
 def knowledge_index_stats(db: Session = Depends(get_db)) -> dict:
     """Return current knowledge index statistics."""
     from api.services.knowledge_index import get_stats
@@ -373,7 +380,7 @@ def _fetch_regulation_text(url: str) -> str | None:
         return None
 
 
-@router.post("/knowledge/seed-regulations")
+@router.post("/knowledge/seed-regulations", response_model=SeedRegulationsOut)
 def seed_regulations(db: Session = Depends(get_db)) -> dict:
     """Fetch and index Norwegian insurance regulations into the knowledge base.
 

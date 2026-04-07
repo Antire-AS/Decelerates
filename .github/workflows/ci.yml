@@ -80,3 +80,57 @@ jobs:
 
       - name: Type-check and build
         run: npm run build
+
+  api-types-fresh:
+    # Verifies that frontend/src/lib/api-schema.ts is in sync with the FastAPI
+    # OpenAPI schema. If a backend change renames a field but the developer
+    # forgot to run `npm run gen:api-types`, this job fails the PR with a diff
+    # showing exactly what would change. This is the safety net for the silent
+    # field-name bug class (see api/schemas.py header comments).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install Python deps
+        run: uv sync --frozen
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Regenerate API types from current backend
+        working-directory: frontend
+        run: npm run gen:api-types
+
+      - name: Verify api-schema.ts is up to date
+        run: |
+          schema=frontend/src/lib/api-schema.ts
+          # Catch the "file is untracked / never committed" case as well as drift.
+          if [ ! -f "$schema" ]; then
+            echo "::error::$schema does not exist after codegen — something is broken in scripts/dump_openapi.py."
+            exit 1
+          fi
+          if ! git ls-files --error-unmatch "$schema" >/dev/null 2>&1; then
+            echo "::error::$schema exists but is not tracked by git. Add it: git add $schema && commit."
+            exit 1
+          fi
+          if ! git diff --exit-code -- "$schema"; then
+            echo ""
+            echo "::error::$schema is out of sync with the FastAPI OpenAPI schema."
+            echo "::error::A backend response model was renamed or added but the generated TS types weren't updated."
+            echo "::error::Fix: cd frontend && npm run gen:api-types && git add $schema && commit."
+            exit 1
+          fi
+          echo "OK: api-schema.ts matches the current backend."

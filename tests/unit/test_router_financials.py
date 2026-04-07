@@ -48,7 +48,10 @@ def test_get_org_history_returns_years(client):
         resp = client.get("/org/123456789/history")
     body = resp.json()
     assert body["orgnr"] == "123456789"
-    assert body["years"] == years
+    assert len(body["years"]) == 1
+    assert body["years"][0]["year"] == 2023
+    # extra='allow' on HistoryRowOut keeps unknown fields
+    assert body["years"][0]["sum_driftsinntekter"] == 1_000_000
 
 
 # ── POST /org/{orgnr}/pdf-history ─────────────────────────────────────────────
