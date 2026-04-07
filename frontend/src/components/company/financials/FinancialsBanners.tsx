@@ -3,6 +3,7 @@
 import { Info } from "lucide-react";
 
 interface ExtractionStatus {
+  status?: string;
   pending_years: number[];
   missing_target_years: number[];
 }
@@ -12,6 +13,7 @@ interface Props {
   foreignCurrencies: string[];
   fxRates: Record<string, number>;
   hasEstimated: boolean;
+  hasHistory: boolean;
 }
 
 export default function FinancialsBanners({
@@ -19,6 +21,7 @@ export default function FinancialsBanners({
   foreignCurrencies,
   fxRates,
   hasEstimated,
+  hasHistory,
 }: Props) {
   return (
     <>
@@ -29,6 +32,14 @@ export default function FinancialsBanners({
             <span className="font-medium">PDF-utdrag pågår</span> — venter på år:{" "}
             {extractionStatus.pending_years.join(", ")}. Siden oppdateres automatisk.
           </div>
+        </div>
+      )}
+      {extractionStatus?.status === "no_sources" && !hasHistory && (
+        <div className="broker-card border-l-4 border-[#D4C9B8] flex items-start gap-2">
+          <Info className="w-4 h-4 text-[#C4BDB4] flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-[#8A7F74]">
+            Ingen PDF-kilder funnet ennå. Lim inn en årsrapport-URL nedenfor for å hente tall.
+          </p>
         </div>
       )}
       {extractionStatus &&

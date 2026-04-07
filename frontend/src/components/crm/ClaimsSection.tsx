@@ -91,6 +91,12 @@ export default function ClaimsSection({ orgnr, policies }: {
                           c.settled_amount_nok && `Oppgjort: ${fmtNok(c.settled_amount_nok)}`,
                         ].filter(Boolean).join(" · ")}
                       </p>
+                      {c.description && (
+                        <p className="text-xs text-[#8A7F74] mt-1 line-clamp-2">{c.description}</p>
+                      )}
+                      {c.notes && (
+                        <p className="text-xs text-[#8A7F74] italic mt-1 whitespace-pre-wrap">{c.notes}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-xs">
@@ -164,6 +170,12 @@ export default function ClaimsSection({ orgnr, policies }: {
                 <div>
                   <label className="label-xs">Beskrivelse</label>
                   <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
+                    className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+                </div>
+                <div>
+                  <label className="label-xs">Notater</label>
+                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                    placeholder="Interne notater (synlig kun for megler)"
                     className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
                 </div>
                 {err && <p className="text-xs text-red-600">{err}</p>}

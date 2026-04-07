@@ -43,9 +43,13 @@ function NewAgreementWizard() {
     try {
       const prof = await getOrgProfile(data.client_orgnr);
       const org = prof.org as Record<string, unknown>;
+      // org.adresse is an array of street lines from BRREG (api/services/brreg_client.py:75)
+      const streetLines = Array.isArray(org.adresse)
+        ? (org.adresse as string[]).filter(Boolean).join(" ")
+        : String(org.adresse ?? "");
       set({
         client_navn: String(org.navn ?? ""),
-        client_adresse: [org.adresse, org.poststed].filter(Boolean).join(", "),
+        client_adresse: [streetLines, org.poststed].filter(Boolean).join(", "),
       });
     } catch { setErr("Oppslag feilet."); }
     finally { setLookupLoading(false); }
