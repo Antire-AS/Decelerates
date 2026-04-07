@@ -301,7 +301,7 @@ class Policy(Base):
     annual_premium_nok  = Column(Float, nullable=True)
     start_date          = Column(Date, nullable=True)
     renewal_date        = Column(Date, nullable=True, index=True)
-    status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active)
+    status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active, index=True)
     renewal_stage       = Column(SAEnum(RenewalStage, name="renewal_stage", create_type=False), nullable=False, default=RenewalStage.not_started)
     notes               = Column(String, nullable=True)
     document_url        = Column(String, nullable=True)
@@ -361,8 +361,8 @@ class Activity(Base):
     activity_type    = Column(SAEnum(ActivityType, name="activity_type", create_type=False), nullable=False)
     subject          = Column(String, nullable=False)
     body             = Column(String, nullable=True)
-    due_date         = Column(Date, nullable=True)
-    completed        = Column(Boolean, default=False, nullable=False)
+    due_date         = Column(Date, nullable=True, index=True)
+    completed        = Column(Boolean, default=False, nullable=False, index=True)
     created_at       = Column(DateTime(timezone=True), nullable=False, index=True)
 
 

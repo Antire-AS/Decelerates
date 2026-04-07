@@ -148,17 +148,27 @@ def test_portfolio_digest_returns_503_when_notification_unconfigured(
 def test_portfolio_digest_sends_to_broker_email(client, mock_db, mock_notification):
     settings = MagicMock()
     settings.contact_email = "broker@firm.no"
+    firm = MagicMock()
+    firm.id = 1
 
-    # Side-effect: BrokerSettings.first → settings; Portfolio.all → []; Policy.filter → []
+    # Side-effect chain:
+    # 1. BrokerSettings.first → settings
+    # 2. BrokerFirm count → 1 (single-firm guard)
+    # 3. BrokerFirm.order_by.first → firm
+    # 4. Portfolio.filter.all → []
+    # 5. Policy.filter.order_by.all → []
     call_count = [0]
     def _query_se(model):
         q = MagicMock()
         call_count[0] += 1
         if call_count[0] == 1:
-            # BrokerSettings query
             q.first.return_value = settings
+        elif call_count[0] == 2:
+            q.count.return_value = 1
+        elif call_count[0] == 3:
+            q.order_by.return_value.first.return_value = firm
         else:
-            q.all.return_value = []
+            q.filter.return_value.all.return_value = []
             q.filter.return_value.order_by.return_value.all.return_value = []
         return q
 
@@ -195,6 +205,8 @@ def test_activity_reminders_returns_no_send_when_no_activities(
 ):
     settings = MagicMock()
     settings.contact_email = "broker@firm.no"
+    firm = MagicMock()
+    firm.id = 1
 
     call_count = [0]
     def _query_se(model):
@@ -202,6 +214,10 @@ def test_activity_reminders_returns_no_send_when_no_activities(
         call_count[0] += 1
         if call_count[0] == 1:
             q.first.return_value = settings
+        elif call_count[0] == 2:
+            q.count.return_value = 1
+        elif call_count[0] == 3:
+            q.order_by.return_value.first.return_value = firm
         else:
             q.filter.return_value.order_by.return_value.all.return_value = []
         return q
