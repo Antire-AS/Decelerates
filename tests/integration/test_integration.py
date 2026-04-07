@@ -24,21 +24,27 @@ pytestmark = pytest.mark.skipif(
 
 # ── Shared mock data ───────────────────────────────────────────────────────────
 
+# Shape matches api.services.brreg_client.fetch_enhet_by_orgnr's return value
+# — flattened, not the raw BRREG nested response. See _build_enhet_dict at
+# api/services/brreg_client.py:14.
 _MOCK_ORG_BRREG = {
-    "organisasjonsnummer": "987654321",
+    "orgnr": "987654321",
     "navn": "Integrasjonstest AS",
-    "organisasjonsform": {"kode": "AS", "beskrivelse": "Aksjeselskap"},
-    "forretningsadresse": {
-        "poststed": "Oslo",
-        "postnummer": "0150",
-        "adresse": ["Testgata 1"],
-        "kommune": "Oslo",
-        "land": "Norge",
-    },
-    "naeringskode1": {"kode": "62.010", "beskrivelse": "Programvareutvikling"},
+    "organisasjonsform": "Aksjeselskap",
+    "organisasjonsform_kode": "AS",
+    "kommune": "Oslo",
+    "postnummer": "0150",
+    "land": "Norge",
+    "naeringskode1": "62.010",
+    "naeringskode1_beskrivelse": "Programvareutvikling",
+    "kommunenummer": "0301",
+    "poststed": "Oslo",
+    "adresse": ["Testgata 1"],
+    "stiftelsesdato": None,
+    "hjemmeside": None,
     "konkurs": False,
-    "underAvvikling": False,
-    "antallAnsatte": 10,
+    "under_konkursbehandling": False,
+    "under_avvikling": False,
 }
 
 _MOCK_REGNSKAP = {
@@ -322,7 +328,10 @@ class TestConsent:
             json={"lawful_basis": "consent", "purpose": "marketing"},
         ).json()["id"]
 
-        resp = client.delete(
+        # Starlette TestClient.delete() doesn't accept a json kwarg; use
+        # request() for DELETE-with-body.
+        resp = client.request(
+            "DELETE",
             f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
             json={"reason": "customer request"},
         )
@@ -334,7 +343,12 @@ class TestConsent:
             f"/gdpr/company/{self.ORGNR}/consent",
             json={"lawful_basis": "consent", "purpose": "credit_check"},
         ).json()["id"]
-        client.delete(f"/gdpr/company/{self.ORGNR}/consent/{consent_id}")
+        # Endpoint requires a body (reason). Use request() for DELETE-with-body.
+        client.request(
+            "DELETE",
+            f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
+            json={"reason": "customer request"},
+        )
 
         active = client.get(f"/gdpr/company/{self.ORGNR}/consents").json()
         assert all(c["id"] != consent_id for c in active)
