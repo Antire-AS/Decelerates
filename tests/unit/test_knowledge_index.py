@@ -298,7 +298,7 @@ def test_get_stats_counts_by_source_type():
 
     result = get_stats(db)
 
-    assert result["total"] == 3
+    assert result["total_chunks"] == 3
     assert result["doc_chunks"] == 1
     assert result["video_chunks"] == 2
 
@@ -306,7 +306,7 @@ def test_get_stats_counts_by_source_type():
 def test_get_stats_returns_zeros_when_empty():
     db = _mock_db()
     db.query.return_value.filter.return_value.all.return_value = []
-    assert get_stats(db) == {"total": 0, "doc_chunks": 0, "video_chunks": 0}
+    assert get_stats(db) == {"total_chunks": 0, "doc_chunks": 0, "video_chunks": 0}
 
 
 # ── index_all ─────────────────────────────────────────────────────────────────

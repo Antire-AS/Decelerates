@@ -15,11 +15,19 @@ from api.services import (
     fetch_board_members,
     _generate_synthetic_financials,
 )
+from api.schemas import (
+    BankruptcyOut,
+    BoardMembersOut,
+    KoordinaterOut,
+    BenchmarkOut,
+    StrukturOut,
+    EstimateOut,
+)
 
 router = APIRouter()
 
 
-@router.get("/org/{orgnr}/roles")
+@router.get("/org/{orgnr}/roles", response_model=BoardMembersOut)
 def get_org_roles(orgnr: str) -> dict:
     try:
         members = fetch_board_members(orgnr)
@@ -28,7 +36,7 @@ def get_org_roles(orgnr: str) -> dict:
     return {"orgnr": orgnr, "members": members}
 
 
-@router.get("/org/{orgnr}/estimate")
+@router.get("/org/{orgnr}/estimate", response_model=EstimateOut)
 def get_synthetic_estimate(orgnr: str) -> dict:
     org_data = fetch_enhet_by_orgnr(orgnr)
     if not org_data:
@@ -42,7 +50,7 @@ def get_synthetic_estimate(orgnr: str) -> dict:
     return {"orgnr": orgnr, "estimated": result}
 
 
-@router.get("/org/{orgnr}/bankruptcy")
+@router.get("/org/{orgnr}/bankruptcy", response_model=BankruptcyOut)
 def get_bankruptcy_status(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
@@ -55,7 +63,7 @@ def get_bankruptcy_status(orgnr: str) -> dict:
     }
 
 
-@router.get("/org/{orgnr}/koordinater")
+@router.get("/org/{orgnr}/koordinater", response_model=KoordinaterOut)
 def get_koordinater(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
@@ -70,7 +78,7 @@ def get_losore(orgnr: str) -> dict:
     return {"orgnr": orgnr, **result}
 
 
-@router.get("/org/{orgnr}/benchmark")
+@router.get("/org/{orgnr}/benchmark", response_model=BenchmarkOut)
 def get_benchmark(orgnr: str) -> dict:
     org = fetch_enhet_by_orgnr(orgnr)
     if not org:
@@ -80,7 +88,7 @@ def get_benchmark(orgnr: str) -> dict:
     return {"orgnr": orgnr, "nace_code": nace, "benchmark": benchmark}
 
 
-@router.get("/org/{orgnr}/struktur")
+@router.get("/org/{orgnr}/struktur", response_model=StrukturOut)
 def get_company_struktur(orgnr: str) -> dict:
     """Return parent company and sub-units from BRREG (open, no auth)."""
     return {"orgnr": orgnr, **fetch_company_struktur(orgnr)}

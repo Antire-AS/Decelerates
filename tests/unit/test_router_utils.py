@@ -26,8 +26,14 @@ def test_get_org_roles_returns_members():
     with patch("api.routers.utils.fetch_board_members", return_value=members):
         resp = client.get("/org/123456789/roles")
     assert resp.status_code == 200
-    assert resp.json()["members"] == members
-    assert resp.json()["orgnr"] == "123456789"
+    body = resp.json()
+    assert body["orgnr"] == "123456789"
+    assert len(body["members"]) == 1
+    assert body["members"][0]["name"] == "Ola Nordmann"
+    assert body["members"][0]["role"] == "Styreformann"
+    # Pydantic fills in defaults for fields not in mock
+    assert body["members"][0]["deceased"] is False
+    assert body["members"][0]["resigned"] is False
 
 
 def test_get_org_roles_returns_502_on_http_error():

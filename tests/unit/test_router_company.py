@@ -113,12 +113,17 @@ def test_get_org_profile_enqueues_pdf_extract(client):
 # ── GET /org/{orgnr}/licenses ─────────────────────────────────────────────────
 
 def test_get_org_licenses_returns_200(client):
+    # Real fetch_finanstilsynet_licenses returns a list of dicts (see screening_client.py)
+    licenses = [{"name": "Test AS", "license_type": "Skadeforsikring", "license_status": "Active"}]
     with patch("api.routers.company.fetch_finanstilsynet_licenses",
-               return_value=["Skadeforsikring"]):
+               return_value=licenses):
         resp = client.get("/org/123456789/licenses")
     assert resp.status_code == 200
-    assert resp.json()["licenses"] == ["Skadeforsikring"]
-    assert resp.json()["orgnr"] == "123456789"
+    body = resp.json()
+    assert body["orgnr"] == "123456789"
+    assert len(body["licenses"]) == 1
+    assert body["licenses"][0]["license_type"] == "Skadeforsikring"
+    assert body["licenses"][0]["license_status"] == "Active"
 
 
 def test_get_org_licenses_returns_502_on_error(client):

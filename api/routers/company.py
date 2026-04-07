@@ -11,6 +11,7 @@ from api.services.job_queue_service import JobQueueService
 from api.auth import get_optional_user, CurrentUser
 from api.dependencies import get_db
 from api.limiter import limiter
+from api.schemas import LicensesOut, PeerBenchmarkOut
 
 router = APIRouter()
 
@@ -56,7 +57,7 @@ def get_org_profile(
     return result
 
 
-@router.get("/org/{orgnr}/licenses")
+@router.get("/org/{orgnr}/licenses", response_model=LicensesOut)
 def get_org_licenses(orgnr: str) -> dict:
     try:
         licenses = fetch_finanstilsynet_licenses(orgnr)
@@ -146,7 +147,7 @@ def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
     return {"orgnr": orgnr, "needs": needs, "narrative": narrative}
 
 
-@router.get("/org/{orgnr}/peer-benchmark")
+@router.get("/org/{orgnr}/peer-benchmark", response_model=PeerBenchmarkOut)
 def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Compare a company's key ratios against peer companies in the same NACE section."""
     from api.db import Company
