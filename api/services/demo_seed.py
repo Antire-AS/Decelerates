@@ -13,6 +13,7 @@ from api.db import (
     Company, CompanyHistory, Policy, PolicyStatus,
     Claim, ClaimStatus, Activity, ActivityType, BrokerFirm,
     ContactPerson, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
+    Recommendation,
 )
 
 random.seed(42)  # Reproducible but looks realistic
@@ -234,6 +235,81 @@ def _seed_idd(db: Session, firm_id: int, now: datetime) -> int:
     return created
 
 
+_RATIONALE_TEMPLATES: dict[str, str] = {
+    "Eiendom og ansvarsforsikring": (
+        "Selskapet eier næringseiendom verdt over 100 MNOK og har leieinntekter "
+        "som hovedinntekt. {insurer} ble valgt fordi de tilbyr fullverdiforsikring "
+        "med leietap-dekning og har lavest premie per kvadratmeter for porteføljen. "
+        "Gjenstandsdekning og ansvar er inkludert i én polise."
+    ),
+    "Cyberforsikring og ansvar": (
+        "Som programvareselskap behandler kunden personopplysninger og driftskritiske "
+        "systemer for kundene sine. {insurer}s cyberprodukt dekker både første- og "
+        "tredjepart, inkluderer DPO-rådgivning ved hendelse og har 4 timers responstid. "
+        "Premien er konkurransedyktig sammenlignet med tre andre tilbud."
+    ),
+    "Entreprise og ansvarsforsikring": (
+        "Entreprenørvirksomhet med flere parallelle byggeprosjekter krever bred dekning. "
+        "{insurer} har spesialisert entreprise-team og dekker både CAR (Contractor's All "
+        "Risks), prosjektansvar og produktansvar i én polise. Premie justert for "
+        "skadehistorikk de siste 3 år."
+    ),
+    "Motorvognforsikring og gods": (
+        "Transportselskap med 18 lastebiler trenger flåteforsikring kombinert med "
+        "godsansvar (CMR). {insurer} ga best totalpris og har integrasjon med "
+        "fleet-management for automatisk premiejustering basert på kjørelengde."
+    ),
+    "Fiskefartøyforsikring": (
+        "Havfiskefartøy med betydelig kaskoverdi krever spesialisert dekning. "
+        "{insurer} er ledende i markedet for fiskerinæringen og har fast samarbeid "
+        "med klassesselskap. Inkluderer P&I og besetningsforsikring."
+    ),
+    "Profesjonsansvar og D&O": (
+        "Konsulentvirksomhet med honorarbasert inntekt har høy eksponering for "
+        "profesjonsansvarskrav. {insurer} tilbyr kombinert profesjonsansvar og "
+        "styreansvar (D&O) med høy forsikringssum og global dekning."
+    ),
+    "Innbo, driftsavbrudd og ansvar": (
+        "Detaljhandel med stor varelagerverdi og publikum i lokalene krever "
+        "kombinert pakke. {insurer} dekker innbo, driftsavbrudd ved skade, "
+        "ansvar overfor kunder og glassbrudd i én polise. Lavere premie enn dagens "
+        "leverandør."
+    ),
+    "Kasko og P&I": (
+        "Kystfartsselskap krever H&M kasko og P&I (Protection and Indemnity) for "
+        "miljøansvar. {insurer} er anerkjent P&I-club med sterk balanse og global "
+        "dekning. Anbefaling støttes av risikorapport fra DNV."
+    ),
+}
+
+_DEFAULT_RATIONALE = (
+    "{insurer} ble valgt basert på beste forhold mellom dekning, premie og servicegrad."
+)
+
+
+def _seed_recommendations(db: Session, firm_id: int, now: datetime) -> int:
+    """Seed an anbefalingsbrev for each demo company referencing the chosen insurer
+    and a realistic-sounding rationale. Returns created count."""
+    created = 0
+    for c in _COMPANIES:
+        orgnr = c["orgnr"]
+        if db.query(Recommendation).filter(
+            Recommendation.orgnr == orgnr, Recommendation.firm_id == firm_id
+        ).first():
+            continue
+        template = _RATIONALE_TEMPLATES.get(c["insurance_type"], _DEFAULT_RATIONALE)
+        db.add(Recommendation(
+            orgnr=orgnr,
+            firm_id=firm_id,
+            recommended_insurer=c["insurer"],
+            rationale_text=template.format(insurer=c["insurer"]),
+            created_by_email="demo@broker.no",
+            created_at=now,
+        ))
+        created += 1
+    return created
+
+
 def _seed_submissions(db: Session, firm_id: int, insurer_map: dict[str, int], now: datetime) -> int:
     """Seed market submissions (one quoted submission per company). Returns created count."""
     created = 0
@@ -410,6 +486,7 @@ def seed_full_demo(db: Session) -> dict:
 
     idd_created = _seed_idd(db, firm_id, now)
     submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
+    recommendations_created = _seed_recommendations(db, firm_id, now)
 
     db.commit()
     return {
@@ -422,9 +499,11 @@ def seed_full_demo(db: Session) -> dict:
         "insurers_created": len([k for k in insurer_map]),
         "idd_created": idd_created,
         "submissions_created": submissions_created,
+        "recommendations_created": recommendations_created,
         "message": (
             f"Demo-data seeded: {companies_created} selskaper, "
             f"{history_created} historikkrader, {policies_created} poliser, "
-            f"{contacts_created} kontakter, {idd_created} IDD-analyser"
+            f"{contacts_created} kontakter, {idd_created} IDD-analyser, "
+            f"{recommendations_created} anbefalingsbrev"
         ),
     }

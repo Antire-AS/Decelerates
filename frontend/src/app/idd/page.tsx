@@ -1,10 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle } from "lucide-react";
-import { getOrgIdd, createOrgIdd, deleteOrgIdd, type IddBehovsanalyse } from "@/lib/api";
+import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle, ChevronRight } from "lucide-react";
+import { getOrgIdd, getAllIdd, createOrgIdd, deleteOrgIdd, type IddBehovsanalyse } from "@/lib/api";
 
 const PRODUCTS = [
   "Motorvognforsikring",
@@ -323,6 +324,12 @@ function IddContent() {
     () => getOrgIdd(orgnr),
   );
 
+  // Firm-wide list when no orgnr is selected (no longer an empty state)
+  const { data: allRows, isLoading: allLoading } = useSWR<IddBehovsanalyse[]>(
+    !orgnr ? "idd-all" : null,
+    () => getAllIdd(100),
+  );
+
   async function handleDelete(id: number) {
     if (!confirm("Slette behovsanalyse?")) return;
     await deleteOrgIdd(orgnr, id);
@@ -338,21 +345,56 @@ function IddContent() {
             Forsikringsformidlingsloven §§ 5-4, 7-1 til 7-10 · Finanstilsynet rundskriv 9/2019
           </p>
         </div>
-        <button onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]">
-          <Plus className="w-4 h-4" />
-          Ny analyse
-        </button>
+        {orgnr && (
+          <button onClick={() => setShowForm((v) => !v)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]">
+            <Plus className="w-4 h-4" />
+            Ny analyse
+          </button>
+        )}
       </div>
 
       {!orgnr && (
-        <div className="broker-card text-center py-10">
-          <FileText className="w-8 h-8 text-[#8A7F74] mx-auto mb-2" />
-          <p className="text-sm text-[#8A7F74]">
-            Åpne behovsanalyse fra et selskaps CRM-fane, eller legg til orgnr i URL:
-            <code className="ml-1 text-xs bg-[#EDE8E3] px-1.5 py-0.5 rounded">?orgnr=999999999</code>
-          </p>
-        </div>
+        <>
+          {allLoading ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>
+          ) : !allRows?.length ? (
+            <div className="broker-card text-center py-10">
+              <FileText className="w-8 h-8 text-[#8A7F74] mx-auto mb-2" />
+              <p className="text-sm text-[#8A7F74]">
+                Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en
+                behovsanalyse fra CRM-fanen.
+              </p>
+            </div>
+          ) : (
+            <div className="broker-card divide-y divide-[#EDE8E3]">
+              <p className="text-xs text-[#8A7F74] pb-2 font-medium">
+                {allRows.length} behovsanalyser i alle selskaper · Klikk for å se detaljer
+              </p>
+              {allRows.map((r) => {
+                const date = r.created_at ? new Date(r.created_at).toLocaleDateString("nb-NO") : "–";
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/idd?orgnr=${r.orgnr}`}
+                    className="flex items-center justify-between gap-3 py-2.5 hover:bg-[#F9F7F4] px-1 -mx-1 rounded"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[#2C3E50] truncate">
+                        {r.client_name || r.orgnr}
+                      </p>
+                      <p className="text-xs text-[#8A7F74]">
+                        Orgnr {r.orgnr} · utarbeidet {date}
+                        {r.recommended_products?.length ? ` · ${r.recommended_products.length} produkter` : ""}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#C4BDB4] flex-shrink-0" />
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {orgnr && (

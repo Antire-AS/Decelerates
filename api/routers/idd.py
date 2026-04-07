@@ -57,6 +57,17 @@ def list_behovsanalyser(
     return [_serialize(r) for r in svc.list(orgnr, user.firm_id)]
 
 
+@router.get("/idd", response_model=list[IddBehovsanalyseOut])
+def list_all_behovsanalyser(
+    limit: int = 100,
+    user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
+) -> list:
+    """All behovsanalyser for the current firm across every company.
+    Powers the firm-wide /idd list view (no orgnr query param)."""
+    return [_serialize(r) for r in svc.list_all_for_firm(user.firm_id, limit=limit)]
+
+
 @router.post("/org/{orgnr}/idd", status_code=201)
 def create_behovsanalyse(
     orgnr: str,
