@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Loader2, Play, CheckCircle, AlertCircle, SkipForward, X } from "lucide-react";
+import { Loader2, Play, CheckCircle, AlertCircle, SkipForward, X, FileUp } from "lucide-react";
 
 interface IngestEvent {
   type: string;
@@ -52,6 +52,12 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
   const [includePdfs, setIncludePdfs] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const logRef   = useRef<HTMLDivElement>(null);
+
+  // CSV import state
+  const [csvRunning, setCsvRunning] = useState(false);
+  const [csvEvents, setCsvEvents]   = useState<IngestEvent[]>([]);
+  const [csvComplete, setCsvComplete] = useState(false);
+  const csvFileRef = useRef<HTMLInputElement>(null);
 
   function scrollToBottom() {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
@@ -113,6 +119,39 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
   function cancel() {
     abortRef.current?.abort();
     setRunning(false);
+  }
+
+  async function startCsvImport(file: File) {
+    setCsvRunning(true); setCsvComplete(false); setCsvEvents([]);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch(`/bapi/batch/import?portfolio_id=${portfolioId}`, { method: "POST", body: fd });
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const ev: IngestEvent = JSON.parse(trimmed);
+            setCsvEvents((prev) => [...prev, ev]);
+            if (ev.type === "complete") { setCsvComplete(true); onDone?.(); }
+          } catch { /* skip malformed */ }
+        }
+      }
+    } catch (e) {
+      setCsvEvents((prev) => [...prev, { type: "error", message: String(e) }]);
+    } finally {
+      setCsvRunning(false);
+    }
   }
 
   return (
@@ -183,6 +222,57 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
           Innhenting fullført. Porteføljedata er oppdatert.
         </p>
       )}
+
+      {/* ── CSV import ── */}
+      <div className="pt-3 border-t border-[#EDE8E3] space-y-2">
+        <p className="text-xs font-semibold text-[#2C3E50]">Importer fra CSV</p>
+        <p className="text-xs text-[#8A7F74]">
+          Last opp en CSV-fil med orgnr (én per linje). Selskaper hentes fra BRREG og legges til porteføljen.
+        </p>
+        <input
+          ref={csvFileRef}
+          type="file"
+          accept=".csv,.txt"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) startCsvImport(f);
+            if (csvFileRef.current) csvFileRef.current.value = "";
+          }}
+        />
+        <button
+          onClick={() => csvFileRef.current?.click()}
+          disabled={csvRunning}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
+        >
+          {csvRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
+          Velg CSV-fil
+        </button>
+        {csvEvents.length > 0 && (
+          <div className="h-32 overflow-y-auto rounded-lg bg-[#2C3E50] p-3 font-mono text-xs space-y-1">
+            {csvEvents.map((ev, i) => (
+              <div key={i} className="flex items-start gap-2">
+                {EVENT_ICON[ev.type] ?? <span className="w-3.5 h-3.5 flex-shrink-0" />}
+                <span className={ev.type === "complete" ? "text-green-400 font-semibold" : ev.type === "error" ? "text-red-400" : "text-[#C5D8F0]"}>
+                  {eventLabel(ev)}
+                </span>
+              </div>
+            ))}
+            {csvRunning && (
+              <div className="flex items-center gap-2 text-[#8A9CB8]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                <span>Importerer…</span>
+              </div>
+            )}
+          </div>
+        )}
+        {csvComplete && (
+          <p className="text-xs text-green-600 flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5" />
+            Import fullført.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
