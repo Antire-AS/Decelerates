@@ -1,4 +1,10 @@
 """Recommendation letter service — creates, stores, and generates LLM rationale."""
+# PEP 563 deferred annotation evaluation. Required because the RecommendationService
+# class has a `list` method that shadows the builtin mid-class-body, which would
+# otherwise break later `list[int]` annotations at class-definition time on
+# Python <3.14 (no PEP 649 lazy annotations yet).
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import Optional
 
