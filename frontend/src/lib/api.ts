@@ -601,6 +601,9 @@ export const getCommissionAnalytics = () =>
 export const getOrgIdd = (orgnr: string) =>
   apiFetch<IddBehovsanalyse[]>(`/org/${orgnr}/idd`);
 
+export const getAllIdd = (limit = 100) =>
+  apiFetch<IddBehovsanalyse[]>(`/idd?limit=${limit}`);
+
 export const createOrgIdd = (orgnr: string, body: Partial<IddBehovsanalyse>) =>
   apiFetch<IddBehovsanalyse>(`/org/${orgnr}/idd`, {
     method: "POST",

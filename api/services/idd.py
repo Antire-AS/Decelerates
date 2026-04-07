@@ -36,6 +36,16 @@ class IddService:
             .all()
         )
 
+    def list_all_for_firm(self, firm_id: int, limit: int = 100) -> list[IddBehovsanalyse]:
+        """All IDD analyses for a firm across every company. Used by /idd list view."""
+        return (
+            self.db.query(IddBehovsanalyse)
+            .filter(IddBehovsanalyse.firm_id == firm_id)
+            .order_by(IddBehovsanalyse.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+
     def get(self, orgnr: str, firm_id: int, idd_id: int) -> IddBehovsanalyse:
         return self._get_or_raise(orgnr, firm_id, idd_id)
 
