@@ -54,7 +54,7 @@ def create_activity(
     try:
         a = svc.create(orgnr, user.firm_id, user.email, body)
     except NotFoundError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
     log_audit(db, "activity.create", orgnr=orgnr, actor_email=user.email,
               detail={"activity_type": body.activity_type, "subject": body.subject})
     return _serialize(a)

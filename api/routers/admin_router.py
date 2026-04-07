@@ -16,7 +16,7 @@ from api.limiter import limiter
 
 from api.auth import CurrentUser, get_current_user, get_optional_user
 from api.container import resolve
-from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity
+from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, BrokerFirm
 from api.dependencies import get_db
 from api.ports.driven.notification_port import NotificationPort
 from api.services.admin_service import AdminService
@@ -32,6 +32,44 @@ def _admin_svc(db: Session = Depends(get_db)) -> AdminService:
 
 def _get_notification() -> NotificationPort:
     return resolve(NotificationPort)  # type: ignore[return-value]
+
+
+def _activity_to_dict(a: Activity) -> dict:
+    """Serialize an Activity for the reminder email payload. Module-level so
+    `send_activity_reminders` stays under the 40-line limit."""
+    return {
+        "orgnr": a.orgnr,
+        "subject": a.subject,
+        "activity_type": a.activity_type.value if a.activity_type else "",
+        "due_date": a.due_date.isoformat() if a.due_date else None,
+    }
+
+
+def _resolve_single_firm_id(db: Session) -> int:
+    """Resolve the single firm_id for cron endpoints driven by the singleton
+    BrokerSettings row. Cron endpoints are single-firm by design — adding
+    multi-tenant support requires per-firm BrokerSettings (not yet modelled).
+
+    Fails loudly with a 409 if more than one firm exists, so the leak the
+    cron used to cause (queries spanning all firms) becomes impossible.
+    """
+    firm_count = db.query(BrokerFirm).count()
+    if firm_count == 0:
+        raise HTTPException(
+            status_code=503,
+            detail="No BrokerFirm configured — cron jobs require at least one firm.",
+        )
+    if firm_count > 1:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Multiple BrokerFirms exist but cron endpoints are still single-firm. "
+                "Refactor the cron architecture to per-firm BrokerSettings before "
+                "running this on a multi-tenant deployment."
+            ),
+        )
+    firm = db.query(BrokerFirm).order_by(BrokerFirm.id).first()
+    return firm.id  # type: ignore[return-value]
 
 
 # ── Admin: reset + demo seed ───────────────────────────────────────────────────
@@ -278,7 +316,13 @@ def send_portfolio_digest(
             detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.",
         )
 
-    portfolios = db.query(Portfolio).all()
+    firm_id = _resolve_single_firm_id(db)
+
+    # Portfolios can be firm-scoped (firm_id NOT NULL) or shared (firm_id IS NULL).
+    # Include shared portfolios so the digest still emails about them.
+    portfolios = db.query(Portfolio).filter(
+        (Portfolio.firm_id == firm_id) | (Portfolio.firm_id.is_(None))
+    ).all()
     results = []
     for portfolio in portfolios:
         alerts = collect_alerts(portfolio.id, db)
@@ -291,6 +335,7 @@ def send_portfolio_digest(
     today = date.today()
     cutoff = today + timedelta(days=90)
     renewals = db.query(Policy).filter(
+        Policy.firm_id == firm_id,
         Policy.status == PolicyStatus.active,
         Policy.renewal_date >= today,
         Policy.renewal_date <= cutoff,
@@ -388,28 +433,24 @@ def send_activity_reminders(
     if not notification.is_configured():
         raise HTTPException(status_code=503, detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.")
 
+    firm_id = _resolve_single_firm_id(db)
     today = date.today()
     overdue = db.query(Activity).filter(
+        Activity.firm_id == firm_id,
         Activity.completed == False, Activity.due_date < today,  # noqa: E712
     ).order_by(Activity.due_date.asc()).all()
     due_today_list = db.query(Activity).filter(
+        Activity.firm_id == firm_id,
         Activity.completed == False, Activity.due_date == today,  # noqa: E712
     ).order_by(Activity.created_at.asc()).all()
 
     if not overdue and not due_today_list:
         return {"sent": False, "reason": "no due activities"}
 
-    def _to_dict(a) -> dict:
-        return {
-            "orgnr": a.orgnr, "subject": a.subject,
-            "activity_type": a.activity_type.value if a.activity_type else "",
-            "due_date": a.due_date.isoformat() if a.due_date else None,
-        }
-
     sent = notification.send_activity_reminders(
         recipient,
-        [_to_dict(a) for a in overdue],
-        [_to_dict(a) for a in due_today_list],
+        [_activity_to_dict(a) for a in overdue],
+        [_activity_to_dict(a) for a in due_today_list],
     )
     return {"sent": sent, "overdue": len(overdue), "due_today": len(due_today_list), "recipient": recipient}
 

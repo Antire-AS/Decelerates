@@ -55,15 +55,19 @@ export default function OnboardingTour() {
     }
   }
 
-  function reopen() {
-    setStep(0);
-    setOpen(true);
-  }
-
-  // Expose reopen via a global so AppShell can call it
+  // Expose reopen via a global so AppShell can call it. Must be a stable
+  // reference (not a fresh closure) so old window.__openOnboarding handles
+  // captured by other components keep working even after re-renders.
   useEffect(() => {
+    const reopen = () => {
+      setStep(0);
+      setOpen(true);
+    };
     (window as unknown as Record<string, unknown>).__openOnboarding = reopen;
-  });
+    return () => {
+      delete (window as unknown as Record<string, unknown>).__openOnboarding;
+    };
+  }, []);
 
   if (!open) return null;
 
