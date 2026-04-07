@@ -279,6 +279,13 @@ class TestCommission:
 class TestConsent:
     ORGNR = "666777888"
 
+    @pytest.fixture(autouse=True)
+    def _seed_firm(self, test_db):
+        """consent_records.firm_id is a FK to broker_firms; seed it before
+        every test in this class so INSERT doesn't hit a ForeignKeyViolation."""
+        _ensure_firm(test_db)
+        test_db.commit()
+
     def test_record_consent_returns_201_with_fields(self, client):
         resp = client.post(
             f"/gdpr/company/{self.ORGNR}/consent",
