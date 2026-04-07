@@ -11,7 +11,7 @@ from api.auth import CurrentUser, get_current_user
 from api.db import IddBehovsanalyse
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
-from api.schemas import IddBehovsanalyseIn
+from api.schemas import IddBehovsanalyseIn, IddBehovsanalyseOut
 from api.services.idd import IddService
 
 router = APIRouter()
@@ -47,20 +47,14 @@ def _serialize(row: IddBehovsanalyse) -> dict:
     }
 
 
-@router.get("/org/{orgnr}/idd")
+@router.get("/org/{orgnr}/idd", response_model=list[IddBehovsanalyseOut])
 def list_behovsanalyser(
     orgnr: str,
-    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    svc: IddService = Depends(_get_idd_service),
 ) -> list:
     """List all behovsanalyser for a company (newest first)."""
-    rows = (
-        db.query(IddBehovsanalyse)
-        .filter(IddBehovsanalyse.orgnr == orgnr, IddBehovsanalyse.firm_id == user.firm_id)
-        .order_by(IddBehovsanalyse.created_at.desc())
-        .all()
-    )
-    return [_serialize(r) for r in rows]
+    return [_serialize(r) for r in svc.list(orgnr, user.firm_id)]
 
 
 @router.post("/org/{orgnr}/idd", status_code=201)

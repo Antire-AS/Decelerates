@@ -28,6 +28,14 @@ class IddService:
             raise
         return row
 
+    def list(self, orgnr: str, firm_id: int) -> list[IddBehovsanalyse]:
+        return (
+            self.db.query(IddBehovsanalyse)
+            .filter(IddBehovsanalyse.orgnr == orgnr, IddBehovsanalyse.firm_id == firm_id)
+            .order_by(IddBehovsanalyse.created_at.desc())
+            .all()
+        )
+
     def get(self, orgnr: str, firm_id: int, idd_id: int) -> IddBehovsanalyse:
         return self._get_or_raise(orgnr, firm_id, idd_id)
 

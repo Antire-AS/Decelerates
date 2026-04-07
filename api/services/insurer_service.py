@@ -106,6 +106,18 @@ class InsurerService:
             .all()
         )
 
+    def list_submissions_enriched(
+        self, orgnr: str, firm_id: int
+    ) -> list[tuple["Submission", str | None]]:
+        """Return submissions paired with their insurer name for display."""
+        rows = self.list_submissions(orgnr, firm_id)
+        insurer_ids = [s.insurer_id for s in rows]
+        insurer_map = {
+            i.id: i.name
+            for i in self.db.query(Insurer).filter(Insurer.id.in_(insurer_ids)).all()
+        } if insurer_ids else {}
+        return [(r, insurer_map.get(r.insurer_id)) for r in rows]
+
     def create_submission(
         self, orgnr: str, firm_id: int, created_by_email: str, data: dict
     ) -> Submission:

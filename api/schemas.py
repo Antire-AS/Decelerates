@@ -264,3 +264,76 @@ class CommissionClientOut(BaseModel):
     total_commission_lifetime:  float
     total_commission_ytd:       float
     policies:                   List[PolicyCommissionOut]
+
+
+class PolicyMissingOut(BaseModel):
+    id:                 int
+    orgnr:              str
+    policy_number:      Optional[str] = None
+    product_type:       str
+    insurer:            str
+    annual_premium_nok: Optional[float] = None
+    renewal_date:       Optional[str] = None
+
+
+class InsurerOut(BaseModel):
+    id:            int
+    firm_id:       int
+    name:          str
+    org_number:    Optional[str] = None
+    contact_name:  Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    appetite:      List[str] = []
+    notes:         Optional[str] = None
+    created_at:    Optional[str] = None
+
+
+class SubmissionOut(BaseModel):
+    id:                  int
+    orgnr:               str
+    insurer_id:          int
+    insurer_name:        Optional[str] = None
+    product_type:        str
+    requested_at:        Optional[str] = None
+    status:              str
+    premium_offered_nok: Optional[float] = None
+    notes:               Optional[str] = None
+    created_by_email:    Optional[str] = None
+    created_at:          Optional[str] = None
+
+
+class IddBehovsanalyseOut(BaseModel):
+    id:                         int
+    orgnr:                      str
+    created_by_email:           Optional[str] = None
+    created_at:                 Optional[str] = None
+    client_name:                Optional[str] = None
+    client_contact_name:        Optional[str] = None
+    client_contact_email:       Optional[str] = None
+    existing_insurance:         List[Any] = []
+    risk_appetite:              Optional[str] = None
+    property_owned:             Optional[bool] = None
+    has_employees:              Optional[bool] = None
+    has_vehicles:               Optional[bool] = None
+    has_professional_liability: Optional[bool] = None
+    has_cyber_risk:             Optional[bool] = None
+    annual_revenue_nok:         Optional[float] = None
+    special_requirements:       Optional[str] = None
+    recommended_products:       List[str] = []
+    advisor_notes:              Optional[str] = None
+    suitability_basis:          Optional[str] = None
+    fee_basis:                  Optional[str] = None
+    fee_amount_nok:             Optional[float] = None
+
+
+class ConsentOut(BaseModel):
+    id:                int
+    orgnr:             str
+    firm_id:           int
+    created_at:        Optional[str] = None
+    lawful_basis:      str
+    purpose:           str
+    captured_by_email: Optional[str] = None
+    withdrawn_at:      Optional[str] = None
+    withdrawal_reason: Optional[str] = None

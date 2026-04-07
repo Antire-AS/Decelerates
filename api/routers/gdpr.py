@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
+from api.schemas import ConsentOut
 from api.services.consent_service import ConsentService
 from api.services.gdpr_service import GdprService
 
@@ -95,7 +96,7 @@ def record_consent(
     return _serialize_consent(row)
 
 
-@router.get("/gdpr/company/{orgnr}/consents")
+@router.get("/gdpr/company/{orgnr}/consents", response_model=list[ConsentOut])
 def get_active_consents(
     orgnr: str,
     svc: ConsentService = Depends(_consent_svc),

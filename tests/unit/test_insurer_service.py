@@ -132,3 +132,61 @@ class TestGetWinLossSummary:
         assert "Ansvar" in result["by_product_type"]
         assert result["by_product_type"]["Eiendom"]["quoted"] == 1
         assert result["by_product_type"]["Ansvar"]["declined"] == 1
+
+
+class TestDraftSubmissionEmail:
+    def _make_db(self, sub, insurer, company=None):
+        db = MagicMock()
+
+        def _query(model):
+            from api.db import Submission, Insurer as InsurerModel, Company
+            m = MagicMock()
+            if model is Submission:
+                m.filter.return_value.first.return_value = sub
+            elif model is InsurerModel:
+                m.filter.return_value.first.return_value = insurer
+            elif model is Company:
+                m.filter.return_value.first.return_value = company
+            return m
+
+        db.query.side_effect = _query
+        return db
+
+    def test_returns_llm_draft(self):
+        from unittest.mock import patch
+        from api.services.insurer_service import InsurerService
+
+        sub = _make_submission(insurer_id=1, product_type="Eiendom")
+        sub.id = 42
+        sub.firm_id = 1
+        sub.orgnr = "123456789"
+        sub.premium_offered_nok = 500_000.0
+
+        insurer = _make_insurer(name="Tryg")
+        insurer.id = 1
+
+        db = self._make_db(sub, insurer)
+
+        with patch("api.services.llm._llm_answer_raw", return_value="Kjære Tryg, vi ønsker å søke..."):
+            svc = InsurerService(db)
+            result = svc.draft_submission_email(firm_id=1, submission_id=42)
+
+        assert "Tryg" in result or result  # LLM draft returned
+
+    def test_returns_empty_string_when_llm_returns_none(self):
+        from unittest.mock import patch
+        from api.services.insurer_service import InsurerService
+
+        sub = _make_submission(insurer_id=1)
+        sub.id = 1
+        sub.firm_id = 1
+        sub.orgnr = "111111111"
+        sub.premium_offered_nok = None
+
+        insurer = _make_insurer()
+        db = self._make_db(sub, insurer)
+
+        with patch("api.services.llm._llm_answer_raw", return_value=None):
+            result = InsurerService(db).draft_submission_email(firm_id=1, submission_id=1)
+
+        assert result == ""

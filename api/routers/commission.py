@@ -1,10 +1,10 @@
 """Commission and revenue tracking endpoints."""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
-from api.schemas import CommissionClientOut, CommissionSummaryOut
+from api.schemas import CommissionClientOut, CommissionSummaryOut, PolicyMissingOut
 from api.services.commission_service import CommissionService
 
 router = APIRouter()
@@ -33,7 +33,7 @@ def get_commission_by_client(
     return svc.get_commission_by_client(user.firm_id, orgnr)
 
 
-@router.get("/commission/missing")
+@router.get("/commission/missing", response_model=list[PolicyMissingOut])
 def list_policies_missing_commission(
     svc: CommissionService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),

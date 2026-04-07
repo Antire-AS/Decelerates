@@ -6,7 +6,7 @@ from api.auth import CurrentUser, get_current_user
 from api.db import Insurer, Submission
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
-from api.schemas import InsurerIn, InsurerUpdate, SubmissionIn, SubmissionUpdate
+from api.schemas import InsurerIn, InsurerOut, InsurerUpdate, SubmissionIn, SubmissionOut, SubmissionUpdate
 from api.services.insurer_service import InsurerService
 
 router = APIRouter()
@@ -49,7 +49,7 @@ def _serialize_submission(row: Submission, insurer_name: str | None = None) -> d
 
 # ── Insurer CRUD ──────────────────────────────────────────────────────────────
 
-@router.get("/insurers")
+@router.get("/insurers", response_model=list[InsurerOut])
 def list_insurers(
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
@@ -96,21 +96,13 @@ def delete_insurer(
 
 # ── Submission CRUD ───────────────────────────────────────────────────────────
 
-@router.get("/org/{orgnr}/submissions")
+@router.get("/org/{orgnr}/submissions", response_model=list[SubmissionOut])
 def list_submissions(
     orgnr: str,
-    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
 ) -> list:
-    rows = svc.list_submissions(orgnr, user.firm_id)
-    insurer_map = {
-        r.id: r.name
-        for r in db.query(Insurer).filter(
-            Insurer.id.in_([s.insurer_id for s in rows])
-        ).all()
-    }
-    return [_serialize_submission(r, insurer_map.get(r.insurer_id)) for r in rows]
+    return [_serialize_submission(r, name) for r, name in svc.list_submissions_enriched(orgnr, user.firm_id)]
 
 
 @router.post("/org/{orgnr}/submissions", status_code=201)
@@ -157,7 +149,7 @@ def delete_submission(
 
 # ── Analytics ────────────────────────────────────────────────────────────────
 
-@router.get("/insurers/match")
+@router.get("/insurers/match", response_model=list[InsurerOut])
 def match_appetite(
     product_type: str,
     user: CurrentUser = Depends(get_current_user),
