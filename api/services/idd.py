@@ -1,4 +1,10 @@
 """IDD (Insurance Distribution Directive) service — behovsanalyse CRUD."""
+# PEP 563 deferred annotation evaluation. Required because this class has a
+# `list` method that shadows the builtin `list` mid-class-body, which would
+# otherwise break the `-> list[IddBehovsanalyse]` annotations on later methods
+# (defined after `def list(self, ...)`) at class-definition time on Python <3.14.
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
