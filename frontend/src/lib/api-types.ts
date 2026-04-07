@@ -12,12 +12,20 @@ export interface SearchResult {
   naeringskode1_beskrivelse?: string;
 }
 
+export interface RiskFactor {
+  label: string;
+  points: number;
+  category: string;
+  detail?: string;
+}
+
 export interface OrgProfile {
   org: Record<string, unknown>;
-  regnskap: Record<string, unknown>;
+  regnskap: Record<string, unknown> & { synthetic?: boolean; regnskapsår?: number };
   risk: {
     score?: number;
     reasons?: string[];
+    factors?: RiskFactor[];
     equity_ratio?: number;
   };
   pep: Record<string, unknown>;

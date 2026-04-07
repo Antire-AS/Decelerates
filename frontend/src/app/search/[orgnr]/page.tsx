@@ -22,6 +22,7 @@ const ActivitiesSection  = dynamic(() => import("@/components/crm/ActivitiesSect
 const ForsikringSection  = dynamic(() => import("@/components/crm/ForsikringSection"));
 const ClientPortalSection = dynamic(() => import("@/components/crm/ClientPortalSection"));
 const SubmissionsSection = dynamic(() => import("@/components/crm/SubmissionsSection"));
+const RecommendationsSection = dynamic(() => import("@/components/crm/RecommendationsSection"));
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
@@ -82,18 +83,13 @@ export default function OrgProfilePage({
     () => getOrgExtractionStatus(orgnr),
   );
 
-  // Lazy-load extras for Oversikt tab
-  const { data: rolesData }      = useSWR(activeTab === "oversikt" ? `roles-${orgnr}` : null, () => getOrgRoles(orgnr));
-  const { data: licensesData }   = useSWR(activeTab === "oversikt" ? `licenses-${orgnr}` : null, () => getOrgLicenses(orgnr));
-  const { data: bankruptcyData } = useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
-  const { data: benchmarkData }  = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
-  const { data: koordinaterData }= useSWR(activeTab === "oversikt" ? `koordinater-${orgnr}` : null, () => getOrgKoordinater(orgnr));
-  const { data: strukturData }   = useSWR(activeTab === "oversikt" ? `struktur-${orgnr}`    : null, () => getOrgStruktur(orgnr));
-
-  const roles     = rolesData     as Record<string, unknown> | null | undefined;
-  const licenses  = licensesData  as Record<string, unknown> | null | undefined;
-  const bankruptcy= bankruptcyData as Record<string, unknown> | null | undefined;
-  const benchmark = benchmarkData as Record<string, unknown> | null | undefined;
+  // Lazy-load extras for Oversikt tab — types are inferred from generated openapi schema
+  const { data: roles }       = useSWR(activeTab === "oversikt" ? `roles-${orgnr}` : null, () => getOrgRoles(orgnr));
+  const { data: licenses }    = useSWR(activeTab === "oversikt" ? `licenses-${orgnr}` : null, () => getOrgLicenses(orgnr));
+  const { data: bankruptcy }  = useSWR(activeTab === "oversikt" ? `bankruptcy-${orgnr}` : null, () => getOrgBankruptcy(orgnr));
+  const { data: benchmark }   = useSWR(activeTab === "oversikt" ? `benchmark-${orgnr}` : null, () => getOrgBenchmark(orgnr));
+  const { data: koordinaterData } = useSWR(activeTab === "oversikt" ? `koordinater-${orgnr}` : null, () => getOrgKoordinater(orgnr));
+  const { data: strukturData }    = useSWR(activeTab === "oversikt" ? `struktur-${orgnr}`    : null, () => getOrgStruktur(orgnr));
 
   const history: HistoryRow[] = historyData ?? [];
 
@@ -205,6 +201,7 @@ export default function OrgProfilePage({
       {/* ── Oversikt ─────────────────────────────────────────────────── */}
       {activeTab === "oversikt" && (
         <OverviewTab
+          orgnr={orgnr}
           org={org as Record<string, unknown>}
           regn={regn as Record<string, unknown>}
           history={history}
@@ -215,7 +212,7 @@ export default function OrgProfilePage({
           licenses={licenses}
           bankruptcy={bankruptcy}
           benchmark={benchmark}
-          struktur={strukturData as Record<string, unknown> | null | undefined}
+          struktur={strukturData}
         />
       )}
 
@@ -223,6 +220,8 @@ export default function OrgProfilePage({
       {activeTab === "okonomi" && (
         <FinancialsTab
           orgnr={orgnr}
+          regn={regn as Record<string, unknown>}
+          equityRatio={risk.equity_ratio}
           history={history}
           historyLoading={historyLoading}
           onHistoryRefetch={() => mutateHistory()}
@@ -272,6 +271,7 @@ export default function OrgProfilePage({
           <ContactsSection orgnr={orgnr} />
           <PoliciesSection orgnr={orgnr} />
           <SubmissionsSection orgnr={orgnr} />
+          <RecommendationsSection orgnr={orgnr} />
           <ClaimsSection orgnr={orgnr} policies={policies} />
           <ActivitiesSection orgnr={orgnr} />
           <ClientPortalSection orgnr={orgnr} />

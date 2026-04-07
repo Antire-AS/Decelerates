@@ -117,6 +117,11 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
                           📄 Avtaledokument <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
+                      {p.notes && (
+                        <p className="text-xs text-[#8A7F74] italic mt-1 whitespace-pre-wrap">
+                          {p.notes}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {daysBadge(p.renewal_date)}

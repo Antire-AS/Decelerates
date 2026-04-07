@@ -5,6 +5,7 @@ import { Loader2, RotateCcw } from "lucide-react";
 import type { HistoryRow } from "@/lib/api";
 import { getExchangeRate, deleteOrgHistory } from "@/lib/api";
 import FinancialsBanners from "@/components/company/financials/FinancialsBanners";
+import FinancialsKeyFigures from "@/components/company/financials/FinancialsKeyFigures";
 import AddPdfForm from "@/components/company/financials/AddPdfForm";
 import FinancialsKeyFiguresTable from "@/components/company/financials/FinancialsKeyFiguresTable";
 import FinancialsCharts from "@/components/company/financials/FinancialsCharts";
@@ -20,6 +21,8 @@ interface ExtractionStatus {
 
 interface FinancialsTabProps {
   orgnr: string;
+  regn: Record<string, unknown>;
+  equityRatio?: number;
   history: HistoryRow[];
   historyLoading: boolean;
   onHistoryRefetch?: () => void;
@@ -44,7 +47,7 @@ interface FinancialsTabProps {
 }
 
 export default function FinancialsTab({
-  orgnr, history, historyLoading, onHistoryRefetch, extractionStatus,
+  orgnr, regn, equityRatio, history, historyLoading, onHistoryRefetch, extractionStatus,
   expandedYear, setExpandedYear,
   commentary, commentaryLoading, commentaryErr, handleCommentary,
   pdfUrl, setPdfUrl, pdfYear, setPdfYear, pdfLabel, setPdfLabel,
@@ -111,6 +114,14 @@ export default function FinancialsTab({
         foreignCurrencies={foreignCurrencies}
         fxRates={fxRates}
         hasEstimated={history.some((r) => r.source === "pdf" || r.source === "estimated")}
+        hasHistory={history.length > 0}
+      />
+      <FinancialsKeyFigures
+        orgnr={orgnr}
+        regn={regn}
+        equityRatio={equityRatio}
+        hasHistory={history.length > 0}
+        onEstimated={onHistoryRefetch}
       />
       <AddPdfForm
         pdfUrl={pdfUrl} setPdfUrl={setPdfUrl}

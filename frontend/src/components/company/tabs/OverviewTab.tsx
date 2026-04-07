@@ -1,12 +1,40 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ExternalLink, AlertTriangle, Shield, Users, TrendingUp } from "lucide-react";
+import useSWR from "swr";
+import { ExternalLink, AlertTriangle, Shield, Users, TrendingUp, BarChart3 } from "lucide-react";
 import RiskBadge from "@/components/company/RiskBadge";
-import type { HistoryRow } from "@/lib/api-types";
+import type { HistoryRow, RiskFactor } from "@/lib/api-types";
+import type {
+  BankruptcyOut,
+  BoardMembersOut,
+  BoardMember,
+  LicensesOut,
+  StrukturOut,
+  BenchmarkOut,
+  KoordinaterOut,
+} from "@/lib/api";
 import { fmt, fmtMnok } from "@/lib/format";
+import { getOrgPeerBenchmark } from "@/lib/api";
 
 const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
+
+// Category colors mirror the Streamlit version (api/risk.py CATEGORY_COLORS)
+const CATEGORY_DOTS: Record<string, string> = {
+  Selskapsstatus: "#C0392B",
+  "Økonomi":       "#E67E22",
+  Bransje:        "#C8A951",
+  Historikk:      "#4A6FA5",
+  Eksponering:    "#8E44AD",
+};
+
+function riskBandLabel(score?: number): { label: string; guidance: string } {
+  if (score == null) return { label: "Ukjent", guidance: "Score ikke beregnet." };
+  if (score <= 3)  return { label: "Lav",        guidance: "Normalpremie forventes. Godt grunnlag for tegning." };
+  if (score <= 7)  return { label: "Moderat",    guidance: "Forvent normal til lett forhøyet premie. Standard tegning." };
+  if (score <= 12) return { label: "Høy",        guidance: "Forhøyet premie sannsynlig. Krever ekstra dokumentasjon." };
+  return            { label: "Svært høy", guidance: "Tegning kan være vanskelig. Vurder spesialmarked." };
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,24 +55,27 @@ function KV({ label, value }: { label: string; value: unknown }) {
 }
 
 interface OverviewTabProps {
+  orgnr: string;
   org: Record<string, unknown>;
   regn: Record<string, unknown>;
   history?: HistoryRow[];
   risk: {
     score?: number;
     reasons?: string[];
+    factors?: RiskFactor[];
     equity_ratio?: number;
   };
   pep: Record<string, unknown>;
-  koordinaterData: unknown;
-  roles: Record<string, unknown> | null | undefined;
-  licenses: Record<string, unknown> | null | undefined;
-  bankruptcy: Record<string, unknown> | null | undefined;
-  benchmark: Record<string, unknown> | null | undefined;
-  struktur?: Record<string, unknown> | null;
+  koordinaterData: KoordinaterOut | null | undefined;
+  roles: BoardMembersOut | null | undefined;
+  licenses: LicensesOut | null | undefined;
+  bankruptcy: BankruptcyOut | null | undefined;
+  benchmark: BenchmarkOut | null | undefined;
+  struktur?: StrukturOut | null;
 }
 
 export default function OverviewTab({
+  orgnr,
   org,
   regn,
   history,
@@ -57,6 +88,8 @@ export default function OverviewTab({
   benchmark,
   struktur,
 }: OverviewTabProps) {
+  // Lazy peer benchmark — only fetched when this tab is mounted
+  const { data: peerData } = useSWR(`peer-${orgnr}`, () => getOrgPeerBenchmark(orgnr).catch(() => null));
   // Fall back to most recent history row when BRREG has no financial data (e.g. banks)
   const latestRow = history && history.length > 0
     ? [...history].sort((a, b) => b.year - a.year)[0]
@@ -79,7 +112,20 @@ export default function OverviewTab({
       : null;
 
   const coords = (koordinaterData as { coordinates?: { lat: number; lon: number } } | null)?.coordinates;
-  const isBankrupt = !!bankruptcy && !!(bankruptcy.konkurs || bankruptcy.underAvvikling || bankruptcy.underTvangsavviklingEllerTvangsopplosning);
+  // Backend returns snake_case (under_avvikling, under_konkursbehandling) — fall back to camelCase aliases for safety
+  const bk = (bankruptcy ?? {}) as Record<string, unknown>;
+  const isKonkurs   = !!(bk.konkurs || bk.under_konkursbehandling);
+  const isAvvikling = !!(bk.under_avvikling ?? bk.underAvvikling);
+  const isBankrupt  = isKonkurs || isAvvikling;
+  const bankruptLabel = isKonkurs ? "Konkurs / under konkursbehandling" : isAvvikling ? "Under avvikling" : "";
+
+  const riskBand = riskBandLabel(risk.score);
+  const factors = (risk.factors ?? []) as RiskFactor[];
+  // Group risk factors by category for the breakdown table
+  const factorsByCategory = factors.reduce<Record<string, RiskFactor[]>>((acc, f) => {
+    (acc[f.category] ??= []).push(f);
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-4">
@@ -88,9 +134,7 @@ export default function OverviewTab({
         <div className="broker-card border-l-4 border-red-500">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <span className="text-sm font-semibold text-red-700">
-              {(bankruptcy as Record<string,unknown>).konkurs ? "Konkurs" : (bankruptcy as Record<string,unknown>).underAvvikling ? "Under avvikling" : "Under tvangsavvikling/tvangsoppløsning"}
-            </span>
+            <span className="text-sm font-semibold text-red-700">{bankruptLabel}</span>
           </div>
         </div>
       )}
@@ -102,10 +146,10 @@ export default function OverviewTab({
         <div className="space-y-4">
           <Section title="Selskapsinfo">
             <KV label="Orgnr"     value={org.orgnr} />
-            <KV label="Adresse"   value={org.forretningsadresse} />
+            <KV label="Adresse"   value={Array.isArray(org.adresse) ? (org.adresse as string[]).filter(Boolean).join(", ") : org.adresse} />
             <KV label="Kommune"   value={org.kommune} />
             <KV label="Stiftet"   value={org.stiftelsesdato} />
-            <KV label="Ansatte"   value={org.antallAnsatte} />
+            <KV label="Ansatte"   value={regn.antall_ansatte} />
             {!!org.hjemmeside && (
               <div className="flex justify-between text-sm">
                 <span className="text-[#8A7F74]">Nettsted</span>
@@ -134,15 +178,57 @@ export default function OverviewTab({
                 {risk.score ?? "–"}
                 <span className="text-sm font-normal text-[#8A7F74]"> / 20</span>
               </span>
+              <span className="text-xs text-[#8A7F74] ml-auto">{riskBand.label}</span>
             </div>
-            {Array.isArray(risk.reasons) && risk.reasons.length > 0 && (
-              <ul className="space-y-1 mt-2">
-                {(risk.reasons as string[]).map((r, i) => (
-                  <li key={i} className="text-xs text-[#8A7F74] flex gap-2"><span>•</span> {r}</li>
-                ))}
-              </ul>
-            )}
+            {/* Gradient bar 0–20 */}
+            <div className="space-y-1">
+              <div className="relative h-2 rounded-full bg-gradient-to-r from-[#27AE60] via-[#C8A951] to-[#C0392B]">
+                {risk.score != null && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#2C3E50] shadow"
+                    style={{ left: `calc(${Math.min(100, (risk.score / 20) * 100)}% - 6px)` }}
+                  />
+                )}
+              </div>
+              <div className="flex justify-between text-[10px] text-[#C4BDB4] px-0.5">
+                <span>0</span><span>5</span><span>10</span><span>15</span><span>20</span>
+              </div>
+            </div>
+            <p className="text-xs text-[#8A7F74] italic">{riskBand.guidance}</p>
           </Section>
+
+          {/* Risk factors breakdown by category — mirrors Streamlit profile_core.py risk table */}
+          {factors.length > 0 && (
+            <Section title="Risikofaktorer">
+              <div className="space-y-3">
+                {Object.entries(factorsByCategory).map(([category, items]) => (
+                  <div key={category}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: CATEGORY_DOTS[category] ?? "#8A7F74" }}
+                      />
+                      <span className="text-xs font-semibold text-[#2C3E50] uppercase tracking-wide">{category}</span>
+                    </div>
+                    <ul className="space-y-1 pl-3.5">
+                      {items.map((f, i) => (
+                        <li key={i} className="flex items-start justify-between gap-2 text-xs">
+                          <div className="flex-1">
+                            <span className="text-[#2C3E50]">{f.label}</span>
+                            {f.detail && <span className="block text-[#C4BDB4] text-[10px]">{f.detail}</span>}
+                          </div>
+                          <span className="font-mono font-semibold text-[#8A7F74] flex-shrink-0">+{f.points}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-[#C4BDB4] pt-2 border-t border-[#EDE8E3]">
+                Skala: 0–3 Lav · 4–7 Moderat · 8–12 Høy · 13+ Svært høy
+              </p>
+            </Section>
+          )}
 
           {finansData && (
             <Section title={finansData._year ? `Nøkkeltall (${finansData._year})` : "Nøkkeltall"}>
@@ -193,67 +279,150 @@ export default function OverviewTab({
       {/* ── Bottom 2-column grid ─────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
 
-        {/* Board members */}
-        {Array.isArray((roles as Record<string, unknown> | null)?.roller) && ((roles as Record<string, unknown>).roller as unknown[]).length > 0 && (
-          <Section title="Styremedlemmer">
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
-              <Users className="w-3.5 h-3.5" />
-              <span>Fra Brønnøysundregistrene</span>
-            </div>
-            <div className="space-y-2">
-              {((roles as Record<string, unknown>).roller as Record<string, unknown>[]).slice(0, 8).map((r, i) => {
-                const person = (r.person ?? r) as Record<string, unknown>;
-                const navn = [person.fornavn, person.etternavn].filter(Boolean).join(" ") || (r.navn as string) || "–";
-                const rolle = (r.rolle as Record<string, unknown>)?.beskrivelse ?? r.tittel ?? r.type ?? "";
-                return (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span className="text-[#2C3E50] font-medium">{navn}</span>
-                    <span className="text-[#8A7F74] text-xs">{String(rolle)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </Section>
-        )}
-
-        {/* Finanstilsynet licenses */}
-        {Array.isArray((licenses as Record<string, unknown> | null)?.licences) && ((licenses as Record<string, unknown>).licences as unknown[]).length > 0 && (
-          <Section title="Finanstilsynet — konsesjoner">
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
-              <Shield className="w-3.5 h-3.5" />
-              <span>Registrerte finanskonsesjoner</span>
-            </div>
-            <div className="space-y-1.5">
-              {((licenses as Record<string, unknown>).licences as Record<string, unknown>[]).slice(0, 6).map((l, i) => (
-                <div key={i} className="text-xs text-[#2C3E50] flex items-start gap-1.5">
-                  <span className="text-[#C8A951] mt-0.5">•</span>
-                  <span>{String(l.type ?? l.name ?? l.licence_type ?? JSON.stringify(l))}</span>
+        {/* Board members — backend returns {members: [{group, role, name, birth_year, deceased, resigned}]} */}
+        {(() => {
+          const memberList: BoardMember[] = roles?.members ?? [];
+          if (memberList.length === 0) return null;
+          const active   = memberList.filter((m) => !m.resigned && !m.deceased);
+          const inactive = memberList.filter((m) => m.resigned || m.deceased);
+          return (
+            <Section title="Styremedlemmer">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <Users className="w-3.5 h-3.5" />
+                <span>Fra Brønnøysundregistrene</span>
+              </div>
+              {active.length > 0 && (
+                <div className="space-y-1.5">
+                  {active.slice(0, 10).map((m, i) => (
+                    <div key={i} className="flex justify-between items-baseline text-sm gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[#2C3E50] font-medium">{m.name || "–"}</span>
+                        {m.birth_year && (
+                          <span className="text-[#C4BDB4] text-[10px] ml-1.5">f. {m.birth_year}</span>
+                        )}
+                      </div>
+                      <span className="text-[#8A7F74] text-xs text-right flex-shrink-0">{m.role || ""}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Section>
-        )}
+              )}
+              {inactive.length > 0 && (
+                <details className="mt-3 pt-2 border-t border-[#EDE8E3]">
+                  <summary className="text-xs text-[#8A7F74] cursor-pointer hover:text-[#2C3E50]">
+                    Tidligere medlemmer ({inactive.length})
+                  </summary>
+                  <div className="space-y-1 mt-2">
+                    {inactive.slice(0, 10).map((m, i) => (
+                      <div key={i} className="flex justify-between items-baseline text-xs gap-2 opacity-70">
+                        <div className="min-w-0">
+                          <span className="text-[#8A7F74]">{m.name || "–"}</span>
+                          {m.birth_year && (
+                            <span className="text-[#C4BDB4] text-[10px] ml-1.5">f. {m.birth_year}</span>
+                          )}
+                        </div>
+                        <span className="text-[#C4BDB4] text-[10px] text-right flex-shrink-0">
+                          {m.deceased ? "Avdød" : "Fratrådt"} · {m.role || ""}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </Section>
+          );
+        })()}
 
-        {/* Industry benchmark */}
-        {benchmark && Object.keys(benchmark).length > 0 && (
+        {/* Finanstilsynet licenses — backend returns {orgnr, licenses: [{name, license_type, license_status, ...}]} */}
+        {(() => {
+          const licList = ((licenses as Record<string, unknown> | null)?.licenses as Record<string, unknown>[] | undefined) ?? [];
+          if (licList.length === 0) return null;
+          return (
+            <Section title="Finanstilsynet — konsesjoner">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Registrerte finanskonsesjoner</span>
+              </div>
+              <div className="space-y-1.5">
+                {licList.slice(0, 6).map((l, i) => (
+                  <div key={i} className="text-xs text-[#2C3E50] flex items-start gap-1.5">
+                    <span className="text-[#C8A951] mt-0.5">•</span>
+                    <span>
+                      {String(l.license_type ?? l.name ?? "Konsesjon")}
+                      {!!l.license_status && (
+                        <span className="text-[#8A7F74] ml-1">({String(l.license_status)})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          );
+        })()}
+
+        {/* Industry benchmark — backend returns {orgnr, nace_code, benchmark: {...metrics}} */}
+        {benchmark?.benchmark && Object.keys(benchmark.benchmark).length > 0 && (
           <Section title="SSB-bransjesammenligning">
             <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Typiske nøkkeltall for bransjen</span>
             </div>
-            {Object.entries(benchmark as Record<string, { low: number; high: number } | number | string>)
+            {Object.entries(benchmark.benchmark)
               .filter(([k]) => !["naeringskode", "beskrivelse", "source"].includes(k))
               .slice(0, 5)
-              .map(([key, val]) => (
-                <div key={key} className="flex justify-between text-sm">
-                  <span className="text-[#8A7F74] capitalize">{key.replace(/_/g, " ")}</span>
-                  <span className="text-[#2C3E50] font-medium text-xs">
-                    {typeof val === "object" && val !== null && "low" in val
-                      ? `${(val as { low: number; high: number }).low}–${(val as { low: number; high: number }).high}%`
-                      : String(val)}
-                  </span>
-                </div>
-              ))}
+              .map(([key, val]) => {
+                const isRange = typeof val === "object" && val !== null && "low" in (val as Record<string, unknown>);
+                return (
+                  <div key={key} className="flex justify-between text-sm">
+                    <span className="text-[#8A7F74] capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="text-[#2C3E50] font-medium text-xs">
+                      {isRange
+                        ? `${(val as { low: number; high: number }).low}–${(val as { low: number; high: number }).high}%`
+                        : String(val)}
+                    </span>
+                  </div>
+                );
+              })}
+          </Section>
+        )}
+
+        {/* Peer benchmark — fetched from /org/{orgnr}/peer-benchmark */}
+        {peerData && peerData.peer_count > 0 && (
+          <Section title="Bransje-benchmark (peer-sammenligning)">
+            <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>
+                NACE-seksjon {peerData.nace_section || "–"} · {peerData.peer_count} peers ·{" "}
+                {peerData.source === "db_peers" ? "fra database" : "SSB-rangering"}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {(["equity_ratio", "revenue", "risk_score"] as const).map((k) => {
+                const m = peerData.metrics[k];
+                if (m == null || (m.company == null && m.peer_avg == null)) return null;
+                const label = k === "equity_ratio" ? "Egenkapitalandel"
+                            : k === "revenue"      ? "Omsetning"
+                            : "Risikoscore";
+                const fmtVal = (v: number | null | undefined) => {
+                  if (v == null) return "–";
+                  if (k === "equity_ratio") return `${(v * 100).toFixed(1)}%`;
+                  if (k === "revenue")      return fmtMnok(v);
+                  return v.toFixed(1);
+                };
+                return (
+                  <div key={k} className="flex justify-between items-baseline text-xs">
+                    <span className="text-[#8A7F74]">{label}</span>
+                    <span className="text-[#2C3E50] font-medium">
+                      {fmtVal(m.company)}
+                      <span className="text-[#C4BDB4] mx-1">vs</span>
+                      <span className="text-[#8A7F74]">{fmtVal(m.peer_avg)}</span>
+                      {m.percentile != null && (
+                        <span className="ml-2 text-[10px] text-[#4A6FA5]">P{m.percentile}</span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </Section>
         )}
 
