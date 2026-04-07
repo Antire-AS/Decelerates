@@ -22,9 +22,11 @@ import {
   Building2,
   Crosshair,
   Menu,
+  Trello,
   X,
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
+import { NotificationBell } from "./NotificationBell";
 
 // IA cleanup (2026-04):
 //   - /documents and /videos are now sub-tabs of /knowledge
@@ -34,6 +36,7 @@ import OnboardingTour from "./OnboardingTour";
 const NAV_ITEMS = [
   { href: "/dashboard",   label: "Hjem",                 icon: LayoutDashboard },
   { href: "/search",      label: "Selskapsøk",           icon: Search },
+  { href: "/pipeline",    label: "Pipeline",             icon: Trello },
   { href: "/portfolio",   label: "Portefølje",           icon: BarChart2 },
   { href: "/prospecting", label: "Prospektering",        icon: Crosshair },
   { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw },
@@ -128,14 +131,16 @@ function SidebarContent({
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Hooks MUST be called unconditionally before any early return, otherwise
+  // navigating between /portal and the broker shell triggers a Rules-of-Hooks
+  // crash because React sees a different hook count on re-render.
+  const { lang, setLang } = useI18n();
+  const { data: session } = useSession();
 
   // Public routes (client portal) — render without the broker shell
   if (pathname.startsWith("/portal")) {
     return <>{children}</>;
   }
-
-  const { lang, setLang } = useI18n();
-  const { data: session } = useSession();
 
   const sidebarProps = { pathname, lang, setLang, session };
 
@@ -166,7 +171,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Main content ────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        {/* Mobile top bar */}
+        {/* Mobile top bar — bell sits next to the menu button. */}
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#F5F0EB] border-b border-[#D4C9B8] flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
@@ -179,15 +184,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Scale className="w-4 h-4 text-[#4A6FA5]" />
             <span className="text-sm font-bold text-[#2C3E50]">Broker Accelerator</span>
           </div>
-          {mobileOpen && (
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="ml-auto p-1.5 rounded-lg text-[#2C3E50] hover:bg-[#EDE8E3]"
-              aria-label="Lukk meny"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <div className="ml-auto flex items-center gap-1">
+            <NotificationBell />
+            {mobileOpen && (
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-1.5 rounded-lg text-[#2C3E50] hover:bg-[#EDE8E3]"
+                aria-label="Lukk meny"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Desktop top bar — minimal, right-aligned bell only (sidebar owns everything else). */}
+        <header className="hidden md:flex items-center justify-end px-6 py-2 bg-[#F5F0EB] border-b border-[#D4C9B8] flex-shrink-0">
+          <NotificationBell />
         </header>
 
         <main className="flex-1 overflow-y-auto bg-[#F5F0EB]">

@@ -3,9 +3,8 @@
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 
 # Stub api.services.pdf_background before importing pdf_sources to avoid
 # playwright / heavy-dep import when upsert_pdf_source calls _upload_pdf_to_blob.
@@ -13,7 +12,7 @@ _pdf_bg_stub = MagicMock()
 if "api.services.pdf_background" not in sys.modules:
     sys.modules["api.services.pdf_background"] = _pdf_bg_stub
 
-from api.db import CompanyHistory, CompanyPdfSource, InsuranceDocument
+from api.db import CompanyPdfSource
 from api.services.pdf_sources import (
     PdfSourcesService,
     delete_history_year,

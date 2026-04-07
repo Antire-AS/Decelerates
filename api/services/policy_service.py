@@ -1,6 +1,5 @@
 """Policy register and renewal pipeline service."""
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional
 
 from sqlalchemy.orm import Session
 

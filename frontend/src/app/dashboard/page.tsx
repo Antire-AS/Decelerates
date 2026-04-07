@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { getDashboard, getCompanies, type DashboardData, type Company } from "@/lib/api";

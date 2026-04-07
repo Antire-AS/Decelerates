@@ -86,12 +86,58 @@ export type PeerBenchmarkOut    = Schema["PeerBenchmarkOut"];
 export type HistoryOut          = Schema["HistoryOut"];
 export type HistoryRowOut       = Schema["HistoryRowOut"];
 export type ExtractionStatusOut = Schema["ExtractionStatusOut"];
+export type PdfHistoryOut       = Schema["PdfHistoryOut"];
 export type EstimateOut         = Schema["EstimateOut"];
 export type KnowledgeStatsOut   = Schema["KnowledgeStatsOut"];
 export type KnowledgeIndexOut   = Schema["KnowledgeIndexOut"];
 export type RiskOfferOut        = Schema["RiskOfferOut"];
 export type NarrativeOut        = Schema["NarrativeOut"];
 export type KnowledgeChatOut    = Schema["KnowledgeChatOut"];
+export type OrgChatOut          = Schema["OrgChatOut"];
+export type DocumentChatOut     = Schema["DocumentChatOut"];
+export type DocumentCompareOut  = Schema["DocumentCompareOut"];
+export type DocumentKeypointsOut = Schema["DocumentKeypointsOut"];
+
+// Deal pipeline (plan §🟢 #9). Every endpoint declares response_model on the
+// backend, so these are exact contract aliases — never an inline shape.
+export type PipelineStageOut    = Schema["PipelineStageOut"];
+export type PipelineStageCreate = Schema["PipelineStageCreate"];
+export type PipelineStageUpdate = Schema["PipelineStageUpdate"];
+export type DealOut             = Schema["DealOut"];
+export type DealCreate          = Schema["DealCreate"];
+export type DealUpdate          = Schema["DealUpdate"];
+export type DealStageChange     = Schema["DealStageChange"];
+export type DealLose            = Schema["DealLose"];
+
+// Notifications inbox (plan §🟢 #17).
+export type NotificationOut         = Schema["NotificationOut"];
+export type NotificationListOut     = Schema["NotificationListOut"];
+export type NotificationMarkReadOut = Schema["NotificationMarkReadOut"];
+
+// Audit log UI (plan §🟢 #13).
+export type AuditLogEntryOut = Schema["AuditLogEntryOut"];
+export type AuditLogPageOut  = Schema["AuditLogPageOut"];
+
+// Commission projections (plan §🟢 #12).
+export type CommissionProjectionBucket = Schema["CommissionProjectionBucket"];
+export type CommissionProjectionsOut   = Schema["CommissionProjectionsOut"];
+
+// Bulk operations (plan §🟢 #18).
+export type PortfolioBulkAdd       = Schema["PortfolioBulkAdd"];
+export type PortfolioBulkAddOut    = Schema["PortfolioBulkAddOut"];
+export type ActivityBulkComplete   = Schema["ActivityBulkComplete"];
+export type ActivityBulkCompleteOut = Schema["ActivityBulkCompleteOut"];
+
+// Saved searches (plan §🟢 #19).
+export type SavedSearchOut    = Schema["SavedSearchOut"];
+export type SavedSearchCreate = Schema["SavedSearchCreate"];
+
+// Email compose (plan §🟢 #10).
+export type EmailComposeIn  = Schema["EmailComposeIn"];
+export type EmailComposeOut = Schema["EmailComposeOut"];
+
+// Signicat e-sign (plan §🟢 #11).
+export type SigningSessionOut = Schema["SigningSessionOut"];
 
 const API_BASE = apiBaseUrl();
 
@@ -234,9 +280,6 @@ export const deleteActivity = (orgnr: string, id: number) =>
 
 // ── Portfolio ─────────────────────────────────────────────────────────────────
 
-export const getPortfolioOverview = () =>
-  apiFetch<unknown>("/portfolio/overview");
-
 export const getPortfolios = () => apiFetch<PortfolioItem[]>("/portfolio");
 
 export const getPortfolio = (id: number) => apiFetch<PortfolioItem>(`/portfolio/${id}`);
@@ -290,13 +333,13 @@ export const deleteInsuranceDocument = (id: number) =>
   apiFetch<void>(`/insurance-documents/${id}`, { method: "DELETE" });
 
 export const compareInsuranceDocuments = (docIds: [number, number]) =>
-  apiFetch<{ comparison: string; docs: string[] }>("/insurance-documents/compare", {
+  apiFetch<DocumentCompareOut>("/insurance-documents/compare", {
     method: "POST",
     body: JSON.stringify({ doc_ids: docIds }),
   });
 
 export const chatWithInsuranceDocument = (id: number, question: string, orgnr?: string) =>
-  apiFetch<{ answer: string }>(`/insurance-documents/${id}/chat`, {
+  apiFetch<DocumentChatOut>(`/insurance-documents/${id}/chat`, {
     method: "POST",
     body: JSON.stringify({ question, orgnr }),
   });
@@ -421,8 +464,87 @@ export const getUsers = () => apiFetch<User[]>("/users");
 export const updateUserRole = (id: number, role: string) =>
   apiFetch<void>(`/users/${id}/role`, { method: "PUT", body: JSON.stringify({ role }) });
 
-export const getAuditLog = (limit = 50) =>
-  apiFetch<unknown[]>(`/audit?limit=${limit}`);
+export const getAuditLog = (params?: {
+  orgnr?: string;
+  action?: string;
+  actor_email?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  const q = new URLSearchParams();
+  if (params?.orgnr)       q.set("orgnr", params.orgnr);
+  if (params?.action)      q.set("action", params.action);
+  if (params?.actor_email) q.set("actor_email", params.actor_email);
+  if (params?.from_date)   q.set("from_date", params.from_date);
+  if (params?.to_date)     q.set("to_date", params.to_date);
+  q.set("limit", String(params?.limit ?? 50));
+  q.set("offset", String(params?.offset ?? 0));
+  return apiFetch<AuditLogPageOut>(`/audit?${q.toString()}`);
+};
+
+export const getCommissionProjections = (months: number = 12) =>
+  apiFetch<CommissionProjectionsOut>(`/commission/projections?months=${months}`);
+
+export const addCompaniesBulk = (portfolioId: number, orgnrs: string[]) =>
+  apiFetch<PortfolioBulkAddOut>(`/portfolio/${portfolioId}/companies/bulk`, {
+    method: "POST",
+    body: JSON.stringify({ orgnrs }),
+  });
+
+export const bulkCompleteActivities = (activityIds: number[]) =>
+  apiFetch<ActivityBulkCompleteOut>("/activities/bulk-complete", {
+    method: "POST",
+    body: JSON.stringify({ activity_ids: activityIds }),
+  });
+
+// Saved searches (plan §🟢 #19) ─────────────────────────────────────────────
+
+export const getSavedSearches = () =>
+  apiFetch<SavedSearchOut[]>("/saved-searches");
+
+export const createSavedSearch = (name: string, params: Record<string, unknown>) =>
+  apiFetch<SavedSearchOut>("/saved-searches", {
+    method: "POST",
+    body: JSON.stringify({ name, params }),
+  });
+
+export const deleteSavedSearch = (searchId: number) =>
+  apiFetch<void>(`/saved-searches/${searchId}`, { method: "DELETE" });
+
+// Email compose (plan §🟢 #10) ──────────────────────────────────────────────
+
+export const composeEmail = (data: EmailComposeIn) =>
+  apiFetch<EmailComposeOut>("/email/compose", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+// Signicat e-sign (plan §🟢 #11) ─────────────────────────────────────────────
+
+export const signRecommendation = (orgnr: string, recId: number) =>
+  apiFetch<SigningSessionOut>(`/org/${orgnr}/recommendations/${recId}/sign`, {
+    method: "POST",
+  });
+
+export const getOrgAuditLog = (orgnr: string, params?: {
+  action?: string;
+  actor_email?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  const q = new URLSearchParams();
+  if (params?.action)      q.set("action", params.action);
+  if (params?.actor_email) q.set("actor_email", params.actor_email);
+  if (params?.from_date)   q.set("from_date", params.from_date);
+  if (params?.to_date)     q.set("to_date", params.to_date);
+  q.set("limit", String(params?.limit ?? 50));
+  q.set("offset", String(params?.offset ?? 0));
+  return apiFetch<AuditLogPageOut>(`/audit/${orgnr}?${q.toString()}`);
+};
 
 export const getPolicies = () => apiFetch<Policy[]>("/policies");
 
@@ -465,7 +587,7 @@ export const sendRenewalThresholdEmails = () =>
 // ── Document extras ───────────────────────────────────────────────────────────
 
 export const getDocumentKeyPoints = (id: number) =>
-  apiFetch<Record<string, unknown>>(`/insurance-documents/${id}/keypoints`);
+  apiFetch<DocumentKeypointsOut>(`/insurance-documents/${id}/keypoints`);
 
 export const getSimilarDocuments = (id: number) =>
   apiFetch<InsuranceDocument[]>(`/insurance-documents/${id}/similar`);
@@ -497,13 +619,7 @@ export async function downloadPortfolioPdf(portfolioId: number, name: string): P
 // ── Org financial extras ──────────────────────────────────────────────────────
 
 export const getOrgExtractionStatus = (orgnr: string) =>
-  apiFetch<{
-    status: string;
-    source_years: number[];
-    done_years: number[];
-    pending_years: number[];
-    missing_target_years: number[];
-  }>(`/org/${orgnr}/extraction-status`);
+  apiFetch<ExtractionStatusOut>(`/org/${orgnr}/extraction-status`);
 
 export type FinancialCommentaryOut = Schema["FinancialCommentaryOut"];
 
@@ -530,7 +646,7 @@ export const addOrgPdfHistory = (
   orgnr: string,
   data: { pdf_url: string; year: number; label?: string },
 ) =>
-  apiFetch<{ orgnr: string; extracted: unknown }>(`/org/${orgnr}/pdf-history`, {
+  apiFetch<PdfHistoryOut>(`/org/${orgnr}/pdf-history`, {
     method: "POST",
     body: JSON.stringify({ pdf_url: data.pdf_url, year: data.year, label: data.label ?? "" }),
   });
@@ -538,7 +654,7 @@ export const addOrgPdfHistory = (
 // ── Company-specific RAG chat ─────────────────────────────────────────────────
 
 export const chatWithOrg = (orgnr: string, question: string, session_id?: string) =>
-  apiFetch<{ answer: string; session_id?: string }>(`/org/${orgnr}/chat`, {
+  apiFetch<OrgChatOut>(`/org/${orgnr}/chat`, {
     method: "POST",
     body: JSON.stringify({ question, ...(session_id ? { session_id } : {}) }),
   });
@@ -685,3 +801,74 @@ export const nlQuery = (question: string) =>
     "/financials/query",
     { method: "POST", body: JSON.stringify({ question }) },
   );
+
+// ── Deal pipeline (plan §🟢 #9) ──────────────────────────────────────────────
+
+export const getPipelineStages = () =>
+  apiFetch<PipelineStageOut[]>("/pipeline/stages");
+
+export const createPipelineStage = (body: PipelineStageCreate) =>
+  apiFetch<PipelineStageOut>("/pipeline/stages", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const updatePipelineStage = (stageId: number, body: PipelineStageUpdate) =>
+  apiFetch<PipelineStageOut>(`/pipeline/stages/${stageId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+
+export const deletePipelineStage = (stageId: number) =>
+  apiFetch<void>(`/pipeline/stages/${stageId}`, { method: "DELETE" });
+
+export const getDeals = (params?: { stage_id?: number; owner_user_id?: number; orgnr?: string }) => {
+  const q = new URLSearchParams();
+  if (params?.stage_id != null)      q.set("stage_id", String(params.stage_id));
+  if (params?.owner_user_id != null) q.set("owner_user_id", String(params.owner_user_id));
+  if (params?.orgnr)                 q.set("orgnr", params.orgnr);
+  const qs = q.toString();
+  const suffix = qs ? "?" + qs : "";
+  return apiFetch<DealOut[]>(`/deals${suffix}`);
+};
+
+export const createDeal = (body: DealCreate) =>
+  apiFetch<DealOut>("/deals", { method: "POST", body: JSON.stringify(body) });
+
+export const updateDeal = (dealId: number, body: DealUpdate) =>
+  apiFetch<DealOut>(`/deals/${dealId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+
+export const moveDealStage = (dealId: number, stageId: number) =>
+  apiFetch<DealOut>(`/deals/${dealId}/stage`, {
+    method: "PATCH",
+    body: JSON.stringify({ stage_id: stageId }),
+  });
+
+export const loseDeal = (dealId: number, reason?: string) =>
+  apiFetch<DealOut>(`/deals/${dealId}/lose`, {
+    method: "POST",
+    body: JSON.stringify({ reason: reason ?? null }),
+  });
+
+export const deleteDeal = (dealId: number) =>
+  apiFetch<void>(`/deals/${dealId}`, { method: "DELETE" });
+
+// ── Notifications inbox (plan §🟢 #17) ───────────────────────────────────────
+
+export const getNotifications = (params?: { unread_only?: boolean; limit?: number }) => {
+  const q = new URLSearchParams();
+  if (params?.unread_only) q.set("unread_only", "true");
+  if (params?.limit != null) q.set("limit", String(params.limit));
+  const qs = q.toString();
+  const suffix = qs ? "?" + qs : "";
+  return apiFetch<NotificationListOut>(`/notifications${suffix}`);
+};
+
+export const markNotificationRead = (notificationId: number) =>
+  apiFetch<NotificationOut>(`/notifications/${notificationId}/read`, { method: "PATCH" });
+
+export const markAllNotificationsRead = () =>
+  apiFetch<NotificationMarkReadOut>("/notifications/read-all", { method: "POST" });

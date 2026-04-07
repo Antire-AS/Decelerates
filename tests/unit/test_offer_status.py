@@ -4,7 +4,6 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 """
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import InsuranceOffer, OfferStatus
 from api.services.documents import update_offer_status

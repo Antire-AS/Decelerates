@@ -4,7 +4,6 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from api.db import PortfolioCompany, Company, Policy, PolicyStatus
-from api.domain.exceptions import NotFoundError
 
 
 def _insurer_concentration(policies: list, total_premium: float) -> list:

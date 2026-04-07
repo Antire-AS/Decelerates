@@ -12,12 +12,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   Vurder:   "text-blue-600 bg-blue-50 border-blue-200",
 };
 
-const PRIORITY_DOT: Record<string, string> = {
-  Kritisk:  "bg-red-500",
-  Anbefalt: "bg-amber-400",
-  Vurder:   "bg-blue-400",
-};
-
 function GapRow({ item }: { item: CoverageGapItem }) {
   const [open, setOpen] = useState(false);
   const covered = item.status === "covered";

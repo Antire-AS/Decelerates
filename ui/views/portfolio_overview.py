@@ -4,7 +4,7 @@ from datetime import date as _date, timedelta as _td
 import pandas as pd
 import streamlit as st
 
-from ui.views.portfolio_helpers import _fetch, _risk_badge
+from ui.views.portfolio_helpers import _risk_badge
 
 
 def _render_overview(companies: list, all_slas: list) -> None:

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, ActivityType, User, UserRole, BrokerFirm
+from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, User, UserRole, BrokerFirm
 import pydantic
 from api.domain.exceptions import ForbiddenError, NotFoundError, ValidationError
 from api.schemas import (

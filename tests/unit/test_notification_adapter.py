@@ -4,12 +4,10 @@ All ACS SDK calls are mocked; conftest.py already stubs azure.communication.emai
 """
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.adapters.notification_adapter import (
     AzureEmailNotificationAdapter,
     NotificationConfig,
-    _DEFAULT_SENDER,
 )
 
 

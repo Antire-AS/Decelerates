@@ -2,7 +2,6 @@
 import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
 import requests as _requests
 from fastapi import FastAPI
 from fastapi.testclient import TestClient

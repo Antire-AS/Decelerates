@@ -26,6 +26,7 @@ from api.schemas import (
     KnowledgeStatsOut,
     KnowledgeIndexOut,
     KnowledgeChatOut,
+    OrgChatOut,
     SeedRegulationsOut,
 )
 from api.dependencies import get_db
@@ -102,7 +103,7 @@ def _answer_with_rag_or_notes(
     return _llm_answer(context, question)
 
 
-@router.post("/org/{orgnr}/chat")
+@router.post("/org/{orgnr}/chat", response_model=OrgChatOut)
 @limiter.limit("10/minute")
 def chat_about_org(
     request: Request,

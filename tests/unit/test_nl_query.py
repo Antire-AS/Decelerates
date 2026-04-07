@@ -4,7 +4,6 @@ Pure static tests — Claude API calls and DB execution are mocked.
 """
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.nl_query import _generate_sql, run_nl_query
 

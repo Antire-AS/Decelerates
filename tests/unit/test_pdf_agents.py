@@ -4,7 +4,7 @@ All external calls (anthropic.Anthropic, _fetch_url_content) are mocked.
 Tests verify the 2-turn tool-use exchange and correct JSON parsing.
 """
 import json
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

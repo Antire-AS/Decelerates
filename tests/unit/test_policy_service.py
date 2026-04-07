@@ -4,7 +4,7 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 """
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
 import pytest
 

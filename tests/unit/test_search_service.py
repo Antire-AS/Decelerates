@@ -5,7 +5,6 @@ All Azure SDK calls are mocked; conftest.py already stubs azure.search.documents
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.search_service import (
     SearchService,

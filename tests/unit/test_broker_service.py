@@ -275,3 +275,78 @@ def test_delete_note_scoped_to_orgnr():
     db.query.return_value.filter.return_value.first.return_value = None
     with pytest.raises(NotFoundError):
         BrokerService(db).delete_note(1, "000000000")
+
+
+# ── @mention parsing (plan §🟢 #14) ──────────────────────────────────────────
+
+
+def test_resolve_mentions_returns_only_same_firm_users():
+    db = _mock_db()
+    # Two candidates parsed from text; only one matches a same-firm user.
+    db.query.return_value.filter.return_value.all.return_value = [
+        (5, "alice@broker.no"),
+    ]
+    emails, ids = BrokerService(db)._resolve_mentions(
+        "Hei @alice@broker.no — sjekk @random@external.com",
+        firm_id=10,
+    )
+    assert emails == ["alice@broker.no"]
+    assert ids == [5]
+
+
+def test_resolve_mentions_no_candidates_returns_empty():
+    db = _mock_db()
+    emails, ids = BrokerService(db)._resolve_mentions("plain text", firm_id=10)
+    assert emails == []
+    assert ids == []
+    db.query.assert_not_called()
+
+
+def test_create_note_persists_mentions_and_fans_out_targeted_notifications():
+    """End-to-end: create_note resolves mentions, persists them on the row,
+    and the inbox service receives a targeted call (not the broad fan-out)."""
+    from unittest.mock import patch
+
+    db = _mock_db()
+    # _resolve_mentions query: returns one matching user
+    db.query.return_value.filter.return_value.all.return_value = [
+        (5, "alice@broker.no"),
+    ]
+    body = SimpleNamespace(text="Hei @alice@broker.no, ta en titt")
+    with patch(
+        "api.services.notification_inbox_service.NotificationInboxService"
+    ) as MockSvc:
+        instance = MockSvc.return_value
+        BrokerService(db).create_note(
+            "123456789", body, firm_id=10, author_email="b@x.no",
+        )
+    # Targeted user_ids — must NOT be a broad fan-out.
+    instance.create_for_users.assert_called_once()
+    kwargs = instance.create_for_users.call_args.kwargs
+    assert kwargs["user_ids"] == [5]
+    assert kwargs["firm_id"] == 10
+
+
+def test_create_note_skips_notifications_when_no_matching_users():
+    """Mentions to non-firm emails should silently drop — no notifications fire."""
+    from unittest.mock import patch
+
+    db = _mock_db()
+    db.query.return_value.filter.return_value.all.return_value = []  # no matches
+    body = SimpleNamespace(text="@stranger@external.com please look")
+    with patch(
+        "api.services.notification_inbox_service.NotificationInboxService"
+    ) as MockSvc:
+        BrokerService(db).create_note(
+            "123456789", body, firm_id=10, author_email="b@x.no",
+        )
+    MockSvc.assert_not_called()  # no fan-out at all
+
+
+def test_create_note_works_without_firm_id_for_legacy_callers():
+    """Backward-compat: omitting firm_id skips mention parsing entirely."""
+    db = _mock_db()
+    body = SimpleNamespace(text="@alice@broker.no")
+    note = BrokerService(db).create_note("123456789", body)
+    assert note.mentions is None  # mentions list never resolved
+    db.query.assert_not_called()

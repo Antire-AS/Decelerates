@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from fpdf import FPDF
 
-from api.services.pdf_base import _safe, _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE, _MUST_RED, _REC_ORG, _OPT_GRY
+from api.services.pdf_base import _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE, _MUST_RED, _REC_ORG, _OPT_GRY
 from api.services.llm import _llm_answer_raw, _parse_json_from_llm_response
 
 

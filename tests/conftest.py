@@ -13,6 +13,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
+# Default the auth bypass for local test runs. CI sets these explicitly in
+# .github/workflows/ci.yml. Production cannot honor AUTH_DISABLED — see
+# api/auth.py::_is_auth_disabled and tests/unit/test_auth_safety.py.
+os.environ.setdefault("AUTH_DISABLED", "1")
+os.environ.setdefault("ENVIRONMENT", "development")
+
 # google / google.genai — services/llm.py and services/pdf_extract.py
 _google_genai = MagicMock()
 _google_genai_types = MagicMock()

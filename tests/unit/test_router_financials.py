@@ -128,7 +128,7 @@ def test_extraction_status_done_when_all_extracted(client, mock_db):
     history.year = 2020
 
     def _query_side_effect(model):
-        from api.db import CompanyPdfSource, CompanyHistory
+        from api.db import CompanyPdfSource
         q = MagicMock()
         if model is CompanyPdfSource:
             q.filter.return_value.all.return_value = [src]
@@ -167,3 +167,37 @@ def test_nl_query_returns_result(client):
     with patch("api.services.nl_query.run_nl_query", return_value=result):
         resp = client.post("/financials/query", json={"question": "List all companies"})
     assert resp.status_code == 200
+
+
+# ── GET /org/{orgnr}/financial-commentary ────────────────────────────────────
+# Locks the response shape against FinancialCommentaryOut. The earlier
+# implementation returned `{years_analyzed: int, navn: str}` which FastAPI
+# silently stripped because neither field is in the schema — see plan §🟡 #6.
+
+def test_financial_commentary_returns_years_list(client, mock_db):
+    company = MagicMock()
+    company.navn = "Test AS"
+    mock_db.query.return_value.filter.return_value.first.return_value = company
+    history = [
+        {"year": 2022, "sum_driftsinntekter": 1_000_000},
+        {"year": 2024, "sum_driftsinntekter": 1_500_000},
+        {"year": 2023, "sum_driftsinntekter": 1_200_000},
+    ]
+    with patch("api.routers.financials._get_full_history", return_value=history), \
+         patch("api.services.llm._llm_answer_raw", return_value="Lav risiko."):
+        resp = client.get("/org/123456789/financial-commentary")
+    assert resp.status_code == 200
+    body = resp.json()
+    # Schema-enforced shape: only orgnr / commentary / years are present.
+    assert set(body.keys()) == {"orgnr", "commentary", "years"}
+    assert body["orgnr"] == "123456789"
+    assert body["commentary"] == "Lav risiko."
+    # Years are returned in chronological order.
+    assert body["years"] == [2022, 2023, 2024]
+
+
+def test_financial_commentary_returns_404_when_no_history(client, mock_db):
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    with patch("api.routers.financials._get_full_history", return_value=[]):
+        resp = client.get("/org/123456789/financial-commentary")
+    assert resp.status_code == 404

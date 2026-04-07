@@ -21,12 +21,24 @@ from api.db import init_db
 from api.limiter import limiter
 from api.container import configure, AppConfig
 from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
+
+# ── Auth-disabled startup warning ──────────────────────────────────────────────
+# Mirrors the gate in api/auth.py::_is_auth_disabled — kept here so the warning
+# fires once at boot, not on every request. Production cannot disable auth.
+from api.auth import _is_auth_disabled  # noqa: E402
+if _is_auth_disabled():
+    logging.getLogger("api.auth").warning(
+        "⚠ AUTH_DISABLED is active — ENVIRONMENT=%s. Anyone can hit any endpoint. "
+        "This MUST NOT happen in production.",
+        os.getenv("ENVIRONMENT", "development"),
+    )
 
 _ai_conn_str = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 if _ai_conn_str:
@@ -63,6 +75,11 @@ from api.routers import (
     recommendations,
     coverage,
     commission,
+    deals,
+    notifications,
+    saved_searches,
+    email_compose,
+    webhooks,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -212,6 +229,15 @@ def on_startup():
                 "donotreply@acs-broker-accelerator-prod.azurecomm.net",
             ),
         ),
+        # Plan §🟢 #10 — MS Graph outbound. Empty strings until the broker
+        # firm completes the Azure AD app registration; is_configured() then
+        # returns False and POST /email/compose returns 503.
+        msgraph=MsGraphConfig(
+            tenant_id=os.getenv("AZURE_AD_TENANT_ID", ""),
+            client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
+            client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
+            service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
+        ),
     ))
 
 
@@ -242,5 +268,10 @@ app.include_router(coverage.router)
 app.include_router(audit.router)
 app.include_router(gdpr.router)
 app.include_router(commission.router)
+app.include_router(deals.router)
+app.include_router(notifications.router)
+app.include_router(saved_searches.router)
+app.include_router(email_compose.router)
+app.include_router(webhooks.router)
 
 __all__ = ["app", "limiter"]

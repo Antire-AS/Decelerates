@@ -1,7 +1,6 @@
 """Unit tests for coverage gap analysis."""
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.db import Company, Policy, PolicyStatus
 

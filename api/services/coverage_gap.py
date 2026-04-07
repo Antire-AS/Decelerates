@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from api.db import BrokerFirm, Company, CompanyHistory, Policy, PolicyStatus
+from api.db import Company, CompanyHistory, Policy, PolicyStatus
 from api.use_cases.insurance_needs import estimate_insurance_needs
 
 

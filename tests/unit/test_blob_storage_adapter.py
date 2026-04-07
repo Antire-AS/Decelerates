@@ -5,7 +5,6 @@ All Azure SDK calls are mocked; conftest.py already stubs azure.storage.blob.
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
 from api.services.blob_storage import BlobStorageService

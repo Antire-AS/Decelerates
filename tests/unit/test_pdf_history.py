@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.db import CompanyHistory
 from api.domain.exceptions import PdfExtractionError
 from api.services.pdf_history import (
     _get_full_history,

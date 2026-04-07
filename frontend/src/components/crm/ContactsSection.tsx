@@ -7,7 +7,6 @@ import {
   type Contact,
 } from "@/lib/api";
 import { Star, Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/cn";
 
 export default function ContactsSection({ orgnr }: { orgnr: string }) {
   const { data: contacts = [], mutate } = useSWR<Contact[]>(

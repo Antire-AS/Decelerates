@@ -2,12 +2,10 @@
 
 Pure static tests — BlobStorageService, _embed, and SearchService are all mocked.
 """
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.knowledge_index import (
-    KNOWLEDGE_ORG,
     _fmt_time,
     _source_exists,
     _split_text,

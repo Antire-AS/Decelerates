@@ -27,6 +27,7 @@ jobs:
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
             echo "ui_app=ca-ui" >> $GITHUB_OUTPUT
@@ -34,6 +35,7 @@ jobs:
             echo "db_url=${{ secrets.DATABASE_URL }}" >> $GITHUB_OUTPUT
           else
             echo "env=staging" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-staging" >> $GITHUB_OUTPUT
             echo "api_app=ca-api-staging" >> $GITHUB_OUTPUT
             echo "ui_app=ca-ui-staging" >> $GITHUB_OUTPUT
@@ -82,6 +84,7 @@ jobs:
         run: |
           # Shared env-vars block used by both create and update
           ENV_VARS=(
+            "ENVIRONMENT=${{ steps.config.outputs.environment }}"
             "DATABASE_URL=${{ steps.config.outputs.db_url }}"
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
             "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}"

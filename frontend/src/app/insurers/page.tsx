@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import {
-  Building2, Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check,
+  Building2, Plus, Trash2, ChevronDown, ChevronUp, Pencil, X,
 } from "lucide-react";
 import {
   getInsurers, createInsurer, updateInsurer, deleteInsurer,
@@ -22,20 +22,6 @@ const PRODUCT_TYPES = [
   "Varetransportforsikring",
   "Avbruddsforsikring",
 ];
-
-const STATUS_COLORS: Record<string, string> = {
-  pending:   "bg-amber-100 text-amber-700",
-  quoted:    "bg-blue-100 text-blue-700",
-  declined:  "bg-red-100 text-red-700",
-  withdrawn: "bg-gray-100 text-gray-600",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  pending:   "Avventer",
-  quoted:    "Tilbud mottatt",
-  declined:  "Avslått",
-  withdrawn: "Trukket",
-};
 
 // ── Insurer form ──────────────────────────────────────────────────────────────
 

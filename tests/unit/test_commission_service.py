@@ -2,7 +2,6 @@
 from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import Policy, PolicyStatus
 from api.services.commission_service import CommissionService

@@ -6,7 +6,6 @@ import {
   getOrgPolicies, createPolicy, deletePolicy, type Policy,
 } from "@/lib/api";
 import { Trash2, Plus, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/cn";
 import { fmtNok } from "@/lib/format";
 
 const PRODUCT_TYPES = [

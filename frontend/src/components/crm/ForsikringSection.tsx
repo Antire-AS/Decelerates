@@ -29,7 +29,7 @@ function fmtRange(r?: { low: number; mid: number; high: number }) {
 }
 
 export default function ForsikringSection({ orgnr }: { orgnr: string }) {
-  const { data: needsData, isLoading: needsLoading, mutate: mutateNeeds } = useSWR(
+  const { data: needsData, isLoading: needsLoading } = useSWR(
     `needs-${orgnr}`, () => getOrgInsuranceNeeds(orgnr),
   );
   const { data: offers = [], mutate: mutateOffers } = useSWR<InsuranceOffer[]>(

@@ -1,3 +1,4 @@
+# ruff: noqa: F401 — every name in this file is an intentional re-export.
 """Backward-compatibility shim — re-exports all public symbols from the split pdf_* modules.
 
 The 1203-line original has been split into focused modules:
@@ -8,9 +9,10 @@ The 1203-line original has been split into focused modules:
   pdf_background.py  — URL validation, parallel extraction, PdfExtractService
 
 All existing imports (api.services.pdf_extract.*) continue to work unchanged.
+The file-level ruff noqa above prevents the next ruff --fix run from stripping
+re-exports that aren't directly used inside this file.
 """
 
-# noqa: F401 — all re-exports are intentional for backward compatibility
 from api.services.pdf_parse import (
     _parse_json_financials,
     _extract_pdf_text,

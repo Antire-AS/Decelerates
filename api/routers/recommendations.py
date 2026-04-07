@@ -7,9 +7,10 @@ from api.auth import CurrentUser, get_current_user
 from api.db import BrokerSettings, Company, IddBehovsanalyse, Recommendation, Submission
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
-from api.schemas import RecommendationIn
+from api.schemas import RecommendationIn, SigningSessionOut
 from api.services.pdf_recommendation import generate_recommendation_pdf
 from api.services.recommendation_service import RecommendationService
+from api.services.signicat_service import SignicatService
 
 router = APIRouter()
 
@@ -163,3 +164,54 @@ def delete_recommendation(
         svc.delete(orgnr, user.firm_id, rec_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Recommendation not found")
+
+
+def _resolve_signable_recommendation(
+    svc: RecommendationService, orgnr: str, firm_id: int, rec_id: int,
+) -> Recommendation:
+    """Fetch a recommendation that's ready to sign — must exist and have a PDF.
+    Extracted so the route handler stays under 40 lines."""
+    try:
+        row = svc.get(orgnr, firm_id, rec_id)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Recommendation not found")
+    if not row.pdf_content:
+        raise HTTPException(
+            status_code=409,
+            detail="Generer PDF først (kall GET /org/{orgnr}/recommendations/{rec_id}/pdf).",
+        )
+    return row
+
+
+@router.post(
+    "/org/{orgnr}/recommendations/{rec_id}/sign",
+    response_model=SigningSessionOut,
+)
+def sign_recommendation(
+    orgnr: str,
+    rec_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+    svc: RecommendationService = Depends(_get_svc),
+) -> dict:
+    """Plan §🟢 #11 — create a Signicat signing session."""
+    signicat = SignicatService()
+    if not signicat.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Signicat er ikke konfigurert. Sett SIGNICAT_* env vars.",
+        )
+    row = _resolve_signable_recommendation(svc, orgnr, user.firm_id, rec_id)
+    company = db.query(Company).filter(Company.orgnr == orgnr).first()
+    company_name = company.navn if company else orgnr
+    try:
+        session = signicat.create_signing_session(
+            pdf_bytes=bytes(row.pdf_content),
+            signer_email=user.email,
+            signer_name=user.name,
+            document_title=f"Anbefalingsbrev — {company_name}",
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Signicat feilet: {exc}")
+    svc.attach_signing_session(rec_id, session["session_id"])
+    return session

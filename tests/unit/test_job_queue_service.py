@@ -3,9 +3,8 @@
 Pure static tests — DB and handler functions are mocked.
 """
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.job_queue_service import (
     JobQueueService,

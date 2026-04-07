@@ -1,5 +1,6 @@
 """Activity timeline / CRM log service."""
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -12,14 +13,19 @@ class ActivityService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list_by_orgnr(self, orgnr: str, firm_id: int, limit: int = 50) -> list[Activity]:
-        return (
-            self.db.query(Activity)
-            .filter(Activity.orgnr == orgnr, Activity.firm_id == firm_id)
-            .order_by(Activity.created_at.desc())
-            .limit(limit)
-            .all()
+    def list_by_orgnr(
+        self,
+        orgnr: str,
+        firm_id: int,
+        limit: int = 50,
+        assigned_to_user_id: Optional[int] = None,
+    ) -> list[Activity]:
+        q = self.db.query(Activity).filter(
+            Activity.orgnr == orgnr, Activity.firm_id == firm_id,
         )
+        if assigned_to_user_id is not None:
+            q = q.filter(Activity.assigned_to_user_id == assigned_to_user_id)
+        return q.order_by(Activity.created_at.desc()).limit(limit).all()
 
     def create(self, orgnr: str, firm_id: int, created_by: str, body: ActivityIn) -> Activity:
         try:
@@ -37,6 +43,7 @@ class ActivityService:
             body=body.body,
             due_date=body.due_date,
             completed=body.completed,
+            assigned_to_user_id=body.assigned_to_user_id,
             created_at=datetime.now(timezone.utc),
         )
         self.db.add(activity)
@@ -68,6 +75,27 @@ class ActivityService:
         except Exception:
             self.db.rollback()
             raise
+
+    def bulk_complete(self, activity_ids: list[int], firm_id: int) -> int:
+        """Plan §🟢 #18 — bulk-mark activities completed within the firm.
+        firm_id scoping is enforced in the WHERE clause so a malicious caller
+        passing arbitrary ids cannot touch other firms' rows."""
+        if not activity_ids:
+            return 0
+        updated = (
+            self.db.query(Activity)
+            .filter(
+                Activity.id.in_(activity_ids),
+                Activity.firm_id == firm_id,
+            )
+            .update({Activity.completed: True}, synchronize_session=False)
+        )
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        return updated
 
     def _get_or_raise(self, activity_id: int, firm_id: int) -> Activity:
         a = (

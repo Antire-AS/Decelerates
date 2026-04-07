@@ -3,16 +3,14 @@
 Pure static tests — uses MagicMock DB; no infrastructure required.
 External API calls (fetch_enhetsregisteret, fetch_org_profile) are patched.
 """
-from datetime import date, datetime, timezone
-from unittest.mock import MagicMock, patch, call
+from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import (
-    Activity, Claim, ClaimStatus, Policy, PolicyStatus, Portfolio,
-    PortfolioCompany, RenewalStage,
+    Policy, PolicyStatus, Portfolio,
 )
-from api.services.admin_service import AdminService, _DEMO_ORGNRS, _DEMO_POLICIES_DATA
+from api.services.admin_service import AdminService, _DEMO_POLICIES_DATA
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

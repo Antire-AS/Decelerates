@@ -4,9 +4,11 @@ import { useState } from "react";
 import useSWR from "swr";
 import {
   getOrgActivities, createActivity, completeActivity, deleteActivity,
+  getUsers,
   type ActivityItem,
+  type User,
 } from "@/lib/api";
-import { CheckCircle2, Trash2, Plus, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { CheckCircle2, Trash2, Plus, ChevronDown, ChevronUp, Clock, User as UserIcon } from "lucide-react";
 
 const TYPE_ICON: Record<string, string> = {
   call: "📞", email: "📧", meeting: "🤝", note: "📝", task: "✅",
@@ -19,15 +21,21 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
   const { data: activities = [], mutate } = useSWR<ActivityItem[]>(
     `activities-${orgnr}`, () => getOrgActivities(orgnr),
   );
+  // Same-firm user list for the assignment dropdown. SWR caches by key so
+  // every Activities section in the app shares one fetch.
+  const { data: users = [] } = useSWR<User[]>("firm-users", () => getUsers());
   const [listOpen, setListOpen] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving]     = useState(false);
   const [err, setErr]           = useState<string | null>(null);
 
-  const [atype, setAtype]     = useState("call");
-  const [subject, setSubject] = useState("");
-  const [body, setBody]       = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [atype, setAtype]         = useState("call");
+  const [subject, setSubject]     = useState("");
+  const [body, setBody]           = useState("");
+  const [dueDate, setDueDate]     = useState("");
+  const [assignedTo, setAssignedTo] = useState<string>("");
+
+  const userById = new Map(users.map((u) => [u.id, u]));
 
   async function handleComplete(id: number) {
     await completeActivity(orgnr, id);
@@ -48,8 +56,9 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
         activity_type: atype, subject,
         body: body || undefined,
         due_date: dueDate || undefined,
+        assigned_to_user_id: assignedTo ? Number(assignedTo) : undefined,
       });
-      setSubject(""); setBody(""); setDueDate(""); setFormOpen(false);
+      setSubject(""); setBody(""); setDueDate(""); setAssignedTo(""); setFormOpen(false);
       mutate();
     } catch (e) { setErr(String(e)); }
     finally { setSaving(false); }
@@ -88,6 +97,12 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
                           <Clock className="w-3 h-3" /> Frist: {a.due_date}
                         </p>
                       )}
+                      {a.assigned_to_user_id != null && userById.has(a.assigned_to_user_id) && (
+                        <p className="text-xs text-[#4A6FA5] flex items-center gap-1 mt-0.5">
+                          <UserIcon className="w-3 h-3" />
+                          Tildelt: {userById.get(a.assigned_to_user_id)?.name || userById.get(a.assigned_to_user_id)?.email}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {!a.completed && a.activity_type === "task" && (
@@ -116,7 +131,8 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
         </button>
         {formOpen && (
           <form onSubmit={handleAdd} className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            {/* Type + Emne stack on phones, sit side-by-side on sm+ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="label-xs">Type</label>
                 <select value={atype} onChange={(e) => setAtype(e.target.value)} className="input-sm w-full">
@@ -135,18 +151,30 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
               <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
                 className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
             </div>
-            <div>
-              <label className="label-xs">Frist (kun for oppgaver)</label>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-sm w-full" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="label-xs">Frist (kun for oppgaver)</label>
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-sm w-full" />
+              </div>
+              <div>
+                <label className="label-xs">Tildelt</label>
+                <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="input-sm w-full">
+                  <option value="">— Ingen —</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             {err && <p className="text-xs text-red-600">{err}</p>}
-            <div className="flex gap-2">
+            {/* Stack buttons on mobile so the submit target stays full-width and tappable */}
+            <div className="flex flex-col sm:flex-row gap-2">
               <button type="submit" disabled={saving}
-                className="px-4 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50">
+                className="w-full sm:w-auto px-4 py-2 sm:py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50">
                 {saving ? "Lagrer…" : "Legg til aktivitet"}
               </button>
               <button type="button" onClick={() => setFormOpen(false)}
-                className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]">Avbryt</button>
+                className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]">Avbryt</button>
             </div>
           </form>
         )}

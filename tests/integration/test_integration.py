@@ -13,7 +13,7 @@ In CI: TEST_DATABASE_URL is set automatically by the workflow.
 """
 import os
 from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 

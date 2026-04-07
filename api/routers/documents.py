@@ -29,7 +29,13 @@ from api.services.documents import (
     compare_two_documents,
     find_similar_documents,
 )
-from api.schemas import DocChatRequest, DocCompareRequest
+from api.schemas import (
+    DocChatRequest,
+    DocCompareRequest,
+    DocumentChatOut,
+    DocumentCompareOut,
+    DocumentKeypointsOut,
+)
 from api.dependencies import get_db
 from api.services.audit import log_audit
 
@@ -133,7 +139,10 @@ def download_insurance_document_pdf(doc_id: int, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/insurance-documents/{doc_id}/keypoints")
+@router.get(
+    "/insurance-documents/{doc_id}/keypoints",
+    response_model=DocumentKeypointsOut,
+)
 def get_document_keypoints_endpoint(doc_id: int, db: Session = Depends(get_db)):
     """Extract key points from an insurance document using LLM or heuristics."""
     doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
@@ -159,7 +168,10 @@ def delete_insurance_document(doc_id: int, db: Session = Depends(get_db)) -> dic
     return {"deleted": doc_id}
 
 
-@router.post("/insurance-documents/{doc_id}/chat")
+@router.post(
+    "/insurance-documents/{doc_id}/chat",
+    response_model=DocumentChatOut,
+)
 def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(get_db)):
     """Ask a question about an insurance document using Gemini native PDF understanding."""
     doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
@@ -172,7 +184,10 @@ def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(
     return {"doc_id": doc_id, "question": body.question, "answer": answer}
 
 
-@router.post("/insurance-documents/compare")
+@router.post(
+    "/insurance-documents/compare",
+    response_model=DocumentCompareOut,
+)
 def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(get_db)) -> dict:
     """Compare two insurance documents using Gemini native PDF understanding."""
     if len(body.doc_ids) != 2:

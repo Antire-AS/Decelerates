@@ -1,7 +1,6 @@
 import pathlib
 import streamlit as st
 
-from ui.config import T
 from ui.auth import render_user_badge
 from ui.views.landing import render_landing_tab
 from ui.views.search import render_search_tab

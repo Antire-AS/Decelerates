@@ -132,6 +132,43 @@ class RecommendationService:
                 self.db.rollback()
                 raise
 
+    def attach_signing_session(self, rec_id: int, session_id: str) -> None:
+        """Plan §🟢 #11 — record the Signicat session id on a recommendation."""
+        row = self.db.query(Recommendation).filter(Recommendation.id == rec_id).first()
+        if row:
+            row.signing_session_id = session_id
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise
+
+    def mark_signed_by_session(
+        self,
+        session_id: str,
+        signed_pdf_blob_url: Optional[str] = None,
+    ) -> Optional[Recommendation]:
+        """Plan §🟢 #11 — webhook handler. Updates by session_id (not rec_id)
+        because Signicat only knows the session, never our internal id."""
+        from datetime import datetime, timezone
+        row = (
+            self.db.query(Recommendation)
+            .filter(Recommendation.signing_session_id == session_id)
+            .first()
+        )
+        if not row:
+            return None
+        row.signed_at = datetime.now(timezone.utc)
+        if signed_pdf_blob_url:
+            row.signed_pdf_blob_url = signed_pdf_blob_url
+        try:
+            self.db.commit()
+            self.db.refresh(row)
+        except Exception:
+            self.db.rollback()
+            raise
+        return row
+
     def delete(self, orgnr: str, firm_id: int, rec_id: int) -> None:
         row = self._get_or_raise(orgnr, firm_id, rec_id)
         self.db.delete(row)

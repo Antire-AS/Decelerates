@@ -3,9 +3,8 @@
 Pure logic tests — uses MagicMock DB; no infrastructure required.
 """
 import re
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.demo_documents import (
     _adjust_number,

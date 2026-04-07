@@ -4,12 +4,9 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 """
 from datetime import date, timedelta
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 
-from api.db import Company, CompanyHistory, PortfolioCompany
-from api.domain.exceptions import NotFoundError
 from api.services.portfolio import PortfolioService, collect_alerts
 from api.services.portfolio_analytics import (
     _insurer_concentration,

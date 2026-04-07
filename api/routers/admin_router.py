@@ -14,12 +14,13 @@ from sqlalchemy.orm import Session
 
 from api.limiter import limiter
 
-from api.auth import CurrentUser, get_current_user, get_optional_user
+from api.auth import CurrentUser, get_current_user
 from api.container import resolve
-from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, BrokerFirm
+from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, BrokerFirm, NotificationKind
 from api.dependencies import get_db
 from api.ports.driven.notification_port import NotificationPort
 from api.services.admin_service import AdminService
+from api.services.notification_inbox_service import create_notification_for_users_safe
 from api.services.portfolio import collect_alerts
 
 router = APIRouter()
@@ -32,6 +33,36 @@ def _admin_svc(db: Session = Depends(get_db)) -> AdminService:
 
 def _get_notification() -> NotificationPort:
     return resolve(NotificationPort)  # type: ignore[return-value]
+
+
+def _fetch_due_activities(db: Session, firm_id: int) -> tuple[list, list]:
+    """Return (overdue, due_today) activity lists for the firm. Extracted so
+    `send_activity_reminders` stays under the 40-line limit."""
+    today = date.today()
+    overdue = db.query(Activity).filter(
+        Activity.firm_id == firm_id,
+        Activity.completed == False, Activity.due_date < today,  # noqa: E712
+    ).order_by(Activity.due_date.asc()).all()
+    due_today_list = db.query(Activity).filter(
+        Activity.firm_id == firm_id,
+        Activity.completed == False, Activity.due_date == today,  # noqa: E712
+    ).order_by(Activity.created_at.asc()).all()
+    return overdue, due_today_list
+
+
+def _build_coverage_gap_email(companies_with_gaps: list[dict]) -> str:
+    """Render the coverage-gap alert email body. Extracted so
+    `trigger_coverage_gap_alerts` stays under the 40-line limit."""
+    gap_lines = "\n".join(
+        f"- {c['navn']} ({c['orgnr']}): {c['gap_count']} gap(s) — "
+        + ", ".join(g["type"] for g in c["gaps"])
+        for c in companies_with_gaps
+    )
+    return (
+        "<h2>Dekningsgap-rapport</h2>"
+        f"<p>{len(companies_with_gaps)} kunder har manglende forsikringsdekning:</p>"
+        f"<pre>{gap_lines}</pre>"
+    )
 
 
 def _activity_to_dict(a: Activity) -> dict:
@@ -377,6 +408,17 @@ def send_portfolio_digest(
     renewal_sent = notification.send_renewal_digest(recipient, renewal_dicts)
 
     total_sent = sum(1 for r in results if r["sent"])
+    # Plan §🟢 #17 — fan out to the bell-icon panel for every user in the firm.
+    # Best-effort: failure here MUST NOT roll back the email-send success.
+    if total_sent > 0 or renewal_sent:
+        create_notification_for_users_safe(
+            db,
+            firm_id=firm_id,
+            kind=NotificationKind.digest,
+            title="Porteføljedigest sendt",
+            message=f"{total_sent} portefølje(r) med varsler · {len(renewal_dicts)} fornyelse(r) innen 90 dager",
+            link="/portfolio",
+        )
     return {
         "recipient": recipient,
         "portfolios_checked": len(portfolios),
@@ -438,6 +480,19 @@ def send_renewal_threshold_emails(
         results.append({"threshold_days": threshold, "policies_found": len(policies_needing), "sent": sent})
 
     total_sent = sum(r["policies_found"] for r in results if r["sent"])
+    # Fan out to bell-icon panel — one notification summarizing all thresholds.
+    if total_sent > 0:
+        create_notification_for_users_safe(
+            db,
+            firm_id=user.firm_id,
+            kind=NotificationKind.renewal,
+            title=f"{total_sent} fornyelser kommer opp",
+            message=", ".join(
+                f"{r['policies_found']} på {r['threshold_days']}d"
+                for r in results if r["sent"]
+            ),
+            link="/renewals",
+        )
     return {"recipient": recipient, "thresholds_checked": results, "total_notifications_sent": total_sent}
 
 
@@ -457,15 +512,7 @@ def send_activity_reminders(
         raise HTTPException(status_code=503, detail="AZURE_COMMUNICATION_CONNECTION_STRING ikke konfigurert.")
 
     firm_id = _resolve_single_firm_id(db)
-    today = date.today()
-    overdue = db.query(Activity).filter(
-        Activity.firm_id == firm_id,
-        Activity.completed == False, Activity.due_date < today,  # noqa: E712
-    ).order_by(Activity.due_date.asc()).all()
-    due_today_list = db.query(Activity).filter(
-        Activity.firm_id == firm_id,
-        Activity.completed == False, Activity.due_date == today,  # noqa: E712
-    ).order_by(Activity.created_at.asc()).all()
+    overdue, due_today_list = _fetch_due_activities(db, firm_id)
 
     if not overdue and not due_today_list:
         return {"sent": False, "reason": "no due activities"}
@@ -475,6 +522,15 @@ def send_activity_reminders(
         [_activity_to_dict(a) for a in overdue],
         [_activity_to_dict(a) for a in due_today_list],
     )
+    if sent:
+        create_notification_for_users_safe(
+            db,
+            firm_id=firm_id,
+            kind=NotificationKind.activity_overdue,
+            title=f"{len(overdue)} forfalt · {len(due_today_list)} i dag",
+            message="Aktivitetspåminnelser sendt på e-post",
+            link="/dashboard",
+        )
     return {"sent": sent, "overdue": len(overdue), "due_today": len(due_today_list), "recipient": recipient}
 
 
@@ -498,19 +554,19 @@ def trigger_coverage_gap_alerts(
     if not companies_with_gaps:
         return {"sent": False, "companies_with_gaps": 0, "reason": "no gaps found"}
 
-    gap_lines = "\n".join(
-        f"- {c['navn']} ({c['orgnr']}): {c['gap_count']} gap(s) — "
-        + ", ".join(g["type"] for g in c["gaps"])
-        for c in companies_with_gaps
-    )
-    body_html = (
-        "<h2>Dekningsgap-rapport</h2>"
-        f"<p>{len(companies_with_gaps)} kunder har manglende forsikringsdekning:</p>"
-        f"<pre>{gap_lines}</pre>"
-    )
+    body_html = _build_coverage_gap_email(companies_with_gaps)
     sent = notification.send_email(recipient, "Dekningsgap oppdaget i porteføljen", body_html)
     log_audit(db, "coverage_gap_alert_sent", actor_email=user.email,
               detail={"companies": len(companies_with_gaps), "recipient": recipient})
+    if sent:
+        create_notification_for_users_safe(
+            db,
+            firm_id=user.firm_id,
+            kind=NotificationKind.coverage_gap,
+            title=f"{len(companies_with_gaps)} kunder med dekningsgap",
+            message="Manglende forsikringsdekning oppdaget — sjekk porteføljen",
+            link="/portfolio",
+        )
     return {"sent": sent, "companies_with_gaps": len(companies_with_gaps), "recipient": recipient}
 
 
@@ -551,4 +607,13 @@ def trigger_renewal_digest(
         for p in policies
     ]
     sent = notification.send_renewal_digest(recipient, renewal_dicts)
+    if sent and renewal_dicts:
+        create_notification_for_users_safe(
+            db,
+            firm_id=user.firm_id,
+            kind=NotificationKind.renewal,
+            title=f"{len(renewal_dicts)} fornyelser innen 30 dager",
+            message="Fornyelsesdigest sendt på e-post",
+            link="/renewals",
+        )
     return {"recipient": recipient, "policies_included": len(renewal_dicts), "sent": sent}

@@ -3,7 +3,7 @@
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 from api.services.audit import log_audit, purge_old_audit_logs, get_audit_summary
@@ -68,7 +68,6 @@ def test_log_audit_sets_utc_timestamp():
 
 
 def test_log_audit_timestamp_is_recent():
-    from datetime import timedelta
     db = _mock_db()
     before = datetime.now(timezone.utc)
     log_audit(db, "test")

@@ -146,6 +146,7 @@ export interface ActivityItem {
   completed: boolean;
   created_at: string;
   created_by_email?: string;
+  assigned_to_user_id?: number | null;  // plan §🟢 #14
 }
 
 export interface InsuranceOffer {

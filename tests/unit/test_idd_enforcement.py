@@ -2,7 +2,6 @@
 import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -53,7 +52,7 @@ class TestIddGate:
 
         call_count = [0]
         def _query_side(model):
-            from api.db import IddBehovsanalyse, Company
+            from api.db import IddBehovsanalyse
             if model is IddBehovsanalyse:
                 return idd_query
             return company_query

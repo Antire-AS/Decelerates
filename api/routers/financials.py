@@ -12,6 +12,7 @@ from api.schemas import (
     HistoryOut,
     ExtractionStatusOut,
     PdfSourcesOut,
+    PdfHistoryOut,
     DeleteHistoryOut,
     FinancialCommentaryOut,
 )
@@ -27,7 +28,7 @@ def get_org_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     return {"orgnr": orgnr, "years": history}
 
 
-@router.post("/org/{orgnr}/pdf-history")
+@router.post("/org/{orgnr}/pdf-history", response_model=PdfHistoryOut)
 def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(get_db)) -> dict:
     """Add a PDF annual report URL for an org, extract financials, store in DB."""
     upsert_pdf_source(orgnr, body.year, body.pdf_url, body.label, db)
@@ -108,11 +109,12 @@ def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends
         raise HTTPException(status_code=404, detail="No financial history found for this company")
 
     navn = company.navn if company else orgnr
+    sorted_history = sorted(history, key=lambda x: x.get("year", 0))
     years_summary = "\n".join(
         f"- {h['year']}: omsetning {h.get('sum_driftsinntekter') or 'N/A'} NOK, "
         f"egenkapital {h.get('sum_egenkapital') or 'N/A'} NOK, "
         f"eiendeler {h.get('sum_eiendeler') or 'N/A'} NOK"
-        for h in sorted(history, key=lambda x: x.get("year", 0))
+        for h in sorted_history
     )
     prompt = (
         f"Du er en norsk finansanalytiker. Gi en kortfattet kommentar (3–5 setninger, norsk) "
@@ -124,7 +126,14 @@ def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends
     commentary = _llm_answer_raw(prompt)
     if not commentary:
         raise HTTPException(status_code=503, detail="LLM not available — check ANTHROPIC_API_KEY or GEMINI_API_KEY")
-    return {"orgnr": orgnr, "navn": navn, "commentary": commentary, "years_analyzed": len(history)}
+    # Schema shape locked to FinancialCommentaryOut (api/schemas.py): orgnr, commentary, years.
+    # Previously returned an extra `years_analyzed: int` and `navn` that FastAPI silently
+    # stripped — caught during the api.ts type-cleanup audit.
+    return {
+        "orgnr": orgnr,
+        "commentary": commentary,
+        "years": [int(h["year"]) for h in sorted_history if h.get("year") is not None],
+    }
 
 
 @router.post("/financials/query")

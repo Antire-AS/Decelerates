@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/activities/bulk-complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Complete Activities
+         * @description Plan §🟢 #18 — bulk-mark activities completed.
+         */
+        post: operations["bulk_complete_activities_activities_bulk_complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/activity-reminders": {
         parameters: {
             query?: never;
@@ -282,7 +302,7 @@ export interface paths {
         };
         /**
          * Get Audit Log Global
-         * @description Return recent audit entries across all companies (newest first).
+         * @description Paginated audit entries across all companies (newest first).
          */
         get: operations["get_audit_log_global_audit_get"];
         put?: never;
@@ -322,7 +342,7 @@ export interface paths {
         };
         /**
          * Get Audit Log
-         * @description Return recent audit entries for a specific company (newest first).
+         * @description Paginated audit entries for a specific company (newest first).
          */
         get: operations["get_audit_log_audit__orgnr__get"];
         put?: never;
@@ -431,6 +451,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/commission/projections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Commission Projections
+         * @description Plan §🟢 #12 — quarterly forward projection of expected commission.
+         */
+        get: operations["get_commission_projections_commission_projections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commission/summary": {
         parameters: {
             query?: never;
@@ -488,6 +528,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/deals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Deals */
+        get: operations["list_deals_deals_get"];
+        put?: never;
+        /** Create Deal */
+        post: operations["create_deal_deals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deals/{deal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Deal */
+        delete: operations["delete_deal_deals__deal_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Deal */
+        patch: operations["update_deal_deals__deal_id__patch"];
+        trace?: never;
+    };
+    "/deals/{deal_id}/lose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lose Deal */
+        post: operations["lose_deal_deals__deal_id__lose_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deals/{deal_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Move Deal Stage */
+        patch: operations["move_deal_stage_deals__deal_id__stage_patch"];
+        trace?: never;
+    };
     "/debug/status": {
         parameters: {
             query?: never;
@@ -502,6 +612,23 @@ export interface paths {
         get: operations["debug_status_debug_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/email/compose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compose Email */
+        post: operations["compose_email_email_compose_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1012,6 +1139,57 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Notifications */
+        get: operations["list_notifications_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark All Notifications Read */
+        post: operations["mark_all_notifications_read_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark Notification Read */
+        patch: operations["mark_notification_read_notifications__notification_id__read_patch"];
         trace?: never;
     };
     "/org-by-name": {
@@ -1891,6 +2069,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/recommendations/{rec_id}/sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign Recommendation
+         * @description Plan §🟢 #11 — create a Signicat signing session.
+         */
+        post: operations["sign_recommendation_org__orgnr__recommendations__rec_id__sign_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org/{orgnr}/risk-offer": {
         parameters: {
             query?: never;
@@ -2001,6 +2199,42 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/pipeline/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Stages */
+        get: operations["list_stages_pipeline_stages_get"];
+        put?: never;
+        /** Create Stage */
+        post: operations["create_stage_pipeline_stages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pipeline/stages/{stage_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Stage */
+        delete: operations["delete_stage_pipeline_stages__stage_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Stage */
+        patch: operations["update_stage_pipeline_stages__stage_id__patch"];
         trace?: never;
     };
     "/policies": {
@@ -2213,6 +2447,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/portfolio/{portfolio_id}/companies/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Companies Bulk
+         * @description Plan §🟢 #18 — bulk-add companies to a portfolio. Skips orgnrs that
+         *     are already members; returns added/skipped counts. Resolves the portfolio
+         *     once up front so we get a clean 404 instead of N failures.
+         */
+        post: operations["add_companies_bulk_portfolio__portfolio_id__companies_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/portfolio/{portfolio_id}/companies/{orgnr}": {
         parameters: {
             query?: never;
@@ -2410,6 +2666,41 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/saved-searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Saved Searches */
+        get: operations["list_saved_searches_saved_searches_get"];
+        put?: never;
+        /** Create Saved Search */
+        post: operations["create_saved_search_saved_searches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/saved-searches/{search_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Saved Search */
+        delete: operations["delete_saved_search_saved_searches__search_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2662,14 +2953,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/signicat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signicat Webhook
+         * @description Receive a signing-status callback from Signicat. Verifies HMAC
+         *     signature, then updates the matching Recommendation row.
+         */
+        post: operations["signicat_webhook_webhooks_signicat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityBulkComplete */
+        ActivityBulkComplete: {
+            /** Activity Ids */
+            activity_ids: number[];
+        };
+        /** ActivityBulkCompleteOut */
+        ActivityBulkCompleteOut: {
+            /** Updated */
+            updated: number;
+        };
         /** ActivityIn */
         ActivityIn: {
             /** Activity Type */
             activity_type: string;
+            /** Assigned To User Id */
+            assigned_to_user_id?: number | null;
             /** Body */
             body?: string | null;
             /** Claim Id */
@@ -2688,6 +3012,8 @@ export interface components {
         };
         /** ActivityUpdate */
         ActivityUpdate: {
+            /** Assigned To User Id */
+            assigned_to_user_id?: number | null;
             /** Body */
             body?: string | null;
             /** Completed */
@@ -2696,6 +3022,42 @@ export interface components {
             due_date?: string | null;
             /** Subject */
             subject?: string | null;
+        };
+        /** AuditLogEntryOut */
+        AuditLogEntryOut: {
+            /** Action */
+            action: string;
+            /** Actor Email */
+            actor_email?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Detail */
+            detail?: string | null;
+            /** Id */
+            id: number;
+            /** Orgnr */
+            orgnr?: string | null;
+        };
+        /**
+         * AuditLogPageOut
+         * @description Paginated audit log response. `total` is the count of rows matching the
+         *     filter (NOT the page); `has_more` is True when more rows exist past `offset
+         *     + items.length`. The frontend uses these to render the 'Page 2 of N' UI.
+         */
+        AuditLogPageOut: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["AuditLogEntryOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
         };
         /** BankruptcyOut */
         BankruptcyOut: {
@@ -2890,6 +3252,22 @@ export interface components {
             /** Total Commission Ytd */
             total_commission_ytd: number;
         };
+        /** CommissionProjectionBucket */
+        CommissionProjectionBucket: {
+            /** Expected Commission */
+            expected_commission: number;
+            /** Period */
+            period: string;
+            /** Policy Count */
+            policy_count: number;
+        };
+        /** CommissionProjectionsOut */
+        CommissionProjectionsOut: {
+            /** Buckets */
+            buckets: components["schemas"]["CommissionProjectionBucket"][];
+            /** Months Ahead */
+            months_ahead: number;
+        };
         /** CommissionSummaryOut */
         CommissionSummaryOut: {
             /** Active Policy Count */
@@ -2984,6 +3362,93 @@ export interface components {
             /** Lon */
             lon: number;
         };
+        /** DealCreate */
+        DealCreate: {
+            /** Expected Close Date */
+            expected_close_date?: string | null;
+            /** Expected Premium Nok */
+            expected_premium_nok?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Owner User Id */
+            owner_user_id?: number | null;
+            /** Source */
+            source?: string | null;
+            /** Stage Id */
+            stage_id: number;
+            /** Title */
+            title?: string | null;
+        };
+        /** DealLose */
+        DealLose: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /** DealOut */
+        DealOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expected Close Date */
+            expected_close_date?: string | null;
+            /** Expected Premium Nok */
+            expected_premium_nok?: number | null;
+            /** Firm Id */
+            firm_id: number;
+            /** Id */
+            id: number;
+            /** Lost At */
+            lost_at?: string | null;
+            /** Lost Reason */
+            lost_reason?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Owner User Id */
+            owner_user_id?: number | null;
+            /** Source */
+            source?: string | null;
+            /** Stage Id */
+            stage_id: number;
+            /** Title */
+            title?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Won At */
+            won_at?: string | null;
+        };
+        /** DealStageChange */
+        DealStageChange: {
+            /** Stage Id */
+            stage_id: number;
+        };
+        /**
+         * DealUpdate
+         * @description Generic patch — every field optional. Stage transitions go through
+         *     PATCH /deals/{id}/stage instead so they're auditable as a single op.
+         */
+        DealUpdate: {
+            /** Expected Close Date */
+            expected_close_date?: string | null;
+            /** Expected Premium Nok */
+            expected_premium_nok?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Owner User Id */
+            owner_user_id?: number | null;
+            /** Source */
+            source?: string | null;
+            /** Title */
+            title?: string | null;
+        };
         /** DeleteHistoryOut */
         DeleteHistoryOut: {
             /** Deleted Rows */
@@ -3000,6 +3465,75 @@ export interface components {
         DocCompareRequest: {
             /** Doc Ids */
             doc_ids: number[];
+        };
+        /**
+         * DocumentChatOut
+         * @description Response from POST /insurance-documents/{doc_id}/chat.
+         */
+        DocumentChatOut: {
+            /** Answer */
+            answer: string;
+            /** Doc Id */
+            doc_id: number;
+            /** Question */
+            question: string;
+        };
+        /**
+         * DocumentCompareOut
+         * @description Response from POST /insurance-documents/compare. The `structured` payload
+         *     is the LLM JSON output from compare_two_documents — kept loose so the LLM
+         *     schema can evolve without breaking the wrapper.
+         */
+        DocumentCompareOut: {
+            doc_a: components["schemas"]["DocumentRef"];
+            doc_b: components["schemas"]["DocumentRef"];
+            /** Structured */
+            structured?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * DocumentKeypointsOut
+         * @description Response from GET /insurance-documents/{doc_id}/keypoints.
+         */
+        DocumentKeypointsOut: {
+            /** Doc Id */
+            doc_id: number;
+            /** Extracted At */
+            extracted_at?: string | null;
+            /** Key Points */
+            key_points?: string[];
+            /** Summary */
+            summary?: string | null;
+            /** Title */
+            title?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** DocumentRef */
+        DocumentRef: {
+            /** Id */
+            id: number;
+            /** Title */
+            title?: string | null;
+        };
+        /** EmailComposeIn */
+        EmailComposeIn: {
+            /** Body Html */
+            body_html: string;
+            /** Orgnr */
+            orgnr: string;
+            /** Subject */
+            subject: string;
+            /** To */
+            to: string;
+        };
+        /** EmailComposeOut */
+        EmailComposeOut: {
+            /** Activity Id */
+            activity_id: number;
+            /** Sent */
+            sent: boolean;
         };
         /** EstimateOut */
         EstimateOut: {
@@ -3363,6 +3897,77 @@ export interface components {
             /** Orgnr */
             orgnr: string;
         };
+        /**
+         * NotificationListOut
+         * @description Wrapper that ships the unread count alongside the rows so the bell icon
+         *     can render `15 unread` without a second round-trip.
+         */
+        NotificationListOut: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread Count */
+            unread_count: number;
+        };
+        /** NotificationMarkReadOut */
+        NotificationMarkReadOut: {
+            /** Updated */
+            updated: number;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Firm Id */
+            firm_id: number;
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "renewal" | "activity_overdue" | "mention" | "claim_new" | "deal_won" | "coverage_gap" | "digest";
+            /** Link */
+            link?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Orgnr */
+            orgnr?: string | null;
+            /** Read */
+            read: boolean;
+            /** Title */
+            title: string;
+            /** User Id */
+            user_id: number;
+        };
+        /**
+         * OrgChatOut
+         * @description Response from POST /org/{orgnr}/chat — RAG/notes-grounded answer.
+         */
+        OrgChatOut: {
+            /** Answer */
+            answer: string;
+            /** Orgnr */
+            orgnr: string;
+            /** Question */
+            question: string;
+            /** Session Id */
+            session_id: string;
+        };
+        /**
+         * PdfHistoryOut
+         * @description Response from POST /org/{orgnr}/pdf-history — single extracted year row.
+         */
+        PdfHistoryOut: {
+            /** Extracted */
+            extracted?: {
+                [key: string]: unknown;
+            };
+            /** Orgnr */
+            orgnr: string;
+        };
         /** PdfHistoryRequest */
         PdfHistoryRequest: {
             /**
@@ -3422,6 +4027,58 @@ export interface components {
             peer_avg?: number | null;
             /** Percentile */
             percentile?: number | null;
+        };
+        /** PipelineStageCreate */
+        PipelineStageCreate: {
+            /** Color */
+            color?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "lead" | "qualified" | "quoted" | "bound" | "won" | "lost";
+            /** Name */
+            name: string;
+            /**
+             * Order Index
+             * @default 0
+             */
+            order_index: number;
+        };
+        /**
+         * PipelineStageOut
+         * @description A column in a broker firm's deal pipeline kanban board.
+         */
+        PipelineStageOut: {
+            /** Color */
+            color?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Firm Id */
+            firm_id: number;
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "lead" | "qualified" | "quoted" | "bound" | "won" | "lost";
+            /** Name */
+            name: string;
+            /** Order Index */
+            order_index: number;
+        };
+        /** PipelineStageUpdate */
+        PipelineStageUpdate: {
+            /** Color */
+            color?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Order Index */
+            order_index?: number | null;
         };
         /** PolicyCommissionOut */
         PolicyCommissionOut: {
@@ -3530,6 +4187,18 @@ export interface components {
             /** Orgnr */
             orgnr: string;
         };
+        /** PortfolioBulkAdd */
+        PortfolioBulkAdd: {
+            /** Orgnrs */
+            orgnrs: string[];
+        };
+        /** PortfolioBulkAddOut */
+        PortfolioBulkAddOut: {
+            /** Added */
+            added: number;
+            /** Skipped */
+            skipped: number;
+        };
         /** PortfolioCreate */
         PortfolioCreate: {
             /**
@@ -3588,6 +4257,33 @@ export interface components {
             /** Type */
             type?: string | null;
         };
+        /** SavedSearchCreate */
+        SavedSearchCreate: {
+            /** Name */
+            name: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+        };
+        /** SavedSearchOut */
+        SavedSearchOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** User Id */
+            user_id: number;
+        };
         /** SeedRegulationsOut */
         SeedRegulationsOut: {
             /** Seeded */
@@ -3601,6 +4297,18 @@ export interface components {
             name: string;
             /** Status */
             status: string;
+        };
+        /** SignicatWebhookAck */
+        SignicatWebhookAck: {
+            /** Received */
+            received: boolean;
+        };
+        /** SigningSessionOut */
+        SigningSessionOut: {
+            /** Session Id */
+            session_id: string;
+            /** Signing Url */
+            signing_url: string;
         };
         /** SlaIn */
         SlaIn: {
@@ -3728,6 +4436,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    bulk_complete_activities_activities_bulk_complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivityBulkComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityBulkCompleteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_activity_reminders_admin_activity_reminders_post: {
         parameters: {
             query?: never;
@@ -4017,7 +4758,13 @@ export interface operations {
     get_audit_log_global_audit_get: {
         parameters: {
             query?: {
+                orgnr?: string | null;
+                action?: string | null;
+                actor_email?: string | null;
+                from_date?: string | null;
+                to_date?: string | null;
                 limit?: number;
+                offset?: number;
             };
             header?: never;
             path?: never;
@@ -4031,7 +4778,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["AuditLogPageOut"];
                 };
             };
             /** @description Validation Error */
@@ -4049,6 +4796,10 @@ export interface operations {
         parameters: {
             query?: {
                 orgnr?: string | null;
+                action?: string | null;
+                actor_email?: string | null;
+                from_date?: string | null;
+                to_date?: string | null;
                 limit?: number;
             };
             header?: never;
@@ -4080,7 +4831,12 @@ export interface operations {
     get_audit_log_audit__orgnr__get: {
         parameters: {
             query?: {
+                action?: string | null;
+                actor_email?: string | null;
+                from_date?: string | null;
+                to_date?: string | null;
                 limit?: number;
+                offset?: number;
             };
             header?: never;
             path: {
@@ -4096,7 +4852,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["AuditLogPageOut"];
                 };
             };
             /** @description Validation Error */
@@ -4284,6 +5040,37 @@ export interface operations {
             };
         };
     };
+    get_commission_projections_commission_projections_get: {
+        parameters: {
+            query?: {
+                months?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionProjectionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_commission_summary_commission_summary_get: {
         parameters: {
             query?: never;
@@ -4365,6 +5152,206 @@ export interface operations {
             };
         };
     };
+    list_deals_deals_get: {
+        parameters: {
+            query?: {
+                stage_id?: number | null;
+                owner_user_id?: number | null;
+                orgnr?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_deal_deals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_deal_deals__deal_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_deal_deals__deal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lose_deal_deals__deal_id__lose_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealLose"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_deal_stage_deals__deal_id__stage_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealStageChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     debug_status_debug_status_get: {
         parameters: {
             query?: never;
@@ -4383,6 +5370,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    compose_email_email_compose_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailComposeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailComposeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -4736,9 +5756,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["DocumentCompareOut"];
                 };
             };
             /** @description Validation Error */
@@ -4806,7 +5824,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DocumentChatOut"];
                 };
             };
             /** @description Validation Error */
@@ -4837,7 +5855,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DocumentKeypointsOut"];
                 };
             };
             /** @description Validation Error */
@@ -5243,6 +6261,89 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notifications_notifications_get: {
+        parameters: {
+            query?: {
+                unread_only?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_all_notifications_read_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationMarkReadOut"];
+                };
+            };
+        };
+    };
+    mark_notification_read_notifications__notification_id__read_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationOut"];
                 };
             };
             /** @description Validation Error */
@@ -5709,7 +6810,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["OrgChatOut"];
                 };
             };
             /** @description Validation Error */
@@ -7020,9 +8121,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PdfHistoryOut"];
                 };
             };
             /** @description Validation Error */
@@ -7367,6 +8466,38 @@ export interface operations {
             };
         };
     };
+    sign_recommendation_org__orgnr__recommendations__rec_id__sign_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+                rec_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     generate_risk_offer_org__orgnr__risk_offer_post: {
         parameters: {
             query?: {
@@ -7579,6 +8710,123 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    list_stages_pipeline_stages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageOut"][];
+                };
+            };
+        };
+    };
+    create_stage_pipeline_stages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineStageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_stage_pipeline_stages__stage_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stage_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_stage_pipeline_stages__stage_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stage_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineStageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -7997,6 +9245,41 @@ export interface operations {
             };
         };
     };
+    add_companies_bulk_portfolio__portfolio_id__companies_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portfolio_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioBulkAdd"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioBulkAddOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     remove_company_portfolio__portfolio_id__companies__orgnr__delete: {
         parameters: {
             query?: never;
@@ -8306,6 +9589,88 @@ export interface operations {
                 content: {
                     "application/json": unknown[];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_saved_searches_saved_searches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedSearchOut"][];
+                };
+            };
+        };
+    };
+    create_saved_search_saved_searches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedSearchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedSearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_saved_search_saved_searches__search_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                search_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -8760,6 +10125,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    signicat_webhook_webhooks_signicat_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-signicat-signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignicatWebhookAck"];
                 };
             };
             /** @description Validation Error */

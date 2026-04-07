@@ -5,7 +5,6 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import SlaAgreement
 from api.services.sla_service import SlaService

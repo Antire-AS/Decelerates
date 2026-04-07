@@ -1,8 +1,9 @@
 """Azure AD JWT authentication — get_current_user FastAPI dependency.
 
-Dev bypass: set AUTH_DISABLED=true (or 1/yes) to skip token validation entirely.
-In production, tokens are validated against AZURE_TENANT_ID / AUTH_AUDIENCE.
-AUTH_AUDIENCE is the App ID URI for the frontend App Registration, e.g. api://514e4f92-...
+Auth gate: ENVIRONMENT=production blocks all bypass attempts. In dev/staging,
+set AUTH_DISABLED=1 to skip token validation entirely. Tokens are validated
+against AZURE_TENANT_ID / AUTH_AUDIENCE. AUTH_AUDIENCE is the App ID URI for
+the frontend App Registration, e.g. api://514e4f92-...
 (AZURE_CLIENT_ID is reserved for the managed identity — do NOT use it as the JWT audience.)
 
 Usage in routers:
@@ -30,9 +31,15 @@ _log = logging.getLogger(__name__)
 _bearer = HTTPBearer(auto_error=False)
 
 # ── Auth toggle ───────────────────────────────────────────────────────────────
-# Set to True to bypass all Azure AD auth (no login required).
-# Set to False (and configure AZURE_TENANT_ID + AUTH_AUDIENCE) to re-enable.
-_AUTH_DISABLED = True  # TODO: re-enable when brokers are ready to log in
+# Auth is ON by default everywhere. To bypass JWT validation in dev/staging:
+#     ENVIRONMENT=development AUTH_DISABLED=1 uv run uvicorn api.main:app
+# Production safety: when ENVIRONMENT=production, AUTH_DISABLED is IGNORED —
+# auth cannot be disabled in prod regardless of the env var. This is enforced
+# in tests/unit/test_auth_safety.py.
+def _is_auth_disabled() -> bool:
+    if os.getenv("ENVIRONMENT", "development").lower() == "production":
+        return False
+    return os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
 # ─────────────────────────────────────────────────────────────────────────────
 
 # JWKS cache — populated lazily on first token validation, one entry per worker
@@ -93,7 +100,7 @@ def get_optional_user(
     db: Session = Depends(get_db),
 ) -> Optional[CurrentUser]:
     """Like get_current_user but returns None instead of 401 when no token is present."""
-    if _AUTH_DISABLED or os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+    if _is_auth_disabled():
         return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
     if not creds:
         return None
@@ -115,10 +122,11 @@ def get_current_user(
 ) -> CurrentUser:
     """FastAPI dependency — validates the bearer token and returns the current user.
 
-    With AUTH_DISABLED=true returns a dev user without hitting Azure AD.
+    With ENVIRONMENT != "production" AND AUTH_DISABLED=1 returns a dev user
+    without hitting Azure AD. In production, AUTH_DISABLED is ignored.
     On first login, auto-provisions the user in the users table.
     """
-    if _AUTH_DISABLED or os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+    if _is_auth_disabled():
         return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
 
     if not creds:

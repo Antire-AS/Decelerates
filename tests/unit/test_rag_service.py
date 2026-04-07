@@ -6,7 +6,6 @@ api.rag_chain is stubbed before import to avoid langchain dependency.
 import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 # Stub api.rag_chain before importing rag.py to avoid langchain at import time.
 _rag_chain_stub = MagicMock()
@@ -15,7 +14,6 @@ _rag_chain_stub.embed_chunks = MagicMock(return_value=[("chunk1", "src", [0.1, 0
 if "api.rag_chain" not in sys.modules:
     sys.modules["api.rag_chain"] = _rag_chain_stub
 
-from api.db import Company, CompanyChunk, CompanyNote
 from api.services.rag import (
     RagService,
     _build_company_context,

@@ -5,7 +5,6 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.services.client_token_service import (
     _TOKEN_TTL_DAYS,

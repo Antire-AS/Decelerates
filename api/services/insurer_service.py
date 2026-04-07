@@ -1,6 +1,5 @@
 """Insurer and Submission CRUD service."""
-from datetime import datetime, timezone, date as date_type
-from typing import Optional
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 

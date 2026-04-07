@@ -2,7 +2,6 @@
 
 Tests exercise the adapter without sending real emails (conn_str=None → not configured).
 """
-import pytest
 
 from api.adapters.notification_adapter import (
     AzureEmailNotificationAdapter,

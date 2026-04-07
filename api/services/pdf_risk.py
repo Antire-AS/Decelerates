@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 
 from fpdf import FPDF
 
-from api.services.pdf_base import _safe
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

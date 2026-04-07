@@ -5,7 +5,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 
 _LLM_TIMEOUT_SECONDS = 30
 

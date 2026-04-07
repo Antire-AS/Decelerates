@@ -5,7 +5,7 @@ _parse_json_financials basics are already in test_pdf_extract.py; this file
 covers the remaining functions and edge cases.
 """
 import os
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests

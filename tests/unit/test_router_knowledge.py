@@ -14,7 +14,7 @@ _rag_chain_stub.build_rag_chain = MagicMock(return_value=lambda q: "mocked answe
 sys.modules["api.rag_chain"] = _rag_chain_stub
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-from api.domain.exceptions import LlmUnavailableError, QuotaError
+from api.domain.exceptions import LlmUnavailableError
 from api.routers.knowledge import router
 from api.dependencies import get_db
 from api.limiter import limiter

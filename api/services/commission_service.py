@@ -1,8 +1,7 @@
 """Commission and revenue tracking service."""
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import date, datetime, timedelta, timezone
+from typing import List
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from api.db import Policy, PolicyStatus
@@ -114,3 +113,52 @@ class CommissionService:
             .order_by(Policy.renewal_date.asc().nullslast())
             .all()
         )
+
+    def get_forward_projections(self, firm_id: int, months_ahead: int = 12) -> List[dict]:
+        """Plan §🟢 #12 — quarterly projection of expected commission from
+        ACTIVE policies whose renewal_date falls in the next `months_ahead`."""
+        today = date.today()
+        end = today + timedelta(days=months_ahead * 31)
+        policies = (
+            self.db.query(Policy)
+            .filter(
+                Policy.firm_id == firm_id,
+                Policy.status == PolicyStatus.active,
+                Policy.renewal_date.isnot(None),
+                Policy.renewal_date >= today,
+                Policy.renewal_date <= end,
+            )
+            .all()
+        )
+        buckets = _empty_quarter_buckets(today, end)
+        for p in policies:
+            if not p.renewal_date:
+                continue
+            key = _quarter_key(p.renewal_date)
+            bucket = buckets.setdefault(
+                key,
+                {"period": key, "expected_commission": 0.0, "policy_count": 0},
+            )
+            bucket["expected_commission"] += _calc_policy_commission(p)
+            bucket["policy_count"] += 1
+        return [
+            {**v, "expected_commission": round(v["expected_commission"], 2)}
+            for v in sorted(buckets.values(), key=lambda b: b["period"])
+        ]
+
+
+def _quarter_key(d: date) -> str:
+    return f"{d.year}-Q{(d.month - 1) // 3 + 1}"
+
+
+def _empty_quarter_buckets(start: date, end: date) -> dict[str, dict]:
+    """Build empty quarter buckets covering [start, end] so the chart x-axis
+    has no gaps. Walks month-by-month and dedupes by quarter key."""
+    buckets: dict[str, dict] = {}
+    cursor = start
+    while cursor <= end:
+        key = _quarter_key(cursor)
+        if key not in buckets:
+            buckets[key] = {"period": key, "expected_commission": 0.0, "policy_count": 0}
+        cursor = (cursor.replace(day=1) + timedelta(days=32)).replace(day=1)
+    return buckets

@@ -32,13 +32,14 @@ def _mock_activity(**kwargs):
 
 def _activity_in(**kwargs):
     return SimpleNamespace(
-        activity_type = kwargs.get("activity_type", "note"),
-        subject       = kwargs.get("subject", "Follow-up call"),
-        body          = kwargs.get("body", None),
-        due_date      = kwargs.get("due_date", None),
-        completed     = kwargs.get("completed", False),
-        policy_id     = kwargs.get("policy_id", None),
-        claim_id      = kwargs.get("claim_id", None),
+        activity_type       = kwargs.get("activity_type", "note"),
+        subject             = kwargs.get("subject", "Follow-up call"),
+        body                = kwargs.get("body", None),
+        due_date            = kwargs.get("due_date", None),
+        completed           = kwargs.get("completed", False),
+        policy_id           = kwargs.get("policy_id", None),
+        claim_id            = kwargs.get("claim_id", None),
+        assigned_to_user_id = kwargs.get("assigned_to_user_id", None),
     )
 
 

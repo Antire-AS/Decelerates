@@ -42,7 +42,6 @@ function NewRecommendationForm({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const quotedSubs = submissions.filter((s) => s.status === "quoted");
   const allSubs = submissions;
 
   function toggleSub(id: number) {

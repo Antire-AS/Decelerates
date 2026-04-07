@@ -1,5 +1,4 @@
 """Unit tests for services/external_apis.py — pure data-transform functions, no HTTP."""
-import pytest
 
 from api.services.external_apis import (
     _pick_latest_regnskap,

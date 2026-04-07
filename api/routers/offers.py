@@ -22,7 +22,7 @@ from api.db import Company, InsuranceOffer
 from api.limiter import limiter
 from api.services.llm import _compare_offers_with_llm
 from api.services.documents import (
-    parse_and_store_offer, save_insurance_offers, remove_insurance_offer,
+    save_insurance_offers, remove_insurance_offer,
     update_offer_status, _pdf_bytes_to_text,
 )
 from api.dependencies import get_db

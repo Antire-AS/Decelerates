@@ -2,9 +2,7 @@
 
 Pure static tests — no DB, no network, no API keys.
 """
-import io
 
-import pytest
 
 from api.routers.portfolio_router import _parse_csv_orgnrs
 

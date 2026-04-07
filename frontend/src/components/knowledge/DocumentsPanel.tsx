@@ -7,10 +7,12 @@ import {
   compareInsuranceDocuments, chatWithInsuranceDocument,
   downloadInsuranceDocumentPdf, getDocumentKeyPoints, getSimilarDocuments,
   type InsuranceDocument,
+  type DocumentCompareOut,
 } from "@/lib/api";
 import { Loader2, Upload, Trash2, Download, MessageSquare, Sparkles, FileText, Link2, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { fmtDate } from "@/lib/format";
+import { OfferComparisonTable } from "@/components/offers/OfferComparisonTable";
 
 const KEYPOINT_LABELS: Record<string, string> = {
   om_dokumentet: "Om dokumentet",
@@ -36,7 +38,7 @@ export default function DocumentsPanel() {
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [comparing, setComparing]     = useState(false);
-  const [compareResult, setCompareResult] = useState<string | null>(null);
+  const [compareResult, setCompareResult] = useState<DocumentCompareOut | null>(null);
   const [compareErr, setCompareErr]   = useState<string | null>(null);
 
   const [chatDocId, setChatDocId]       = useState<number | null>(null);
@@ -101,7 +103,7 @@ export default function DocumentsPanel() {
     setComparing(true); setCompareErr(null); setCompareResult(null);
     try {
       const r = await compareInsuranceDocuments(ids);
-      setCompareResult(r.comparison);
+      setCompareResult(r);
     } catch (e) { setCompareErr(String(e)); }
     finally { setComparing(false); }
   }
@@ -236,7 +238,7 @@ export default function DocumentsPanel() {
             <button onClick={() => setCompareResult(null)} className="text-xs text-[#8A7F74] hover:text-[#2C3E50]">Lukk</button>
           </div>
           {compareErr && <p className="text-xs text-red-600">{compareErr}</p>}
-          {compareResult && <div className="bg-[#F9F7F4] rounded-lg p-3"><p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{compareResult}</p></div>}
+          {compareResult && <OfferComparisonTable result={compareResult} />}
         </div>
       )}
 

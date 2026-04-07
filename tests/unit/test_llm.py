@@ -1,5 +1,4 @@
 """Unit tests for services/llm.py — all external calls are mocked."""
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest

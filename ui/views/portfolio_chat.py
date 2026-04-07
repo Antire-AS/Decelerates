@@ -1,7 +1,7 @@
 """Portfolio AI chat — financial analysis mode and knowledge base mode."""
 import streamlit as st
 
-from ui.views.portfolio_helpers import _fetch, _post
+from ui.views.portfolio_helpers import _post
 
 
 def _render_portfolio_chat(portfolio_id: int) -> None:

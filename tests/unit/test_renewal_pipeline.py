@@ -1,10 +1,9 @@
 """Unit tests for the renewal notification pipeline."""
 from datetime import date, timedelta
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
-import pytest
 
-from api.db import Policy, PolicyStatus, RenewalStage
+from api.db import Policy, PolicyStatus
 from api.services.policy_service import PolicyService
 
 

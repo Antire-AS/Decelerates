@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -168,20 +168,22 @@ class ClaimUpdate(BaseModel):
 # ── Activities ───────────────────────────────────────────────────────────────
 
 class ActivityIn(BaseModel):
-    activity_type: str
-    subject:       str
-    body:          Optional[str] = None
-    policy_id:     Optional[int] = None
-    claim_id:      Optional[int] = None
-    due_date:      Optional[date] = None
-    completed:     bool = False
+    activity_type:       str
+    subject:             str
+    body:                Optional[str] = None
+    policy_id:           Optional[int] = None
+    claim_id:            Optional[int] = None
+    due_date:            Optional[date] = None
+    completed:           bool = False
+    assigned_to_user_id: Optional[int] = None  # plan §🟢 #14
 
 
 class ActivityUpdate(BaseModel):
-    subject:   Optional[str] = None
-    body:      Optional[str] = None
-    due_date:  Optional[date] = None
-    completed: Optional[bool] = None
+    subject:             Optional[str] = None
+    body:                Optional[str] = None
+    due_date:            Optional[date] = None
+    completed:           Optional[bool] = None
+    assigned_to_user_id: Optional[int] = None  # plan §🟢 #14
 
 
 # ── Users ────────────────────────────────────────────────────────────────────
@@ -489,6 +491,52 @@ class PdfSourcesOut(BaseModel):
     sources: List[PdfSourceItem]
 
 
+class PdfHistoryOut(BaseModel):
+    """Response from POST /org/{orgnr}/pdf-history — single extracted year row."""
+    orgnr:     str
+    extracted: Dict[str, Any] = Field(default_factory=dict)
+
+
+class OrgChatOut(BaseModel):
+    """Response from POST /org/{orgnr}/chat — RAG/notes-grounded answer."""
+    orgnr:      str
+    question:   str
+    answer:     str
+    session_id: str
+
+
+class DocumentChatOut(BaseModel):
+    """Response from POST /insurance-documents/{doc_id}/chat."""
+    doc_id:   int
+    question: str
+    answer:   str
+
+
+class DocumentRef(BaseModel):
+    id:    int
+    title: Optional[str] = None
+
+
+class DocumentCompareOut(BaseModel):
+    """Response from POST /insurance-documents/compare. The `structured` payload
+    is the LLM JSON output from compare_two_documents — kept loose so the LLM
+    schema can evolve without breaking the wrapper."""
+    doc_a:      DocumentRef
+    doc_b:      DocumentRef
+    structured: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DocumentKeypointsOut(BaseModel):
+    """Response from GET /insurance-documents/{doc_id}/keypoints."""
+    doc_id:        int
+    title:         Optional[str] = None
+    summary:       Optional[str] = None
+    key_points:    List[str] = Field(default_factory=list)
+    extracted_at:  Optional[str] = None
+    # Allow forward-compatible LLM fields without breaking the wrapper.
+    model_config  = {"extra": "allow"}
+
+
 class EstimateOut(BaseModel):
     orgnr:     str
     estimated: Dict[str, Any] = Field(default_factory=dict)
@@ -561,3 +609,219 @@ class SeededRegulationItem(BaseModel):
 
 class SeedRegulationsOut(BaseModel):
     seeded: List[SeededRegulationItem]
+
+
+# ── Deal pipeline (plan §🟢 #9) ──────────────────────────────────────────────
+# Convention: every endpoint declares response_model. See plan risk #1
+# ("Type erosion in new endpoints").
+
+PipelineStageKindLiteral = Literal["lead", "qualified", "quoted", "bound", "won", "lost"]
+
+
+class PipelineStageOut(BaseModel):
+    """A column in a broker firm's deal pipeline kanban board."""
+    id:          int
+    firm_id:     int
+    name:        str
+    kind:        PipelineStageKindLiteral
+    order_index: int
+    color:       Optional[str] = None
+    created_at:  datetime
+
+
+class PipelineStageCreate(BaseModel):
+    name:        str
+    kind:        PipelineStageKindLiteral
+    order_index: int = 0
+    color:       Optional[str] = None
+
+
+class PipelineStageUpdate(BaseModel):
+    name:        Optional[str] = None
+    order_index: Optional[int] = None
+    color:       Optional[str] = None
+
+
+class DealOut(BaseModel):
+    id:                   int
+    firm_id:              int
+    orgnr:                str
+    stage_id:             int
+    owner_user_id:        Optional[int] = None
+    title:                Optional[str] = None
+    expected_premium_nok: Optional[float] = None
+    expected_close_date:  Optional[date] = None
+    source:               Optional[str] = None
+    notes:                Optional[str] = None
+    created_at:           datetime
+    updated_at:           datetime
+    won_at:               Optional[datetime] = None
+    lost_at:              Optional[datetime] = None
+    lost_reason:          Optional[str] = None
+
+
+class DealCreate(BaseModel):
+    orgnr:                str
+    stage_id:             int
+    owner_user_id:        Optional[int] = None
+    title:                Optional[str] = None
+    expected_premium_nok: Optional[float] = None
+    expected_close_date:  Optional[date] = None
+    source:               Optional[str] = None
+    notes:                Optional[str] = None
+
+
+class DealUpdate(BaseModel):
+    """Generic patch — every field optional. Stage transitions go through
+    PATCH /deals/{id}/stage instead so they're auditable as a single op."""
+    title:                Optional[str] = None
+    owner_user_id:        Optional[int] = None
+    expected_premium_nok: Optional[float] = None
+    expected_close_date:  Optional[date] = None
+    source:               Optional[str] = None
+    notes:                Optional[str] = None
+
+
+class DealStageChange(BaseModel):
+    stage_id: int
+
+
+class DealLose(BaseModel):
+    reason: Optional[str] = None
+
+
+# ── Notifications inbox (plan §🟢 #17) ───────────────────────────────────────
+
+NotificationKindLiteral = Literal[
+    "renewal",
+    "activity_overdue",
+    "mention",
+    "claim_new",
+    "deal_won",
+    "coverage_gap",
+    "digest",
+]
+
+
+class NotificationOut(BaseModel):
+    id:         int
+    user_id:    int
+    firm_id:    int
+    orgnr:      Optional[str] = None
+    kind:       NotificationKindLiteral
+    title:      str
+    message:    Optional[str] = None
+    link:       Optional[str] = None
+    read:       bool
+    created_at: datetime
+
+
+class NotificationListOut(BaseModel):
+    """Wrapper that ships the unread count alongside the rows so the bell icon
+    can render `15 unread` without a second round-trip."""
+    items:        List[NotificationOut]
+    unread_count: int
+
+
+class NotificationMarkReadOut(BaseModel):
+    updated: int
+
+
+# ── Audit log UI (plan §🟢 #13) ──────────────────────────────────────────────
+
+
+class AuditLogEntryOut(BaseModel):
+    id:          int
+    orgnr:       Optional[str] = None
+    action:      str
+    actor_email: Optional[str] = None
+    detail:      Optional[str] = None       # JSON-encoded extras
+    created_at:  datetime
+
+
+class AuditLogPageOut(BaseModel):
+    """Paginated audit log response. `total` is the count of rows matching the
+    filter (NOT the page); `has_more` is True when more rows exist past `offset
+    + items.length`. The frontend uses these to render the 'Page 2 of N' UI."""
+    items:    List[AuditLogEntryOut]
+    total:    int
+    offset:   int
+    limit:    int
+    has_more: bool
+
+
+# ── Commission forward projections (plan §🟢 #12) ───────────────────────────
+
+
+class CommissionProjectionBucket(BaseModel):
+    period:              str    # "2026-Q3"
+    expected_commission: float
+    policy_count:        int
+
+
+class CommissionProjectionsOut(BaseModel):
+    buckets:      List[CommissionProjectionBucket]
+    months_ahead: int
+
+
+# ── Bulk operations (plan §🟢 #18) ───────────────────────────────────────────
+
+
+class PortfolioBulkAdd(BaseModel):
+    orgnrs: List[str]
+
+
+class PortfolioBulkAddOut(BaseModel):
+    added:   int
+    skipped: int
+
+
+class ActivityBulkComplete(BaseModel):
+    activity_ids: List[int]
+
+
+class ActivityBulkCompleteOut(BaseModel):
+    updated: int
+
+
+# ── Saved searches (plan §🟢 #19) ────────────────────────────────────────────
+
+
+class SavedSearchOut(BaseModel):
+    id:         int
+    user_id:    int
+    name:       str
+    params:     Dict[str, Any]
+    created_at: datetime
+
+
+class SavedSearchCreate(BaseModel):
+    name:   str
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Email compose (plan §🟢 #10) ─────────────────────────────────────────────
+
+
+class EmailComposeIn(BaseModel):
+    orgnr:     str
+    to:        str
+    subject:   str
+    body_html: str
+
+
+class EmailComposeOut(BaseModel):
+    sent:        bool
+    activity_id: int
+
+
+# ── Signicat e-sign (plan §🟢 #11) ───────────────────────────────────────────
+
+
+class SigningSessionOut(BaseModel):
+    session_id:  str
+    signing_url: str
+
+
+class SignicatWebhookAck(BaseModel):
+    received: bool

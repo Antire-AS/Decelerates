@@ -6,7 +6,6 @@ Run:
 """
 import os
 from datetime import date, timedelta
-from unittest.mock import MagicMock
 
 import pytest
 

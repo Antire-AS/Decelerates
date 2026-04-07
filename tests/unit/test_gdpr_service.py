@@ -3,7 +3,7 @@
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
 import pytest
 

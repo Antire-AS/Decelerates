@@ -1,5 +1,4 @@
 """Portfolio service — named company lists with cross-portfolio risk analysis and chat."""
-import json
 import logging
 from datetime import datetime, timezone
 from typing import Iterator, Optional

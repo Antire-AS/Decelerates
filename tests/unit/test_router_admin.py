@@ -1,6 +1,6 @@
 """Unit tests for api/routers/admin_router.py — admin CRUD, dashboard, notifications."""
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI

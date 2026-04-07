@@ -1,7 +1,6 @@
 """Unit tests for InsurerService — appetite matching and win/loss analysis."""
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import Insurer, Submission, SubmissionStatus
 from api.services.insurer_service import InsurerService

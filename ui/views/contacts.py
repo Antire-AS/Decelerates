@@ -2,7 +2,7 @@
 import requests
 import streamlit as st
 
-from ui.config import API_BASE, T, get_auth_headers
+from ui.config import API_BASE, get_auth_headers
 
 
 def render_contacts_section(orgnr: str) -> None:

@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
-from api.schemas import ActivityIn, ActivityUpdate
+from api.schemas import (
+    ActivityBulkComplete,
+    ActivityBulkCompleteOut,
+    ActivityIn,
+    ActivityUpdate,
+)
 from api.services.activity_service import ActivityService
 from api.services.audit import log_audit
 
@@ -18,18 +23,19 @@ def _svc(db: Session = Depends(get_db)) -> ActivityService:
 
 def _serialize(a) -> dict:
     return {
-        "id":               a.id,
-        "orgnr":            a.orgnr,
-        "firm_id":          a.firm_id,
-        "policy_id":        a.policy_id,
-        "claim_id":         a.claim_id,
-        "created_by_email": a.created_by_email,
-        "activity_type":    a.activity_type.value,
-        "subject":          a.subject,
-        "body":             a.body,
-        "due_date":         a.due_date.isoformat() if a.due_date else None,
-        "completed":        a.completed,
-        "created_at":       a.created_at.isoformat() if a.created_at else None,
+        "id":                  a.id,
+        "orgnr":               a.orgnr,
+        "firm_id":             a.firm_id,
+        "policy_id":           a.policy_id,
+        "claim_id":            a.claim_id,
+        "created_by_email":    a.created_by_email,
+        "assigned_to_user_id": a.assigned_to_user_id,
+        "activity_type":       a.activity_type.value,
+        "subject":             a.subject,
+        "body":                a.body,
+        "due_date":            a.due_date.isoformat() if a.due_date else None,
+        "completed":           a.completed,
+        "created_at":          a.created_at.isoformat() if a.created_at else None,
     }
 
 
@@ -92,3 +98,17 @@ def delete_activity(
         raise HTTPException(status_code=404, detail=str(e))
     log_audit(db, "activity.delete", orgnr=orgnr, actor_email=user.email,
               detail={"activity_id": activity_id})
+
+
+@router.post("/activities/bulk-complete", response_model=ActivityBulkCompleteOut)
+def bulk_complete_activities(
+    body: ActivityBulkComplete,
+    svc: ActivityService = Depends(_svc),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Plan §🟢 #18 — bulk-mark activities completed."""
+    updated = svc.bulk_complete(body.activity_ids, user.firm_id)
+    log_audit(db, "activity.bulk_complete", actor_email=user.email,
+              detail={"count": updated})
+    return {"updated": updated}

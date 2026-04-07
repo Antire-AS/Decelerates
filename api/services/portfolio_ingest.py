@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from api.db import PortfolioCompany, Company, CompanyPdfSource, SessionLocal
+from api.db import PortfolioCompany, Company, SessionLocal
 from api.services.company import fetch_org_profile
 from api.services.external_apis import fetch_enhetsregisteret, fetch_enhet_by_orgnr
 from api.services.pdf_extract import _auto_extract_pdf_sources

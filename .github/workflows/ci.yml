@@ -25,6 +25,10 @@ jobs:
 
     env:
       TEST_DATABASE_URL: postgresql://brokeruser:brokerpass@localhost:5432/brokerdb
+      # Tests run as ENVIRONMENT=development (default) + explicit AUTH_DISABLED.
+      # Production safety: api/auth.py::_is_auth_disabled refuses to honor
+      # AUTH_DISABLED when ENVIRONMENT=production. See test_auth_safety.py.
+      AUTH_DISABLED: "1"
 
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +49,13 @@ jobs:
           uv run pylint api/ ui/ \
             --fail-under=8 \
             --disable=C0114,C0115,C0116,R0903,W0611
+
+      - name: Dead-import sweep (ruff F401)
+        # Pylint W0611 is disabled above (too noisy with dynamic imports);
+        # ruff F401 is faster and more precise. Ran via uvx so we don't add
+        # ruff to project deps — the external Antire reusable-ruff job already
+        # owns the broader formatting check.
+        run: uvx ruff check --select F401 api/ ui/ tests/ scripts/
 
       - name: Complexity report (informational)
         run: uv run radon cc api/ ui/ -n C -s || true
@@ -77,6 +88,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint
+        run: npm run lint
 
       - name: Type-check and build
         run: npm run build
@@ -113,6 +127,14 @@ jobs:
       - name: Regenerate API types from current backend
         working-directory: frontend
         run: npm run gen:api-types
+
+      - name: Check for dead client functions
+        # Reuses the loaded FastAPI app to verify every apiFetch URL in
+        # frontend/src/lib/api.ts maps to a backend route. Catches the
+        # `getPortfolioOverview` / `getRiskNarrative` class of bugs.
+        env:
+          AUTH_DISABLED: "1"
+        run: uv run python scripts/check_dead_client_fns.py
 
       - name: Verify api-schema.ts is up to date
         run: |

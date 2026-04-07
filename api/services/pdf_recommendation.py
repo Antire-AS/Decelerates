@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 from fpdf import FPDF
 
-from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE, _MID_BLUE
+from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE
 
 
 def _fmt_nok(v: Any) -> str:

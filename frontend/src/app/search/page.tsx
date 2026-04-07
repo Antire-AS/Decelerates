@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { searchCompanies, type SearchResult } from "@/lib/api";
-import RiskBadge from "@/components/company/RiskBadge";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 
 export default function SearchPage() {
@@ -33,9 +32,9 @@ export default function SearchPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[#2C3E50]">Selskapsøk</h1>
 
-      {/* Search form */}
+      {/* Search form — stacks vertically on mobile, single row on sm+ */}
       <form onSubmit={handleSearch} className="broker-card space-y-4">
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <label className="block text-xs font-medium text-[#8A7F74] mb-1">
               Navn eller orgnr
@@ -49,7 +48,7 @@ export default function SearchPage() {
                          focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
             />
           </div>
-          <div className="w-36">
+          <div className="w-full sm:w-36">
             <label className="block text-xs font-medium text-[#8A7F74] mb-1">
               Kommune (valgfri)
             </label>
@@ -62,7 +61,7 @@ export default function SearchPage() {
                          focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
             />
           </div>
-          <div className="w-28">
+          <div className="w-full sm:w-28">
             <label className="block text-xs font-medium text-[#8A7F74] mb-1">
               Maks treff
             </label>

@@ -33,7 +33,11 @@ function NewAgreementWizard() {
 
   const toggleLine = (line: string) => {
     const lines = new Set(data.insurance_lines ?? []);
-    lines.has(line) ? lines.delete(line) : lines.add(line);
+    if (lines.has(line)) {
+      lines.delete(line);
+    } else {
+      lines.add(line);
+    }
     set({ insurance_lines: Array.from(lines) });
   };
 

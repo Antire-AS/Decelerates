@@ -1,5 +1,4 @@
 """Unit tests for api/routers/documents.py — InsuranceDocument CRUD + analysis."""
-import io
 import sys
 from unittest.mock import MagicMock, patch
 
