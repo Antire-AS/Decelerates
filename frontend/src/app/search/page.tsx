@@ -7,10 +7,11 @@ import RiskBadge from "@/components/company/RiskBadge";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 
 export default function SearchPage() {
-  const [query, setQuery]     = useState("");
-  const [size, setSize]       = useState(20);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [searched, setSearched] = useState(false);
+  const [query, setQuery]         = useState("");
+  const [size, setSize]           = useState(20);
+  const [kommunenr, setKommunenr] = useState("");
+  const [results, setResults]     = useState<SearchResult[]>([]);
+  const [searched, setSearched]   = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +20,7 @@ export default function SearchPage() {
     setError(null);
     startTransition(async () => {
       try {
-        const data = await searchCompanies(query.trim(), size);
+        const data = await searchCompanies(query.trim(), size, kommunenr.trim() || undefined);
         setResults(data);
         setSearched(true);
       } catch {
@@ -43,6 +44,19 @@ export default function SearchPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="F.eks. DNB BANK ASA eller 984851006"
+              className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
+                         bg-white text-[#2C3E50] placeholder-[#C4BDB4]
+                         focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+            />
+          </div>
+          <div className="w-36">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+              Kommune (valgfri)
+            </label>
+            <input
+              value={kommunenr}
+              onChange={(e) => setKommunenr(e.target.value)}
+              placeholder="F.eks. Oslo"
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
                          bg-white text-[#2C3E50] placeholder-[#C4BDB4]
                          focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
