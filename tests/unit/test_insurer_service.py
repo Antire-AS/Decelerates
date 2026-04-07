@@ -77,7 +77,6 @@ class TestGetWinLossSummary:
         ins_q = MagicMock()
         ins_q.all.return_value = [insurer]
 
-        original_query = db.query
 
         call_count = [0]
         def side_effect(model):

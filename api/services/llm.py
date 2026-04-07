@@ -197,7 +197,6 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
             models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
             seen: set = set()
             ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-            last_exc: Optional[Exception] = None
             for model_name in ordered:
                 try:
                     with ThreadPoolExecutor(max_workers=1) as _pool:
@@ -213,7 +212,6 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
                 except Exception as exc:
                     msg = str(exc)
                     if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                        last_exc = exc
                         continue
                     raise
             raise QuotaError(

@@ -247,6 +247,11 @@ def _render_demo_documents() -> None:
 
 
 def _render_data_controls() -> None:
+    # This function calls /admin/renewal-threshold-emails (line ~369) which
+    # needs an auth header. Previously `headers` was referenced without being
+    # defined — a real F821 bug surfaced by ruff enforcement.
+    headers = get_auth_headers()
+
     st.markdown("#### Datahåndtering")
 
     col_demo, col_reset = st.columns(2)

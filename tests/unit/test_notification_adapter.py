@@ -148,7 +148,7 @@ def test_send_activity_reminders_sends_when_overdue_present():
 def test_send_activity_reminders_sends_when_due_today_present():
     adapter = _adapter()
     due_today = [{"due_date": "2026-04-03", "activity_type": "email", "subject": "Send proposal", "orgnr": "456"}]
-    with patch.object(adapter, "send_email", return_value=True) as mock_send:
+    with patch.object(adapter, "send_email", return_value=True):
         result = adapter.send_activity_reminders("b@test.no", [], due_today)
     assert result is True
 

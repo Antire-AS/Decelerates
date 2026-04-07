@@ -35,15 +35,18 @@ def _mock_job(**kwargs):
 # ── register_handler ──────────────────────────────────────────────────────────
 
 def test_register_handler_stores_function():
-    fn = lambda db, payload: None
+    def fn(db, payload):
+        return None
     register_handler("test_register_unique", fn)
     assert _HANDLERS["test_register_unique"] is fn
     del _HANDLERS["test_register_unique"]
 
 
 def test_register_handler_overwrites_existing():
-    fn1 = lambda db, p: None
-    fn2 = lambda db, p: "v2"
+    def fn1(db, p):
+        return None
+    def fn2(db, p):
+        return "v2"
     register_handler("overwrite_test", fn1)
     register_handler("overwrite_test", fn2)
     assert _HANDLERS["overwrite_test"] is fn2
