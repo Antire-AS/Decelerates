@@ -13,6 +13,7 @@ import {
   removePortfolioCompany,
   downloadPortfolioPdf,
   portfolioChat,
+  addOrgPdfHistory,
   type PortfolioItem,
   type PortfolioRiskRow,
 } from "@/lib/api";
@@ -57,6 +58,13 @@ export default function PortfolioDetailPage({
   const [removingOrgnr, setRemovingOrgnr] = useState<string | null>(null);
   const [pdfDownloading, setPdfDownloading] = useState(false);
 
+  // PDF enrichment form
+  const [pdfOrgnr, setPdfOrgnr]   = useState("");
+  const [pdfUrl, setPdfUrl]       = useState("");
+  const [pdfYear, setPdfYear]     = useState(new Date().getFullYear() - 1);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfMsg, setPdfMsg]       = useState<{ ok: boolean; text: string } | null>(null);
+
   const [chatQuestion, setChatQuestion] = useState("");
   const [chatAnswer, setChatAnswer] = useState<string | null>(null);
   const [chatSources, setChatSources] = useState<string[]>([]);
@@ -79,6 +87,20 @@ export default function PortfolioDetailPage({
       await downloadPortfolioPdf(portfolioId, portfolio?.name ?? "rapport");
     } finally {
       setPdfDownloading(false);
+    }
+  }
+
+  async function handlePdfEnrich() {
+    if (!pdfOrgnr.trim() || !pdfUrl.trim()) return;
+    setPdfLoading(true); setPdfMsg(null);
+    try {
+      await addOrgPdfHistory(pdfOrgnr.trim(), { pdf_url: pdfUrl.trim(), year: pdfYear });
+      setPdfMsg({ ok: true, text: `PDF for ${pdfOrgnr} (${pdfYear}) er lagt til og utdrag starter.` });
+      setPdfUrl(""); setPdfOrgnr("");
+    } catch (e) {
+      setPdfMsg({ ok: false, text: String(e) });
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -194,6 +216,48 @@ export default function PortfolioDetailPage({
           </ErrorBoundary>
         </div>
       )}
+
+      {/* ── PDF enrichment ── */}
+      <div className="broker-card space-y-3">
+        <p className="text-xs font-semibold text-[#2C3E50]">Legg til årsrapport-PDF manuelt</p>
+        <p className="text-xs text-[#8A7F74]">
+          Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input
+            value={pdfOrgnr}
+            onChange={(e) => setPdfOrgnr(e.target.value)}
+            placeholder="Orgnr (9 siffer)"
+            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+          />
+          <input
+            value={pdfUrl}
+            onChange={(e) => setPdfUrl(e.target.value)}
+            placeholder="https://…/årsrapport.pdf"
+            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+          />
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={pdfYear}
+              onChange={(e) => setPdfYear(Number(e.target.value))}
+              min={2010} max={new Date().getFullYear()}
+              className="w-24 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+            />
+            <button
+              onClick={handlePdfEnrich}
+              disabled={pdfLoading || !pdfOrgnr.trim() || !pdfUrl.trim()}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3a5e95] disabled:opacity-50"
+            >
+              {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              Legg til
+            </button>
+          </div>
+        </div>
+        {pdfMsg && (
+          <p className={`text-xs ${pdfMsg.ok ? "text-green-600" : "text-red-600"}`}>{pdfMsg.text}</p>
+        )}
+      </div>
 
       {/* ── Ingest + chat ── */}
       <div className="broker-card space-y-0">
