@@ -1,0 +1,747 @@
+"use client";
+
+import { useState } from "react";
+import useSWR from "swr";
+import Link from "next/link";
+import {
+  getCompanies, getPortfolios, getPortfolioRisk, getPremiumAnalytics, getCommissionAnalytics, nlQuery,
+  type Company, type PortfolioItem, type PortfolioRiskRow, type PremiumAnalytics, type CommissionAnalytics,
+} from "@/lib/api";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
+import { Loader2, Database } from "lucide-react";
+
+const COLORS = ["#4A6FA5", "#2C3E50", "#C8A951", "#7B9E87", "#9B6B6B", "#6B8FAB", "#B8860B"];
+
+function fmt(n: number | undefined | null) {
+  if (n == null) return "–";
+  return new Intl.NumberFormat("nb-NO").format(Math.round(n));
+}
+
+function fmtMnok(n: number | undefined | null) {
+  if (n == null) return "–";
+  if (Math.abs(n) >= 1e9) return `${(n / 1e9).toFixed(1)} mrd`;
+  if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(0)} MNOK`;
+  return `${(n / 1e3).toFixed(0)} TNOK`;
+}
+
+function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="broker-card">
+      <p className="text-xs text-[#8A7F74] font-medium mb-1">{label}</p>
+      <p className="text-2xl font-bold text-[#2C3E50]">{value}</p>
+      {sub && <p className="text-xs text-[#8A7F74] mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+// ── Tab 1: Premium Analytics ──────────────────────────────────────────────────
+
+function PremiumTab() {
+  const { data, isLoading, error } = useSWR<PremiumAnalytics>("premium-analytics", getPremiumAnalytics);
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
+  if (error || !data) return <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen policyer registrert ennå. Legg til policyer i Selskapsøk → CRM-fanen.</div>;
+
+  const insurerData = (data.by_insurer ?? []).map((b) => ({ name: b.insurer, value: b.total_premium, count: b.count, pct: b.share_pct }));
+  const productData = (data.by_product ?? []).map((b) => ({ name: b.product_type, value: b.total_premium, count: b.count, pct: b.share_pct }));
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <MetricCard label="Total premievolum" value={fmtMnok(data.total_premium_book)} />
+        <MetricCard label="Aktive avtaler" value={String(data.active_policy_count ?? 0)} />
+        <MetricCard label="Forfaller 90 dager" value={fmtMnok(data.renewals_90d_premium)} />
+        <MetricCard label="Snitt per avtale" value={fmt(data.avg_premium_per_policy)} sub="kr" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {insurerData.length > 0 && (
+          <div className="broker-card">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Premie per forsikringsselskap</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={insurerData} layout="vertical" margin={{ left: 8, right: 24 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1e6).toFixed(0)}M`} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={110} />
+                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, "Premie"]} />
+                <Bar dataKey="value" fill="#4A6FA5" radius={[0, 3, 3, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-3 space-y-1.5">
+              {insurerData.map((d, i) => (
+                <div key={d.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="text-[#2C3E50]">{d.name}</span>
+                  </div>
+                  <span className="text-[#8A7F74]">{d.count} avtaler · {d.pct.toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {productData.length > 0 && (
+          <div className="broker-card">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Premie per produkttype</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={productData} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                  innerRadius={50} outerRadius={90}
+                  label={({ percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ""}
+                  labelLine={false}>
+                  {productData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Tooltip formatter={(v: number) => `kr ${fmt(v)}`} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-2 space-y-1.5">
+              {productData.map((d, i) => (
+                <div key={d.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="text-[#2C3E50]">{d.name}</span>
+                  </div>
+                  <span className="text-[#8A7F74]">{d.count} avtaler · {d.pct.toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {(data.by_status ?? []).length > 0 && (
+        <div className="broker-card">
+          <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Fordeling per status</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                  <th className="text-left pb-2 font-medium">Status</th>
+                  <th className="text-right pb-2 font-medium">Avtaler</th>
+                  <th className="text-right pb-2 font-medium">Premie (kr)</th>
+                  <th className="text-right pb-2 font-medium">Andel</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDE8E3]">
+                {data.by_status.map((s) => (
+                  <tr key={s.status} className="hover:bg-[#F9F7F4]">
+                    <td className="py-2 text-[#2C3E50] capitalize">{s.status}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">{s.count}</td>
+                    <td className="py-2 text-right font-medium text-[#2C3E50]">{fmt(s.total_premium)}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">{s.share_pct.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 2: Portfolio Financial Overview ───────────────────────────────────────
+
+function PortfolioTab() {
+  const { data: portfolios, isLoading: loadingPortfolios } = useSWR<PortfolioItem[]>("portfolios-fin", getPortfolios);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  const activeId = selectedId ?? (portfolios?.[0]?.id ?? null);
+  const { data: rows, isLoading: loadingRows } = useSWR<PortfolioRiskRow[]>(
+    activeId ? `portfolio-risk-${activeId}` : null,
+    () => getPortfolioRisk(activeId!),
+  );
+
+  if (loadingPortfolios) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
+  if (!portfolios?.length) return <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen porteføljer funnet. Opprett en i Portefølje-fanen.</div>;
+
+  const revenues = (rows ?? []).filter((r) => r.revenue != null).map((r) => ({ name: r.navn ?? r.orgnr, value: +(r.revenue! / 1e6).toFixed(1) })).sort((a, b) => b.value - a.value).slice(0, 12);
+  const riskRows = (rows ?? []).filter((r) => r.risk_score != null).map((r) => ({ name: r.navn ?? r.orgnr, value: r.risk_score! })).sort((a, b) => b.value - a.value);
+
+  const validEq = (rows ?? []).filter((r) => r.equity_ratio != null);
+  const avgEq = validEq.length ? (validEq.reduce((s, r) => s + r.equity_ratio!, 0) / validEq.length * 100).toFixed(1) : null;
+  const totalRev = (rows ?? []).reduce((s, r) => s + (r.revenue ?? 0), 0);
+  const validRisk = (rows ?? []).filter((r) => r.risk_score != null);
+  const avgRisk = validRisk.length ? (validRisk.reduce((s, r) => s + r.risk_score!, 0) / validRisk.length).toFixed(1) : null;
+
+  return (
+    <div className="space-y-6">
+      {portfolios.length > 1 && (
+        <div className="flex gap-2 flex-wrap">
+          {portfolios.map((p) => (
+            <button key={p.id} onClick={() => setSelectedId(p.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                activeId === p.id ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
+              }`}>{p.name}</button>
+          ))}
+        </div>
+      )}
+
+      {loadingRows ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>
+      ) : !rows?.length ? (
+        <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen selskaper i porteføljen eller data ikke hentet ennå.</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard label="Selskaper" value={String(rows.length)} />
+            <MetricCard label="Total omsetning" value={fmtMnok(totalRev)} />
+            <MetricCard label="Gj.snitt risikoscore" value={avgRisk ?? "–"} sub="av 20" />
+            <MetricCard label="Gj.snitt EK-andel" value={avgEq ? `${avgEq}%` : "–"} />
+          </div>
+
+          {revenues.length > 0 && (
+            <div className="broker-card">
+              <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Omsetning (MNOK) — topp {revenues.length}</h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={revenues} margin={{ left: 0, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip formatter={(v: number) => [`${v} MNOK`, "Omsetning"]} />
+                  <Bar dataKey="value" fill="#4A6FA5" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {riskRows.length > 0 && (
+            <div className="broker-card">
+              <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Risikoscore per selskap</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={riskRows} margin={{ left: 0, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
+                  <YAxis tick={{ fontSize: 10 }} domain={[0, 20]} />
+                  <Tooltip formatter={(v: number) => [v, "Risikoscore"]} />
+                  <Bar dataKey="value" fill="#C8A951" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          <div className="broker-card overflow-x-auto">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Alle selskaper</h3>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                  <th className="text-left pb-2 font-medium">Selskap</th>
+                  <th className="text-right pb-2 font-medium">Omsetning</th>
+                  <th className="text-right pb-2 font-medium">Egenkapital</th>
+                  <th className="text-right pb-2 font-medium">EK-andel</th>
+                  <th className="text-right pb-2 font-medium">Risiko</th>
+                  <th className="text-right pb-2 font-medium">År</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDE8E3]">
+                {[...rows].sort((a, b) => (b.revenue ?? 0) - (a.revenue ?? 0)).map((r) => (
+                  <tr key={r.orgnr} className="hover:bg-[#F9F7F4]">
+                    <td className="py-2">
+                      <span className="font-medium text-[#2C3E50]">{r.navn ?? r.orgnr}</span>
+                      <span className="block text-xs text-[#8A7F74]">{r.orgnr}</span>
+                    </td>
+                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(r.revenue)}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(r.equity)}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">{r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}</td>
+                    <td className="py-2 text-right">
+                      {r.risk_score != null ? (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.risk_score <= 3 ? "bg-green-100 text-green-700" : r.risk_score <= 7 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>
+                          {r.risk_score}
+                        </span>
+                      ) : "–"}
+                    </td>
+                    <td className="py-2 text-right text-[#8A7F74]">{r.regnskapsår ?? "–"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 3: Company Comparison ─────────────────────────────────────────────────
+
+function CompareTab() {
+  const { data: companies, isLoading } = useSWR<Company[]>("companies-compare", () => getCompanies(500));
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
+  if (!companies?.length) return <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen selskaper i databasen ennå.</div>;
+
+  const toggle = (orgnr: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(orgnr)) next.delete(orgnr);
+      else if (next.size < 8) next.add(orgnr);
+      return next;
+    });
+  };
+
+  const filtered = companies.filter((c) =>
+    !search || (c.navn ?? c.orgnr).toLowerCase().includes(search.toLowerCase())
+  );
+  const selectedRows = companies.filter((c) => selected.has(c.orgnr));
+
+  const revenueChartData = selectedRows
+    .filter((c) => c.omsetning != null)
+    .map((c) => ({ name: c.navn ?? c.orgnr, value: +((c.omsetning! / 1e6).toFixed(1)) }))
+    .sort((a, b) => b.value - a.value);
+
+  const riskChartData = selectedRows
+    .filter((c) => c.risk_score != null)
+    .map((c) => ({ name: c.navn ?? c.orgnr, value: c.risk_score! }))
+    .sort((a, b) => b.value - a.value);
+
+  function exportCsv() {
+    const header = "Selskap,Orgnr,Omsetning (NOK),Egenkapital (NOK),EK-andel %,Risikoscore,Bransje,Kommune,År";
+    const rows = selectedRows.map((c) =>
+      [
+        `"${c.navn ?? c.orgnr}"`,
+        c.orgnr,
+        c.omsetning ?? "",
+        c.sum_egenkapital ?? "",
+        c.egenkapitalandel != null ? (c.egenkapitalandel * 100).toFixed(1) : "",
+        c.risk_score ?? "",
+        `"${c.naeringskode1_beskrivelse ?? ""}"`,
+        `"${c.kommune ?? ""}"`,
+        c.regnskapsår ?? "",
+      ].join(",")
+    );
+    const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "sammenligning.csv";
+    a.click();
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-[#8A7F74]">Velg opptil 8 selskaper å sammenligne.</p>
+
+      {/* Search + picker */}
+      <div className="broker-card space-y-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Søk selskap…"
+          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+        />
+        <div className="max-h-52 overflow-y-auto space-y-0.5">
+          {filtered.map((c) => (
+            <button key={c.orgnr} onClick={() => toggle(c.orgnr)}
+              className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                selected.has(c.orgnr) ? "bg-[#2C3E50] text-white" : "hover:bg-[#EDE8E3] text-[#2C3E50]"
+              }`}>
+              <span>{c.navn ?? c.orgnr} <span className="text-xs opacity-60">({c.orgnr})</span></span>
+              {c.risk_score != null && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  selected.has(c.orgnr) ? "bg-white/20 text-white"
+                  : c.risk_score <= 3 ? "bg-green-100 text-green-700"
+                  : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+                }`}>{c.risk_score}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selectedRows.length > 0 && (
+        <>
+          {/* Comparison table */}
+          <div className="broker-card overflow-x-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-[#2C3E50]">
+                {selectedRows.length} selskaper valgt
+              </h3>
+              <button
+                onClick={exportCsv}
+                className="px-3 py-1 text-xs rounded-lg bg-[#EDE8E3] text-[#2C3E50] hover:bg-[#DDD8D3] flex items-center gap-1.5"
+              >
+                ⬇ Eksporter CSV
+              </button>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                  <th className="text-left pb-2 font-medium">Selskap</th>
+                  <th className="text-right pb-2 font-medium">Omsetning</th>
+                  <th className="text-right pb-2 font-medium">Egenkapital</th>
+                  <th className="text-right pb-2 font-medium">EK-andel</th>
+                  <th className="text-right pb-2 font-medium">Risiko</th>
+                  <th className="text-left pb-2 font-medium hidden md:table-cell">Bransje</th>
+                  <th className="text-right pb-2 font-medium hidden sm:table-cell">År</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDE8E3]">
+                {selectedRows.map((c) => (
+                  <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
+                    <td className="py-2">
+                      <span className="font-medium text-[#2C3E50]">{c.navn ?? c.orgnr}</span>
+                      <span className="block text-xs text-[#8A7F74]">{c.orgnr}</span>
+                    </td>
+                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(c.omsetning)}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(c.sum_egenkapital)}</td>
+                    <td className="py-2 text-right text-[#8A7F74]">
+                      {c.egenkapitalandel != null ? `${(c.egenkapitalandel * 100).toFixed(1)}%` : "–"}
+                    </td>
+                    <td className="py-2 text-right">
+                      {c.risk_score != null ? (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          c.risk_score <= 3 ? "bg-green-100 text-green-700"
+                          : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
+                          : "bg-red-100 text-red-700"
+                        }`}>{c.risk_score}</span>
+                      ) : "–"}
+                    </td>
+                    <td className="py-2 text-[#8A7F74] text-xs hidden md:table-cell">
+                      {c.naeringskode1_beskrivelse ?? "–"}
+                    </td>
+                    <td className="py-2 text-right text-[#8A7F74] hidden sm:table-cell">
+                      {c.regnskapsår ?? "–"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {revenueChartData.length > 0 && (
+              <div className="broker-card">
+                <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Omsetning (MNOK)</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={revenueChartData} margin={{ left: 0, right: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" height={50} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(v: number) => [`${v} MNOK`, "Omsetning"]} />
+                    <Bar dataKey="value" fill="#4A6FA5" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            {riskChartData.length > 0 && (
+              <div className="broker-card">
+                <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Risikoscore</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={riskChartData} margin={{ left: 0, right: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" height={50} />
+                    <YAxis tick={{ fontSize: 10 }} domain={[0, 20]} />
+                    <Tooltip formatter={(v: number) => [v, "Risikoscore"]} />
+                    <Bar dataKey="value" fill="#C8A951" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 4: NL-to-SQL ──────────────────────────────────────────────────────────
+
+const EXAMPLE_QUERIES = [
+  "Hvilke 10 selskaper har høyest omsetning?",
+  "Vis selskaper med egenkapitalandel under 10%",
+  "Hvilke selskaper har negativ egenkapital?",
+  "Topp 5 selskaper med høyest risikoscore",
+];
+
+function NlQueryTab() {
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [result, setResult]     = useState<{ sql: string; columns: string[]; rows: unknown[][]; error: string | null } | null>(null);
+  const [err, setErr]           = useState<string | null>(null);
+
+  async function run(q?: string) {
+    const q_ = (q ?? question).trim();
+    if (!q_) return;
+    if (q) setQuestion(q);
+    setLoading(true); setErr(null); setResult(null);
+    try {
+      const r = await nlQuery(q_);
+      setResult(r);
+      if (r.error) setErr(r.error);
+    } catch (e) {
+      setErr(String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="broker-card space-y-3">
+        <div className="flex items-center gap-2 mb-1">
+          <Database className="w-4 h-4 text-[#4A6FA5]" />
+          <h3 className="text-sm font-semibold text-[#2C3E50]">Naturlig språk til SQL</h3>
+        </div>
+        <p className="text-xs text-[#8A7F74]">
+          Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && run()}
+            placeholder="F.eks. «Hvilke selskaper har negativ egenkapital?»"
+            className="flex-1 px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] placeholder-[#C4BDB4] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+          />
+          <button
+            onClick={() => run()}
+            disabled={loading || !question.trim()}
+            className="px-4 py-2 rounded-lg bg-[#4A6FA5] text-white text-sm font-medium hover:bg-[#3a5e95] disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+            Kjør
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {EXAMPLE_QUERIES.map((q) => (
+            <button key={q} onClick={() => run(q)}
+              className="text-xs px-2.5 py-1 rounded-full bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3] transition-colors">
+              {q}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {err && (
+        <div className="broker-card border-l-4 border-red-400 text-xs text-red-700">
+          {err}
+        </div>
+      )}
+
+      {result && !result.error && result.rows.length === 0 && (
+        <div className="broker-card text-sm text-center text-[#8A7F74] py-6">Ingen resultater.</div>
+      )}
+
+      {result && result.rows.length > 0 && (
+        <div className="broker-card space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-xs text-[#8A7F74]">{result.rows.length} rader</p>
+            <details className="text-xs text-[#8A7F74]">
+              <summary className="cursor-pointer hover:text-[#2C3E50]">Vis SQL</summary>
+              <pre className="mt-2 p-2 bg-[#2C3E50] text-green-300 rounded-lg overflow-x-auto text-xs whitespace-pre-wrap">
+                {result.sql}
+              </pre>
+            </details>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                  {result.columns.map((col) => (
+                    <th key={col} className="text-left pb-2 font-medium pr-4">{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDE8E3]">
+                {result.rows.map((row, i) => (
+                  <tr key={i} className="hover:bg-[#F9F7F4]">
+                    {(row as unknown[]).map((cell, j) => (
+                      <td key={j} className="py-2 pr-4 text-[#2C3E50]">
+                        {cell == null ? "–" : String(cell)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 5: Commission Analytics ───────────────────────────────────────────────
+
+// Typical Norwegian broker commission ranges by product type (industry reference)
+const TYPICAL_RATES: Record<string, string> = {
+  "Motorvognforsikring":      "5–12%",
+  "Næringseiendom":           "10–17.5%",
+  "Reiseforsikring":          "10–20%",
+  "Ansvarsforsikring":        "8–15%",
+  "Personforsikring":         "10–20%",
+  "Yrkesskadeforsikring":     "5–10%",
+  "Cyberforsikring":          "10–18%",
+  "Styreansvarsforsikring":   "8–15%",
+};
+
+function ProvisjonTab() {
+  const { data, isLoading, error } = useSWR<CommissionAnalytics>(
+    "commission-analytics", getCommissionAnalytics,
+  );
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
+  if (error || !data) return (
+    <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">
+      Ingen provisjonsdata ennå. Legg til provisjonssats på policyer i Selskapsøk → CRM-fanen.
+    </div>
+  );
+
+  const byProduct = data.by_product ?? [];
+  const byInsurer = data.by_insurer ?? [];
+
+  return (
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <MetricCard label="Total provisjon (estimert)" value={fmtMnok(data.total_commission_nok)} />
+        <MetricCard label="Policyer med provisjon" value={String(data.policy_count)} />
+        <MetricCard
+          label="Gj.snitt provisjonsandel"
+          value={byProduct.length
+            ? `${(byProduct.reduce((s, r) => s + r.avg_rate_pct, 0) / byProduct.length).toFixed(1)}%`
+            : "–"}
+          sub="av premievolum"
+        />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {byProduct.length > 0 && (
+          <div className="broker-card">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Provisjon per produkttype</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={byProduct} layout="vertical" margin={{ left: 8, right: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1e3).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="product_type" tick={{ fontSize: 10 }} width={130} />
+                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, "Provisjon"]} />
+                <Bar dataKey="commission" fill="#C8A951" radius={[0, 3, 3, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {byInsurer.length > 0 && (
+          <div className="broker-card">
+            <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Provisjon per forsikringsselskap</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={byInsurer} layout="vertical" margin={{ left: 8, right: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1e3).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="insurer" tick={{ fontSize: 10 }} width={110} />
+                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, "Provisjon"]} />
+                <Bar dataKey="commission" fill="#4A6FA5" radius={[0, 3, 3, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Rate table */}
+      {byProduct.length > 0 && (
+        <div className="broker-card overflow-x-auto">
+          <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Provisjon per produkttype — detaljer</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                <th className="text-left pb-2 font-medium">Produkttype</th>
+                <th className="text-right pb-2 font-medium">Avtaler</th>
+                <th className="text-right pb-2 font-medium">Premie (kr)</th>
+                <th className="text-right pb-2 font-medium">Provisjon (kr)</th>
+                <th className="text-right pb-2 font-medium">Gj.snitt %</th>
+                <th className="text-right pb-2 font-medium hidden md:table-cell">Typisk bransje</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EDE8E3]">
+              {byProduct.map((r) => (
+                <tr key={r.product_type} className="hover:bg-[#F9F7F4]">
+                  <td className="py-2 text-[#2C3E50] font-medium">{r.product_type}</td>
+                  <td className="py-2 text-right text-[#8A7F74]">{r.count}</td>
+                  <td className="py-2 text-right text-[#8A7F74]">{fmt(r.premium)}</td>
+                  <td className="py-2 text-right font-semibold text-[#C8A951]">{fmt(r.commission)}</td>
+                  <td className="py-2 text-right text-[#2C3E50]">{r.avg_rate_pct.toFixed(1)}%</td>
+                  <td className="py-2 text-right text-[#8A7F74] hidden md:table-cell text-xs">
+                    {TYPICAL_RATES[r.product_type] ?? "–"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Reference rates */}
+      <details className="broker-card">
+        <summary className="text-sm font-semibold text-[#2C3E50] cursor-pointer">
+          Typiske provisjonssatser (bransjereferanse)
+        </summary>
+        <p className="text-xs text-[#8A7F74] mt-2 mb-3">
+          Provisjonssatser er konfidensielle bilaterale avtaler mellom megler og forsikringsselskap.
+          Disse er typiske markedsintervaller — ikke bindende tall.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {Object.entries(TYPICAL_RATES).map(([product, range]) => (
+            <div key={product} className="rounded-lg bg-[#F9F7F4] border border-[#EDE8E3] px-3 py-2">
+              <p className="text-xs font-medium text-[#2C3E50]">{product}</p>
+              <p className="text-sm font-bold text-[#C8A951]">{range}</p>
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: "premium",    label: "Premieanalyse" },
+  { id: "provisjon",  label: "Provisjon" },
+  { id: "portfolio",  label: "Portefølje" },
+  { id: "compare",    label: "Sammenlign selskaper" },
+  { id: "nlquery",    label: "AI-spørring" },
+] as const;
+
+type TabId = typeof TABS[number]["id"];
+
+export default function PortfolioAnalyticsPage() {
+  const [activeTab, setActiveTab] = useState<TabId>("premium");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-baseline justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#2C3E50]">Porteføljeanalyse</h1>
+          <p className="text-sm text-[#8A7F74] mt-1">
+            Premievolum, provisjonsanalyse, portefølje og sammenligning av selskaper
+          </p>
+        </div>
+        <Link href="/portfolio" className="text-xs text-[#4A6FA5] hover:underline">← Tilbake til portefølje</Link>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        {TABS.map((t) => (
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeTab === t.id ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
+            }`}>{t.label}</button>
+        ))}
+      </div>
+
+      {activeTab === "premium"   && <PremiumTab />}
+      {activeTab === "provisjon" && <ProvisjonTab />}
+      {activeTab === "portfolio" && <PortfolioTab />}
+      {activeTab === "compare"   && <CompareTab />}
+      {activeTab === "nlquery"   && <NlQueryTab />}
+    </div>
+  );
+}

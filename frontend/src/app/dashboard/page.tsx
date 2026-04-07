@@ -132,7 +132,7 @@ export default function DashboardPage() {
             { href: "/search",    label: "Selskapsøk",  icon: Search },
             { href: "/renewals",  label: "Fornyelser",  icon: RotateCcw },
             { href: "/portfolio", label: "Portefølje",  icon: BarChart2 },
-            { href: "/documents", label: "Dokumenter",  icon: FolderOpen },
+            { href: "/knowledge", label: "Kunnskapsbase", icon: FolderOpen },
           ].map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
