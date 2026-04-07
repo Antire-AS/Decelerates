@@ -18,6 +18,15 @@ import type { JWT } from "next-auth/jwt";
 import type { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 
+/** Shape of the Azure AD v2.0 token endpoint response (success or error). */
+interface AzureAdTokenResponse {
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  error?: string;
+  error_description?: string;
+}
+
 /** Call the Azure AD token endpoint with the stored refresh_token to get a fresh id_token. */
 async function refreshIdToken(token: JWT): Promise<JWT> {
   try {
@@ -36,13 +45,13 @@ async function refreshIdToken(token: JWT): Promise<JWT> {
         }),
       },
     );
-    const refreshed = await resp.json() as Record<string, unknown>;
-    if (!resp.ok) throw new Error(String(refreshed.error_description ?? refreshed.error));
+    const refreshed: AzureAdTokenResponse = await resp.json();
+    if (!resp.ok) throw new Error(refreshed.error_description ?? refreshed.error ?? "unknown");
     return {
       ...token,
-      idToken:      (refreshed.id_token      as string)  ?? token.idToken,
-      refreshToken: (refreshed.refresh_token as string)  ?? token.refreshToken,
-      expiresAt:    Math.floor(Date.now() / 1000) + (refreshed.expires_in as number),
+      idToken:      refreshed.id_token      ?? token.idToken,
+      refreshToken: refreshed.refresh_token ?? token.refreshToken,
+      expiresAt:    Math.floor(Date.now() / 1000) + (refreshed.expires_in ?? 3600),
     };
   } catch {
     // Signal to the session callback that re-login is needed

@@ -337,152 +337,165 @@ def _seed_submissions(db: Session, firm_id: int, insurer_map: dict[str, int], no
     return created
 
 
-def seed_full_demo(db: Session) -> dict:
-    """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
-    today = date.today()
-    now = datetime.now(timezone.utc)
-
-    # Resolve default firm (first in DB) — required for all CRM records
+def _resolve_default_firm(db: Session, now: datetime) -> int:
+    """Return the first BrokerFirm id, creating a demo firm if none exists."""
     firm = db.query(BrokerFirm).order_by(BrokerFirm.id).first()
     if not firm:
         firm = BrokerFirm(name="Demo Meglerfirma", created_at=now)
         db.add(firm)
         db.flush()
-    firm_id = firm.id
+    return firm.id
 
+
+def _seed_company_row(db: Session, c: dict) -> bool:
+    """Insert one demo Company row if missing. Returns True when created."""
+    if db.query(Company).filter(Company.orgnr == c["orgnr"]).first():
+        return False
+    eq_ratio = round(c["base_equity"] / c["base_assets"], 3) if c["base_assets"] else 0.0
+    db.add(Company(
+        orgnr=c["orgnr"],
+        navn=c["navn"],
+        organisasjonsform_kode="AS",
+        kommune=c["kommune"],
+        land="Norge",
+        naeringskode1=c["naeringskode1"],
+        naeringskode1_beskrivelse=c["naeringskode1_beskrivelse"],
+        regnskapsår=_CURRENT_YEAR - 1,
+        sum_driftsinntekter=float(c["base_revenue"]),
+        sum_egenkapital=float(c["base_equity"]),
+        sum_eiendeler=float(c["base_assets"]),
+        equity_ratio=eq_ratio,
+        risk_score=c["risk_score"],
+        antall_ansatte=c["antall_ansatte"],
+    ))
+    return True
+
+
+def _seed_history_rows(db: Session, c: dict) -> int:
+    """Insert missing CompanyHistory rows for one demo company. Returns count created."""
+    created = 0
+    for row in _build_history_rows(c):
+        exists = (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == c["orgnr"], CompanyHistory.year == row["year"])
+            .first()
+        )
+        if exists:
+            continue
+        db.add(CompanyHistory(
+            orgnr=c["orgnr"],
+            year=row["year"],
+            source="demo",
+            revenue=row["revenue"],
+            net_result=row["net_result"],
+            equity=row["equity"],
+            total_assets=row["total_assets"],
+            equity_ratio=row["equity_ratio"],
+            currency="NOK",
+        ))
+        created += 1
+    return created
+
+
+def _seed_primary_policy(db: Session, c: dict, firm_id: int, today: date, now: datetime) -> tuple[int | None, bool]:
+    """Insert the primary demo Policy if missing. Returns (policy_id, was_created)."""
+    existing = (
+        db.query(Policy)
+        .filter(Policy.orgnr == c["orgnr"], Policy.product_type == c["insurance_type"])
+        .first()
+    )
+    if existing:
+        return existing.id, False
+
+    renewal_date = today + timedelta(days=c["renewal_offset_days"])
+    start_date = renewal_date.replace(year=renewal_date.year - 1)
+    premium = round(c["base_revenue"] * random.uniform(0.015, 0.025) / 1000) * 1000
+
+    policy = Policy(
+        orgnr=c["orgnr"],
+        firm_id=firm_id,
+        product_type=c["insurance_type"],
+        insurer=c["insurer"],
+        policy_number=f"POL-{c['orgnr'][-4:]}-{random.randint(1000, 9999)}",
+        annual_premium_nok=float(premium),
+        coverage_amount_nok=float(c["base_assets"] * random.uniform(1.0, 2.5)),
+        start_date=start_date,
+        renewal_date=renewal_date,
+        status=PolicyStatus.active,
+        notes="Demo-polise",
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(policy)
+    db.flush()
+    return policy.id, True
+
+
+def _seed_demo_claim(db: Session, c: dict, firm_id: int, policy_id: int | None, today: date, now: datetime) -> bool:
+    """Insert one demo Claim for high-risk companies. Returns True when created."""
+    if c["risk_score"] < 60:
+        return False
+    if db.query(Claim).filter(Claim.orgnr == c["orgnr"]).first():
+        return False
+    incident_date = today - timedelta(days=random.randint(30, 120))
+    db.add(Claim(
+        orgnr=c["orgnr"],
+        firm_id=firm_id,
+        policy_id=policy_id,
+        status=ClaimStatus.open,
+        incident_date=incident_date,
+        reported_date=incident_date + timedelta(days=random.randint(1, 5)),
+        estimated_amount_nok=float(random.randint(50_000, 500_000)),
+        description="Demo-skademelding",
+        notes="Under behandling",
+        created_at=now,
+        updated_at=now,
+    ))
+    return True
+
+
+def _seed_demo_activity(db: Session, c: dict, firm_id: int, today: date, now: datetime) -> bool:
+    """Insert one demo Activity for the company. Returns True when created."""
+    if db.query(Activity).filter(Activity.orgnr == c["orgnr"]).first():
+        return False
+    due = today + timedelta(days=random.randint(3, 21))
+    db.add(Activity(
+        orgnr=c["orgnr"],
+        firm_id=firm_id,
+        created_by_email="demo@broker.no",
+        activity_type=ActivityType.call,
+        subject=f"Fornyelsessamtale — {c['navn']}",
+        body=f"Ta kontakt med kunden angående fornyelse {c['renewal_offset_days']} dager frem i tid.",
+        due_date=due,
+        completed=False,
+        created_at=now,
+    ))
+    return True
+
+
+def seed_full_demo(db: Session) -> dict:
+    """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
+    today = date.today()
+    now = datetime.now(timezone.utc)
+
+    firm_id = _resolve_default_firm(db, now)
     insurer_map = _seed_insurers(db, firm_id, now)
     contacts_created = _seed_contacts(db, now)
 
-    companies_created = 0
-    history_created = 0
-    policies_created = 0
-    claims_created = 0
-    activities_created = 0
+    counts = {"companies": 0, "history": 0, "policies": 0, "claims": 0, "activities": 0}
 
     for c in _COMPANIES:
-        orgnr = c["orgnr"]
+        if _seed_company_row(db, c):
+            counts["companies"] += 1
+        counts["history"] += _seed_history_rows(db, c)
 
-        # ── Company ──────────────────────────────────────────────────────────
-
-        existing = db.query(Company).filter(Company.orgnr == orgnr).first()
-        if not existing:
-            latest_rev = c["base_revenue"]
-            latest_eq = c["base_equity"]
-            latest_assets = c["base_assets"]
-            eq_ratio = round(latest_eq / latest_assets, 3) if latest_assets else 0.0
-            db.add(Company(
-                orgnr=orgnr,
-                navn=c["navn"],
-                organisasjonsform_kode="AS",
-                kommune=c["kommune"],
-                land="Norge",
-                naeringskode1=c["naeringskode1"],
-                naeringskode1_beskrivelse=c["naeringskode1_beskrivelse"],
-                regnskapsår=_CURRENT_YEAR - 1,
-                sum_driftsinntekter=float(latest_rev),
-                sum_egenkapital=float(latest_eq),
-                sum_eiendeler=float(latest_assets),
-                equity_ratio=eq_ratio,
-                risk_score=c["risk_score"],
-                antall_ansatte=c["antall_ansatte"],
-            ))
-            companies_created += 1
-
-        # ── Financial history ─────────────────────────────────────────────────
-
-        for row in _build_history_rows(c):
-            exists = (
-                db.query(CompanyHistory)
-                .filter(CompanyHistory.orgnr == orgnr, CompanyHistory.year == row["year"])
-                .first()
-            )
-            if not exists:
-                db.add(CompanyHistory(
-                    orgnr=orgnr,
-                    year=row["year"],
-                    source="demo",
-                    revenue=row["revenue"],
-                    net_result=row["net_result"],
-                    equity=row["equity"],
-                    total_assets=row["total_assets"],
-                    equity_ratio=row["equity_ratio"],
-                    currency="NOK",
-                ))
-                history_created += 1
-
-        # ── Policy (primary) ──────────────────────────────────────────────────
-
-        existing_policy = (
-            db.query(Policy)
-            .filter(Policy.orgnr == orgnr, Policy.product_type == c["insurance_type"])
-            .first()
-        )
-        policy_id = None
-        if not existing_policy:
-            renewal_date = today + timedelta(days=c["renewal_offset_days"])
-            start_date = renewal_date.replace(year=renewal_date.year - 1)
-            premium = round(c["base_revenue"] * random.uniform(0.015, 0.025) / 1000) * 1000
-
-            policy = Policy(
-                orgnr=orgnr,
-                firm_id=firm_id,
-                product_type=c["insurance_type"],
-                insurer=c["insurer"],
-                policy_number=f"POL-{orgnr[-4:]}-{random.randint(1000, 9999)}",
-                annual_premium_nok=float(premium),
-                coverage_amount_nok=float(c["base_assets"] * random.uniform(1.0, 2.5)),
-                start_date=start_date,
-                renewal_date=renewal_date,
-                status=PolicyStatus.active,
-                notes="Demo-polise",
-                created_at=now,
-                updated_at=now,
-            )
-            db.add(policy)
-            db.flush()
-            policy_id = policy.id
-            policies_created += 1
-        else:
-            policy_id = existing_policy.id
-
-        # ── Claim (for high-risk companies) ──────────────────────────────────
-
-        if c["risk_score"] >= 60:
-            existing_claim = db.query(Claim).filter(Claim.orgnr == orgnr).first()
-            if not existing_claim:
-                incident_date = today - timedelta(days=random.randint(30, 120))
-                db.add(Claim(
-                    orgnr=orgnr,
-                    firm_id=firm_id,
-                    policy_id=policy_id,
-                    status=ClaimStatus.open,
-                    incident_date=incident_date,
-                    reported_date=incident_date + timedelta(days=random.randint(1, 5)),
-                    estimated_amount_nok=float(random.randint(50_000, 500_000)),
-                    description="Demo-skademelding",
-                    notes="Under behandling",
-                    created_at=now,
-                    updated_at=now,
-                ))
-                claims_created += 1
-
-        # ── Activity ──────────────────────────────────────────────────────────
-
-        existing_activity = db.query(Activity).filter(Activity.orgnr == orgnr).first()
-        if not existing_activity:
-            due = today + timedelta(days=random.randint(3, 21))
-            db.add(Activity(
-                orgnr=orgnr,
-                firm_id=firm_id,
-                created_by_email="demo@broker.no",
-                activity_type=ActivityType.call,
-                subject=f"Fornyelsessamtale — {c['navn']}",
-                body=f"Ta kontakt med kunden angående fornyelse {c['renewal_offset_days']} dager frem i tid.",
-                due_date=due,
-                completed=False,
-                created_at=now,
-            ))
-            activities_created += 1
+        policy_id, policy_created = _seed_primary_policy(db, c, firm_id, today, now)
+        if policy_created:
+            counts["policies"] += 1
+        if _seed_demo_claim(db, c, firm_id, policy_id, today, now):
+            counts["claims"] += 1
+        if _seed_demo_activity(db, c, firm_id, today, now):
+            counts["activities"] += 1
 
     idd_created = _seed_idd(db, firm_id, now)
     submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
@@ -490,19 +503,19 @@ def seed_full_demo(db: Session) -> dict:
 
     db.commit()
     return {
-        "companies_created": companies_created,
-        "history_rows_created": history_created,
-        "policies_created": policies_created,
-        "claims_created": claims_created,
-        "activities_created": activities_created,
+        "companies_created": counts["companies"],
+        "history_rows_created": counts["history"],
+        "policies_created": counts["policies"],
+        "claims_created": counts["claims"],
+        "activities_created": counts["activities"],
         "contacts_created": contacts_created,
-        "insurers_created": len([k for k in insurer_map]),
+        "insurers_created": len(insurer_map),
         "idd_created": idd_created,
         "submissions_created": submissions_created,
         "recommendations_created": recommendations_created,
         "message": (
-            f"Demo-data seeded: {companies_created} selskaper, "
-            f"{history_created} historikkrader, {policies_created} poliser, "
+            f"Demo-data seeded: {counts['companies']} selskaper, "
+            f"{counts['history']} historikkrader, {counts['policies']} poliser, "
             f"{contacts_created} kontakter, {idd_created} IDD-analyser, "
             f"{recommendations_created} anbefalingsbrev"
         ),

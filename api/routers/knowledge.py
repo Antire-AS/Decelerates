@@ -25,6 +25,7 @@ from api.schemas import (
     IngestKnowledgeOut,
     KnowledgeStatsOut,
     KnowledgeIndexOut,
+    KnowledgeChatOut,
     SeedRegulationsOut,
 )
 from api.dependencies import get_db
@@ -275,7 +276,7 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
     return [{"text": r.chunk_text, "source": r.source} for r in results[:limit + 4]]
 
 
-@router.post("/knowledge/chat")
+@router.post("/knowledge/chat", response_model=KnowledgeChatOut)
 @limiter.limit("10/minute")
 def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(get_db)):
     """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
@@ -285,6 +286,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
             "question": body.question,
             "answer": "Ingen kunnskap er indeksert ennå. Gå til Administrer-fanen og klikk 'Indekser kunnskap'.",
             "sources": [],
+            "source_snippets": {},
         }
     context = "\n\n---\n\n".join(f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks)
     sources = list(dict.fromkeys(c["source"] for c in chunks))

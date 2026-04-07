@@ -275,6 +275,78 @@ class PortfolioService:
 
 # ── Shared alert logic (used by both portfolio_router and utils) ───────────────
 
+def _alert(orgnr: str, navn: str, alert_type: str, severity: str, detail: str,
+           prev_year: int, curr_year: int) -> dict:
+    return {
+        "orgnr": orgnr, "navn": navn, "alert_type": alert_type,
+        "severity": severity, "detail": detail,
+        "year_from": prev_year, "year_to": curr_year,
+    }
+
+
+def _check_revenue_yoy(curr, prev, orgnr: str, navn: str) -> list[dict]:
+    if not (curr.revenue and prev.revenue and prev.revenue > 0):
+        return []
+    yoy = (curr.revenue - prev.revenue) / prev.revenue
+    if yoy > 0.25:
+        return [_alert(orgnr, navn, "Sterk vekst", "Moderat",
+            f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning", prev.year, curr.year)]
+    if yoy < -0.20:
+        return [_alert(orgnr, navn, "Omsetningsfall", "Høy",
+            f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer", prev.year, curr.year)]
+    return []
+
+
+def _check_equity(curr, prev, orgnr: str, navn: str) -> list[dict]:
+    if curr.equity_ratio is None or prev.equity_ratio is None:
+        return []
+    if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
+        return [_alert(orgnr, navn, "Negativ EK", "Kritisk",
+            "Negativ egenkapital dette år — vurder kansellering", prev.year, curr.year)]
+    eq_drop = prev.equity_ratio - curr.equity_ratio
+    if eq_drop > 0.08:
+        return [_alert(orgnr, navn, "Egenkapital svekket", "Høy",
+            f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag", prev.year, curr.year)]
+    return []
+
+
+def _check_employees(curr, prev, orgnr: str, navn: str) -> list[dict]:
+    if not (curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0):
+        return []
+    emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
+    if emp_growth > 0.5:
+        return [_alert(orgnr, navn, "Ny ansattvekst", "Moderat",
+            f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring", prev.year, curr.year)]
+    return []
+
+
+def _check_revenue_thresholds(curr, prev, orgnr: str, navn: str) -> list[dict]:
+    if not (curr.revenue and prev.revenue):
+        return []
+    out = []
+    for threshold in (100_000_000, 1_000_000_000):
+        if prev.revenue < threshold <= curr.revenue:
+            out.append(_alert(orgnr, navn, "Krysset terskel", "Moderat",
+                f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone", prev.year, curr.year))
+    return out
+
+
+def _load_history_pairs(orgnrs: list[str], db: Session) -> dict[str, list]:
+    """Batch-load (curr, prev) history rows per orgnr to avoid N+1 queries."""
+    rows = (
+        db.query(CompanyHistory)
+        .filter(CompanyHistory.orgnr.in_(orgnrs))
+        .order_by(CompanyHistory.orgnr, CompanyHistory.year.desc())
+        .all()
+    )
+    hist_map: dict[str, list] = {}
+    for h in rows:
+        bucket = hist_map.setdefault(h.orgnr, [])
+        if len(bucket) < 2:
+            bucket.append(h)
+    return hist_map
+
+
 def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
     """Collect YoY financial change alerts for all companies in a portfolio.
 
@@ -288,18 +360,7 @@ def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
         c.orgnr: c.navn
         for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
     }
-    # Batch-load last 2 history rows per orgnr (avoids N+1)
-    all_history = (
-        db.query(CompanyHistory)
-        .filter(CompanyHistory.orgnr.in_(orgnrs))
-        .order_by(CompanyHistory.orgnr, CompanyHistory.year.desc())
-        .all()
-    )
-    hist_map: dict[str, list] = {}
-    for h in all_history:
-        bucket = hist_map.setdefault(h.orgnr, [])
-        if len(bucket) < 2:
-            bucket.append(h)
+    hist_map = _load_history_pairs(orgnrs, db)
 
     alerts: list[dict] = []
     for orgnr in orgnrs:
@@ -308,43 +369,10 @@ def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
             continue
         curr, prev = history[0], history[1]
         navn = company_names.get(orgnr, orgnr)
-
-        if curr.revenue and prev.revenue and prev.revenue > 0:
-            yoy = (curr.revenue - prev.revenue) / prev.revenue
-            if yoy > 0.25:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Sterk vekst",
-                    "severity": "Moderat", "detail": f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning",
-                    "year_from": prev.year, "year_to": curr.year})
-            elif yoy < -0.20:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Omsetningsfall",
-                    "severity": "Høy", "detail": f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        if curr.equity_ratio is not None and prev.equity_ratio is not None:
-            eq_drop = prev.equity_ratio - curr.equity_ratio
-            if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Negativ EK",
-                    "severity": "Kritisk", "detail": "Negativ egenkapital dette år — vurder kansellering",
-                    "year_from": prev.year, "year_to": curr.year})
-            elif eq_drop > 0.08:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Egenkapital svekket",
-                    "severity": "Høy", "detail": f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        if curr.antall_ansatte and prev.antall_ansatte and prev.antall_ansatte > 0:
-            emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
-            if emp_growth > 0.5:
-                alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Ny ansattvekst",
-                    "severity": "Moderat", "detail": f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring",
-                    "year_from": prev.year, "year_to": curr.year})
-
-        for threshold in (100_000_000, 1_000_000_000):
-            if curr.revenue and prev.revenue:
-                if prev.revenue < threshold <= curr.revenue:
-                    alerts.append({"orgnr": orgnr, "navn": navn, "alert_type": "Krysset terskel",
-                        "severity": "Moderat",
-                        "detail": f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone",
-                        "year_from": prev.year, "year_to": curr.year})
+        alerts += _check_revenue_yoy(curr, prev, orgnr, navn)
+        alerts += _check_equity(curr, prev, orgnr, navn)
+        alerts += _check_employees(curr, prev, orgnr, navn)
+        alerts += _check_revenue_thresholds(curr, prev, orgnr, navn)
 
     _sev_order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
     alerts.sort(key=lambda a: _sev_order.get(a["severity"], 9))

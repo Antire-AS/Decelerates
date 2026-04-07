@@ -5,7 +5,7 @@ import useSWR from "swr";
 import {
   getOrgInsuranceNeeds, generateRiskOffer, generateNarrative,
   getOrgOffers, updateOfferStatus, deleteOffer, uploadOrgOffers,
-  type InsuranceNeed, type InsuranceOffer,
+  type InsuranceNeed, type InsuranceOffer, type RiskOfferOut,
 } from "@/lib/api";
 import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText, Upload } from "lucide-react";
 import { fmtNok } from "@/lib/format";
@@ -41,7 +41,7 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
   const [offersOpen, setOffersOpen]     = useState(false);
 
   const [narrative, setNarrative]   = useState<string | null>(null);
-  const [riskOffer, setRiskOffer]   = useState<Record<string, unknown> | null>(null);
+  const [riskOffer, setRiskOffer]   = useState<RiskOfferOut | null>(null);
   const [genLoading, setGenLoading] = useState(false);
   const [genErr, setGenErr]         = useState<string | null>(null);
 
@@ -75,7 +75,7 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
     setGenLoading(true); setGenErr(null);
     try {
       const r = await generateRiskOffer(orgnr);
-      setRiskOffer(r as Record<string, unknown>);
+      setRiskOffer(r);
       setNarrativeOpen(true);
     } catch (e) { setGenErr(String(e)); }
     finally { setGenLoading(false); }
@@ -176,20 +176,20 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
             {riskOffer && (
               <div className="bg-[#F9F7F4] rounded-lg p-3 space-y-2">
                 <p className="text-xs font-semibold text-[#2C3E50]">Forsikringstilbud</p>
-                {!!riskOffer.sammendrag && (
-                  <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{String(riskOffer.sammendrag)}</p>
+                {riskOffer.sammendrag && (
+                  <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{riskOffer.sammendrag}</p>
                 )}
-                {!!riskOffer.total_premieanslag && (
+                {riskOffer.total_premieanslag && (
                   <p className="text-xs text-[#4A6FA5] font-medium">
-                    Totalt premieanslag: {String(riskOffer.total_premieanslag)}
+                    Totalt premieanslag: {riskOffer.total_premieanslag}
                   </p>
                 )}
-                {Array.isArray(riskOffer.anbefalinger) && riskOffer.anbefalinger.length > 0 && (
+                {riskOffer.anbefalinger && riskOffer.anbefalinger.length > 0 && (
                   <ul className="space-y-1">
-                    {(riskOffer.anbefalinger as Record<string, unknown>[]).map((a, i) => (
+                    {riskOffer.anbefalinger.map((a, i) => (
                       <li key={i} className="text-xs text-[#2C3E50]">
-                        • <strong>{String(a.type ?? "")}</strong>{a.begrunnelse ? `: ${String(a.begrunnelse)}` : ""}
-                        {!!a.estimert_premie && ` — ${String(a.estimert_premie)}`}
+                        • <strong>{a.type ?? ""}</strong>{a.begrunnelse ? `: ${a.begrunnelse}` : ""}
+                        {a.estimert_premie && ` — ${a.estimert_premie}`}
                       </li>
                     ))}
                   </ul>

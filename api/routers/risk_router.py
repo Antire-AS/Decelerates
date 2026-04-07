@@ -31,7 +31,7 @@ from api.services.pdf_generate import (
     generate_forsikringstilbud_pdf,
 )
 from api.services.pdf_sources import save_insurance_document
-from api.schemas import ForsikringstilbudRequest
+from api.schemas import ForsikringstilbudRequest, RiskOfferOut, NarrativeOut
 from api.dependencies import get_db
 from api.risk import derive_simple_risk
 from api.prompts import RISK_OFFER_PROMPT, RISK_OFFER_PROMPT_EN
@@ -106,7 +106,7 @@ def _save_offer_recommendation_to_rag(orgnr: str, result: dict, db) -> None:
         _save_to_rag(orgnr, "Forsikringsanbefaling", rag_text, db)
 
 
-@router.post("/org/{orgnr}/risk-offer")
+@router.post("/org/{orgnr}/risk-offer", response_model=RiskOfferOut)
 def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
     """Generate LLM-based insurance recommendations from the company's risk profile."""
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
@@ -358,7 +358,7 @@ def email_forsikringstilbud(
     return {"sent": sent, "recipient": recipient_email, "share_url": share_url}
 
 
-@router.post("/org/{orgnr}/narrative")
+@router.post("/org/{orgnr}/narrative", response_model=NarrativeOut)
 def generate_narrative(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:

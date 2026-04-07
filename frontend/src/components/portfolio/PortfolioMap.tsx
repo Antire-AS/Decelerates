@@ -6,6 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import type { PortfolioRiskRow } from "@/lib/api";
+import { apiBaseUrl } from "@/lib/api-utils";
 
 // Fix default marker icons broken by webpack
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -51,7 +52,7 @@ export default function PortfolioMap({ rows }: Props) {
   useEffect(() => {
     if (!rows.length) { setLoading(false); return; }
 
-    const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    const BASE = apiBaseUrl("absolute");
 
     async function fetchOne(row: PortfolioRiskRow): Promise<MarkerData | null> {
       try {

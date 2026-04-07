@@ -138,33 +138,23 @@ def _has_mp4_faststart(data: bytes):
     return None
 
 
-@router.get("/debug/status")
-def debug_status() -> dict:
-    """Diagnostic endpoint — returns blob storage health, DB state, and video moov-atom status."""
-    from api.services.blob_storage import BlobStorageService
+def _debug_blob_status(svc) -> dict:
+    """Probe the transksrt container — returns count, sample, and any error."""
+    try:
+        blobs = svc.list_blobs("transksrt")
+        return {"count": len(blobs), "sample": blobs[:5], "error": None}
+    except Exception as exc:
+        return {"count": None, "sample": [], "error": str(exc)}
+
+
+def _debug_db_status() -> dict:
+    """Inspect Alembic version, public tables, and the insurance_documents.tags column."""
     from api.db import engine
     from sqlalchemy import text
 
-    azure_client_id = os.getenv("AZURE_CLIENT_ID", "")
-    azure_blob_endpoint = os.getenv("AZURE_BLOB_ENDPOINT", "")
-    svc = BlobStorageService()
-    blob_error = None
-    blob_count = None
-    blob_sample = []
-    try:
-        blobs = svc.list_blobs("transksrt")
-        blob_count = len(blobs)
-        blob_sample = blobs[:5]
-    except Exception as exc:
-        blob_error = str(exc)
-
-    alembic_version = None
-    alembic_error = None
-    tables = []
-    tags_col = None
     try:
         with engine.connect() as conn:
-            alembic_version = conn.execute(
+            version = conn.execute(
                 text("SELECT version_num FROM alembic_version LIMIT 1")
             ).scalar()
             rows = conn.execute(
@@ -173,52 +163,85 @@ def debug_status() -> dict:
                     "WHERE table_schema='public' ORDER BY table_name"
                 )
             ).fetchall()
-            tables = [r[0] for r in rows]
             tags_col = conn.execute(
                 text(
                     "SELECT EXISTS (SELECT 1 FROM information_schema.columns "
                     "WHERE table_name='insurance_documents' AND column_name='tags')"
                 )
             ).scalar()
+        return {
+            "alembic_version": version,
+            "alembic_error": None,
+            "public_tables": [r[0] for r in rows],
+            "tags_column_exists": tags_col,
+        }
     except Exception as exc:
-        alembic_error = str(exc)
+        return {
+            "alembic_version": None,
+            "alembic_error": str(exc),
+            "public_tables": [],
+            "tags_column_exists": None,
+        }
 
-    video_info = {}
-    sas_url_works = None
-    if svc._client:
+
+def _debug_video_status(svc) -> tuple[dict, bool | None]:
+    """Inspect every .mp4 in transksrt — moov-atom faststart + SAS URL generation.
+
+    Returns ({mp4_name: info}, sas_url_works).
+    """
+    if not svc._client:
+        return {}, None
+    video_info: dict = {}
+    sas_url_works: bool | None = None
+    try:
+        mp4_blobs = [b for b in svc.list_blobs("transksrt") if b.endswith(".mp4")]
+    except Exception:
+        return {}, None
+
+    for mp4 in mp4_blobs:
         try:
-            mp4_blobs = [b for b in svc.list_blobs("transksrt") if b.endswith(".mp4")]
-            for mp4 in mp4_blobs:
-                try:
-                    chunks = svc.stream_range("transksrt", mp4, offset=0, length=256)
-                    header = b"".join(chunks) if chunks else b""
-                    sas_url = svc.generate_sas_url("transksrt", mp4, hours=1)
-                    if sas_url_works is None:
-                        sas_url_works = sas_url is not None
-                    video_info[mp4] = {
-                        "size_mb": round((svc.get_blob_size("transksrt", mp4) or 0) / 1e6),
-                        "faststart": _has_mp4_faststart(header),
-                        "sas_url_generated": sas_url is not None,
-                    }
-                except Exception as exc:
-                    video_info[mp4] = {"error": str(exc)}
-        except Exception:
-            pass
+            chunks = svc.stream_range("transksrt", mp4, offset=0, length=256)
+            header = b"".join(chunks) if chunks else b""
+            sas_url = svc.generate_sas_url("transksrt", mp4, hours=1)
+            if sas_url_works is None:
+                sas_url_works = sas_url is not None
+            video_info[mp4] = {
+                "size_mb": round((svc.get_blob_size("transksrt", mp4) or 0) / 1e6),
+                "faststart": _has_mp4_faststart(header),
+                "sas_url_generated": sas_url is not None,
+            }
+        except Exception as exc:
+            video_info[mp4] = {"error": str(exc)}
+    return video_info, sas_url_works
+
+
+@router.get("/debug/status")
+def debug_status() -> dict:
+    """Diagnostic endpoint — returns blob storage health, DB state, and video moov-atom status."""
+    from api.services.blob_storage import BlobStorageService
+
+    azure_client_id = os.getenv("AZURE_CLIENT_ID", "")
+    azure_blob_endpoint = os.getenv("AZURE_BLOB_ENDPOINT", "")
+    svc = BlobStorageService()
+
+    blob = _debug_blob_status(svc)
+    db_info = _debug_db_status()
+    video_info, sas_url_works = _debug_video_status(svc)
 
     return {
         "azure_client_id_set": bool(azure_client_id),
         "azure_client_id_prefix": azure_client_id[:8] + "..." if azure_client_id else None,
         "azure_blob_endpoint_set": bool(azure_blob_endpoint),
         "blob_client_init": svc._client is not None,
-        "blob_count": blob_count,
-        "blob_sample": blob_sample,
-        "blob_error": blob_error,
+        "blob_count": blob["count"],
+        "blob_sample": blob["sample"],
+        "blob_error": blob["error"],
         "sas_url_works": sas_url_works,
         "video_info": video_info,
-        "alembic_version": alembic_version,
-        "alembic_error": alembic_error,
-        "tags_column_exists": tags_col,
-        "public_tables": tables,
+        "alembic_version": db_info["alembic_version"],
+        "alembic_error": db_info["alembic_error"],
+        "tags_column_exists": db_info["tags_column_exists"],
+        "public_tables": db_info["public_tables"],
     }
 
 

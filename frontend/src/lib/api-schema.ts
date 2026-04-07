@@ -3287,6 +3287,19 @@ export interface components {
             /** Org Number */
             org_number?: string | null;
         };
+        /** KnowledgeChatOut */
+        KnowledgeChatOut: {
+            /** Answer */
+            answer: string;
+            /** Question */
+            question: string;
+            /** Source Snippets */
+            source_snippets?: {
+                [key: string]: string;
+            };
+            /** Sources */
+            sources?: string[];
+        };
         /** KnowledgeIndexOut */
         KnowledgeIndexOut: {
             /** Cleared Chunks */
@@ -3340,6 +3353,13 @@ export interface components {
         LicensesOut: {
             /** Licenses */
             licenses: components["schemas"]["LicenseItem"][];
+            /** Orgnr */
+            orgnr: string;
+        };
+        /** NarrativeOut */
+        NarrativeOut: {
+            /** Narrative */
+            narrative: string;
             /** Orgnr */
             orgnr: string;
         };
@@ -3537,6 +3557,36 @@ export interface components {
             notify_email?: string | null;
             /** Stage */
             stage: string;
+        };
+        /** RiskOfferOut */
+        RiskOfferOut: {
+            /** Anbefalinger */
+            anbefalinger?: components["schemas"]["RiskOfferRecommendation"][];
+            /** Navn */
+            navn?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Risk Factors */
+            risk_factors?: string[];
+            /** Risk Score */
+            risk_score?: number | null;
+            /** Sammendrag */
+            sammendrag?: string | null;
+            /** Total Premieanslag */
+            total_premieanslag?: string | null;
+        };
+        /** RiskOfferRecommendation */
+        RiskOfferRecommendation: {
+            /** Anbefalt Sum */
+            anbefalt_sum?: string | null;
+            /** Begrunnelse */
+            begrunnelse?: string | null;
+            /** Estimert Premie */
+            estimert_premie?: string | null;
+            /** Prioritet */
+            prioritet?: string | null;
+            /** Type */
+            type?: string | null;
         };
         /** SeedRegulationsOut */
         SeedRegulationsOut: {
@@ -5088,7 +5138,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["KnowledgeChatOut"];
                 };
             };
             /** @description Validation Error */
@@ -6693,9 +6743,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["NarrativeOut"];
                 };
             };
             /** @description Validation Error */
@@ -7338,9 +7386,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["RiskOfferOut"];
                 };
             };
             /** @description Validation Error */

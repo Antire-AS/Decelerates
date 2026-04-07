@@ -39,69 +39,90 @@ def _policy_matches(policy_product: str, keywords: list[str]) -> bool:
     return any(kw in pt for kw in keywords)
 
 
-def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any]:
-    """Compare active policies against insurance needs recommendations.
-
-    Returns:
-        {
-            "orgnr": str,
-            "items": [
-                {
-                    "type": str,            # recommended coverage type
-                    "priority": str,        # Kritisk / Anbefalt / Vurder
-                    "reason": str,          # why it's recommended
-                    "status": str,          # "covered" | "gap"
-                    "estimated_coverage_nok": int | None,
-                    "actual_coverage_nok": float | None,   # from matching policy
-                    "actual_insurer": str | None,
-                    "actual_policy_number": str | None,
-                    "coverage_note": str | None,  # e.g. "Underdekning: 3 MNOK under anbefalt"
-                }
-            ],
-            "covered_count": int,
-            "gap_count": int,
-            "total_count": int,
-        }
-    """
-    # ── Load company data ─────────────────────────────────────────────────────
+def _load_company_context(orgnr: str, db: Session) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build (org, regn) dicts for the rule engine, falling back to history rows
+    when the Company row is missing the financial figures."""
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
-    org: dict[str, Any] = {}
-    regn: dict[str, Any] = {}
+    if not company:
+        return {}, {}
 
-    if company:
-        org = {
-            "organisasjonsform_kode": company.organisasjonsform_kode,
-            "naeringskode1":          company.naeringskode1,
-            "naeringskode":           company.naeringskode1,
-            "antall_ansatte":         company.antall_ansatte,
-            "sum_driftsinntekter":    company.sum_driftsinntekter,
-            "sum_eiendeler":          company.sum_eiendeler,
-        }
-        regn = {
-            "sum_driftsinntekter": company.sum_driftsinntekter,
-            "sum_eiendeler":       company.sum_eiendeler,
-            "antall_ansatte":      company.antall_ansatte,
-        }
-        # Enrich from most recent history row if regnskap fields are missing
-        if not company.sum_driftsinntekter:
-            hist = (
-                db.query(CompanyHistory)
-                .filter(CompanyHistory.orgnr == orgnr)
-                .order_by(CompanyHistory.year.desc())
-                .first()
-            )
-            if hist:
-                regn["sum_driftsinntekter"] = hist.revenue
-                regn["sum_eiendeler"]       = hist.total_assets
-                regn["antall_ansatte"]      = hist.antall_ansatte
-                org["sum_driftsinntekter"]  = hist.revenue
-                org["sum_eiendeler"]        = hist.total_assets
-                org["antall_ansatte"]       = hist.antall_ansatte
+    org: dict[str, Any] = {
+        "organisasjonsform_kode": company.organisasjonsform_kode,
+        "naeringskode1":          company.naeringskode1,
+        "naeringskode":           company.naeringskode1,
+        "antall_ansatte":         company.antall_ansatte,
+        "sum_driftsinntekter":    company.sum_driftsinntekter,
+        "sum_eiendeler":          company.sum_eiendeler,
+    }
+    regn: dict[str, Any] = {
+        "sum_driftsinntekter": company.sum_driftsinntekter,
+        "sum_eiendeler":       company.sum_eiendeler,
+        "antall_ansatte":      company.antall_ansatte,
+    }
 
-    # ── Get recommendations from rule engine ──────────────────────────────────
+    if not company.sum_driftsinntekter:
+        hist = (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .first()
+        )
+        if hist:
+            for d in (org, regn):
+                d["sum_driftsinntekter"] = hist.revenue
+                d["sum_eiendeler"]       = hist.total_assets
+                d["antall_ansatte"]      = hist.antall_ansatte
+    return org, regn
+
+
+def _build_gap_item(need: dict[str, Any], active_policies: list[Policy]) -> dict[str, Any]:
+    """Match one recommendation against active policies and return one report row."""
+    rec_type = need["type"]
+    est_cov  = need.get("estimated_coverage_nok")
+    keywords = _keywords_for(rec_type)
+    matching = [p for p in active_policies if _policy_matches(p.product_type, keywords)]
+    best = matching[0] if matching else None
+
+    if best:
+        coverage_note = None
+        if est_cov and best.coverage_amount_nok and best.coverage_amount_nok < est_cov * 0.7:
+            diff_mnok = (est_cov - best.coverage_amount_nok) / 1_000_000
+            coverage_note = f"Mulig underdekning: {diff_mnok:.1f} MNOK under anbefalt nivå"
+        return {
+            "type":                   rec_type,
+            "priority":               need["priority"],
+            "reason":                 need["reason"],
+            "status":                 "covered",
+            "estimated_coverage_nok": est_cov,
+            "actual_coverage_nok":    best.coverage_amount_nok,
+            "actual_insurer":         best.insurer,
+            "actual_policy_number":   best.policy_number,
+            "coverage_note":          coverage_note,
+        }
+    return {
+        "type":                   rec_type,
+        "priority":               need["priority"],
+        "reason":                 need["reason"],
+        "status":                 "gap",
+        "estimated_coverage_nok": est_cov,
+        "actual_coverage_nok":    None,
+        "actual_insurer":         None,
+        "actual_policy_number":   None,
+        "coverage_note":          None,
+    }
+
+
+def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any]:
+    """Compare active policies against insurance-need recommendations.
+
+    Returns a dict shaped like:
+        {orgnr, items: [{type, priority, reason, status, estimated_coverage_nok,
+        actual_coverage_nok, actual_insurer, actual_policy_number, coverage_note}],
+        covered_count, gap_count, total_count}
+    """
+    org, regn = _load_company_context(orgnr, db)
     needs = estimate_insurance_needs(org, regn)
 
-    # ── Load active policies ───────────────────────────────────────────────────
     active_policies = (
         db.query(Policy)
         .filter(
@@ -112,48 +133,7 @@ def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any
         .all()
     )
 
-    # ── Match each recommendation against policies ────────────────────────────
-    items = []
-    for need in needs:
-        rec_type    = need["type"]
-        priority    = need["priority"]
-        reason      = need["reason"]
-        est_cov     = need.get("estimated_coverage_nok")
-        keywords    = _keywords_for(rec_type)
-
-        matching = [p for p in active_policies if _policy_matches(p.product_type, keywords)]
-        best = matching[0] if matching else None
-
-        if best:
-            status           = "covered"
-            actual_cov       = best.coverage_amount_nok
-            actual_insurer   = best.insurer
-            actual_policy_nr = best.policy_number
-
-            # Flag potential under-coverage (actual < 70 % of recommended)
-            coverage_note = None
-            if est_cov and actual_cov and actual_cov < est_cov * 0.7:
-                diff_mnok = (est_cov - actual_cov) / 1_000_000
-                coverage_note = f"Mulig underdekning: {diff_mnok:.1f} MNOK under anbefalt nivå"
-        else:
-            status           = "gap"
-            actual_cov       = None
-            actual_insurer   = None
-            actual_policy_nr = None
-            coverage_note    = None
-
-        items.append({
-            "type":                   rec_type,
-            "priority":               priority,
-            "reason":                 reason,
-            "status":                 status,
-            "estimated_coverage_nok": est_cov,
-            "actual_coverage_nok":    actual_cov,
-            "actual_insurer":         actual_insurer,
-            "actual_policy_number":   actual_policy_nr,
-            "coverage_note":          coverage_note,
-        })
-
+    items = [_build_gap_item(need, active_policies) for need in needs]
     covered = sum(1 for i in items if i["status"] == "covered")
 
     return {

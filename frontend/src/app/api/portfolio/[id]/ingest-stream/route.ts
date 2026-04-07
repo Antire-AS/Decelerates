@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { apiBaseUrl } from "@/lib/api-utils";
 
 /**
  * Streaming proxy for GET /portfolio/{id}/ingest/stream (NDJSON).
@@ -16,8 +17,7 @@ export async function GET(
   const { id } = await params;
   const includePdfs = request.nextUrl.searchParams.get("include_pdfs") === "true";
 
-  const apiBase = process.env.API_BASE_URL ?? "http://localhost:8000";
-  const upstream = `${apiBase}/portfolio/${id}/ingest/stream${includePdfs ? "?include_pdfs=true" : ""}`;
+  const upstream = `${apiBaseUrl()}/portfolio/${id}/ingest/stream${includePdfs ? "?include_pdfs=true" : ""}`;
 
   // Forward the auth token if present
   const authHeader = request.headers.get("authorization");

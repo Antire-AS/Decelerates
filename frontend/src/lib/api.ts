@@ -8,7 +8,6 @@ import type {
   SearchResult,
   OrgProfile,
   DashboardData,
-  Activity,
   Company,
   SlaAgreement,
   HistoryRow,
@@ -33,8 +32,6 @@ import type {
   Submission,
   Recommendation,
   CoverageGap,
-  CoverageGapItem,
-  RiskFactor,
 } from "./api-types";
 
 export type {
@@ -70,7 +67,7 @@ export type {
   CoverageGapItem,
 } from "./api-types";
 
-import { downloadFile } from "./api-utils";
+import { downloadFile, apiBaseUrl } from "./api-utils";
 import type { components } from "./api-schema";
 
 // Aliases for generated schema types — re-exported here so callers can do
@@ -92,11 +89,11 @@ export type ExtractionStatusOut = Schema["ExtractionStatusOut"];
 export type EstimateOut         = Schema["EstimateOut"];
 export type KnowledgeStatsOut   = Schema["KnowledgeStatsOut"];
 export type KnowledgeIndexOut   = Schema["KnowledgeIndexOut"];
+export type RiskOfferOut        = Schema["RiskOfferOut"];
+export type NarrativeOut        = Schema["NarrativeOut"];
+export type KnowledgeChatOut    = Schema["KnowledgeChatOut"];
 
-const API_BASE =
-  typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000")
-    : "/bapi";
+const API_BASE = apiBaseUrl();
 
 // Module-level token — set by the SessionSync component in providers.tsx
 let _authToken: string | undefined;
@@ -313,9 +310,7 @@ export async function uploadInsuranceDocument(
   if (opts.orgnr) fd.append("orgnr", opts.orgnr);
   if (opts.title) fd.append("title", opts.title);
   if (opts.tags)  fd.append("tags",  opts.tags);
-  const base = typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/bapi";
-  const res = await fetch(`${base}/insurance-documents`, { method: "POST", body: fd });
+  const res = await fetch(`${apiBaseUrl()}/insurance-documents`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`API ${res.status}`);
   return res.json();
 }
@@ -327,7 +322,7 @@ export async function downloadInsuranceDocumentPdf(id: number, filename: string)
 // ── Knowledge ────────────────────────────────────────────────────────────────
 
 export const knowledgeChat = (question: string, orgnr?: string) =>
-  apiFetch<{ answer: string; sources?: string[]; source_snippets?: Record<string, string> }>("/knowledge/chat", {
+  apiFetch<KnowledgeChatOut>("/knowledge/chat", {
     method: "POST",
     body: JSON.stringify({ question, orgnr }),
   });
@@ -364,9 +359,7 @@ export const getVideos = () => apiFetch<unknown[]>("/videos");
 export async function uploadVideo(file: File): Promise<{ url: string; name: string }> {
   const fd = new FormData();
   fd.append("file", file);
-  const base = typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000") : "/bapi";
-  const res = await fetch(`${base}/videos/upload`, {
+  const res = await fetch(`${apiBaseUrl()}/videos/upload`, {
     method: "POST",
     body: fd,
     headers: _authToken ? { Authorization: `Bearer ${_authToken}` } : {},
@@ -397,12 +390,10 @@ export const getOrgInsuranceNeeds = (orgnr: string) =>
   apiFetch<{ narrative?: string; needs: InsuranceNeed[] }>(`/org/${orgnr}/insurance-needs`);
 
 export const generateRiskOffer = (orgnr: string, lang = "no") =>
-  apiFetch<{ sammendrag?: string; anbefalinger?: unknown[]; total_premieanslag?: string }>(
-    `/org/${orgnr}/risk-offer?lang=${lang}`, { method: "POST" },
-  );
+  apiFetch<RiskOfferOut>(`/org/${orgnr}/risk-offer?lang=${lang}`, { method: "POST" });
 
 export const generateNarrative = (orgnr: string, lang = "no") =>
-  apiFetch<{ narrative: string }>(`/org/${orgnr}/narrative?lang=${lang}`, { method: "POST" });
+  apiFetch<NarrativeOut>(`/org/${orgnr}/narrative?lang=${lang}`, { method: "POST" });
 
 export const getOrgOffers = (orgnr: string) =>
   apiFetch<InsuranceOffer[]>(`/org/${orgnr}/offers`);
@@ -514,8 +505,10 @@ export const getOrgExtractionStatus = (orgnr: string) =>
     missing_target_years: number[];
   }>(`/org/${orgnr}/extraction-status`);
 
+export type FinancialCommentaryOut = Schema["FinancialCommentaryOut"];
+
 export const getOrgFinancialCommentary = (orgnr: string) =>
-  apiFetch<{ commentary: string; years_analyzed: number }>(`/org/${orgnr}/financial-commentary`);
+  apiFetch<FinancialCommentaryOut>(`/org/${orgnr}/financial-commentary`);
 
 // ── Broker notes (per company) ────────────────────────────────────────────────
 
@@ -550,11 +543,6 @@ export const chatWithOrg = (orgnr: string, question: string, session_id?: string
     body: JSON.stringify({ question, ...(session_id ? { session_id } : {}) }),
   });
 
-// ── Risk narrative ────────────────────────────────────────────────────────────
-
-export const getRiskNarrative = (orgnr: string) =>
-  apiFetch<{ narrative: string }>(`/org/${orgnr}/risk-narrative`);
-
 // ── Broker settings ───────────────────────────────────────────────────────────
 
 export const getBrokerSettings = () =>
@@ -583,10 +571,7 @@ export async function uploadOrgOffers(
 ): Promise<{ id: number; filename: string; insurer_name: string }[]> {
   const fd = new FormData();
   for (const f of files) fd.append("files", f);
-  const base = typeof window === "undefined"
-    ? (process.env.API_BASE_URL ?? "http://localhost:8000")
-    : "/bapi";
-  const res = await fetch(`${base}/org/${orgnr}/offers`, { method: "POST", body: fd });
+  const res = await fetch(`${apiBaseUrl()}/org/${orgnr}/offers`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`API ${res.status}: upload offers`);
   return res.json();
 }
