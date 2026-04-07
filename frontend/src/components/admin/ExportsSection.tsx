@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getRenewals, getPolicies } from "@/lib/api";
 import { Loader2, Download } from "lucide-react";
-import { downloadCsv } from "@/lib/csv-export";
+import { downloadXlsx } from "@/lib/excel-export";
 import { SectionHeader, ResultMessage } from "./shared";
 
 export function ExportsSection() {
@@ -16,11 +16,11 @@ export function ExportsSection() {
     try {
       const data = await getRenewals(365);
       if (!data.length) { setMsg("Ingen data funnet."); return; }
-      downloadCsv(data.map((r) => ({
+      downloadXlsx(data.map((r) => ({
         Orgnr: r.orgnr, Klient: r.client_name, Forsikringsselskap: r.insurer,
         Produkt: r.insurance_type, "Premie (kr)": r.premium,
         Fornyelsesdato: r.renewal_date, "Dager igjen": r.days_until_renewal, Status: r.status,
-      })), `fornyelser_${new Date().toISOString().slice(0, 10)}.csv`);
+      })), `fornyelser_${new Date().toISOString().slice(0, 10)}.xlsx`);
     } catch (e) { setMsg(`Feil: ${String(e)}`); }
     finally { setLoadingRenewals(false); }
   }
@@ -30,12 +30,12 @@ export function ExportsSection() {
     try {
       const data = await getPolicies();
       if (!data.length) { setMsg("Ingen data funnet."); return; }
-      downloadCsv(data.map((p) => ({
+      downloadXlsx(data.map((p) => ({
         Orgnr: p.orgnr, Forsikringsselskap: p.insurer, Produkt: p.product_type ?? "",
         Avtalenr: p.policy_number ?? "", "Premie (kr)": p.annual_premium_nok ?? "",
         "Forsikringssum (kr)": p.coverage_amount_nok ?? "",
         Startdato: p.start_date ?? "", Fornyelsesdato: p.renewal_date ?? "", Status: p.status,
-      })), `avtaleoversikt_${new Date().toISOString().slice(0, 10)}.csv`);
+      })), `avtaleoversikt_${new Date().toISOString().slice(0, 10)}.xlsx`);
     } catch (e) { setMsg(`Feil: ${String(e)}`); }
     finally { setLoadingPolicies(false); }
   }
@@ -50,7 +50,7 @@ export function ExportsSection() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
         >
           {loadingRenewals ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-          Fornyelsesrapport (CSV)
+          Fornyelsesrapport (Excel)
         </button>
         <button
           onClick={handlePolicies}
@@ -58,7 +58,7 @@ export function ExportsSection() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
         >
           {loadingPolicies ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-          Avtaleoversikt (CSV)
+          Avtaleoversikt (Excel)
         </button>
       </div>
       <ResultMessage msg={msg} />

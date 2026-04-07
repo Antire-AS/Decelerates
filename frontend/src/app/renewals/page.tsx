@@ -4,6 +4,8 @@ import { useState } from "react";
 import useSWR from "swr";
 import { getRenewals, advanceRenewalStage, type Renewal } from "@/lib/api";
 import { fmt, fmtDate } from "@/lib/format";
+import { downloadXlsx } from "@/lib/excel-export";
+import { Download } from "lucide-react";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";
@@ -72,6 +74,18 @@ export default function RenewalsPage() {
           <p className="text-sm text-[#8A7F74] mt-1">Kommende polisefornyelseringer som krever oppfølging</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => renewals?.length && downloadXlsx(renewals.map((r) => ({
+              Orgnr: r.orgnr, Klient: r.client_name, Forsikringsgiver: r.insurer,
+              Produkt: r.product_type ?? r.insurance_type, "Premie (kr)": r.annual_premium_nok ?? r.premium,
+              Fornyelsesdato: r.renewal_date, "Dager igjen": r.days_until_renewal,
+              Steg: r.renewal_stage ?? "not_started",
+            })), `fornyelser_${new Date().toISOString().slice(0, 10)}.xlsx`)}
+            disabled={!renewals?.length}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-40"
+          >
+            <Download className="w-3 h-3" /> Excel
+          </button>
           {DAYS_OPTIONS.map((d) => (
             <button key={d} onClick={() => setDays(d)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
