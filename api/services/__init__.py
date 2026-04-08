@@ -76,8 +76,6 @@ from api.services.external_apis import (  # noqa: F401
 
 from api.services.pdf_extract import (  # noqa: F401
     _parse_json_financials,
-    _extract_pdf_text,
-    _parse_financials_from_text,
     _parse_financials_from_pdf,
     fetch_history_from_pdf,
     _get_full_history,

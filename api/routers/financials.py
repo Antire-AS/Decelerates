@@ -125,7 +125,10 @@ def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends
     )
     commentary = _llm_answer_raw(prompt)
     if not commentary:
-        raise HTTPException(status_code=503, detail="LLM not available — check ANTHROPIC_API_KEY or GEMINI_API_KEY")
+        raise HTTPException(
+            status_code=503,
+            detail="LLM not available — check AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY",
+        )
     # Schema shape locked to FinancialCommentaryOut (api/schemas.py): orgnr, commentary, years.
     # Previously returned an extra `years_analyzed: int` and `navn` that FastAPI silently
     # stripped — caught during the api.ts type-cleanup audit.

@@ -91,17 +91,6 @@ class DocumentAnalysisService:
 
     def get_document_keypoints(self, doc: InsuranceDocument) -> dict:
         """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
-        from api.services.document_intelligence import DocumentIntelligenceService
-        di = DocumentIntelligenceService()
-        if di.is_configured():
-            text_from_di = di.analyze_pdf(bytes(doc.pdf_content))
-            if text_from_di and len(text_from_di) > 200:
-                raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text_from_di[:LLM_DOCUMENT_CHAR_LIMIT]}")
-                if raw:
-                    parsed = _parse_json_from_llm_response(raw)
-                    if parsed:
-                        return parsed
-
         text = doc.extracted_text or ""
         if len(text) > 500:
             raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}")
@@ -173,7 +162,7 @@ class DocumentAnalysisService:
                 return _parse_json_from_llm_response(raw) or {"raw_text": raw}
 
         raise LlmUnavailableError(
-            "Ingen LLM tilgjengelig — legg til GEMINI_API_KEY eller ANTHROPIC_API_KEY i .env og restart appen"
+            "Ingen LLM tilgjengelig — sett AZURE_FOUNDRY_BASE_URL og AZURE_FOUNDRY_API_KEY i .env og restart appen"
         )
 
 

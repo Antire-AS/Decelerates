@@ -1,5 +1,10 @@
-"""PDF parsing and financial data extraction — Gemini native PDF + pdfplumber fallback."""
-import io
+"""PDF parsing and financial data extraction — Gemini native PDF only.
+
+Phase 3 of the LLM-stack consolidation removed the pdfplumber-based text
+fallback: it was rarely exercised, gpt-5.4 / Gemini handles even scanned
+PDFs better than text-extraction-then-LLM, and "fail loudly when extraction
+fails" is a clearer contract for downstream code than silent text fallback.
+"""
 import json
 import logging
 import os
@@ -7,7 +12,6 @@ import re
 import tempfile
 from typing import Optional, List, Dict, Any
 
-import pdfplumber
 import requests
 from google import genai as google_genai
 from google.genai import types as genai_types
@@ -15,12 +19,9 @@ from google.genai import types as genai_types
 from api.constants import (
     GEMINI_PDF_MODELS,
     GEMINI_FILES_API_THRESHOLD,
-    LLM_DOCUMENT_CHAR_LIMIT,
-    PDF_PAGE_LIMIT_EXTRACT,
 )
 from api.domain.exceptions import PdfExtractionError  # noqa: F401 — re-exported
 from api.prompts import FINANCIALS_PROMPT
-from api.services.llm import _llm_answer_raw
 
 logger = logging.getLogger(__name__)
 
@@ -48,26 +49,6 @@ def _parse_json_financials(raw: str) -> Optional[Dict[str, Any]]:
     assets = data.get("total_assets")
     data["equity_ratio"] = (eq / assets) if (eq and assets) else None
     return data
-
-
-def _extract_pdf_text(pdf_url: str) -> str:
-    """Download a PDF and extract all text using pdfplumber (up to PDF_PAGE_LIMIT_EXTRACT pages)."""
-    resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": _PDF_UA})
-    resp.raise_for_status()
-    with pdfplumber.open(io.BytesIO(resp.content)) as pdf:
-        return "\n".join(p.extract_text() or "" for p in pdf.pages[:PDF_PAGE_LIMIT_EXTRACT])
-
-
-def _parse_financials_from_text(text: str, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
-    """Ask LLM to extract key financial figures from annual report text."""
-    prompt = (
-        FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
-        + f"\n\nAnnual report text (first portion):\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}"
-    )
-    raw = _llm_answer_raw(prompt)
-    if not raw:
-        return None
-    return _parse_json_financials(raw)
 
 
 # ── Gemini PDF extraction ──────────────────────────────────────────────────────
@@ -192,31 +173,14 @@ def _try_gemini_with_retry(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[
     return None
 
 
-def _pdfplumber_fallback(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
-    """Extract financials via pdfplumber text extraction + text LLM."""
-    try:
-        text = "\n".join(
-            p.extract_text() or ""
-            for p in pdfplumber.open(io.BytesIO(pdf_bytes)).pages[:PDF_PAGE_LIMIT_EXTRACT]
-        )
-        result = _parse_financials_from_text(text, orgnr, year)
-        if result and _sanity_check_financials(result):
-            return result
-    except Exception as exc:
-        logger.error("[extract] pdfplumber fallback failed for %s year %d: %s", orgnr, year, exc)
-    return None
-
-
 def _parse_financials_from_pdf(pdf_url: str, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
-    """Extract key financials from an annual report PDF.
+    """Extract key financials from an annual report PDF using Gemini native PDF.
 
-    Primary: Gemini native PDF understanding (table-aware, no page cap).
-    Fallback: pdfplumber text extraction + text-based LLM.
+    Returns None on failure — callers should treat that as "couldn't extract,
+    surface a manual upload prompt to the broker." There is no text-extraction
+    fallback as of Phase 3 (pdfplumber path removed).
     """
     pdf_bytes = _download_pdf_bytes(pdf_url)
     if pdf_bytes is None:
         return None
-    result = _try_gemini_with_retry(pdf_bytes, orgnr, year)
-    if result:
-        return result
-    return _pdfplumber_fallback(pdf_bytes, orgnr, year)
+    return _try_gemini_with_retry(pdf_bytes, orgnr, year)

@@ -1,14 +1,18 @@
 """Natural-language → SQL query service.
 
-Uses Claude to convert a plain-English/Norwegian question into a read-only
-SELECT query against the financial database, then executes it and returns
-structured results.
+Uses an LLM (via the LlmPort, currently backed by Antire Azure AI Foundry)
+to convert a plain-English/Norwegian question into a read-only SELECT query
+against the financial database, then executes it and returns structured
+results.
 """
 import logging
 import re
 
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+
+from api.container import resolve
+from api.ports.driven.llm_port import LlmPort
 
 log = logging.getLogger(__name__)
 
@@ -60,24 +64,20 @@ _UNSAFE = re.compile(
 
 
 def _generate_sql(question: str) -> str | None:
-    """Ask Claude to convert question → SQL. Returns the SQL string or None."""
-    from api.services.llm import _is_key_set
+    """Ask the LLM to convert question → SQL. Returns the SQL string or None."""
     try:
-        import anthropic
-        if not _is_key_set("ANTHROPIC_API_KEY"):
-            return None
-        import os
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=512,
-            system=_SYSTEM,
-            messages=[{"role": "user", "content": question}],
-        )
-        return msg.content[0].text.strip()
+        llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
     except Exception as exc:
-        log.warning("nl_query: SQL generation failed — %s", exc)
+        log.warning("nl_query: LLM port not available — %s", exc)
         return None
+    if not llm.is_configured():
+        return None
+    raw = llm.chat(
+        user_prompt=question,
+        system_prompt=_SYSTEM,
+        max_completion_tokens=512,
+    )
+    return raw.strip() if raw else None
 
 
 def run_nl_query(question: str, db: Session) -> dict:
