@@ -30,7 +30,6 @@ jobs:
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
-            echo "ui_app=ca-ui" >> $GITHUB_OUTPUT
             echo "frontend_app=ca-frontend" >> $GITHUB_OUTPUT
             echo "db_url=${{ secrets.DATABASE_URL }}" >> $GITHUB_OUTPUT
           else
@@ -38,7 +37,6 @@ jobs:
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-staging" >> $GITHUB_OUTPUT
             echo "api_app=ca-api-staging" >> $GITHUB_OUTPUT
-            echo "ui_app=ca-ui-staging" >> $GITHUB_OUTPUT
             echo "frontend_app=ca-frontend-staging" >> $GITHUB_OUTPUT
             echo "db_url=${{ secrets.STAGING_DATABASE_URL }}" >> $GITHUB_OUTPUT
           fi
@@ -68,20 +66,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push UI image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.ui
-          push: true
-          tags: |
-            ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
-            ${{ env.ACR }}.azurecr.io/broker-ui:${{ steps.config.outputs.env }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Deploy API
+        env:
+          # GitHub Actions handles multiline secrets safely as env vars but
+          # NOT as inline ${{ }} interpolation in bash arrays. So bring the
+          # SA JSON in via the env: block, then base64-encode it below.
+          GCP_VERTEX_AI_SA_JSON_RAW: ${{ secrets.GCP_VERTEX_AI_SA_JSON }}
         run: |
+          # Base64-encode the SA JSON so it survives the --env-vars bash
+          # array (multiline JSON with quotes/newlines breaks --env-vars).
+          # main.py decodes GCP_VERTEX_AI_SA_JSON_B64 back at startup.
+          GCP_VERTEX_AI_SA_JSON_B64=$(printf '%s' "$GCP_VERTEX_AI_SA_JSON_RAW" | base64 | tr -d '\n')
+
           # Shared env-vars block used by both create and update
           ENV_VARS=(
             "ENVIRONMENT=${{ steps.config.outputs.environment }}"
@@ -95,7 +91,7 @@ jobs:
             "AZURE_FOUNDRY_API_KEY=${{ secrets.AZURE_FOUNDRY_API_KEY }}"
             "GCP_VERTEX_AI_PROJECT=${{ secrets.GCP_VERTEX_AI_PROJECT }}"
             "GCP_VERTEX_AI_LOCATION=${{ secrets.GCP_VERTEX_AI_LOCATION }}"
-            "GCP_VERTEX_AI_SA_JSON=${{ secrets.GCP_VERTEX_AI_SA_JSON }}"
+            "GCP_VERTEX_AI_SA_JSON_B64=$GCP_VERTEX_AI_SA_JSON_B64"
             "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}"
             "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}"
             "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o"
@@ -155,27 +151,6 @@ jobs:
             API_BASE_URL=${{ steps.api.outputs.url }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Deploy UI
-        run: |
-          az containerapp create \
-            --name ${{ steps.config.outputs.ui_app }} \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ steps.config.outputs.cae }} \
-            --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }} \
-            --registry-server ${{ env.ACR }}.azurecr.io \
-            --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
-            --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
-            --target-port 8501 \
-            --ingress external \
-            --min-replicas 1 \
-            --max-replicas 2 \
-            --env-vars "API_BASE_URL=${{ steps.api.outputs.url }}" \
-          2>/dev/null \
-          || az containerapp update \
-            --name ${{ steps.config.outputs.ui_app }} \
-            --resource-group ${{ env.RG }} \
-            --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
 
       - name: Deploy frontend
         run: |
