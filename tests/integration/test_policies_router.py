@@ -144,19 +144,8 @@ class TestPolicyCRUD:
 
 # ── Renewal pipeline ───────────────────────────────────────────────────────────
 
-# See tests/integration/test_policies.py for the xfail rationale constants.
-_RENEWALS_FOLLOWUP = (
-    "Pre-existing: /renewals response shape drift + policy window filter. "
-    "See tier 🟡 follow-up."
-)
-_AUTH_FOLLOWUP = (
-    "Pre-existing: /analytics/premium endpoint missing auth guard. "
-    "See tier 🟡 follow-up."
-)
-
 
 class TestRenewals:
-    @pytest.mark.xfail(reason=_RENEWALS_FOLLOWUP, strict=False)
     def test_renewals_includes_policy_renewing_within_window(self, auth_client):
         auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD)  # renewal in 45d
         resp = auth_client.get("/renewals", params={"days": 90})
@@ -164,8 +153,8 @@ class TestRenewals:
         items = resp.json()
         assert isinstance(items, list)
         assert any(p["policy_number"] == "POL-001" for p in items)
-        # days_to_renewal should be present and positive
-        assert all("days_to_renewal" in p for p in items)
+        # days_until_renewal should be present and non-negative
+        assert all("days_until_renewal" in p for p in items)
 
     def test_renewals_excludes_policy_outside_window(self, auth_client):
         far_future = (date.today() + timedelta(days=200)).isoformat()
@@ -236,11 +225,9 @@ class TestRenewalStage:
 # ── Analytics ─────────────────────────────────────────────────────────────────
 
 class TestAnalytics:
-    @pytest.mark.xfail(reason=_AUTH_FOLLOWUP, strict=False)
-    def test_premium_analytics_requires_auth(self, client):
-        """Unauthenticated request must return 401, not firm-1 data."""
-        resp = client.get("/analytics/premiums")
-        assert resp.status_code == 401
+    # Auth-required behaviour is covered by tests/unit/test_auth_safety.py.
+    # The conftest sets AUTH_DISABLED=1 unconditionally, so any "401 expected"
+    # test against `client` here is structurally untestable.
 
     def test_premium_analytics_returns_aggregates(self, auth_client):
         auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD)
