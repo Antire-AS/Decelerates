@@ -1,0 +1,32 @@
+{
+  "include": ["api"],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.venv",
+    "ui",
+    "tests",
+    "frontend",
+    "alembic"
+  ],
+  "pythonVersion": "3.13",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+
+  "//": "SQLAlchemy 1.x produces Column[X] types that pyright treats as != X. Until we migrate to SQLAlchemy 2.0 Mapped[] types, these categories are >90% false positives — see plan §pyright cleanup. Lowered to warning so real errors in other categories surface without being drowned out.",
+  "reportArgumentType": "warning",
+  "reportAttributeAccessIssue": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "reportReturnType": "warning",
+  "reportAssignmentType": "warning",
+  "reportOperatorIssue": "warning",
+  "reportCallIssue": "warning",
+
+  "//": "Real-bug categories — keep as errors so CI fails on these.",
+  "reportOptionalMemberAccess": "error",
+  "reportOptionalSubscript": "error",
+  "reportOptionalIterable": "error",
+  "reportPrivateImportUsage": "error",
+  "reportUndefinedVariable": "error",
+  "reportUnboundVariable": "error"
+}

@@ -92,11 +92,11 @@ jobs:
         run: uv sync --frozen
 
       - name: Run pyright
-        run: uv run --with pyright pyright api/ ui/ || true
-        # `|| true` for now — pyright finds many pre-existing issues in the
-        # codebase that aren't the scope of this PR. Once branch protection
-        # is fully green and we've triaged the real pyright errors, remove
-        # this and turn pyright into a real gate.
+        run: uv run --with pyright pyright
+        # Reads pyrightconfig.json from repo root. SQLAlchemy 1.x Column[X]
+        # type categories are downgraded to warnings — until we migrate to
+        # SQLAlchemy 2.0 Mapped[] types they're >90% false positives. Real
+        # bugs in other categories still fail the build.
 
   duplication:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.18.0
