@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
+from api.auth import CurrentUser, get_current_user
 from api.domain.exceptions import NotFoundError
 from api.schemas import BrokerSettingsIn, _BrokerNoteBody
 from api.dependencies import get_db
@@ -41,9 +42,18 @@ def list_broker_notes_endpoint(orgnr: str, svc: BrokerService = Depends(_get_bro
 
 
 @router.post("/org/{orgnr}/broker-notes")
-def create_broker_note_endpoint(orgnr: str, body: _BrokerNoteBody, svc: BrokerService = Depends(_get_broker_service)) -> dict:
-    note = svc.create_note(orgnr, body)
-    return {"id": note.id, "created_at": note.created_at}
+def create_broker_note_endpoint(
+    orgnr: str,
+    body: _BrokerNoteBody,
+    svc: BrokerService = Depends(_get_broker_service),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    note = svc.create_note(orgnr, body, firm_id=user.firm_id, author_email=user.email)
+    return {
+        "id": note.id,
+        "created_at": note.created_at,
+        "mentions": note.mentions or [],
+    }
 
 
 @router.delete("/org/{orgnr}/broker-notes/{note_id}")

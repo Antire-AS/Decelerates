@@ -78,12 +78,12 @@ _JUSTIFIED = {
     # Risk scoring rule lists
     "_check_financial_health",
     "_check_industry_age_exposure",
+    # LLM answer dispatcher — priority chain (Foundry → Azure OpenAI → Claude → Gemini)
+    "_llm_answer_raw",
     # Narrative prompt builder — just a long f-string template
     "_build_narrative_prompt",
     # RAG context builder — long field list
     "_build_company_context",
-    # Diagnostic endpoint — long but intentionally so to surface many fields in one call
-    "debug_status",
     # Knowledge index — blob iteration + per-section transcript assembly; can't be split
     "index_video_transcripts",
     # Knowledge UI — Streamlit chat + spinner + state management; tightly coupled flow
@@ -143,6 +143,9 @@ _JUSTIFIED = {
     # Admin seed endpoints — multi-phase BRREG lookup + background PDF agent setup;
     # complexity is inherent to the two-phase seeding protocol
     "admin_demo",
+    # Demo seed — multi-entity idempotent insert (companies + history + policies + claims +
+    # activities) in a single DB transaction; splitting would break atomicity
+    "seed_full_demo",
     "admin_seed_norway_top100",
     # Portfolio RAG chat — builds context + calls LLM in one coherent flow
     "chat",
@@ -188,6 +191,8 @@ _JUSTIFIED = {
     "_render_exports",
     # render_admin_tab — users table + exports + role management; Streamlit imperative API
     "render_admin_tab",
+    # _render_audit_log — audit dataframe + metrics + CSV export; Streamlit imperative layout
+    "_render_audit_log",
     # send_renewal_stage_change — HTML email template with colour map + table cells; single coherent email
     "send_renewal_stage_change",
     # _render_benchmarks — equity ratio bar chart + traffic-light table; Streamlit imperative layout
@@ -198,6 +203,26 @@ _JUSTIFIED = {
     "render_onboarding_tour",
     # _render_comparison_charts — 3 side-by-side bar charts + multiselect; Streamlit imperative layout
     "_render_comparison_charts",
+    # send_renewal_threshold_emails (adapter) — HTML email with 6-column table; single coherent email template
+    "send_renewal_threshold_emails",
+    # trigger_renewal_digest — guard checks + DB query + list comprehension + send; single cohesive flow
+    "trigger_renewal_digest",
+    # upload_insurance_document — FastAPI endpoint; validation + audit log + service call in one cohesive flow
+    "upload_insurance_document",
+    # get_recommendation_pdf — PDF generation endpoint with multi-step: DB lookup + LLM + PDF bytes; single flow
+    "get_recommendation_pdf",
+    # analyze_coverage_gap — rule engine: per-product-type coverage checks; rule list not decomposable
+    "analyze_coverage_gap",
+    # generate_certificate_pdf — fpdf2 imperative API; each section is one mandatory layout call
+    "generate_certificate_pdf",
+    # generate_recommendation_pdf — fpdf2 imperative API; section-by-section layout calls
+    "generate_recommendation_pdf",
+    # recommendation_service.create — LLM draft + DB persist + optional IDD link; single atomic flow
+    "create",
+    # Streamlit expander helpers — each wraps one expander with tightly coupled widget sequence
+    "_render_insurance_needs_expander",
+    "_render_insurance_recommendation_expander",
+    "_render_insurance_offers_expander",
 }
 
 # Files excluded from function-length checks (non-production scripts)
@@ -228,15 +253,7 @@ def test_no_function_exceeds_40_lines():
 # Router files with justified DB writes (pre-existing; extracting to services
 # would require splitting tightly coupled multi-step atomic flows).
 # See CLAUDE.md "Architecture Deviations" for rationale.
-_ROUTER_DB_WRITE_EXEMPT = {
-    # Admin seed/reset endpoints — multi-phase BRREG + background agent setup;
-    # each is a single atomic operation that cannot be split across router + service
-    # without losing transactional integrity.
-    "utils.py",
-    # Streaming NDJSON batch import + portfolio-company junction CRUD;
-    # the SSE generator protocol requires all state in one async function.
-    "portfolio_router.py",
-}
+_ROUTER_DB_WRITE_EXEMPT: set[str] = set()
 
 
 def test_no_db_writes_in_routers():

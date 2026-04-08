@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, ActivityType, User, UserRole, BrokerFirm
+from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, User, UserRole, BrokerFirm
+import pydantic
 from api.domain.exceptions import ForbiddenError, NotFoundError, ValidationError
 from api.schemas import (
     ActivityIn, ActivityUpdate,
@@ -64,17 +65,15 @@ class TestPolicyServiceCreate:
         body = PolicyIn(insurer="Gjensidige", product_type="Ansvarsforsikring", annual_premium_nok=30_000)
 
         with patch.object(Policy, "__init__", return_value=None):
-            result = svc.create("987654321", firm_id=1, body=body)
+            svc.create("987654321", firm_id=1, body=body)
 
         db.add.assert_called_once()
         db.commit.assert_called_once()
 
     def test_create_unknown_status_raises(self):
-        db = _mock_db()
-        svc = PolicyService(db)
-        body = PolicyIn(insurer="X", product_type="Y", status="nonexistent")
-        with pytest.raises(ValidationError):
-            svc.create("123456789", firm_id=1, body=body)
+        # Pydantic now validates status at schema construction time
+        with pytest.raises(pydantic.ValidationError):
+            PolicyIn(insurer="X", product_type="Y", status="nonexistent")
 
 
 class TestPolicyServiceList:
@@ -100,6 +99,38 @@ class TestPolicyServiceList:
         mock_q.all.return_value = [_policy(), _policy()]
 
         assert len(PolicyService(db).list_by_firm(firm_id=1)) == 2
+
+
+class TestPolicyServiceAdvanceRenewalStage:
+    def test_advance_success(self):
+        db = _mock_db()
+        existing = _policy()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = existing
+
+        PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="ready_to_quote")
+
+        db.commit.assert_called_once()
+
+    def test_advance_invalid_stage_raises(self):
+        db = _mock_db()
+        existing = _policy()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = existing
+
+        with pytest.raises(ValidationError):
+            PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="bogus_stage")
+
+    def test_advance_not_found_raises(self):
+        db = _mock_db()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = None
+
+        with pytest.raises(NotFoundError):
+            PolicyService(db).advance_renewal_stage(policy_id=99, firm_id=1, new_stage="contacted")
 
 
 class TestPolicyServiceRenewals:
@@ -214,15 +245,19 @@ class TestClaimsService:
         db.commit.assert_called_once()
 
     def test_update_unknown_status_raises(self):
+        # Pydantic now validates status at schema construction time
+        with pytest.raises(pydantic.ValidationError):
+            ClaimUpdate(status="bogus")
+
+    def test_list_by_policy(self):
         db = _mock_db()
-        existing = self._claim()
         mock_q = db.query.return_value
         mock_q.filter.return_value = mock_q
-        mock_q.first.return_value = existing
+        mock_q.order_by.return_value = mock_q
+        mock_q.all.return_value = [self._claim()]
 
-        svc = ClaimsService(db)
-        with pytest.raises(NotFoundError):
-            svc.update(claim_id=1, firm_id=1, body=ClaimUpdate(status="bogus"))
+        result = ClaimsService(db).list_by_policy(policy_id=1, firm_id=1)
+        assert len(result) == 1
 
     def test_delete_removes_claim(self):
         db = _mock_db()
@@ -277,6 +312,26 @@ class TestActivityService:
 
         with pytest.raises(NotFoundError):
             ActivityService(db).update(99, firm_id=1, body=ActivityUpdate(subject="X"))
+
+    def test_delete_removes_activity(self):
+        db = _mock_db()
+        act = MagicMock(spec=Activity)
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = act
+
+        ActivityService(db).delete(activity_id=1, firm_id=1)
+        db.delete.assert_called_once_with(act)
+        db.commit.assert_called_once()
+
+    def test_delete_not_found_raises(self):
+        db = _mock_db()
+        mock_q = db.query.return_value
+        mock_q.filter.return_value = mock_q
+        mock_q.first.return_value = None
+
+        with pytest.raises(NotFoundError):
+            ActivityService(db).delete(activity_id=99, firm_id=1)
 
 
 # ── UserService ───────────────────────────────────────────────────────────────

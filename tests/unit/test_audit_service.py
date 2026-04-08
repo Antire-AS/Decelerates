@@ -1,4 +1,4 @@
-"""Unit tests for api/services/audit.py — log_audit helper.
+"""Unit tests for api/services/audit.py — log_audit helper and retention helpers.
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-from api.services.audit import log_audit
+from api.services.audit import log_audit, purge_old_audit_logs, get_audit_summary
 
 
 def _mock_db():
@@ -68,7 +68,6 @@ def test_log_audit_sets_utc_timestamp():
 
 
 def test_log_audit_timestamp_is_recent():
-    from datetime import timedelta
     db = _mock_db()
     before = datetime.now(timezone.utc)
     log_audit(db, "test")
@@ -121,3 +120,37 @@ def test_log_audit_nested_detail():
     parsed = json.loads(entry.detail)
     assert parsed["items"] == [1, 2, 3]
     assert parsed["meta"]["key"] == "value"
+
+
+# ── purge_old_audit_logs ──────────────────────────────────────────────────────
+
+def test_purge_old_audit_logs_calls_delete_and_commit():
+    db = _mock_db()
+    db.query.return_value.filter.return_value.delete.return_value = 5
+    result = purge_old_audit_logs(db)
+    db.query.return_value.filter.return_value.delete.assert_called_once()
+    db.commit.assert_called_once()
+    assert result == 5
+
+
+def test_purge_old_audit_logs_returns_zero_when_nothing_old():
+    db = _mock_db()
+    db.query.return_value.filter.return_value.delete.return_value = 0
+    result = purge_old_audit_logs(db)
+    assert result == 0
+
+
+# ── get_audit_summary ─────────────────────────────────────────────────────────
+
+def test_get_audit_summary_returns_by_action_dict():
+    db = _mock_db()
+    row1 = MagicMock()
+    row1.action = "policy.create"
+    row1.count = 10
+    row2 = MagicMock()
+    row2.action = "policy.delete"
+    row2.count = 2
+    db.query.return_value.group_by.return_value.order_by.return_value.all.return_value = [row1, row2]
+    # For the orgnr subquery when firm_id is None
+    result = get_audit_summary(db, firm_id=None)
+    assert "by_action" in result

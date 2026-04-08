@@ -1,7 +1,6 @@
 import pathlib
 import streamlit as st
 
-from ui.config import T
 from ui.auth import render_user_badge
 from ui.views.landing import render_landing_tab
 from ui.views.search import render_search_tab
@@ -65,14 +64,14 @@ with _btn_col:
         st.rerun()
 
 # ── Tab navigation (landing page buttons can deep-link here) ─────────────────
-_TAB_NAMES = ["Hjem", "Selskapsøk", "Portefølje", "Fornyelser", "Dokumenter", "Videoer", "Avtaler", "Finans", "Kunnskapsbase", "⚙️ Admin"]
-_TAB_GOTO  = {"search": 1, "portfolio": 2, "renewals": 3, "documents": 4, "videos": 5, "sla": 6, "finans": 7, "knowledge": 8, "admin": 9}
+_TAB_NAMES = ["Hjem", "Selskapsøk", "Portefølje", "Finans", "Fornyelser", "Avtaler", "Dokumenter", "Videoer", "Kunnskapsbase", "⚙️ Admin"]
+_TAB_GOTO  = {"search": 1, "portfolio": 2, "finans": 3, "renewals": 4, "sla": 5, "documents": 6, "videos": 7, "knowledge": 8, "admin": 9}
 
 _default_tab = _TAB_GOTO.get(st.session_state.pop("_goto_tab", None), 0)
 
 (
-    tab_landing, tab_search, tab_portfolio, tab_renewals, tab_docs,
-    tab_videos, tab_sla, tab_finans, tab_knowledge, tab_admin
+    tab_landing, tab_search, tab_portfolio, tab_finans, tab_renewals,
+    tab_sla, tab_docs, tab_videos, tab_knowledge, tab_admin
 ) = st.tabs(_TAB_NAMES)
 
 # Programmatic tab navigation — st.tabs() has no index param, so we click via JS
@@ -97,20 +96,20 @@ with tab_search:
 with tab_portfolio:
     render_portfolio_tab()
 
+with tab_finans:
+    render_financial_tab()
+
 with tab_renewals:
     render_renewals_tab()
+
+with tab_sla:
+    render_sla_tab()
 
 with tab_docs:
     render_documents_tab()
 
 with tab_videos:
     render_videos_tab()
-
-with tab_sla:
-    render_sla_tab()
-
-with tab_finans:
-    render_financial_tab()
 
 with tab_knowledge:
     render_knowledge_tab()

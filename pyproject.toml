@@ -8,7 +8,7 @@ dependencies = [
     "uvicorn[standard]==0.41.0",
     "sqlalchemy==2.0.46",
     "psycopg[binary]==3.3.3",
-    "requests==2.32.5",
+    "requests==2.33.1",
     "pydantic==2.12.5",
     "streamlit==1.54.0",
     "pandas==2.3.3",
@@ -20,7 +20,7 @@ dependencies = [
     "fpdf2==2.8.7",
     "python-multipart==0.0.22",
     "playwright==1.58.0",
-    "langchain-core==1.2.17",
+    "langchain-core==1.2.24",
     "langchain-text-splitters==1.1.1",
     "openai>=1.30.0",
     "azure-ai-documentintelligence>=1.0.0",
@@ -29,6 +29,9 @@ dependencies = [
     "azure-search-documents>=11.4.0",
     "azure-communication-email>=1.0.0",
     "pyasn1>=0.6.3",
+    "aiohttp>=3.13.5",
+    "pygments>=2.20.0",
+    "cryptography>=46.0.6",
     "slowapi>=0.1.9",
     "alembic>=1.13.0",
     "punq>=0.7.0",
@@ -55,3 +58,24 @@ packages = ["api", "ui"]
 markers = [
     "system: end-to-end tests requiring a live API instance (set SYSTEM_TEST_URL)",
 ]
+
+
+# ── Ruff configuration ────────────────────────────────────────────────────────
+# Ignores documented pre-existing stylistic violations so ruff can actually
+# run in CI. The external `reusable-ruff-formating.yml@v0.18.0` action reads
+# this config. All ignored rules are intentional patterns, not latent bugs:
+#
+#   E402  — module-level import not at top: widely used for sys.modules stub
+#           setup before imports (see tests/conftest.py) and conditional
+#           Azure Monitor configuration in api/main.py.
+#   E701  — multiple statements on colon: used in short Streamlit widget
+#           blocks where inlining is more readable than 3-line spreads.
+#   E702  — multiple statements on semicolon: same rationale.
+#   E741  — ambiguous variable name (l, I, O): used in short loop variables
+#           where the context makes the meaning unambiguous.
+#
+# F401 (unused imports) and F821 (undefined names) are NOT ignored — F821
+# caught a real bug in ui/views/admin.py:_render_data_controls missing a
+# `headers = get_auth_headers()` call.
+[tool.ruff.lint]
+ignore = ["E402", "E701", "E702", "E741"]

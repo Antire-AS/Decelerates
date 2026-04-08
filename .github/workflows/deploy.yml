@@ -27,15 +27,19 @@ jobs:
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
             echo "ui_app=ca-ui" >> $GITHUB_OUTPUT
+            echo "frontend_app=ca-frontend" >> $GITHUB_OUTPUT
             echo "db_url=${{ secrets.DATABASE_URL }}" >> $GITHUB_OUTPUT
           else
             echo "env=staging" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-staging" >> $GITHUB_OUTPUT
             echo "api_app=ca-api-staging" >> $GITHUB_OUTPUT
             echo "ui_app=ca-ui-staging" >> $GITHUB_OUTPUT
+            echo "frontend_app=ca-frontend-staging" >> $GITHUB_OUTPUT
             echo "db_url=${{ secrets.STAGING_DATABASE_URL }}" >> $GITHUB_OUTPUT
           fi
 
@@ -80,6 +84,7 @@ jobs:
         run: |
           # Shared env-vars block used by both create and update
           ENV_VARS=(
+            "ENVIRONMENT=${{ steps.config.outputs.environment }}"
             "DATABASE_URL=${{ steps.config.outputs.db_url }}"
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
             "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}"
@@ -100,8 +105,8 @@ jobs:
             "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}"
             "AZURE_VIDEO_CONTAINER=transksrt"
             "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b"
-            "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}"
-            "AUTH_AUDIENCE=api://514e4f92-1099-405d-86ed-a141d992ac45"
+            "AZURE_TENANT_ID=common"
+            "AUTH_AUDIENCE=${{ secrets.FRONTEND_AZURE_AD_CLIENT_ID }}"
             "BROKER_FIRM_NAME=${{ secrets.BROKER_FIRM_NAME }}"
             "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
             "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
@@ -136,6 +141,20 @@ jobs:
             --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "url=https://$FQDN" >> $GITHUB_OUTPUT
 
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }}
+            ${{ env.ACR }}.azurecr.io/broker-frontend:${{ steps.config.outputs.env }}
+          build-args: |
+            API_BASE_URL=${{ steps.api.outputs.url }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Deploy UI
         run: |
           az containerapp create \
@@ -156,6 +175,50 @@ jobs:
             --name ${{ steps.config.outputs.ui_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-ui:${{ github.sha }}
+
+      - name: Deploy frontend
+        run: |
+          ENV_VARS=(
+            "API_BASE_URL=${{ steps.api.outputs.url }}"
+            "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
+            "AZURE_AD_CLIENT_ID=${{ secrets.FRONTEND_AZURE_AD_CLIENT_ID }}"
+            "AZURE_AD_CLIENT_SECRET=${{ secrets.FRONTEND_AZURE_AD_CLIENT_SECRET }}"
+            "AZURE_AD_TENANT_ID=common"
+            "NODE_ENV=production"
+          )
+
+          az containerapp create \
+            --name ${{ steps.config.outputs.frontend_app }} \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ steps.config.outputs.cae }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }} \
+            --registry-server ${{ env.ACR }}.azurecr.io \
+            --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
+            --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
+            --target-port 3000 \
+            --ingress external \
+            --min-replicas 1 \
+            --max-replicas 2 \
+            --env-vars "${ENV_VARS[@]}" \
+          2>/dev/null \
+          || az containerapp update \
+            --name ${{ steps.config.outputs.frontend_app }} \
+            --resource-group ${{ env.RG }} \
+            --image ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }} \
+            --set-env-vars "${ENV_VARS[@]}"
+
+      - name: Patch frontend NEXTAUTH_URL (self-referencing FQDN)
+        id: frontend
+        run: |
+          FQDN=$(az containerapp show \
+            --name ${{ steps.config.outputs.frontend_app }} \
+            --resource-group ${{ env.RG }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+          az containerapp update \
+            --name ${{ steps.config.outputs.frontend_app }} \
+            --resource-group ${{ env.RG }} \
+            --set-env-vars "NEXTAUTH_URL=https://$FQDN"
 
       - name: Set Easy Auth secret on prod UI (idempotent)
         if: github.ref_name == 'main'
@@ -181,3 +244,6 @@ jobs:
 
       - name: Smoke test — API /ping
         run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"
+
+      - name: Smoke test — frontend
+        run: curl --fail --retry 5 --retry-delay 5 "${{ steps.frontend.outputs.url }}/"

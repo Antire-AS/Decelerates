@@ -1,5 +1,8 @@
+import logging
 from datetime import date, datetime
 from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 # ── Thresholds ────────────────────────────────────────────────────────────────
 VERY_HIGH_TURNOVER_THRESHOLD = 1_000_000_000  # 1 BNOK
@@ -162,8 +165,8 @@ def _check_company_age(org: Dict[str, Any], add: _AddFn) -> None:
             add("Nystartet selskap (<2 år)", 3, "Historikk", f"Stiftet: {stiftelsesdato}")
         elif age_years < 5:
             add("Relativt nytt selskap (<5 år)", 1, "Historikk", f"Stiftet: {stiftelsesdato}")
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Could not parse stiftelsesdato %r: %s", stiftelsesdato, exc)
 
 
 def _check_employee_exposure(regn: Dict[str, Any], add: _AddFn) -> None:

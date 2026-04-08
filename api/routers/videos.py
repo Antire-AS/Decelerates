@@ -1,4 +1,5 @@
 """Video management endpoints — upload, list, and stream video blobs."""
+import base64
 import os
 import posixpath
 import re
@@ -10,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from api.services.blob_storage import BlobStorageService
 
 _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
+_MAX_VIDEO_BYTES = 500 * 1024 * 1024  # 500 MB
 _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 
 # Maps MP4 file stem → (sections_json_prefix, display_name, max_seconds|None)
@@ -29,6 +31,35 @@ _VIDEO_SECTIONS_MAP = {
 router = APIRouter()
 
 
+def _vtt_timestamp(s: float) -> str:
+    h = int(s) // 3600
+    m = (int(s) % 3600) // 60
+    sec = int(s) % 60
+    ms = int((s - int(s)) * 1000)
+    return f"{h:02d}:{m:02d}:{sec:02d}.{ms:03d}"
+
+
+def _build_vtt_data_uri(sections: list) -> str | None:
+    """Build a WebVTT data URI from sections that contain transcript entries."""
+    entries = []
+    for sec in sections:
+        for e in sec.get("entries") or []:
+            t = (e.get("text") or "").strip()
+            s = float(e.get("seconds") or e.get("start_seconds") or 0)
+            if t:
+                entries.append({"s": s, "text": t})
+    if not entries:
+        return None
+    entries.sort(key=lambda x: x["s"])
+    lines = ["WEBVTT", ""]
+    for i, e in enumerate(entries):
+        end = entries[i + 1]["s"] if i + 1 < len(entries) else e["s"] + 5.0
+        lines += [f"{_vtt_timestamp(e['s'])} --> {_vtt_timestamp(end)}", e["text"], ""]
+    vtt = "\n".join(lines)
+    b64 = base64.b64encode(vtt.encode("utf-8")).decode()
+    return f"data:text/vtt;base64,{b64}"
+
+
 @router.post("/videos/upload")
 async def upload_video(file: UploadFile = File(...)) -> dict:
     """Upload a video file to Azure Blob Storage."""
@@ -36,6 +67,8 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
     if content_type not in _ALLOWED_VIDEO_TYPES:
         raise HTTPException(status_code=400, detail="Filtype ikke støttet. Bruk .mp4, .mov eller .avi")
     video_bytes = await file.read()
+    if len(video_bytes) > _MAX_VIDEO_BYTES:
+        raise HTTPException(status_code=413, detail="Filen er for stor. Maks 500 MB.")
     blob_name = f"{uuid.uuid4()}_{file.filename}"
     svc = BlobStorageService()
     if not svc.is_configured():
@@ -106,12 +139,14 @@ def list_videos() -> list:
         ), None)
         thumbnail_url = svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
         video_url = svc.generate_sas_url(_VIDEOS_CONTAINER, mp4, hours=4)
+        subtitle_url = _build_vtt_data_uri(sections) if isinstance(sections, list) else None
         results.append({
             "blob_name": mp4,
             "filename": display_name,
             "sections": sections,
             "thumbnail_url": thumbnail_url,
             "video_url": video_url,
+            "subtitle_url": subtitle_url,
         })
     return results
 

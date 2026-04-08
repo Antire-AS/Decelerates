@@ -179,8 +179,9 @@ def index_all(db: Session) -> dict:
 
 
 def get_stats(db: Session) -> dict:
-    """Return counts of indexed chunks per source type."""
+    """Return counts of indexed chunks per source type. Field names match
+    KnowledgeStatsOut and the frontend api.ts contract — do not rename."""
     rows = db.query(CompanyChunk).filter(CompanyChunk.orgnr == KNOWLEDGE_ORG).all()
     doc_count = sum(1 for r in rows if r.source.startswith("doc::"))
     video_count = sum(1 for r in rows if r.source.startswith("video::"))
-    return {"total": len(rows), "doc_chunks": doc_count, "video_chunks": video_count}
+    return {"total_chunks": len(rows), "doc_chunks": doc_count, "video_chunks": video_count}

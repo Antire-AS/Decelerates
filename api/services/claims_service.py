@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from api.db import Claim, ClaimStatus, Policy
-from api.domain.exceptions import ForbiddenError, NotFoundError
+from api.domain.exceptions import NotFoundError
 from api.schemas import ClaimIn, ClaimUpdate
 
 
@@ -48,8 +48,12 @@ class ClaimsService:
             updated_at=now,
         )
         self.db.add(claim)
-        self.db.commit()
-        self.db.refresh(claim)
+        try:
+            self.db.commit()
+            self.db.refresh(claim)
+        except Exception:
+            self.db.rollback()
+            raise
         return claim
 
     def update(self, claim_id: int, firm_id: int, body: ClaimUpdate) -> Claim:
@@ -60,14 +64,22 @@ class ClaimsService:
         for field, value in data.items():
             setattr(claim, field, value)
         claim.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(claim)
+        try:
+            self.db.commit()
+            self.db.refresh(claim)
+        except Exception:
+            self.db.rollback()
+            raise
         return claim
 
     def delete(self, claim_id: int, firm_id: int) -> None:
         claim = self._get_or_raise(claim_id, firm_id)
         self.db.delete(claim)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_or_raise(self, claim_id: int, firm_id: int) -> Claim:
         c = (

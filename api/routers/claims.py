@@ -6,6 +6,7 @@ from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.schemas import ClaimIn, ClaimUpdate
+from api.services.audit import log_audit
 from api.services.claims_service import ClaimsService
 
 router = APIRouter()
@@ -49,12 +50,16 @@ def create_claim(
     orgnr: str,
     body: ClaimIn,
     svc: ClaimsService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.create(orgnr, user.firm_id, body))
+        c = svc.create(orgnr, user.firm_id, body)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "claim.create", orgnr=orgnr, actor_email=user.email,
+              detail={"claim_number": c.claim_number})
+    return _serialize(c)
 
 
 @router.put("/org/{orgnr}/claims/{claim_id}")
@@ -63,12 +68,16 @@ def update_claim(
     claim_id: int,
     body: ClaimUpdate,
     svc: ClaimsService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.update(claim_id, user.firm_id, body))
+        c = svc.update(claim_id, user.firm_id, body)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "claim.update", orgnr=orgnr, actor_email=user.email,
+              detail={"claim_id": claim_id})
+    return _serialize(c)
 
 
 @router.delete("/org/{orgnr}/claims/{claim_id}", status_code=204)
@@ -76,12 +85,15 @@ def delete_claim(
     orgnr: str,
     claim_id: int,
     svc: ClaimsService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> None:
     try:
         svc.delete(claim_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "claim.delete", orgnr=orgnr, actor_email=user.email,
+              detail={"claim_id": claim_id})
 
 
 @router.get("/policies/{policy_id}/claims")

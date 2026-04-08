@@ -7,6 +7,9 @@ sample_offers/
 .idea/
 .venv/
 cf-proxy/.wrangler/
+.wrangler/
+/package-lock.json
+!frontend/package-lock.json
 /routers/
 /services/
 /domain/

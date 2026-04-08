@@ -193,7 +193,42 @@ def _render_knowledge_chat() -> None:
             _send_kb_question(pending)
         st.rerun()
 
-    video_col, chat_col = st.columns([2, 3], gap="large")
+    dl = st.session_state.get("kb_video_player")
+
+    if dl:
+        # Split layout: video on left, chat on right
+        video_col, chat_col = st.columns([2, 3], gap="large")
+        with video_col:
+            hdr, close_btn = st.columns([5, 1])
+            hdr.caption(f"🎬 **{dl['display_name']}**")
+            if close_btn.button("✕", key="kb_close_player"):
+                st.session_state.pop("kb_video_player", None)
+                st.rerun()
+            _render_inline_player(dl)
+            videos = _fetch_videos()
+            vid = next((v for v in videos if v.get("filename") == dl["display_name"]), None)
+            if vid:
+                from ui.views.videos import _parse_sections, _fmt_time as _vfmt
+                sections = _parse_sections(vid.get("sections") or [])
+                if sections:
+                    st.markdown("**Steg i videoen**")
+                    for step_i, ch in enumerate(sections, 1):
+                        ts = _vfmt(ch["start"])
+                        label = ch["title"] or f"Steg {step_i}"
+                        is_current = abs(ch["start"] - dl.get("start_seconds", 0)) < 30
+                        prefix = "▶" if is_current else f"{step_i}."
+                        if st.button(
+                            f"{prefix}  {ts}  {label}",
+                            key=f"kb_step_{step_i}",
+                            type="primary" if is_current else "secondary",
+                            width="stretch",
+                        ):
+                            st.session_state["kb_video_player"] = {
+                                **dl, "start_seconds": int(ch["start"]), "chapter": label,
+                            }
+                            st.rerun()
+    else:
+        chat_col = st.container()  # full-width chat when no video is playing
 
     with chat_col:
         if not st.session_state["kb_messages"]:
@@ -242,42 +277,6 @@ def _render_knowledge_chat() -> None:
             st.session_state["kb_messages"] = []
             st.session_state.pop("kb_video_player", None)
             st.rerun()
-
-    with video_col:
-        dl = st.session_state.get("kb_video_player")
-        if dl:
-            hdr, close_btn = st.columns([5, 1])
-            hdr.caption(f"🎬 **{dl['display_name']}**")
-            if close_btn.button("✕", key="kb_close_player"):
-                st.session_state.pop("kb_video_player", None)
-                st.rerun()
-            _render_inline_player(dl)
-            # Show numbered chapter steps below the player
-            videos = _fetch_videos()
-            vid = next((v for v in videos if v.get("filename") == dl["display_name"]), None)
-            if vid:
-                from ui.views.videos import _parse_sections, _fmt_time as _vfmt
-                sections = _parse_sections(vid.get("sections") or [])
-                if sections:
-                    st.markdown("**Steg i videoen**")
-                    for step_i, ch in enumerate(sections, 1):
-                        ts = _vfmt(ch["start"])
-                        label = ch["title"] or f"Steg {step_i}"
-                        is_current = abs(ch["start"] - dl.get("start_seconds", 0)) < 30
-                        prefix = "▶" if is_current else f"{step_i}."
-                        if st.button(
-                            f"{prefix}  {ts}  {label}",
-                            key=f"kb_step_{step_i}",
-                            type="primary" if is_current else "secondary",
-                            width="stretch",
-                        ):
-                            st.session_state["kb_video_player"] = {
-                                **dl, "start_seconds": int(ch["start"]), "chapter": label,
-                            }
-                            st.rerun()
-        else:
-            st.markdown("#### Prosessvideoer")
-            st.caption("Klikk **▶ Se i video** ved en kilde i chatten for å spille av her med kapittelnavigasjon.")
 
 
 # ── search ────────────────────────────────────────────────────────────────────

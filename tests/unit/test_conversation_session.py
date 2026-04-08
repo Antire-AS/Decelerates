@@ -2,8 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
-from unittest.mock import MagicMock, patch, call
-import pytest
+from unittest.mock import MagicMock, patch
 
 from api.services.rag import save_qa_note, clear_chat_session
 

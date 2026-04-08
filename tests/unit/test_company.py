@@ -1,5 +1,4 @@
 """Unit tests for services/company.py — mocked DB and external APIs."""
-import pytest
 from unittest.mock import MagicMock, patch
 
 from api.services.company import (

@@ -1,5 +1,4 @@
 """Render claims tracking section for a company profile."""
-from datetime import date
 
 import requests
 import streamlit as st

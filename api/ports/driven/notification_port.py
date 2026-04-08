@@ -37,3 +37,8 @@ class NotificationPort(ABC):
     def send_renewal_stage_change(
         self, to: str, policy_number: str, insurer: str, product_type: str, stage: str
     ) -> bool: ...
+
+    @abstractmethod
+    def send_renewal_threshold_emails(
+        self, to: str, threshold_days: int, policies: list[dict]
+    ) -> bool: ...

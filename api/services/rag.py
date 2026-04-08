@@ -1,6 +1,9 @@
 """RAG helpers — chunking, embedding, retrieval, and context building."""
+import logging
 from datetime import datetime, timezone
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 from sqlalchemy.orm import Session
 
@@ -125,7 +128,11 @@ class RagService:
             embedding=emb if emb else None,
         )
         self.db.add(note)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return note.id
 
     def save_to_rag(self, orgnr: str, label: str, content: str) -> None:
@@ -141,8 +148,9 @@ class RagService:
             )
             self.db.add(note)
             self.db.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("save_to_rag failed for orgnr=%s label=%r: %s", orgnr, label, exc)
+            self.db.rollback()
 
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────

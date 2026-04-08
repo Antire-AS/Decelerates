@@ -34,8 +34,12 @@ class ContactsService:
             created_at=datetime.now(timezone.utc),
         )
         self.db.add(contact)
-        self.db.commit()
-        self.db.refresh(contact)
+        try:
+            self.db.commit()
+            self.db.refresh(contact)
+        except Exception:
+            self.db.rollback()
+            raise
         return contact
 
     def update_contact(self, contact_id: int, orgnr: str, body: ContactPersonUpdate) -> ContactPerson:
@@ -44,14 +48,22 @@ class ContactsService:
             self._clear_primary(orgnr)
         for field, value in body.model_dump(exclude_none=True).items():
             setattr(contact, field, value)
-        self.db.commit()
-        self.db.refresh(contact)
+        try:
+            self.db.commit()
+            self.db.refresh(contact)
+        except Exception:
+            self.db.rollback()
+            raise
         return contact
 
     def delete_contact(self, contact_id: int, orgnr: str) -> None:
         contact = self._get_or_raise(contact_id, orgnr)
         self.db.delete(contact)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _get_or_raise(self, contact_id: int, orgnr: str) -> ContactPerson:
         c = (

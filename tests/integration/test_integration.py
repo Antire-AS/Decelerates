@@ -12,7 +12,8 @@ Run:
 In CI: TEST_DATABASE_URL is set automatically by the workflow.
 """
 import os
-from unittest.mock import patch, MagicMock
+from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 
@@ -23,21 +24,27 @@ pytestmark = pytest.mark.skipif(
 
 # ── Shared mock data ───────────────────────────────────────────────────────────
 
+# Shape matches api.services.brreg_client.fetch_enhet_by_orgnr's return value
+# — flattened, not the raw BRREG nested response. See _build_enhet_dict at
+# api/services/brreg_client.py:14.
 _MOCK_ORG_BRREG = {
-    "organisasjonsnummer": "987654321",
+    "orgnr": "987654321",
     "navn": "Integrasjonstest AS",
-    "organisasjonsform": {"kode": "AS", "beskrivelse": "Aksjeselskap"},
-    "forretningsadresse": {
-        "poststed": "Oslo",
-        "postnummer": "0150",
-        "adresse": ["Testgata 1"],
-        "kommune": "Oslo",
-        "land": "Norge",
-    },
-    "naeringskode1": {"kode": "62.010", "beskrivelse": "Programvareutvikling"},
+    "organisasjonsform": "Aksjeselskap",
+    "organisasjonsform_kode": "AS",
+    "kommune": "Oslo",
+    "postnummer": "0150",
+    "land": "Norge",
+    "naeringskode1": "62.010",
+    "naeringskode1_beskrivelse": "Programvareutvikling",
+    "kommunenummer": "0301",
+    "poststed": "Oslo",
+    "adresse": ["Testgata 1"],
+    "stiftelsesdato": None,
+    "hjemmeside": None,
     "konkurs": False,
-    "underAvvikling": False,
-    "antallAnsatte": 10,
+    "under_konkursbehandling": False,
+    "under_avvikling": False,
 }
 
 _MOCK_REGNSKAP = {
@@ -140,10 +147,11 @@ class TestSearch:
             }
         ]
         with patch(
-            "api.services.external_apis.fetch_enhetsregisteret",
+            "api.routers.company.fetch_enhetsregisteret",
             return_value=mock_results,
         ):
-            resp = client.get("/search", params={"q": "dnb"})
+            # Endpoint expects `name`, not `q` — see api/routers/company.py:26
+            resp = client.get("/search", params={"name": "dnb"})
 
         assert resp.status_code == 200
         data = resp.json()
@@ -160,10 +168,15 @@ class TestOrgProfile:
     ORGNR = "987654321"
 
     def test_profile_returns_org_and_risk(self, client):
+        # Patch the names bound in api.services.company (where fetch_org_profile
+        # imports them via `from api.services.external_apis import ...`). Patching
+        # external_apis directly would be a no-op because company.py has already
+        # resolved its own local references at import time. Classic Python mock
+        # pitfall — the target must be "where the name is looked up".
         with (
-            patch("api.services.external_apis.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
-            patch("api.services.external_apis.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
-            patch("api.services.external_apis.pep_screen_name", return_value=[]),
+            patch("api.services.company.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
+            patch("api.services.company.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
+            patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
         ):
             resp = client.get(f"/org/{self.ORGNR}")
@@ -175,9 +188,9 @@ class TestOrgProfile:
 
     def test_unknown_org_returns_404(self, client):
         with (
-            patch("api.services.external_apis.fetch_enhet_by_orgnr", return_value=None),
-            patch("api.services.external_apis.fetch_regnskap_keyfigures", return_value={}),
-            patch("api.services.external_apis.pep_screen_name", return_value=[]),
+            patch("api.services.company.fetch_enhet_by_orgnr", return_value=None),
+            patch("api.services.company.fetch_regnskap_keyfigures", return_value={}),
+            patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
         ):
             resp = client.get("/org/000000000")
@@ -196,3 +209,195 @@ class TestHistory:
         body = resp.json()
         assert body["orgnr"] == self.ORGNR
         assert isinstance(body["years"], list)
+
+
+# ── Helpers for CRM test data ──────────────────────────────────────────────────
+
+def _ensure_firm(db, firm_id: int = 1):
+    from api.db import BrokerFirm
+    firm = db.query(BrokerFirm).filter(BrokerFirm.id == firm_id).first()
+    if not firm:
+        firm = BrokerFirm(id=firm_id, name="Test Megling AS",
+                          created_at=datetime.now(timezone.utc))
+        db.add(firm)
+        db.flush()
+    return firm
+
+
+def _make_policy(db, orgnr: str, **kwargs):
+    from api.db import Policy, PolicyStatus
+    _ensure_firm(db)
+    # Policy has both created_at and updated_at NOT NULL columns — set both.
+    now = datetime.now(timezone.utc)
+    p = Policy(
+        orgnr=orgnr,
+        firm_id=1,
+        insurer=kwargs.get("insurer", "Gjensidige"),
+        product_type=kwargs.get("product_type", "Eiendomsforsikring"),
+        status=kwargs.get("status", PolicyStatus.active),
+        annual_premium_nok=kwargs.get("annual_premium_nok", 100_000.0),
+        commission_rate_pct=kwargs.get("commission_rate_pct", 10.0),
+        commission_amount_nok=kwargs.get("commission_amount_nok", None),
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(p)
+    db.flush()
+    return p
+
+
+# ── Commission endpoints ────────────────────────────────────────────────────────
+
+class TestCommission:
+    ORGNR = "555666777"
+
+    def test_summary_returns_expected_fields(self, client, test_db):
+        _make_policy(test_db, self.ORGNR)
+        resp = client.get("/commission/summary")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_commission_ytd" in data
+        assert "total_premium_managed" in data
+        assert "active_policy_count" in data
+        assert "revenue_by_product_type" in data
+        assert "revenue_by_insurer" in data
+        assert "renewal_commission_vs_new" in data
+
+    def test_summary_counts_active_policy(self, client, test_db):
+        _make_policy(test_db, self.ORGNR, annual_premium_nok=200_000.0, commission_rate_pct=5.0)
+        resp = client.get("/commission/summary")
+        assert resp.json()["active_policy_count"] >= 1
+        assert resp.json()["total_premium_managed"] >= 200_000.0
+
+    def test_by_client_returns_policy_list(self, client, test_db):
+        _make_policy(test_db, self.ORGNR, commission_amount_nok=8_000.0, commission_rate_pct=None)
+        resp = client.get(f"/commission/by-client/{self.ORGNR}")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["orgnr"] == self.ORGNR
+        assert data["total_commission_lifetime"] >= 8_000.0
+        assert len(data["policies"]) >= 1
+
+    def test_missing_returns_policy_without_commission(self, client, test_db):
+        from api.db import PolicyStatus
+        _make_policy(test_db, self.ORGNR,
+                     commission_rate_pct=None, commission_amount_nok=None,
+                     status=PolicyStatus.active)
+        resp = client.get("/commission/missing")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+        assert any(p["orgnr"] == self.ORGNR for p in resp.json())
+
+
+# ── Consent endpoints ───────────────────────────────────────────────────────────
+
+class TestConsent:
+    ORGNR = "666777888"
+
+    @pytest.fixture(autouse=True)
+    def _seed_firm(self, test_db):
+        """consent_records.firm_id is a FK to broker_firms; seed it before
+        every test in this class so INSERT doesn't hit a ForeignKeyViolation."""
+        _ensure_firm(test_db)
+        test_db.commit()
+
+    def test_record_consent_returns_201_with_fields(self, client):
+        resp = client.post(
+            f"/gdpr/company/{self.ORGNR}/consent",
+            json={"lawful_basis": "consent", "purpose": "insurance_advice"},
+        )
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["orgnr"] == self.ORGNR
+        assert data["lawful_basis"] == "consent"
+        assert data["purpose"] == "insurance_advice"
+        assert data["withdrawn_at"] is None
+
+    def test_list_consents_includes_created(self, client):
+        client.post(
+            f"/gdpr/company/{self.ORGNR}/consent",
+            json={"lawful_basis": "contract", "purpose": "insurance_advice"},
+        )
+        resp = client.get(f"/gdpr/company/{self.ORGNR}/consents")
+        assert resp.status_code == 200
+        assert any(c["purpose"] == "insurance_advice" for c in resp.json())
+
+    def test_withdraw_consent_sets_withdrawn_at(self, client):
+        consent_id = client.post(
+            f"/gdpr/company/{self.ORGNR}/consent",
+            json={"lawful_basis": "consent", "purpose": "marketing"},
+        ).json()["id"]
+
+        # Starlette TestClient.delete() doesn't accept a json kwarg; use
+        # request() for DELETE-with-body.
+        resp = client.request(
+            "DELETE",
+            f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
+            json={"reason": "customer request"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["withdrawn_at"] is not None
+
+    def test_withdrawn_consent_excluded_from_list(self, client):
+        consent_id = client.post(
+            f"/gdpr/company/{self.ORGNR}/consent",
+            json={"lawful_basis": "consent", "purpose": "credit_check"},
+        ).json()["id"]
+        # Endpoint requires a body (reason). Use request() for DELETE-with-body.
+        client.request(
+            "DELETE",
+            f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
+            json={"reason": "customer request"},
+        )
+
+        active = client.get(f"/gdpr/company/{self.ORGNR}/consents").json()
+        assert all(c["id"] != consent_id for c in active)
+
+
+# ── Win/loss endpoints ──────────────────────────────────────────────────────────
+
+class TestWinLoss:
+
+    def _seed(self, db):
+        from api.db import Insurer, Submission, SubmissionStatus
+        _ensure_firm(db)
+        insurer = Insurer(
+            firm_id=1, name="Tryg Forsikring",
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(insurer)
+        db.flush()
+        db.add(Submission(
+            orgnr="777888999", firm_id=1, insurer_id=insurer.id,
+            product_type="Eiendom", status=SubmissionStatus.quoted,
+            created_at=datetime.now(timezone.utc),
+        ))
+        db.add(Submission(
+            orgnr="777888999", firm_id=1, insurer_id=insurer.id,
+            product_type="Eiendom", status=SubmissionStatus.declined,
+            created_at=datetime.now(timezone.utc),
+        ))
+        db.flush()
+        return insurer
+
+    def test_win_loss_returns_expected_fields(self, client, test_db):
+        self._seed(test_db)
+        resp = client.get("/insurers/win-loss")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_submissions" in data
+        assert "win_rate_pct" in data
+        assert "by_insurer" in data
+        assert "by_product_type" in data
+
+    def test_win_rate_calculated_correctly(self, client, test_db):
+        self._seed(test_db)
+        data = client.get("/insurers/win-loss").json()
+        # 1 quoted out of 2 total = 50%
+        assert data["total_submissions"] >= 2
+        assert data["win_rate_pct"] <= 100.0
+
+    def test_by_insurer_keyed_by_name(self, client, test_db):
+        self._seed(test_db)
+        data = client.get("/insurers/win-loss").json()
+        assert "Tryg Forsikring" in data["by_insurer"]

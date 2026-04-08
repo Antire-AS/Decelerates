@@ -1,5 +1,4 @@
 """Portfolio endpoints — named company lists with risk analysis and cross-company chat."""
-import json
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
@@ -10,7 +9,13 @@ from api.db import PortfolioCompany, Company, Portfolio, SessionLocal
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.limiter import limiter
-from api.schemas import PortfolioCreate, PortfolioAddCompany, ChatRequest
+from api.schemas import (
+    PortfolioCreate,
+    PortfolioAddCompany,
+    PortfolioBulkAdd,
+    PortfolioBulkAddOut,
+    ChatRequest,
+)
 from api.services.portfolio import PortfolioService, collect_alerts
 
 router = APIRouter()
@@ -43,6 +48,19 @@ def list_portfolios(
     ]
 
 
+@router.get("/portfolio/{portfolio_id}")
+def get_portfolio(
+    portfolio_id: int,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    try:
+        p = svc.get(portfolio_id, user.firm_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
+
+
 @router.delete("/portfolio/{portfolio_id}")
 def delete_portfolio(
     portfolio_id: int,
@@ -68,6 +86,31 @@ def add_company(
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return {"portfolio_id": portfolio_id, "orgnr": body.orgnr}
+
+
+@router.post("/portfolio/{portfolio_id}/companies/bulk", response_model=PortfolioBulkAddOut)
+def add_companies_bulk(
+    portfolio_id: int,
+    body: PortfolioBulkAdd,
+    svc: PortfolioService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Plan §🟢 #18 — bulk-add companies to a portfolio. Skips orgnrs that
+    are already members; returns added/skipped counts. Resolves the portfolio
+    once up front so we get a clean 404 instead of N failures."""
+    try:
+        svc.get(portfolio_id, user.firm_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    added = skipped = 0
+    for orgnr in body.orgnrs:
+        try:
+            svc.add_company(portfolio_id, orgnr)
+            added += 1
+        except Exception:
+            # Already-member, missing company, etc. — count and continue.
+            skipped += 1
+    return {"added": added, "skipped": skipped}
 
 
 @router.delete("/portfolio/{portfolio_id}/companies/{orgnr}")

@@ -92,3 +92,9 @@ variable "entra_client_secret" {
   sensitive   = true
   default     = ""
 }
+
+variable "alert_email" {
+  description = "Email address for Azure Monitor alert notifications (leave empty to disable email alerts)"
+  type        = string
+  default     = ""
+}

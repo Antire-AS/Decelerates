@@ -64,12 +64,13 @@ api/
     broker.py      broker settings + notes (uses BrokerService)
     company.py     /org/{orgnr}, /search, /companies
     financials.py  /org/{orgnr}/pdf-history, /pdf-sources, /history
-    knowledge.py   /org/{orgnr}/chat (RAG/chat)
+    knowledge.py   /org/{orgnr}/chat (RAG/chat); /knowledge/chat; /knowledge/index
     offers.py      insurance offer upload + comparison
     risk_router.py risk narrative + structure endpoints
     sla.py         SLA agreement endpoints (uses SlaService)
     documents.py   InsuranceDocument endpoints
-    utils.py       admin + debug endpoints; injects NotificationPort via container
+    utils.py       org-enrichment endpoints (roles, estimate, bankruptcy, koordinater, benchmark, struktur, norgesbank)
+    admin_router.py admin CRUD + debug/status + dashboard + portfolio-digest + activity-reminders
   services/        ← Business logic (Phase 2 migration target) + legacy wrappers
     broker.py      BrokerService  (db in __init__)
     sla_service.py SlaService     (db in __init__)
@@ -79,7 +80,12 @@ api/
     llm.py         LlmService     + module-level helpers
     external_apis.py ExternalApiService + module-level helpers
     company.py     CompanyService + module-level helpers
-    pdf_extract.py PdfExtractService + module-level helpers
+    pdf_extract.py backward-compat re-export shim (imports from pdf_parse/history/web/agents/background)
+    pdf_parse.py   JSON parsing, Gemini extraction, pdfplumber fallback
+    pdf_history.py DB upsert, history merge (BRREG + PDF rows)
+    pdf_web.py     DuckDuckGo helpers, HTML fetching (Playwright + requests fallback)
+    pdf_agents.py  Claude / Gemini / Azure OpenAI agent loops + orchestration
+    pdf_background.py URL validation, parallel extraction, PdfExtractService
     pdf_generate.py PdfGenerateService + module-level helpers
     blob_storage.py   BlobStorageService (legacy wrapper → AzureBlobStorageAdapter)
     notification_service.py  NotificationService (legacy wrapper → adapter)
@@ -345,6 +351,35 @@ Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOY
 | Equinor ASA | 923609016 | 2024 (Sanity CDN; 46 MB → Files API) |
 
 PDF extraction is **one-time per year** — once stored in `company_history` it is never re-fetched. To force re-extraction, delete the row from `company_history` and visit the profile.
+
+---
+
+## Frontend ↔ backend type sync
+
+The frontend imports its API response types from a generated file, **not** hand-written interfaces. This is the safety net for the silent field-name mismatch bug class — if a backend field is renamed and the frontend is not updated, CI fails the PR with a concrete diff.
+
+```
+api/schemas.py                          ← single source of truth (Pydantic)
+  ↓ FastAPI's app.openapi() walks routes
+scripts/dump_openapi.py                 ← Python: dumps schema to JSON
+  ↓
+frontend/src/lib/openapi-schema.json    ← intermediate (gitignored)
+  ↓ openapi-typescript codegen
+frontend/src/lib/api-schema.ts          ← committed; consumers import from here
+  ↓
+frontend/src/lib/api.ts                 ← wrappers re-export the generated types
+```
+
+**To regenerate after a backend response model change:**
+```bash
+cd frontend
+npm run gen:api-types       # runs scripts/dump_openapi.py + openapi-typescript
+git add src/lib/api-schema.ts
+```
+
+**CI verifies it's fresh** via the `api-types-fresh` job in `.github/workflows/ci.yml`. If you rename a field in `api/schemas.py` and forget the codegen step, the PR fails with a diff like `under_avvikling → under_dissolution`.
+
+**Adding new typed endpoints** — for any router endpoint the frontend reads, add `response_model=SomethingOut` to the decorator and define `SomethingOut` in `api/schemas.py`. The codegen picks it up automatically. Endpoints returning bare `dict` produce loose `unknown` types in the TS output, which is exactly how the silent bugs slipped in before.
 
 ---
 

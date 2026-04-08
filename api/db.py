@@ -1,9 +1,8 @@
 import enum
 import os
-from datetime import datetime
 from sqlalchemy import (
     Boolean, create_engine, Column, Date, DateTime, Enum as SAEnum,
-    Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey, Index,
+    Integer, String, Float, JSON, LargeBinary, text, UniqueConstraint, ForeignKey,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
@@ -48,6 +47,7 @@ class Company(Base):
 
     regnskap_raw = Column(JSON)
     pep_raw = Column(JSON)
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
 
 
 class CompanyNote(Base):
@@ -94,7 +94,8 @@ class CompanyPdfSource(Base):
     id       = Column(Integer, primary_key=True, index=True)
     orgnr    = Column(String(9), index=True, nullable=False)
     year     = Column(Integer, nullable=False)
-    pdf_url  = Column(String, nullable=False)
+    pdf_url  = Column(String, nullable=False)   # original external URL
+    blob_url = Column(String, nullable=True)    # Azure Blob copy (None if not yet uploaded)
     label    = Column(String)
     added_at = Column(String)
 
@@ -190,6 +191,10 @@ class BrokerNote(Base):
     id         = Column(Integer, primary_key=True, index=True)
     orgnr      = Column(String(9), index=True, nullable=False)
     text       = Column(String, nullable=False)
+    # Plan §🟢 #14 — list of email strings extracted from @mentions in `text`.
+    # Stored (rather than re-parsed on every read) so the notification fan-out
+    # only fires once per save and tests can assert against the persisted shape.
+    mentions   = Column(JSON, nullable=True)
     created_at = Column(String, nullable=False)
 
 
@@ -299,10 +304,13 @@ class Policy(Base):
     annual_premium_nok  = Column(Float, nullable=True)
     start_date          = Column(Date, nullable=True)
     renewal_date        = Column(Date, nullable=True, index=True)
-    status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active)
+    status              = Column(SAEnum(PolicyStatus, name="policy_status", create_type=False), nullable=False, default=PolicyStatus.active, index=True)
     renewal_stage       = Column(SAEnum(RenewalStage, name="renewal_stage", create_type=False), nullable=False, default=RenewalStage.not_started)
     notes               = Column(String, nullable=True)
     document_url        = Column(String, nullable=True)
+    last_renewal_notified_days = Column(Integer, nullable=True)
+    commission_rate_pct = Column(Float, nullable=True)
+    commission_amount_nok = Column(Float, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)
     updated_at          = Column(DateTime(timezone=True), nullable=False)
 
@@ -347,18 +355,21 @@ class Activity(Base):
     """CRM activity log entry — call, email, meeting, note, or task."""
     __tablename__ = "activities"
 
-    id               = Column(Integer, primary_key=True, index=True)
-    orgnr            = Column(String(9), nullable=True, index=True)
-    policy_id        = Column(Integer, ForeignKey("policies.id", ondelete="SET NULL"), nullable=True)
-    claim_id         = Column(Integer, ForeignKey("claims.id", ondelete="SET NULL"), nullable=True)
-    firm_id          = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
-    created_by_email = Column(String, nullable=False)
-    activity_type    = Column(SAEnum(ActivityType, name="activity_type", create_type=False), nullable=False)
-    subject          = Column(String, nullable=False)
-    body             = Column(String, nullable=True)
-    due_date         = Column(Date, nullable=True)
-    completed        = Column(Boolean, default=False, nullable=False)
-    created_at       = Column(DateTime(timezone=True), nullable=False, index=True)
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=True, index=True)
+    policy_id           = Column(Integer, ForeignKey("policies.id", ondelete="SET NULL"), nullable=True)
+    claim_id            = Column(Integer, ForeignKey("claims.id", ondelete="SET NULL"), nullable=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    created_by_email    = Column(String, nullable=False)
+    # Plan §🟢 #14 — multi-user assignment. Nullable so legacy rows + unassigned
+    # tasks remain valid; SET NULL on user delete so we don't orphan tasks.
+    assigned_to_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    activity_type       = Column(SAEnum(ActivityType, name="activity_type", create_type=False), nullable=False)
+    subject             = Column(String, nullable=False)
+    body                = Column(String, nullable=True)
+    due_date            = Column(Date, nullable=True, index=True)
+    completed           = Column(Boolean, default=False, nullable=False, index=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False, index=True)
 
 
 class ClientToken(Base):
@@ -373,6 +384,95 @@ class ClientToken(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 
+class IddBehovsanalyse(Base):
+    """IDD-compliant needs assessment (behovsanalyse) per client company."""
+    __tablename__ = "idd_behovsanalyse"
+
+    id                         = Column(Integer, primary_key=True, index=True)
+    orgnr                      = Column(String(9), nullable=False, index=True)
+    firm_id                    = Column(Integer, nullable=False)
+    created_by_email           = Column(String, nullable=True)
+    created_at                 = Column(DateTime(timezone=True), nullable=False)
+    client_name                = Column(String, nullable=True)
+    client_contact_name        = Column(String, nullable=True)
+    client_contact_email       = Column(String, nullable=True)
+    existing_insurance         = Column(JSON, nullable=True)
+    risk_appetite              = Column(String, nullable=True)
+    property_owned             = Column(Boolean, default=False)
+    has_employees              = Column(Boolean, default=False)
+    has_vehicles               = Column(Boolean, default=False)
+    has_professional_liability = Column(Boolean, default=False)
+    has_cyber_risk             = Column(Boolean, default=False)
+    annual_revenue_nok         = Column(Float, nullable=True)
+    special_requirements       = Column(String, nullable=True)
+    recommended_products       = Column(JSON, nullable=True)
+    advisor_notes              = Column(String, nullable=True)
+    suitability_basis          = Column(String, nullable=True)
+    fee_basis                  = Column(String, nullable=True)
+    fee_amount_nok             = Column(Float, nullable=True)
+
+
+class SubmissionStatus(enum.Enum):
+    pending   = "pending"
+    quoted    = "quoted"
+    declined  = "declined"
+    withdrawn = "withdrawn"
+
+
+class Insurer(Base):
+    """A known insurance company the broker places business with."""
+    __tablename__ = "insurers"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    firm_id       = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    name          = Column(String, nullable=False)
+    org_number    = Column(String(9), nullable=True)
+    contact_name  = Column(String, nullable=True)
+    contact_email = Column(String, nullable=True)
+    contact_phone = Column(String, nullable=True)
+    appetite      = Column(JSON, nullable=True)   # ["Eiendom", "Ansvar", "Cyber", ...]
+    notes         = Column(String, nullable=True)
+    created_at    = Column(DateTime(timezone=True), nullable=False)
+
+
+class Submission(Base):
+    """A market approach — broker approached an insurer on behalf of a client."""
+    __tablename__ = "submissions"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=False, index=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    insurer_id          = Column(Integer, ForeignKey("insurers.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_type        = Column(String, nullable=False)
+    requested_at        = Column(Date, nullable=True)
+    status              = Column(SAEnum(SubmissionStatus, name="submission_status", create_type=False), nullable=False, default=SubmissionStatus.pending)
+    premium_offered_nok = Column(Float, nullable=True)
+    notes               = Column(String, nullable=True)
+    created_by_email    = Column(String, nullable=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False)
+
+
+class Recommendation(Base):
+    """A formal recommendation letter — broker's advised insurer(s) for a client."""
+    __tablename__ = "recommendations"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    orgnr               = Column(String(9), nullable=False, index=True)
+    firm_id             = Column(Integer, ForeignKey("broker_firms.id", ondelete="RESTRICT"), nullable=False, index=True)
+    created_by_email    = Column(String, nullable=True)
+    created_at          = Column(DateTime(timezone=True), nullable=False)
+    idd_id              = Column(Integer, ForeignKey("idd_behovsanalyse.id", ondelete="SET NULL"), nullable=True)
+    submission_ids      = Column(JSON, nullable=True)       # [int, ...]
+    recommended_insurer = Column(String, nullable=True)     # name of recommended insurer
+    rationale_text      = Column(String, nullable=True)     # LLM-generated rationale
+    pdf_content         = Column(LargeBinary, nullable=True)
+    # Plan §🟢 #11 — Signicat e-sign tracking. All nullable so existing rows
+    # remain valid; the workflow is opt-in via POST /recommendations/{id}/sign.
+    signing_session_id  = Column(String, nullable=True, index=True)
+    signed_at           = Column(DateTime(timezone=True), nullable=True)
+    signed_pdf_blob_url = Column(String, nullable=True)
+
+
 class AuditLog(Base):
     """Immutable audit trail — records key broker actions for compliance and debugging."""
     __tablename__ = "audit_log"
@@ -383,6 +483,147 @@ class AuditLog(Base):
     action      = Column(String, nullable=False)   # e.g. "view_client_profile", "send_tilbud"
     detail      = Column(String, nullable=True)    # JSON-encoded extras
     created_at  = Column(DateTime(timezone=True), nullable=False, index=True)
+
+
+class JobQueue(Base):
+    """Durable background job queue backed by PostgreSQL. Replaces FastAPI BackgroundTasks."""
+    __tablename__ = "job_queue"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    job_type     = Column(String(100), nullable=False)
+    payload      = Column(JSON, nullable=True)
+    status       = Column(String(20), nullable=False, default="pending", index=True)
+    attempts     = Column(Integer, nullable=False, default=0)
+    max_attempts = Column(Integer, nullable=False, default=3)
+    created_at   = Column(DateTime(timezone=True), nullable=False)
+    scheduled_at = Column(DateTime(timezone=True), nullable=False)
+    started_at   = Column(DateTime(timezone=True), nullable=True)
+    finished_at  = Column(DateTime(timezone=True), nullable=True)
+    error        = Column(String, nullable=True)
+
+
+class LawfulBasis(enum.Enum):
+    consent               = "consent"
+    legitimate_interest   = "legitimate_interest"
+    contract              = "contract"
+    legal_obligation      = "legal_obligation"
+
+
+class ConsentRecord(Base):
+    """GDPR consent and lawful-basis records per client company."""
+    __tablename__ = "consent_records"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    orgnr             = Column(String(9), nullable=False, index=True)
+    firm_id           = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at        = Column(DateTime(timezone=True), nullable=False)
+    lawful_basis      = Column(SAEnum(LawfulBasis, name="lawful_basis", create_type=False), nullable=False)
+    purpose           = Column(String, nullable=False)   # "insurance_advice" | "credit_check" | "marketing"
+    captured_by_email = Column(String, nullable=False)
+    withdrawn_at      = Column(DateTime(timezone=True), nullable=True)
+    withdrawal_reason = Column(String, nullable=True)
+
+
+class NotificationKind(enum.Enum):
+    """Locked semantic kind for in-app notifications. Drives the icon and
+    routing in the bell-icon dropdown. Add new kinds here when a new event
+    type starts firing notifications — frontend defaults to a generic icon."""
+    renewal          = "renewal"
+    activity_overdue = "activity_overdue"
+    mention          = "mention"
+    claim_new        = "claim_new"
+    deal_won         = "deal_won"
+    coverage_gap     = "coverage_gap"
+    digest           = "digest"
+
+
+class Notification(Base):
+    """In-app notification. One row per (user, event) — i.e. a renewal alert
+    sent to 3 users in the same firm produces 3 rows. Cron jobs that send
+    emails ALSO write Notifications so the bell-icon panel mirrors the same
+    events without requiring an inbox-zero email habit. Plan §🟢 #17."""
+    __tablename__ = "notifications"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    firm_id     = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    orgnr       = Column(String(9), nullable=True, index=True)
+    kind        = Column(SAEnum(NotificationKind, name="notification_kind", create_type=False), nullable=False)
+    title       = Column(String, nullable=False)
+    message     = Column(String, nullable=True)
+    link        = Column(String, nullable=True)        # frontend route to navigate to on click
+    read        = Column(Boolean, default=False, nullable=False, index=True)
+    created_at  = Column(DateTime(timezone=True), nullable=False)
+
+
+class PipelineStageKind(enum.Enum):
+    """Locked semantic role for a pipeline stage. The display `name` is
+    customizable per firm, but the `kind` is fixed so analytics, reports, and
+    cron jobs can reason about stage semantics regardless of broker rebranding.
+    """
+    lead      = "lead"
+    qualified = "qualified"
+    quoted    = "quoted"
+    bound     = "bound"
+    won       = "won"
+    lost      = "lost"
+
+
+class PipelineStage(Base):
+    """A column in a broker firm's deal pipeline. Per-firm so each broker
+    can name and order their own funnel — but `kind` is the locked semantic
+    role for analytics."""
+    __tablename__ = "pipeline_stages"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    firm_id     = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    name        = Column(String, nullable=False)        # display label, e.g. "Tilbud sendt"
+    kind        = Column(SAEnum(PipelineStageKind, name="pipeline_stage_kind", create_type=False), nullable=False)
+    order_index = Column(Integer, nullable=False, default=0)
+    color       = Column(String(7), nullable=True)      # hex like "#4A6FA5", optional
+    created_at  = Column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("firm_id", "name", name="uq_pipeline_stage_firm_name"),
+    )
+
+
+class Deal(Base):
+    """An open opportunity moving through the broker firm's pipeline.
+
+    A Deal is firm-scoped and points at a specific company (orgnr). The
+    stage_id reference is RESTRICT so we can't accidentally orphan deals
+    by deleting stages — admins must reassign first.
+    """
+    __tablename__ = "deals"
+
+    id                   = Column(Integer, primary_key=True, index=True)
+    firm_id              = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    orgnr                = Column(String(9), nullable=False, index=True)
+    stage_id             = Column(Integer, ForeignKey("pipeline_stages.id", ondelete="RESTRICT"), nullable=False, index=True)
+    owner_user_id        = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    title                = Column(String, nullable=True)
+    expected_premium_nok = Column(Float, nullable=True)
+    expected_close_date  = Column(Date, nullable=True, index=True)
+    source               = Column(String, nullable=True)   # "Inbound", "Outbound", "Referral", …
+    notes                = Column(String, nullable=True)
+    created_at           = Column(DateTime(timezone=True), nullable=False)
+    updated_at           = Column(DateTime(timezone=True), nullable=False)
+    won_at               = Column(DateTime(timezone=True), nullable=True)
+    lost_at              = Column(DateTime(timezone=True), nullable=True)
+    lost_reason          = Column(String, nullable=True)
+
+
+class SavedSearch(Base):
+    """A user-saved /prospecting filter set. Per-user (not per-firm) so each
+    broker can curate their own. Plan §🟢 #19."""
+    __tablename__ = "saved_searches"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name       = Column(String, nullable=False)
+    params     = Column(JSON, nullable=False)   # arbitrary filter dict
+    created_at = Column(DateTime(timezone=True), nullable=False)
 
 
 def init_db():

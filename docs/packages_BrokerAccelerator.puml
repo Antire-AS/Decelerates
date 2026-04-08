@@ -1,0 +1,509 @@
+@startuml packages_BrokerAccelerator
+set namespaceSeparator none
+package "api" as api {
+}
+package "api.adapters" as api.adapters {
+}
+package "api.adapters.blob_storage_adapter" as api.adapters.blob_storage_adapter {
+}
+package "api.adapters.notification_adapter" as api.adapters.notification_adapter {
+}
+package "api.auth" as api.auth {
+}
+package "api.constants" as api.constants {
+}
+package "api.container" as api.container {
+}
+package "api.db" as api.db {
+}
+package "api.dependencies" as api.dependencies {
+}
+package "api.domain" as api.domain {
+}
+package "api.domain.exceptions" as api.domain.exceptions {
+}
+package "api.limiter" as api.limiter {
+}
+package "api.main" as api.main {
+}
+package "api.ports" as api.ports {
+}
+package "api.ports.driven" as api.ports.driven {
+}
+package "api.ports.driven.blob_storage_port" as api.ports.driven.blob_storage_port {
+}
+package "api.ports.driven.notification_port" as api.ports.driven.notification_port {
+}
+package "api.prompts" as api.prompts {
+}
+package "api.rag_chain" as api.rag_chain {
+}
+package "api.risk" as api.risk {
+}
+package "api.routers" as api.routers {
+}
+package "api.routers.activities" as api.routers.activities {
+}
+package "api.routers.admin_router" as api.routers.admin_router {
+}
+package "api.routers.analytics" as api.routers.analytics {
+}
+package "api.routers.audit" as api.routers.audit {
+}
+package "api.routers.broker" as api.routers.broker {
+}
+package "api.routers.claims" as api.routers.claims {
+}
+package "api.routers.client_token" as api.routers.client_token {
+}
+package "api.routers.company" as api.routers.company {
+}
+package "api.routers.contacts" as api.routers.contacts {
+}
+package "api.routers.documents" as api.routers.documents {
+}
+package "api.routers.financials" as api.routers.financials {
+}
+package "api.routers.gdpr" as api.routers.gdpr {
+}
+package "api.routers.knowledge" as api.routers.knowledge {
+}
+package "api.routers.offers" as api.routers.offers {
+}
+package "api.routers.policies" as api.routers.policies {
+}
+package "api.routers.portfolio_router" as api.routers.portfolio_router {
+}
+package "api.routers.risk_router" as api.routers.risk_router {
+}
+package "api.routers.sla" as api.routers.sla {
+}
+package "api.routers.users" as api.routers.users {
+}
+package "api.routers.utils" as api.routers.utils {
+}
+package "api.routers.videos" as api.routers.videos {
+}
+package "api.schemas" as api.schemas {
+}
+package "api.services" as api.services {
+}
+package "api.services.activity_service" as api.services.activity_service {
+}
+package "api.services.admin_service" as api.services.admin_service {
+}
+package "api.services.audit" as api.services.audit {
+}
+package "api.services.blob_storage" as api.services.blob_storage {
+}
+package "api.services.broker" as api.services.broker {
+}
+package "api.services.claims_service" as api.services.claims_service {
+}
+package "api.services.client_token_service" as api.services.client_token_service {
+}
+package "api.services.company" as api.services.company {
+}
+package "api.services.contacts_service" as api.services.contacts_service {
+}
+package "api.services.demo_documents" as api.services.demo_documents {
+}
+package "api.services.demo_seed" as api.services.demo_seed {
+}
+package "api.services.document_intelligence" as api.services.document_intelligence {
+}
+package "api.services.documents" as api.services.documents {
+}
+package "api.services.external_apis" as api.services.external_apis {
+}
+package "api.services.gdpr_service" as api.services.gdpr_service {
+}
+package "api.services.insurance_needs" as api.services.insurance_needs {
+}
+package "api.services.job_queue_service" as api.services.job_queue_service {
+}
+package "api.services.knowledge_index" as api.services.knowledge_index {
+}
+package "api.services.llm" as api.services.llm {
+}
+package "api.services.nl_query" as api.services.nl_query {
+}
+package "api.services.notification_service" as api.services.notification_service {
+}
+package "api.services.pdf_agents" as api.services.pdf_agents {
+}
+package "api.services.pdf_background" as api.services.pdf_background {
+}
+package "api.services.pdf_base" as api.services.pdf_base {
+}
+package "api.services.pdf_extract" as api.services.pdf_extract {
+}
+package "api.services.pdf_generate" as api.services.pdf_generate {
+}
+package "api.services.pdf_history" as api.services.pdf_history {
+}
+package "api.services.pdf_offer" as api.services.pdf_offer {
+}
+package "api.services.pdf_parse" as api.services.pdf_parse {
+}
+package "api.services.pdf_portfolio" as api.services.pdf_portfolio {
+}
+package "api.services.pdf_risk" as api.services.pdf_risk {
+}
+package "api.services.pdf_sla" as api.services.pdf_sla {
+}
+package "api.services.pdf_sources" as api.services.pdf_sources {
+}
+package "api.services.pdf_web" as api.services.pdf_web {
+}
+package "api.services.policy_service" as api.services.policy_service {
+}
+package "api.services.portfolio" as api.services.portfolio {
+}
+package "api.services.portfolio_analytics" as api.services.portfolio_analytics {
+}
+package "api.services.portfolio_ingest" as api.services.portfolio_ingest {
+}
+package "api.services.portfolio_streaming" as api.services.portfolio_streaming {
+}
+package "api.services.rag" as api.services.rag {
+}
+package "api.services.search_service" as api.services.search_service {
+}
+package "api.services.sla_service" as api.services.sla_service {
+}
+package "api.services.user_service" as api.services.user_service {
+}
+package "api.telemetry" as api.telemetry {
+}
+package "api.use_cases" as api.use_cases {
+}
+package "api.use_cases.insurance_needs" as api.use_cases.insurance_needs {
+}
+api.adapters.blob_storage_adapter --> api.ports.driven.blob_storage_port
+api.adapters.notification_adapter --> api.ports.driven.notification_port
+api.auth --> api.dependencies
+api.auth --> api.services.user_service
+api.container --> api.adapters.blob_storage_adapter
+api.container --> api.adapters.notification_adapter
+api.container --> api.ports.driven.blob_storage_port
+api.container --> api.ports.driven.notification_port
+api.dependencies --> api.db
+api.main --> api.adapters.blob_storage_adapter
+api.main --> api.adapters.notification_adapter
+api.main --> api.container
+api.main --> api.db
+api.main --> api.dependencies
+api.main --> api.limiter
+api.main --> api.routers
+api.main --> api.routers.activities
+api.main --> api.routers.admin_router
+api.main --> api.routers.analytics
+api.main --> api.routers.audit
+api.main --> api.routers.broker
+api.main --> api.routers.claims
+api.main --> api.routers.client_token
+api.main --> api.routers.company
+api.main --> api.routers.contacts
+api.main --> api.routers.documents
+api.main --> api.routers.financials
+api.main --> api.routers.gdpr
+api.main --> api.routers.knowledge
+api.main --> api.routers.offers
+api.main --> api.routers.policies
+api.main --> api.routers.portfolio_router
+api.main --> api.routers.risk_router
+api.main --> api.routers.sla
+api.main --> api.routers.users
+api.main --> api.routers.utils
+api.main --> api.routers.videos
+api.main --> api.services
+api.main --> api.services.gdpr_service
+api.main --> api.services.job_queue_service
+api.main --> api.services.pdf_background
+api.main --> api.services.search_service
+api.routers --> api.routers
+api.routers --> api.routers.activities
+api.routers --> api.routers.broker
+api.routers --> api.routers.claims
+api.routers --> api.routers.company
+api.routers --> api.routers.contacts
+api.routers --> api.routers.documents
+api.routers --> api.routers.financials
+api.routers --> api.routers.knowledge
+api.routers --> api.routers.offers
+api.routers --> api.routers.policies
+api.routers --> api.routers.portfolio_router
+api.routers --> api.routers.risk_router
+api.routers --> api.routers.sla
+api.routers --> api.routers.users
+api.routers --> api.routers.utils
+api.routers --> api.routers.videos
+api.routers.activities --> api.auth
+api.routers.activities --> api.dependencies
+api.routers.activities --> api.domain.exceptions
+api.routers.activities --> api.schemas
+api.routers.activities --> api.services.activity_service
+api.routers.activities --> api.services.audit
+api.routers.admin_router --> api.auth
+api.routers.admin_router --> api.container
+api.routers.admin_router --> api.db
+api.routers.admin_router --> api.dependencies
+api.routers.admin_router --> api.ports.driven.notification_port
+api.routers.admin_router --> api.services.admin_service
+api.routers.admin_router --> api.services.blob_storage
+api.routers.admin_router --> api.services.demo_documents
+api.routers.admin_router --> api.services.demo_seed
+api.routers.admin_router --> api.services.policy_service
+api.routers.admin_router --> api.services.portfolio
+api.routers.analytics --> api.auth
+api.routers.analytics --> api.db
+api.routers.analytics --> api.dependencies
+api.routers.audit --> api.auth
+api.routers.audit --> api.db
+api.routers.audit --> api.dependencies
+api.routers.broker --> api.dependencies
+api.routers.broker --> api.domain.exceptions
+api.routers.broker --> api.schemas
+api.routers.broker --> api.services.broker
+api.routers.claims --> api.auth
+api.routers.claims --> api.dependencies
+api.routers.claims --> api.domain.exceptions
+api.routers.claims --> api.schemas
+api.routers.claims --> api.services.audit
+api.routers.claims --> api.services.claims_service
+api.routers.client_token --> api.auth
+api.routers.client_token --> api.db
+api.routers.client_token --> api.dependencies
+api.routers.client_token --> api.services
+api.routers.client_token --> api.services.audit
+api.routers.client_token --> api.services.client_token_service
+api.routers.company --> api.auth
+api.routers.company --> api.constants
+api.routers.company --> api.db
+api.routers.company --> api.dependencies
+api.routers.company --> api.limiter
+api.routers.company --> api.services
+api.routers.company --> api.services.audit
+api.routers.company --> api.services.insurance_needs
+api.routers.company --> api.services.job_queue_service
+api.routers.contacts --> api.auth
+api.routers.contacts --> api.dependencies
+api.routers.contacts --> api.domain.exceptions
+api.routers.contacts --> api.schemas
+api.routers.contacts --> api.services.contacts_service
+api.routers.documents --> api.db
+api.routers.documents --> api.dependencies
+api.routers.documents --> api.domain.exceptions
+api.routers.documents --> api.schemas
+api.routers.documents --> api.services.audit
+api.routers.documents --> api.services.documents
+api.routers.financials --> api.db
+api.routers.financials --> api.dependencies
+api.routers.financials --> api.domain.exceptions
+api.routers.financials --> api.limiter
+api.routers.financials --> api.schemas
+api.routers.financials --> api.services
+api.routers.financials --> api.services.llm
+api.routers.financials --> api.services.nl_query
+api.routers.financials --> api.services.pdf_sources
+api.routers.gdpr --> api.auth
+api.routers.gdpr --> api.dependencies
+api.routers.gdpr --> api.domain.exceptions
+api.routers.gdpr --> api.services.gdpr_service
+api.routers.knowledge --> api.db
+api.routers.knowledge --> api.dependencies
+api.routers.knowledge --> api.domain.exceptions
+api.routers.knowledge --> api.limiter
+api.routers.knowledge --> api.prompts
+api.routers.knowledge --> api.rag_chain
+api.routers.knowledge --> api.schemas
+api.routers.knowledge --> api.services
+api.routers.knowledge --> api.services.knowledge_index
+api.routers.knowledge --> api.services.rag
+api.routers.offers --> api.db
+api.routers.offers --> api.dependencies
+api.routers.offers --> api.limiter
+api.routers.offers --> api.services.audit
+api.routers.offers --> api.services.documents
+api.routers.offers --> api.services.job_queue_service
+api.routers.offers --> api.services.llm
+api.routers.policies --> api.auth
+api.routers.policies --> api.container
+api.routers.policies --> api.dependencies
+api.routers.policies --> api.domain.exceptions
+api.routers.policies --> api.ports.driven.notification_port
+api.routers.policies --> api.schemas
+api.routers.policies --> api.services.audit
+api.routers.policies --> api.services.policy_service
+api.routers.portfolio_router --> api.auth
+api.routers.portfolio_router --> api.db
+api.routers.portfolio_router --> api.dependencies
+api.routers.portfolio_router --> api.domain.exceptions
+api.routers.portfolio_router --> api.limiter
+api.routers.portfolio_router --> api.schemas
+api.routers.portfolio_router --> api.services.pdf_generate
+api.routers.portfolio_router --> api.services.portfolio
+api.routers.risk_router --> api.auth
+api.routers.risk_router --> api.container
+api.routers.risk_router --> api.db
+api.routers.risk_router --> api.dependencies
+api.routers.risk_router --> api.domain.exceptions
+api.routers.risk_router --> api.ports.driven.notification_port
+api.routers.risk_router --> api.prompts
+api.routers.risk_router --> api.risk
+api.routers.risk_router --> api.schemas
+api.routers.risk_router --> api.services.audit
+api.routers.risk_router --> api.services.client_token_service
+api.routers.risk_router --> api.services.company
+api.routers.risk_router --> api.services.external_apis
+api.routers.risk_router --> api.services.llm
+api.routers.risk_router --> api.services.pdf_generate
+api.routers.risk_router --> api.services.pdf_sources
+api.routers.risk_router --> api.services.rag
+api.routers.sla --> api.db
+api.routers.sla --> api.dependencies
+api.routers.sla --> api.schemas
+api.routers.sla --> api.services
+api.routers.sla --> api.services.notification_service
+api.routers.sla --> api.services.sla_service
+api.routers.users --> api.auth
+api.routers.users --> api.dependencies
+api.routers.users --> api.domain.exceptions
+api.routers.users --> api.schemas
+api.routers.users --> api.services.user_service
+api.routers.utils --> api.services
+api.routers.videos --> api.services.blob_storage
+api.services --> api.services.broker
+api.services --> api.services.company
+api.services --> api.services.documents
+api.services --> api.services.external_apis
+api.services --> api.services.llm
+api.services --> api.services.pdf_extract
+api.services --> api.services.pdf_generate
+api.services --> api.services.pdf_sources
+api.services --> api.services.rag
+api.services --> api.services.sla_service
+api.services.activity_service --> api.db
+api.services.activity_service --> api.domain.exceptions
+api.services.activity_service --> api.schemas
+api.services.admin_service --> api.constants
+api.services.admin_service --> api.db
+api.services.admin_service --> api.services.company
+api.services.admin_service --> api.services.external_apis
+api.services.admin_service --> api.services.portfolio
+api.services.audit --> api.db
+api.services.blob_storage --> api.adapters.blob_storage_adapter
+api.services.blob_storage --> api.ports.driven.blob_storage_port
+api.services.broker --> api.db
+api.services.broker --> api.domain.exceptions
+api.services.broker --> api.schemas
+api.services.claims_service --> api.db
+api.services.claims_service --> api.domain.exceptions
+api.services.claims_service --> api.schemas
+api.services.client_token_service --> api.db
+api.services.company --> api.constants
+api.services.company --> api.db
+api.services.company --> api.risk
+api.services.company --> api.services.external_apis
+api.services.company --> api.services.llm
+api.services.contacts_service --> api.db
+api.services.contacts_service --> api.domain.exceptions
+api.services.contacts_service --> api.schemas
+api.services.demo_documents --> api.db
+api.services.demo_seed --> api.db
+api.services.documents --> api.constants
+api.services.documents --> api.db
+api.services.documents --> api.domain.exceptions
+api.services.documents --> api.services.document_intelligence
+api.services.documents --> api.services.llm
+api.services.documents --> api.services.pdf_generate
+api.services.external_apis --> api.constants
+api.services.gdpr_service --> api.db
+api.services.gdpr_service --> api.domain.exceptions
+api.services.insurance_needs --> api.use_cases.insurance_needs
+api.services.job_queue_service --> api.db
+api.services.knowledge_index --> api.db
+api.services.knowledge_index --> api.services.blob_storage
+api.services.knowledge_index --> api.services.llm
+api.services.knowledge_index --> api.services.search_service
+api.services.llm --> api.constants
+api.services.llm --> api.domain.exceptions
+api.services.llm --> api.prompts
+api.services.llm --> api.telemetry
+api.services.nl_query --> api.services.llm
+api.services.notification_service --> api.adapters.notification_adapter
+api.services.notification_service --> api.ports.driven.notification_port
+api.services.pdf_agents --> api.constants
+api.services.pdf_agents --> api.prompts
+api.services.pdf_agents --> api.services.llm
+api.services.pdf_agents --> api.services.pdf_parse
+api.services.pdf_agents --> api.services.pdf_web
+api.services.pdf_background --> api.db
+api.services.pdf_background --> api.services.pdf_agents
+api.services.pdf_background --> api.services.pdf_history
+api.services.pdf_background --> api.services.pdf_parse
+api.services.pdf_background --> api.services.pdf_web
+api.services.pdf_background --> api.telemetry
+api.services.pdf_extract --> api.services.pdf_agents
+api.services.pdf_extract --> api.services.pdf_background
+api.services.pdf_extract --> api.services.pdf_history
+api.services.pdf_extract --> api.services.pdf_parse
+api.services.pdf_extract --> api.services.pdf_web
+api.services.pdf_generate --> api.services.pdf_base
+api.services.pdf_generate --> api.services.pdf_offer
+api.services.pdf_generate --> api.services.pdf_portfolio
+api.services.pdf_generate --> api.services.pdf_risk
+api.services.pdf_generate --> api.services.pdf_sla
+api.services.pdf_history --> api.db
+api.services.pdf_history --> api.domain.exceptions
+api.services.pdf_history --> api.services.external_apis
+api.services.pdf_history --> api.services.pdf_parse
+api.services.pdf_offer --> api.services.llm
+api.services.pdf_offer --> api.services.pdf_base
+api.services.pdf_parse --> api.constants
+api.services.pdf_parse --> api.domain.exceptions
+api.services.pdf_parse --> api.prompts
+api.services.pdf_parse --> api.services.llm
+api.services.pdf_portfolio --> api.services.pdf_base
+api.services.pdf_risk --> api.services.pdf_base
+api.services.pdf_sla --> api.constants
+api.services.pdf_sla --> api.db
+api.services.pdf_sla --> api.services.pdf_base
+api.services.pdf_sources --> api.db
+api.services.pdf_web --> api.constants
+api.services.policy_service --> api.db
+api.services.policy_service --> api.domain.exceptions
+api.services.policy_service --> api.schemas
+api.services.portfolio --> api.db
+api.services.portfolio --> api.domain.exceptions
+api.services.portfolio --> api.services.llm
+api.services.portfolio --> api.services.portfolio_analytics
+api.services.portfolio --> api.services.portfolio_ingest
+api.services.portfolio --> api.services.portfolio_streaming
+api.services.portfolio_analytics --> api.constants
+api.services.portfolio_analytics --> api.db
+api.services.portfolio_analytics --> api.domain.exceptions
+api.services.portfolio_ingest --> api.constants
+api.services.portfolio_ingest --> api.db
+api.services.portfolio_ingest --> api.services.company
+api.services.portfolio_ingest --> api.services.external_apis
+api.services.portfolio_ingest --> api.services.pdf_extract
+api.services.portfolio_streaming --> api.constants
+api.services.portfolio_streaming --> api.db
+api.services.portfolio_streaming --> api.services
+api.services.portfolio_streaming --> api.services.company
+api.services.portfolio_streaming --> api.services.external_apis
+api.services.portfolio_streaming --> api.services.pdf_extract
+api.services.rag --> api.db
+api.services.rag --> api.rag_chain
+api.services.rag --> api.services.llm
+api.services.rag --> api.services.search_service
+api.services.sla_service --> api.db
+api.services.sla_service --> api.schemas
+api.services.user_service --> api.db
+api.services.user_service --> api.domain.exceptions
+api.services.user_service --> api.schemas
+api.use_cases.insurance_needs --> api.constants
+api.use_cases.insurance_needs --> api.services.llm
+@enduml

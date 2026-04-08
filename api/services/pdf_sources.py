@@ -11,7 +11,8 @@ class PdfSourcesService:
         self.db = db
 
     def upsert_pdf_source(self, orgnr: str, year: int, url: str, label: str) -> CompanyPdfSource:
-        """Insert or update a CompanyPdfSource row."""
+        """Insert or update a CompanyPdfSource row, uploading PDF to Azure Blob if configured."""
+        from api.services.pdf_background import _upload_pdf_to_blob
         existing = (
             self.db.query(CompanyPdfSource)
             .filter(CompanyPdfSource.orgnr == orgnr, CompanyPdfSource.year == year)
@@ -23,7 +24,14 @@ class PdfSourcesService:
         existing.pdf_url = url
         existing.label = label
         existing.added_at = datetime.now(timezone.utc).isoformat()
-        self.db.commit()
+        # Upload to blob if not already stored (skip re-upload on subsequent upserts)
+        if not getattr(existing, "blob_url", None):
+            existing.blob_url = _upload_pdf_to_blob(url, orgnr, year, label)
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return existing
 
     def save_insurance_document(
@@ -43,7 +51,11 @@ class PdfSourcesService:
             uploaded_at=datetime.now(timezone.utc).isoformat(),
         )
         self.db.add(doc)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return doc
 
     def delete_history_year(self, orgnr: str) -> int:
@@ -53,7 +65,11 @@ class PdfSourcesService:
             .filter(CompanyHistory.orgnr == orgnr)
             .delete()
         )
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return deleted
 
 

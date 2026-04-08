@@ -1,8 +1,15 @@
 """LLM and embedding helpers — Claude, Gemini, Voyage AI."""
 import json
+import logging
 import os
 import re
-from typing import Optional, List, Dict, Any
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from typing import Optional, List
+
+_LLM_TIMEOUT_SECONDS = 30
+
+logger = logging.getLogger(__name__)
 
 import anthropic
 import voyageai
@@ -12,6 +19,33 @@ from google.genai import types as genai_types
 from api.constants import CLAUDE_MODEL, GEMINI_MODEL, VOYAGE_MODEL
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.prompts import CHAT_SYSTEM_PROMPT
+from api.telemetry import llm_calls, llm_duration_ms
+
+
+_INJECTION_PATTERNS = re.compile(
+    r"(ignore\s+previous|system\s*:|assistant\s*:|human\s*:|<\s*/?system\s*>)",
+    re.IGNORECASE,
+)
+
+
+def _sanitize_user_input(text: str, max_chars: int = 4000) -> str:
+    """Strip common prompt injection patterns and hard-cap length."""
+    sanitized = _INJECTION_PATTERNS.sub("", text)
+    return sanitized[:max_chars]
+
+
+def _validate_llm_json(raw: str, required_keys: list[str]) -> dict:
+    """Parse JSON from LLM response and verify required keys are present.
+
+    Raises LlmUnavailableError if the response cannot be parsed or is missing keys.
+    """
+    parsed = _parse_json_from_llm_response(raw)
+    if not isinstance(parsed, dict):
+        raise LlmUnavailableError(f"LLM returned non-JSON response: {raw[:200]}")
+    missing = [k for k in required_keys if k not in parsed]
+    if missing:
+        raise LlmUnavailableError(f"LLM JSON missing required keys: {missing}")
+    return parsed
 
 
 def _parse_json_from_llm_response(raw: str) -> Optional[dict]:
@@ -101,8 +135,8 @@ def _embed(text: str) -> List[float]:
             vo = voyageai.Client(api_key=voyage_key)
             result = vo.embed([text], model=VOYAGE_MODEL)
             return result.embeddings[0] if result.embeddings else []
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Voyage AI embed failed: %s", exc)
 
     gemini_key = os.getenv("GEMINI_API_KEY")
     if _is_key_set(gemini_key):
@@ -114,8 +148,8 @@ def _embed(text: str) -> List[float]:
                 config=genai_types.EmbedContentConfig(output_dimensionality=512),
             )
             return result.embeddings[0].values
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Gemini embed failed: %s", exc)
 
     return []
 
@@ -131,46 +165,66 @@ def _fmt_nok(value) -> str:
 
 def _llm_answer_raw(prompt: str) -> Optional[str]:
     """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
-    result = _azure_foundry_answer(prompt)
-    if result is not None:
-        return result
+    _t0 = time.monotonic()
+    _provider = "none"
+    _outcome = "success"
+    try:
+        result = _azure_foundry_answer(prompt)
+        if result is not None:
+            _provider = "azure_foundry"
+            return result
 
-    result = _azure_openai_answer(prompt)
-    if result is not None:
-        return result
+        result = _azure_openai_answer(prompt)
+        if result is not None:
+            _provider = "azure_openai"
+            return result
 
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    if _is_key_set(anthropic_key):
-        client = anthropic.Anthropic(api_key=anthropic_key)
-        msg = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return msg.content[0].text
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if _is_key_set(anthropic_key):
+            client = anthropic.Anthropic(api_key=anthropic_key)
+            msg = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=_LLM_TIMEOUT_SECONDS,
+            )
+            _provider = "claude"
+            return msg.content[0].text
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if _is_key_set(gemini_key):
-        client = google_genai.Client(api_key=gemini_key)
-        models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
-        seen: set = set()
-        ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-        last_exc: Optional[Exception] = None
-        for model_name in ordered:
-            try:
-                response = client.models.generate_content(model=model_name, contents=prompt)
-                return response.text
-            except Exception as exc:
-                msg = str(exc)
-                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    last_exc = exc
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if _is_key_set(gemini_key):
+            client = google_genai.Client(api_key=gemini_key)
+            models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
+            seen: set = set()
+            ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
+            for model_name in ordered:
+                try:
+                    with ThreadPoolExecutor(max_workers=1) as _pool:
+                        future = _pool.submit(
+                            client.models.generate_content, model_name, prompt
+                        )
+                        response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
+                    _provider = "gemini"
+                    return response.text
+                except FuturesTimeoutError:
+                    logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
                     continue
-                raise
-        raise QuotaError(
-            "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
-        )
+                except Exception as exc:
+                    msg = str(exc)
+                    if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                        continue
+                    raise
+            raise QuotaError(
+                "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
+            )
 
-    return None
+        return None
+    except Exception:
+        _outcome = "error"
+        raise
+    finally:
+        llm_duration_ms.record((time.monotonic() - _t0) * 1000, {"provider": _provider})
+        llm_calls.add(1, {"provider": _provider, "outcome": _outcome})
 
 
 def _compare_offers_with_llm(prompt: str) -> Optional[str]:
@@ -192,10 +246,11 @@ def _gemini_generate_with_fallback(
             try:
                 resp = client.models.generate_content(model=model, contents=parts, config=config)
                 return resp.text
-            except Exception:
+            except Exception as exc:
+                logger.warning("Gemini model %s failed: %s", model, exc)
                 continue
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error("Gemini generate_with_fallback failed: %s", exc)
     return None
 
 
@@ -223,6 +278,7 @@ def _llm_answer(context: str, question: str) -> str:
             max_tokens=1024,
             system=CHAT_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": f"Company data:\n{context}\n\nQuestion: {question}"}],
+            timeout=_LLM_TIMEOUT_SECONDS,
         )
         return message.content[0].text
 

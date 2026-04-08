@@ -1,0 +1,538 @@
+{
+  "Organisation": {
+    "no": "Organisasjon",
+    "en": "Organisation"
+  },
+  "Bankruptcy & liquidation": {
+    "no": "Konkurs- og avviklingsstatus",
+    "en": "Bankruptcy & liquidation status"
+  },
+  "Board members": {
+    "no": "Styremedlemmer og roller",
+    "en": "Board members & roles"
+  },
+  "Active members": {
+    "no": "Aktive",
+    "en": "Active"
+  },
+  "Resigned / deceased": {
+    "no": "Fratrådt / avdød",
+    "en": "Resigned / deceased"
+  },
+  "Key figures": {
+    "no": "Nøkkeltall",
+    "en": "Key figures"
+  },
+  "Turnover": {
+    "no": "Omsetning",
+    "en": "Turnover"
+  },
+  "Net result": {
+    "no": "Nettoresultat",
+    "en": "Net result"
+  },
+  "Equity": {
+    "no": "Egenkapital",
+    "en": "Equity"
+  },
+  "Equity ratio": {
+    "no": "Egenkapitalandel",
+    "en": "Equity ratio"
+  },
+  "Profit and loss": {
+    "no": "Resultatregnskap",
+    "en": "Profit and loss"
+  },
+  "Balance sheet": {
+    "no": "Balanse",
+    "en": "Balance sheet"
+  },
+  "Financial history": {
+    "no": "Finansiell historikk",
+    "en": "Financial history"
+  },
+  "Year-over-year overview": {
+    "no": "År-for-år oversikt",
+    "en": "Year-over-year overview"
+  },
+  "Revenue & net result (MNOK)": {
+    "no": "Omsetning og resultat (MNOK)",
+    "en": "Revenue & net result (MNOK)"
+  },
+  "Debt breakdown (MNOK)": {
+    "no": "Gjeldsstruktur (MNOK)",
+    "en": "Debt breakdown (MNOK)"
+  },
+  "Equity ratio trend (%)": {
+    "no": "Egenkapitalandel trend (%)",
+    "en": "Equity ratio trend (%)"
+  },
+  "Detailed view by year": {
+    "no": "Detaljert visning per år",
+    "en": "Detailed view by year"
+  },
+  "Select year": {
+    "no": "Velg år",
+    "en": "Select year"
+  },
+  "Profit & Loss": {
+    "no": "Resultatregnskap",
+    "en": "Profit & Loss"
+  },
+  "Sales revenue": {
+    "no": "Salgsinntekter",
+    "en": "Sales revenue"
+  },
+  "Total operating income": {
+    "no": "Sum driftsinntekter",
+    "en": "Total operating income"
+  },
+  "Wage costs": {
+    "no": "Lønnskostnader",
+    "en": "Wage costs"
+  },
+  "Total operating costs": {
+    "no": "Sum driftskostnader",
+    "en": "Total operating costs"
+  },
+  "Operating result": {
+    "no": "Driftsresultat",
+    "en": "Operating result"
+  },
+  "Financial income": {
+    "no": "Finansinntekter",
+    "en": "Financial income"
+  },
+  "Financial costs": {
+    "no": "Finanskostnader",
+    "en": "Financial costs"
+  },
+  "Net financials": {
+    "no": "Netto finansposter",
+    "en": "Net financials"
+  },
+  "Result before tax": {
+    "no": "Resultat før skatt",
+    "en": "Result before tax"
+  },
+  "Tax cost": {
+    "no": "Skattekostnad",
+    "en": "Tax cost"
+  },
+  "Annual result": {
+    "no": "Årsresultat",
+    "en": "Annual result"
+  },
+  "Total result": {
+    "no": "Totalresultat",
+    "en": "Total result"
+  },
+  "Total assets": {
+    "no": "Sum eiendeler",
+    "en": "Total assets"
+  },
+  "Current assets": {
+    "no": "Omløpsmidler",
+    "en": "Current assets"
+  },
+  "Fixed assets": {
+    "no": "Anleggsmidler",
+    "en": "Fixed assets"
+  },
+  "Inventory": {
+    "no": "Varebeholdning",
+    "en": "Inventory"
+  },
+  "Receivables": {
+    "no": "Fordringer",
+    "en": "Receivables"
+  },
+  "Investments": {
+    "no": "Investeringer",
+    "en": "Investments"
+  },
+  "Cash & bank": {
+    "no": "Bank og kontanter",
+    "en": "Cash & bank"
+  },
+  "Goodwill": {
+    "no": "Goodwill",
+    "en": "Goodwill"
+  },
+  "Paid-in equity": {
+    "no": "Innskutt egenkapital",
+    "en": "Paid-in equity"
+  },
+  "Retained earnings": {
+    "no": "Opptjent egenkapital",
+    "en": "Retained earnings"
+  },
+  "Total debt": {
+    "no": "Sum gjeld",
+    "en": "Total debt"
+  },
+  "Short-term debt": {
+    "no": "Kortsiktig gjeld",
+    "en": "Short-term debt"
+  },
+  "Long-term debt": {
+    "no": "Langsiktig gjeld",
+    "en": "Long-term debt"
+  },
+  "Employees": {
+    "no": "Ansatte",
+    "en": "Employees"
+  },
+  "Role": {
+    "no": "Rolle",
+    "en": "Role"
+  },
+  "Name": {
+    "no": "Navn",
+    "en": "Name"
+  },
+  "Born": {
+    "no": "Fødselsår",
+    "en": "Born"
+  },
+  "Founded": {
+    "no": "Stiftet",
+    "en": "Founded"
+  },
+  "Value": {
+    "no": "Verdi",
+    "en": "Value"
+  },
+  "Source": {
+    "no": "Kilde",
+    "en": "Source"
+  },
+  "Search organisation": {
+    "no": "Søk organisasjon",
+    "en": "Search organisation"
+  },
+  "Name (or orgnr)": {
+    "no": "Navn (eller orgnr)",
+    "en": "Name (or orgnr)"
+  },
+  "Municipality (optional)": {
+    "no": "Kommunenummer (valgfritt)",
+    "en": "Municipality (optional)"
+  },
+  "Max results": {
+    "no": "Maks resultater",
+    "en": "Max results"
+  },
+  "Search": {
+    "no": "Søk",
+    "en": "Search"
+  },
+  "View profile": {
+    "no": "Vis profil",
+    "en": "View profile"
+  },
+  "New search": {
+    "no": "Ny søk",
+    "en": "New search"
+  },
+  "Profile for": {
+    "no": "Profil for",
+    "en": "Profile for"
+  },
+  "Bankruptcy proceedings": {
+    "no": "⚠️ Dette selskapet er under konkursbehandling",
+    "en": "⚠️ This company is currently under bankruptcy proceedings"
+  },
+  "Under liquidation": {
+    "no": "⚠️ Dette selskapet er under frivillig avvikling",
+    "en": "⚠️ This company is currently under voluntary liquidation"
+  },
+  "No bankruptcy found": {
+    "no": "Ingen konkurs- eller avviklingsprosesser funnet",
+    "en": "No bankruptcy or liquidation proceedings found"
+  },
+  "Bankruptcy unavailable": {
+    "no": "Konkursstatus utilgjengelig",
+    "en": "Bankruptcy status unavailable"
+  },
+  "Risk profile": {
+    "no": "Risikoprofil",
+    "en": "Risk profile"
+  },
+  "Turnover (m)": {
+    "no": "Omsetning",
+    "en": "Turnover"
+  },
+  "Employees (m)": {
+    "no": "Ansatte",
+    "en": "Employees"
+  },
+  "Equity ratio (m)": {
+    "no": "Egenkapitalandel",
+    "en": "Equity ratio"
+  },
+  "Risk score": {
+    "no": "Risikoscore",
+    "en": "Risk score"
+  },
+  "PEP hits": {
+    "no": "PEP-treff",
+    "en": "PEP hits"
+  },
+  "Checked vs OpenSanctions": {
+    "no": "Sjekket mot OpenSanctions",
+    "en": "Checked vs OpenSanctions"
+  },
+  "Data sources": {
+    "no": "Kilde: BRREG Enhetsregisteret · BRREG Regnskapsregisteret · OpenSanctions",
+    "en": "Source: BRREG Enhetsregisteret · BRREG Regnskapsregisteret · OpenSanctions"
+  },
+  "Low": {
+    "no": "Lav",
+    "en": "Low"
+  },
+  "Moderate": {
+    "no": "Moderat",
+    "en": "Moderate"
+  },
+  "High": {
+    "no": "Høy",
+    "en": "High"
+  },
+  "Very high": {
+    "no": "Svært høy",
+    "en": "Very high"
+  },
+  "Insurance recommendation": {
+    "no": "Forsikringsanbefaling",
+    "en": "Insurance recommendation"
+  },
+  "Generate recommendation": {
+    "no": "Generer forsikringstilbud",
+    "en": "Generate insurance recommendation"
+  },
+  "Analysing risk profile": {
+    "no": "Analyserer risikoprofil med AI...",
+    "en": "Analysing risk profile with AI..."
+  },
+  "Analysing risk profile with AI...": {
+    "no": "Analyserer risikoprofil med AI...",
+    "en": "Analysing risk profile with AI..."
+  },
+  "Generating PDF...": {
+    "no": "Genererer PDF...",
+    "en": "Generating PDF..."
+  },
+  "Generating and saving...": {
+    "no": "Genererer og lagrer...",
+    "en": "Generating and saving..."
+  },
+  "Analysing with AI...": {
+    "no": "Analyserer med AI...",
+    "en": "Analysing with AI..."
+  },
+  "Generating PDF": {
+    "no": "Genererer PDF...",
+    "en": "Generating PDF..."
+  },
+  "Generating and saving": {
+    "no": "Genererer og lagrer...",
+    "en": "Generating and saving..."
+  },
+  "Analysing with AI": {
+    "no": "Analyserer med AI...",
+    "en": "Analysing with AI..."
+  },
+  "Download tilbud PDF": {
+    "no": "Last ned Forsikringstilbud (PDF)",
+    "en": "Download Insurance Recommendation (PDF)"
+  },
+  "Save to library": {
+    "no": "Lagre til dokumentbibliotek",
+    "en": "Save to document library"
+  },
+  "Saved to library": {
+    "no": "Lagret til Dokumenter-biblioteket!",
+    "en": "Saved to document library!"
+  },
+  "Download generated PDF": {
+    "no": "Last ned generert PDF",
+    "en": "Download generated PDF"
+  },
+  "Clear recommendation": {
+    "no": "Nullstill anbefaling",
+    "en": "Clear recommendation"
+  },
+  "Industry benchmarks": {
+    "no": "Bransjesammenligning",
+    "en": "Industry benchmarks"
+  },
+  "Section label": {
+    "no": "Seksjon",
+    "en": "Section"
+  },
+  "Profit margin": {
+    "no": "Fortjenestemargin",
+    "en": "Profit margin"
+  },
+  "Equity ratio (bench)": {
+    "no": "Egenkapitalandel",
+    "en": "Equity ratio"
+  },
+  "vs industry mid": {
+    "no": "vs. bransjegjennomsnitt",
+    "en": "vs industry mid"
+  },
+  "AI risk narrative": {
+    "no": "AI risikoanalyse",
+    "en": "AI risk narrative"
+  },
+  "Regenerate narrative": {
+    "no": "Regenerer analyse",
+    "en": "Regenerate narrative"
+  },
+  "Generate risk narrative": {
+    "no": "Generer risikoanalyse",
+    "en": "Generate risk narrative"
+  },
+  "Insurance offers": {
+    "no": "Forsikringstilbud",
+    "en": "Insurance offers"
+  },
+  "Delete": {
+    "no": "Slett",
+    "en": "Delete"
+  },
+  "Analyse stored offers": {
+    "no": "Analyser lagrede tilbud med AI",
+    "en": "Analyse stored offers with AI"
+  },
+  "Analysing offers": {
+    "no": "Analyserer tilbud med AI... (kan ta 30-60 sek)",
+    "en": "Analysing offers with AI... (may take 30-60 sec)"
+  },
+  "Upload new offers": {
+    "no": "Last opp nye tilbud og lagre til database",
+    "en": "Upload new offers and save to database"
+  },
+  "Select PDF offers": {
+    "no": "Velg PDF-tilbud fra forsikringsselskaper",
+    "en": "Select PDF offers from insurers"
+  },
+  "Save to database": {
+    "no": "Lagre til database",
+    "en": "Save to database"
+  },
+  "Analyse without saving": {
+    "no": "Analyser uten å lagre",
+    "en": "Analyse without saving"
+  },
+  "Clear analysis": {
+    "no": "Nullstill analyse",
+    "en": "Clear analysis"
+  },
+  "Coverage gap analysis": {
+    "no": "Dekningstomme analyse",
+    "en": "Coverage gap analysis"
+  },
+  "Coverage gap caption": {
+    "no": "Sammenligner risikoprofil mot opplastede tilbud og identifiserer manglende dekninger.",
+    "en": "Compares risk profile against uploaded offers and identifies missing coverage."
+  },
+  "Analyse coverage gap": {
+    "no": "Analyser dekningstomme",
+    "en": "Analyse coverage gap"
+  },
+  "Covered by offers": {
+    "no": "Dekket av eksisterende tilbud:",
+    "en": "Covered by existing offers:"
+  },
+  "Missing coverage": {
+    "no": "Mangler / dekningstomme:",
+    "en": "Missing / coverage gaps:"
+  },
+  "Clear": {
+    "no": "Nullstill",
+    "en": "Clear"
+  },
+  "Source BRREG": {
+    "no": "Kilde: BRREG Regnskapsregisteret (offentlige regnskapsdata)",
+    "en": "Source: BRREG Regnskapsregisteret (public financial data)"
+  },
+  "Source history": {
+    "no": "Kilde: BRREG Regnskapsregisteret · PDF-årsrapporter (AI-ekstraksjon via Gemini)",
+    "en": "Source: BRREG Regnskapsregisteret · PDF annual reports (AI extraction via Gemini)"
+  },
+  "Source PDF": {
+    "no": "PDF-årsrapport (Gemini AI-ekstraksjon)",
+    "en": "PDF annual report (Gemini AI extraction)"
+  },
+  "Source BRREG short": {
+    "no": "BRREG Regnskapsregisteret",
+    "en": "BRREG Regnskapsregisteret"
+  },
+  "Source year": {
+    "no": "År",
+    "en": "Year"
+  },
+  "Re-extract PDF history": {
+    "no": "Reekstraher all PDF-historikk",
+    "en": "Re-extract all PDF history"
+  },
+  "Re-extract caption": {
+    "no": "Slett all lagret PDF-historikk og kjør ekstraksjon på nytt med siste AI-prompt. Bruk dette hvis dataen ser feil ut.",
+    "en": "Delete all stored PDF history for this company and re-run extraction with the latest AI prompt. Use this if data looks wrong or incomplete."
+  },
+  "Reset and re-extract": {
+    "no": "Nullstill & Reekstraher",
+    "en": "Reset & Re-extract"
+  },
+  "Add Annual Report PDF": {
+    "no": "Legg til årsrapport (PDF)",
+    "en": "Add Annual Report PDF"
+  },
+  "Add PDF caption": {
+    "no": "Lim inn en offentlig PDF-URL for å hente ut finansiell historikk med AI.",
+    "en": "Paste a public PDF URL to extract multi-year financial history using AI."
+  },
+  "PEP screening": {
+    "no": "PEP / sanksjonsskjermling",
+    "en": "PEP / sanctions screening"
+  },
+  "No PEP matches": {
+    "no": "Ingen PEP/sanksjonstreff funnet i OpenSanctions.",
+    "en": "No PEP/sanctions matches found in OpenSanctions."
+  },
+  "No PEP data": {
+    "no": "Ingen PEP/sanksjonsdata tilgjengelig.",
+    "en": "No PEP/sanctions data available."
+  },
+  "Ask analyst": {
+    "no": "Spør risikoanalytikeren",
+    "en": "Ask the risk analyst"
+  },
+  "Question label": {
+    "no": "Spørsmål",
+    "en": "Question"
+  },
+  "Question placeholder": {
+    "no": "Hva er de viktigste tegningshensyn for dette selskapet?",
+    "en": "What are the main underwriting concerns for this company?"
+  },
+  "Previous questions": {
+    "no": "Tidligere spørsmål",
+    "en": "Previous questions"
+  },
+  "Notes": {
+    "no": "Notater",
+    "en": "Notes"
+  },
+  "Save note": {
+    "no": "Lagre notat",
+    "en": "Save note"
+  },
+  "Note placeholder": {
+    "no": "Skriv et notat om dette selskapet...",
+    "en": "Write a note about this company..."
+  }
+}

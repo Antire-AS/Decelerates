@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-dark:    #2C3E50;
+  --brand-mid:     #4A6FA5;
+  --brand-light:   #C5D8F0;
+  --brand-beige:   #F5F0EB;
+  --brand-stone:   #D4C9B8;
+  --brand-muted:   #8A7F74;
+  --brand-success: #5A8A5A;
+  --brand-warning: #C8A951;
+  --brand-danger:  #C0392B;
+}
+
+@layer base {
+  body {
+    @apply bg-[#F5F0EB] text-[#2C3E50] font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-[#2C3E50];
+  }
+}
+
+@layer components {
+  .broker-card {
+    @apply bg-white rounded-xl border border-[#D4C9B8] shadow-sm p-5;
+  }
+
+  .broker-badge-low    { @apply bg-green-100  text-green-800  text-xs font-medium px-2 py-0.5 rounded-full; }
+  .broker-badge-mid    { @apply bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full; }
+  .broker-badge-high   { @apply bg-red-100    text-red-800    text-xs font-medium px-2 py-0.5 rounded-full; }
+  .broker-badge-none   { @apply bg-gray-100   text-gray-600   text-xs font-medium px-2 py-0.5 rounded-full; }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+           text-[#8A7F74] hover:bg-[#EDE8E3] hover:text-[#2C3E50]
+           transition-colors cursor-pointer;
+  }
+
+  .nav-item-active {
+    @apply bg-[#2C3E50] text-white hover:bg-[#2C3E50] hover:text-white;
+  }
+
+  .label-xs {
+    @apply block text-xs text-[#8A7F74] mb-0.5;
+  }
+
+  .input-sm {
+    @apply w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white
+           focus:outline-none focus:ring-1 focus:ring-[#4A6FA5];
+  }
+}

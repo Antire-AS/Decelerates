@@ -200,7 +200,7 @@ def list_companies(
     sort_by: str = "revenue",
 ) -> List[Dict[str, Any]]:
     from api.constants import _NACE_SECTION_MAP
-    q = db.query(Company)
+    q = db.query(Company).filter(Company.deleted_at.is_(None))
     if kommune:
         q = q.filter(Company.kommune == kommune)
     if nace_section:

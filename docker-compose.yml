@@ -48,5 +48,20 @@ services:
     depends_on:
       - api
 
+  # Next.js frontend (replacement for broker-ui — run alongside during migration)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        API_BASE_URL: http://api:8000
+    container_name: broker-frontend
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
 volumes:
   postgres_data:

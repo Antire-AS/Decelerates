@@ -1,12 +1,25 @@
 """Policy register and renewal pipeline service."""
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from api.db import Policy, PolicyStatus, RenewalStage
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.schemas import PolicyIn, PolicyUpdate
+
+_RENEWAL_THRESHOLDS = [90, 60, 30, 14, 7]
+
+
+def _policy_to_dict(p: Policy) -> dict:
+    return {
+        "id":                 p.id,
+        "policy_number":      p.policy_number or str(p.id),
+        "insurer":            p.insurer,
+        "product_type":       p.product_type,
+        "renewal_date":       p.renewal_date.isoformat() if p.renewal_date else "",
+        "orgnr":              p.orgnr,
+        "annual_premium_nok": p.annual_premium_nok,
+    }
 
 
 class PolicyService:
@@ -51,8 +64,12 @@ class PolicyService:
             updated_at=now,
         )
         self.db.add(policy)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def update(self, policy_id: int, firm_id: int, body: PolicyUpdate) -> Policy:
@@ -65,21 +82,61 @@ class PolicyService:
         for field, value in data.items():
             setattr(policy, field, value)
         policy.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def advance_renewal_stage(self, policy_id: int, firm_id: int, new_stage: str) -> Policy:
         policy = self._get_or_raise(policy_id, firm_id)
         policy.renewal_stage = self._parse_renewal_stage(new_stage)
         policy.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(policy)
+        try:
+            self.db.commit()
+            self.db.refresh(policy)
+        except Exception:
+            self.db.rollback()
+            raise
         return policy
 
     def delete(self, policy_id: int, firm_id: int) -> None:
         policy = self._get_or_raise(policy_id, firm_id)
         self.db.delete(policy)
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def get_policies_needing_renewal_notification(
+        self, firm_id: int, threshold_days: int
+    ) -> list[Policy]:
+        """Return active policies renewing within threshold_days that haven't been notified at this threshold."""
+        today = date.today()
+        cutoff = today + timedelta(days=threshold_days)
+        return (
+            self.db.query(Policy)
+            .filter(
+                Policy.firm_id == firm_id,
+                Policy.status == PolicyStatus.active,
+                Policy.renewal_date >= today,
+                Policy.renewal_date <= cutoff,
+                # either never notified, or last notification was at a higher threshold
+                (Policy.last_renewal_notified_days.is_(None)) |
+                (Policy.last_renewal_notified_days > threshold_days),
+            )
+            .order_by(Policy.renewal_date.asc())
+            .all()
+        )
+
+    def mark_renewal_notified(self, policy_id: int, threshold_days: int) -> None:
+        """Record that a renewal notification was sent at this threshold."""
+        self.db.query(Policy).filter(Policy.id == policy_id).update(
+            {"last_renewal_notified_days": threshold_days}
+        )
         self.db.commit()
 
     def get_renewals(self, firm_id: int, days: int = 90) -> list[Policy]:
@@ -96,6 +153,40 @@ class PolicyService:
             .order_by(Policy.renewal_date.asc())
             .all()
         )
+
+    def _notify_threshold(
+        self, firm_id: int, threshold: int, notif_port, broker_email: str, db
+    ) -> tuple[int, int]:
+        """Process one renewal threshold. Returns (notified, skipped) counts."""
+        from api.services.audit import log_audit
+
+        policies = self.get_policies_needing_renewal_notification(firm_id, threshold)
+        if not policies:
+            return 0, 0
+        sent = notif_port.send_renewal_threshold_emails(
+            broker_email, threshold, [_policy_to_dict(p) for p in policies]
+        )
+        if sent:
+            for p in policies:
+                self.mark_renewal_notified(p.id, threshold)
+                log_audit(
+                    db, action="renewal_notification_sent", orgnr=p.orgnr,
+                    actor_email=broker_email,
+                    detail={"threshold_days": threshold, "policy_id": p.id},
+                )
+            return len(policies), 0
+        return 0, len(policies)
+
+    def run_renewal_notifications(
+        self, firm_id: int, notif_port, broker_email: str, db
+    ) -> dict:
+        """Send renewal threshold emails and update last_renewal_notified_days."""
+        notified, skipped = 0, 0
+        for threshold in _RENEWAL_THRESHOLDS:
+            n, s = self._notify_threshold(firm_id, threshold, notif_port, broker_email, db)
+            notified += n
+            skipped += s
+        return {"notified_count": notified, "skipped_count": skipped}
 
     def _get_or_raise(self, policy_id: int, firm_id: int) -> Policy:
         p = (

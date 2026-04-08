@@ -1,13 +1,17 @@
 """Policy register and renewal pipeline endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
 from api.container import resolve
+from api.db import BrokerSettings
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.ports.driven.notification_port import NotificationPort
 from api.schemas import PolicyIn, PolicyUpdate, RenewalAdvanceIn
+from api.services.audit import log_audit
+from api.services.pdf_certificate import generate_certificate_pdf
 from api.services.policy_service import PolicyService
 
 router = APIRouter()
@@ -38,6 +42,8 @@ def _serialize(p) -> dict:
         "renewal_stage":       p.renewal_stage.value if p.renewal_stage else "not_started",
         "notes":               p.notes,
         "document_url":        p.document_url,
+        "commission_rate_pct":  p.commission_rate_pct,
+        "commission_amount_nok": p.commission_amount_nok,
         "created_at":          p.created_at.isoformat() if p.created_at else None,
         "updated_at":          p.updated_at.isoformat() if p.updated_at else None,
     }
@@ -59,12 +65,16 @@ def create_policy(
     orgnr: str,
     body: PolicyIn,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.create(orgnr, user.firm_id, body))
+        p = svc.create(orgnr, user.firm_id, body)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    log_audit(db, "policy.create", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_number": p.policy_number, "insurer": p.insurer})
+    return _serialize(p)
 
 
 @router.put("/org/{orgnr}/policies/{policy_id}")
@@ -73,14 +83,18 @@ def update_policy(
     policy_id: int,
     body: PolicyUpdate,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     try:
-        return _serialize(svc.update(policy_id, user.firm_id, body))
+        p = svc.update(policy_id, user.firm_id, body)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "policy.update", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_id": policy_id})
+    return _serialize(p)
 
 
 @router.delete("/org/{orgnr}/policies/{policy_id}", status_code=204)
@@ -88,12 +102,47 @@ def delete_policy(
     orgnr: str,
     policy_id: int,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> None:
     try:
         svc.delete(policy_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "policy.delete", orgnr=orgnr, actor_email=user.email,
+              detail={"policy_id": policy_id})
+
+
+@router.get("/org/{orgnr}/certificate/pdf")
+def get_certificate_pdf(
+    orgnr: str,
+    db: Session = Depends(get_db),
+    svc: PolicyService = Depends(_svc),
+    user: CurrentUser = Depends(get_current_user),
+) -> Response:
+    """Generate a Forsikringsbevis PDF for all active policies of a client."""
+    from api.db import Company
+    company = db.query(Company).filter(Company.orgnr == orgnr).first()
+    company_name = company.navn if company else orgnr
+
+    policies = [_serialize(p) for p in svc.list_by_orgnr(orgnr, user.firm_id)]
+    broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+    broker = {}
+    if broker_row:
+        broker = {
+            "firm_name":     broker_row.firm_name,
+            "contact_name":  broker_row.contact_name,
+            "contact_email": broker_row.contact_email,
+            "contact_phone": broker_row.contact_phone,
+        }
+
+    pdf_bytes = generate_certificate_pdf(orgnr, company_name, policies, broker)
+    filename = f"forsikringsbevis_{orgnr}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/policies")
@@ -107,6 +156,27 @@ def list_all_policies(
     return [_serialize(p) for p in svc.list_by_firm(user.firm_id, skip=skip, limit=limit)]
 
 
+def _enrich_renewals(policies: list, svc: PolicyService) -> list:
+    """Add days_until_renewal and client_name to serialized renewal policies."""
+    from datetime import date
+    from api.db import Company as CompanyModel
+    today = date.today()
+    orgnrs = [p.orgnr for p in policies]
+    company_map = {
+        c.orgnr: c.navn
+        for c in svc.db.query(CompanyModel).filter(CompanyModel.orgnr.in_(orgnrs)).all()
+        if c.navn
+    }
+    result = []
+    for p in policies:
+        serialized = _serialize(p)
+        if p.renewal_date:
+            serialized["days_until_renewal"] = (p.renewal_date - today).days
+        serialized["client_name"] = company_map.get(p.orgnr) or p.orgnr
+        result.append(serialized)
+    return result
+
+
 @router.get("/renewals")
 def get_renewals(
     days: int = Query(default=90, ge=1, le=365),
@@ -114,16 +184,7 @@ def get_renewals(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Active policies renewing within the next N days (default 90)."""
-    from datetime import date
-    policies = svc.get_renewals(user.firm_id, days)
-    today = date.today()
-    result = []
-    for p in policies:
-        serialized = _serialize(p)
-        if p.renewal_date:
-            serialized["days_to_renewal"] = (p.renewal_date - today).days
-        result.append(serialized)
-    return result
+    return _enrich_renewals(svc.get_renewals(user.firm_id, days), svc)
 
 
 @router.get("/renewals/upcoming")
@@ -133,16 +194,20 @@ def get_upcoming_renewals(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Alias for /renewals with a 30-day default window."""
-    from datetime import date
-    policies = svc.get_renewals(user.firm_id, days)
-    today = date.today()
-    result = []
-    for p in policies:
-        serialized = _serialize(p)
-        if p.renewal_date:
-            serialized["days_to_renewal"] = (p.renewal_date - today).days
-        result.append(serialized)
-    return result
+    return _enrich_renewals(svc.get_renewals(user.firm_id, days), svc)
+
+
+@router.post("/policies/run-renewal-notifications")
+def run_renewal_notifications(
+    svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+    notification: NotificationPort = Depends(_get_notification),
+) -> dict:
+    """Send renewal threshold emails for all near-expiry active policies."""
+    broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+    broker_email = broker_row.contact_email if broker_row else user.email
+    return svc.run_renewal_notifications(user.firm_id, notification, broker_email, db)
 
 
 @router.post("/policies/{policy_id}/renewal/advance")
@@ -150,6 +215,7 @@ def advance_renewal_stage(
     policy_id: int,
     body: RenewalAdvanceIn,
     svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     notification: NotificationPort = Depends(_get_notification),
 ) -> dict:
@@ -161,6 +227,9 @@ def advance_renewal_stage(
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+    log_audit(db, "policy.renewal.stage_change", orgnr=policy.orgnr,
+              actor_email=user.email, detail={"policy_id": policy_id, "stage": body.stage})
+
     if body.notify_email:
         notification.send_renewal_stage_change(
             to=body.notify_email,
@@ -171,3 +240,20 @@ def advance_renewal_stage(
         )
 
     return _serialize(policy)
+
+
+@router.post("/policies/{policy_id}/renewal-brief")
+def get_renewal_brief(
+    policy_id: int,
+    svc: PolicyService = Depends(_svc),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Generate an AI renewal brief for a policy (coverage gaps + market history)."""
+    from api.services.renewal_agent import RenewalAgentService
+    try:
+        policy = svc._get_or_raise(policy_id, user.firm_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    brief = RenewalAgentService().generate_renewal_brief(policy, db)
+    return {"policy_id": policy_id, "renewal_brief": brief}

@@ -70,16 +70,16 @@ def _onboarding_dialog() -> None:
     if step > 0:
         if col_prev.button("← Forrige", key="onb_prev"):
             st.session_state["onboarding_step"] = step - 1
-            st.rerun()
+            # No st.rerun() — button click reruns the dialog fragment naturally
     label = "Neste →" if step < total - 1 else "Fullfør ✓"
     if col_next.button(label, key="onb_next", type="primary", use_container_width=True):
         if step < total - 1:
             st.session_state["onboarding_step"] = step + 1
-            st.rerun()
+            # No st.rerun() — button click reruns the dialog fragment naturally
         else:
             st.session_state["onboarding_open"] = False
             st.session_state["onboarding_seen"] = True
-            st.rerun()
+            st.rerun()  # st.rerun() in @st.dialog closes the dialog
 
 
 def render_onboarding_tour() -> None:
@@ -91,6 +91,9 @@ def render_onboarding_tour() -> None:
 
     if st.session_state.get("onboarding_open"):
         _onboarding_dialog()
+        # Only reached when dialog closes without st.rerun() (i.e. X button).
+        # Neste/Fullfør both call st.rerun() which interrupts before this line.
+        st.session_state["onboarding_open"] = False
 
 
 def render_onboarding_button() -> None:

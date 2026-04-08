@@ -2,7 +2,6 @@
 
 Pure static tests — no DB, no network, no API keys.
 """
-import pytest
 from api.services.insurance_needs import estimate_insurance_needs, _nace_section, _mnok, _estimate_premium
 
 

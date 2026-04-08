@@ -1,9 +1,23 @@
 import io
+import os
+import re
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Depends, File, Request, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
+
+from api.limiter import limiter
+
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+_ALLOWED_MIME_TYPES = {"application/pdf"}
+
+
+def _safe_filename(name: str) -> str:
+    """Strip path components and non-safe characters from a filename."""
+    name = os.path.basename(name)
+    name = re.sub(r"[^\w.\-]", "_", name)
+    return name or "document.pdf"
 
 from api.db import InsuranceDocument
 from api.domain.exceptions import LlmUnavailableError
@@ -15,14 +29,23 @@ from api.services.documents import (
     compare_two_documents,
     find_similar_documents,
 )
-from api.schemas import DocChatRequest, DocCompareRequest
+from api.schemas import (
+    DocChatRequest,
+    DocCompareRequest,
+    DocumentChatOut,
+    DocumentCompareOut,
+    DocumentKeypointsOut,
+)
 from api.dependencies import get_db
+from api.services.audit import log_audit
 
 router = APIRouter()
 
 
 @router.post("/insurance-documents")
+@limiter.limit("30/minute")
 async def upload_insurance_document(
+    request: Request,
     file: UploadFile = File(...),
     title: str = Form(...),
     category: str = Form("annet"),
@@ -34,11 +57,16 @@ async def upload_insurance_document(
     db: Session = Depends(get_db),
 ) -> dict:
     """Upload and store an insurance document PDF."""
+    if file.content_type not in _ALLOWED_MIME_TYPES:
+        raise HTTPException(status_code=415, detail="Only PDF files are accepted")
     pdf_bytes = await file.read()
+    if len(pdf_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 50 MB limit")
+    safe_name = _safe_filename(file.filename or "document.pdf")
     try:
         doc = store_insurance_document(
             pdf_bytes=pdf_bytes,
-            filename=file.filename or "document.pdf",
+            filename=safe_name,
             title=title,
             category=category,
             insurer=insurer,
@@ -50,6 +78,8 @@ async def upload_insurance_document(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    log_audit(db, "document.upload", orgnr=orgnr,
+              detail={"title": title, "doc_id": doc.id})
     return {
         "id": doc.id,
         "title": doc.title,
@@ -109,7 +139,10 @@ def download_insurance_document_pdf(doc_id: int, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/insurance-documents/{doc_id}/keypoints")
+@router.get(
+    "/insurance-documents/{doc_id}/keypoints",
+    response_model=DocumentKeypointsOut,
+)
 def get_document_keypoints_endpoint(doc_id: int, db: Session = Depends(get_db)):
     """Extract key points from an insurance document using LLM or heuristics."""
     doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
@@ -131,10 +164,14 @@ def get_similar_documents(doc_id: int, db: Session = Depends(get_db)) -> list:
 def delete_insurance_document(doc_id: int, db: Session = Depends(get_db)) -> dict:
     if not remove_insurance_document(doc_id, db):
         raise HTTPException(status_code=404, detail="Document not found")
+    log_audit(db, "document.delete", detail={"doc_id": doc_id})
     return {"deleted": doc_id}
 
 
-@router.post("/insurance-documents/{doc_id}/chat")
+@router.post(
+    "/insurance-documents/{doc_id}/chat",
+    response_model=DocumentChatOut,
+)
 def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(get_db)):
     """Ask a question about an insurance document using Gemini native PDF understanding."""
     doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
@@ -147,7 +184,10 @@ def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(
     return {"doc_id": doc_id, "question": body.question, "answer": answer}
 
 
-@router.post("/insurance-documents/compare")
+@router.post(
+    "/insurance-documents/compare",
+    response_model=DocumentCompareOut,
+)
 def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(get_db)) -> dict:
     """Compare two insurance documents using Gemini native PDF understanding."""
     if len(body.doc_ids) != 2:

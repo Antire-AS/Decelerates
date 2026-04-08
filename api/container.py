@@ -18,8 +18,10 @@ from dataclasses import dataclass, field
 import punq
 
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
+from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
 from api.adapters.notification_adapter import AzureEmailNotificationAdapter, NotificationConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
+from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.ports.driven.notification_port import NotificationPort
 
 
@@ -27,6 +29,7 @@ from api.ports.driven.notification_port import NotificationPort
 class AppConfig:
     blob: BlobStorageConfig = field(default_factory=BlobStorageConfig)
     notification: NotificationConfig = field(default_factory=NotificationConfig)
+    msgraph: MsGraphConfig = field(default_factory=MsGraphConfig)
 
 
 class ContainerFactory:
@@ -40,6 +43,9 @@ class ContainerFactory:
     def _make_notification_adapter(self) -> NotificationPort:
         return AzureEmailNotificationAdapter(self._config.notification)
 
+    def _make_email_outbound_adapter(self) -> EmailOutboundPort:
+        return MsGraphEmailAdapter(self._config.msgraph)
+
     def build(self) -> punq.Container:
         self.container.register(
             BlobStoragePort,
@@ -49,6 +55,11 @@ class ContainerFactory:
         self.container.register(
             NotificationPort,
             factory=self._make_notification_adapter,
+            scope=punq.Scope.singleton,
+        )
+        self.container.register(
+            EmailOutboundPort,
+            factory=self._make_email_outbound_adapter,
             scope=punq.Scope.singleton,
         )
         return self.container

@@ -5,7 +5,6 @@ Pure static tests — uses MagicMock DB; no infrastructure required.
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import pytest
 
 from api.db import SlaAgreement
 from api.services.sla_service import SlaService
@@ -122,7 +121,7 @@ def test_create_agreement_sets_client_orgnr():
     db.query.return_value.filter.return_value.first.return_value = None
     db.refresh = MagicMock()
     svc = SlaService(db)
-    agreement = svc.create_agreement(_sla_in())
+    svc.create_agreement(_sla_in())
     # The db.add call should have received an SlaAgreement with the right orgnr
     added = db.add.call_args[0][0]
     assert added.client_orgnr == "123456789"

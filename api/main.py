@@ -21,12 +21,24 @@ from api.db import init_db
 from api.limiter import limiter
 from api.container import configure, AppConfig
 from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
+
+# ── Auth-disabled startup warning ──────────────────────────────────────────────
+# Mirrors the gate in api/auth.py::_is_auth_disabled — kept here so the warning
+# fires once at boot, not on every request. Production cannot disable auth.
+from api.auth import _is_auth_disabled  # noqa: E402
+if _is_auth_disabled():
+    logging.getLogger("api.auth").warning(
+        "⚠ AUTH_DISABLED is active — ENVIRONMENT=%s. Anyone can hit any endpoint. "
+        "This MUST NOT happen in production.",
+        os.getenv("ENVIRONMENT", "development"),
+    )
 
 _ai_conn_str = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 if _ai_conn_str:
@@ -47,6 +59,7 @@ from api.routers import (
     broker,
     sla,
     utils,
+    admin_router,
     portfolio_router,
     users,
     contacts,
@@ -56,19 +69,50 @@ from api.routers import (
     client_token,
     analytics,
     audit,
+    gdpr,
+    idd,
+    insurers,
+    recommendations,
+    coverage,
+    commission,
+    deals,
+    notifications,
+    saved_searches,
+    email_compose,
+    webhooks,
 )
 
 app = FastAPI(title="Broker Accelerator API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-_cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_methods=["GET", "HEAD", "OPTIONS"],
-    allow_headers=["*"],
+    allow_methods=["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
     expose_headers=["Content-Range", "Accept-Ranges", "Content-Length"],
 )
+
+
+def _run_migrations_with_lock(alembic_cfg) -> None:
+    """Run Alembic migrations under a Postgres session-level advisory lock.
+
+    Multiple replicas may start simultaneously; only one acquires the lock and
+    runs migrations. The others wait, then find nothing to do once they proceed.
+    """
+    from sqlalchemy import text
+    from api.db import engine
+
+    _LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
+
+    with engine.connect() as lock_conn:
+        lock_conn.execute(text(f"SELECT pg_advisory_lock({_LOCK_ID})"))
+        try:
+            alembic_command.upgrade(alembic_cfg, "head")
+        finally:
+            lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
 
 
 def _stamp_existing_db_if_needed(alembic_cfg) -> None:
@@ -99,7 +143,7 @@ def _stamp_existing_db_if_needed(alembic_cfg) -> None:
 def on_startup():
     alembic_cfg = AlembicConfig("alembic.ini")
     _stamp_existing_db_if_needed(alembic_cfg)
-    alembic_command.upgrade(alembic_cfg, "head")
+    _run_migrations_with_lock(alembic_cfg)
     init_db()
     SearchService().ensure_index()
     db = next(get_db())
@@ -135,6 +179,44 @@ def on_startup():
     finally:
         db_tok.close()
 
+    # ── GDPR retention purge — hard-delete companies soft-deleted >90 days ago ─
+    db_gdpr = next(get_db())
+    try:
+        from api.services.gdpr_service import GdprService
+        purged = GdprService(db_gdpr).purge_old_deletions()
+        if purged:
+            logging.getLogger(__name__).info("GDPR purge: hard-deleted %d company records", purged)
+    except Exception:
+        db_gdpr.rollback()
+    finally:
+        db_gdpr.close()
+
+    # ── Job queue — register handlers + start worker loop ─────────────────────
+    from api.services.job_queue_service import register_handler, JobQueueService
+    from api.services.pdf_background import _auto_extract_pdf_sources
+
+    def _handle_pdf_extract(db, payload: dict):
+        orgnr = payload.get("orgnr", "")
+        org = payload.get("org", {})
+        _auto_extract_pdf_sources(orgnr, org)
+
+    register_handler("pdf_extract", _handle_pdf_extract)
+
+    import asyncio
+
+    _job_logger = logging.getLogger("api.job_worker")
+
+    async def _job_worker():
+        from api.db import SessionLocal as _SL
+        while True:
+            try:
+                JobQueueService.process_pending(db_factory=_SL)
+            except Exception as _exc:
+                _job_logger.error("Job worker error: %s", _exc, exc_info=True)
+            await asyncio.sleep(10)
+
+    asyncio.get_event_loop().create_task(_job_worker())
+
     # ── DI container ──────────────────────────────────────────────────────────
     configure(AppConfig(
         blob=BlobStorageConfig(
@@ -146,6 +228,15 @@ def on_startup():
                 "ACS_SENDER_ADDRESS",
                 "donotreply@acs-broker-accelerator-prod.azurecomm.net",
             ),
+        ),
+        # Plan §🟢 #10 — MS Graph outbound. Empty strings until the broker
+        # firm completes the Azure AD app registration; is_configured() then
+        # returns False and POST /email/compose returns 503.
+        msgraph=MsGraphConfig(
+            tenant_id=os.getenv("AZURE_AD_TENANT_ID", ""),
+            client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
+            client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
+            service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
         ),
     ))
 
@@ -161,6 +252,7 @@ app.include_router(knowledge.router)
 app.include_router(broker.router)
 app.include_router(sla.router)
 app.include_router(utils.router)
+app.include_router(admin_router.router)
 app.include_router(portfolio_router.router)
 app.include_router(users.router)
 app.include_router(contacts.router)
@@ -169,6 +261,17 @@ app.include_router(claims.router)
 app.include_router(activities.router)
 app.include_router(client_token.router)
 app.include_router(analytics.router)
+app.include_router(idd.router)
+app.include_router(insurers.router)
+app.include_router(recommendations.router)
+app.include_router(coverage.router)
 app.include_router(audit.router)
+app.include_router(gdpr.router)
+app.include_router(commission.router)
+app.include_router(deals.router)
+app.include_router(notifications.router)
+app.include_router(saved_searches.router)
+app.include_router(email_compose.router)
+app.include_router(webhooks.router)
 
 __all__ = ["app", "limiter"]

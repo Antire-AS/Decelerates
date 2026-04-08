@@ -73,7 +73,11 @@ class AdminService:
             deleted[table] = result.rowcount
         result = self.db.execute(text("DELETE FROM company_chunks WHERE orgnr != 'knowledge'"))
         deleted["company_chunks"] = result.rowcount
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return {"reset": True, "deleted_rows": deleted}
 
     def _get_or_create_portfolio(self, name: str, description: str) -> Portfolio:
@@ -82,8 +86,12 @@ class AdminService:
             portfolio = Portfolio(name=name, description=description,
                                   created_at=datetime.now(timezone.utc).isoformat())
             self.db.add(portfolio)
-            self.db.commit()
-            self.db.refresh(portfolio)
+            try:
+                self.db.commit()
+                self.db.refresh(portfolio)
+            except Exception:
+                self.db.rollback()
+                raise
         return portfolio
 
     def _add_demo_companies(self, portfolio_id: int) -> tuple[int, int]:
@@ -104,7 +112,11 @@ class AdminService:
             except Exception as exc:
                 _log.warning("Demo seed: failed for %s — %s", orgnr, exc)
                 skipped += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return fetched, skipped
 
     def seed_demo(self) -> dict:
@@ -150,7 +162,11 @@ class AdminService:
             except Exception as exc:
                 _log.warning("Top100 BRREG lookup failed for '%s': %s", name, exc)
                 lookup_failed += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return lookup_added, lookup_failed, len(existing)
 
     def seed_norway_top100(self) -> dict:
@@ -196,7 +212,11 @@ class AdminService:
             self.db.flush()
             policy_map[pol_nr] = p
             created += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return created, skipped, policy_map
 
     def _seed_claims(self, policy_map: dict, firm_id: int, now: datetime) -> int:
@@ -216,7 +236,11 @@ class AdminService:
                 created_at=now, updated_at=now,
             ))
             created += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return created
 
     def _seed_activities(self, firm_id: int, now: datetime) -> int:
@@ -234,7 +258,11 @@ class AdminService:
                 created_at=now,
             ))
             created += 1
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return created
 
     def seed_crm_demo(self) -> dict:

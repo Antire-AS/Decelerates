@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 import pandas as pd
 
-from ui.config import API_BASE
+from ui.config import API_BASE, get_auth_headers
 
 
 def _fmt_nok(v) -> str:
@@ -17,28 +17,25 @@ def _fmt_nok(v) -> str:
     return f"{v/1_000:.0f} TNOK"
 
 
-@st.cache_data(ttl=120)
 def _fetch_portfolios() -> list:
     try:
-        r = requests.get(f"{API_BASE}/portfolio", timeout=8)
+        r = requests.get(f"{API_BASE}/portfolio", headers=get_auth_headers(), timeout=8)
         return r.json() if r.ok else []
     except Exception:
         return []
 
 
-@st.cache_data(ttl=120)
 def _fetch_premium_analytics() -> dict:
     try:
-        r = requests.get(f"{API_BASE}/analytics/premiums", timeout=10)
+        r = requests.get(f"{API_BASE}/analytics/premiums", headers=get_auth_headers(), timeout=10)
         return r.json() if r.ok else {}
     except Exception:
         return {}
 
 
-@st.cache_data(ttl=60)
 def _fetch_portfolio_rows(portfolio_id: int) -> list:
     try:
-        r = requests.get(f"{API_BASE}/portfolio/{portfolio_id}/risk", timeout=15)
+        r = requests.get(f"{API_BASE}/portfolio/{portfolio_id}/risk", headers=get_auth_headers(), timeout=15)
         return r.json() if r.ok else []
     except Exception:
         return []
@@ -78,7 +75,7 @@ def _render_comparison_table(df: pd.DataFrame, sort_col: str) -> None:
     display["Egenkapital"] = df["Egenkapital"].apply(_fmt_nok)
     display["EK-andel %"] = df["EK-andel %"].apply(lambda x: f"{x:.1f} %" if x is not None else "–")
     display["Risikoscore"] = df["Risikoscore"].apply(lambda x: f"{x:.0f}" if x is not None else "–")
-    display["År"] = df["År"].apply(lambda x: str(int(x)) if x else "–")
+    display["År"] = df["År"].apply(lambda x: str(int(x)) if pd.notna(x) and x else "–")
     cols = ["Selskap", "Omsetning", "Egenkapital", "EK-andel %", "Risikoscore", "Bransje", "År"]
     st.dataframe(display[cols], width="stretch", hide_index=True)
 
@@ -102,10 +99,9 @@ def _render_risk_chart(df: pd.DataFrame) -> None:
     st.bar_chart(chart_df.set_index("Selskap")["Risikoscore"], height=280)
 
 
-@st.cache_data(ttl=120)
 def _fetch_all_companies(limit: int = 500) -> list:
     try:
-        r = requests.get(f"{API_BASE}/companies", params={"limit": limit}, timeout=10)
+        r = requests.get(f"{API_BASE}/companies", params={"limit": limit}, headers=get_auth_headers(), timeout=10)
         return r.json() if r.ok else []
     except Exception:
         return []

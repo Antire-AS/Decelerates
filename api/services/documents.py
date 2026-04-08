@@ -124,11 +124,13 @@ class DocumentAnalysisService:
 
     def answer_document_question(self, doc: InsuranceDocument, question: str) -> str:
         """Answer a question about an InsuranceDocument. Raises LlmUnavailableError if no LLM."""
+        from api.services.llm import _sanitize_user_input
+        safe_question = _sanitize_user_input(question)
         prompt = (
             f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
             f"Svar kun basert på innholdet i dette forsikringsdokumentet. "
             f"Vær presis og konkret. Oppgi sidetall eller avsnitt hvis relevant.\n\n"
-            f"Spørsmål: {question}"
+            f"Spørsmål: {safe_question}"
         )
         answer = _analyze_document_with_gemini(doc.pdf_content, prompt)
         if answer:
@@ -207,12 +209,16 @@ class DocumentService:
             filename=filename,
             pdf_content=pdf_bytes,
             extracted_text=extracted or None,
-            uploaded_at=datetime.utcnow().isoformat(),
+            uploaded_at=datetime.now(timezone.utc).isoformat(),
             tags=tags or None,
         )
         self.db.add(doc)
-        self.db.commit()
-        self.db.refresh(doc)
+        try:
+            self.db.commit()
+            self.db.refresh(doc)
+        except Exception:
+            self.db.rollback()
+            raise
         return doc
 
     def remove_document(self, doc_id: int) -> bool:
@@ -221,7 +227,11 @@ class DocumentService:
         if not doc:
             return False
         self.db.delete(doc)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return True
 
     def find_similar(self, doc: InsuranceDocument, limit: int = 3) -> list:
@@ -270,7 +280,11 @@ class DocumentService:
             self.db.add(row)
             self.db.flush()
             saved.append({"id": row.id, "filename": row.filename, "insurer_name": row.insurer_name})
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return saved
 
     def remove_offer(self, offer_id: int, orgnr: str) -> bool:
@@ -281,7 +295,11 @@ class DocumentService:
         if not row:
             return False
         self.db.delete(row)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         return True
 
 
@@ -335,7 +353,11 @@ def update_offer_status(offer_id: int, orgnr: str, status: str, db: Session) -> 
         row.status = OfferStatus(status)
     except ValueError:
         return False
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return True
 
 
