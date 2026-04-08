@@ -58,3 +58,24 @@ packages = ["api", "ui"]
 markers = [
     "system: end-to-end tests requiring a live API instance (set SYSTEM_TEST_URL)",
 ]
+
+
+# ── Ruff configuration ────────────────────────────────────────────────────────
+# Ignores documented pre-existing stylistic violations so ruff can actually
+# run in CI. The external `reusable-ruff-formating.yml@v0.18.0` action reads
+# this config. All ignored rules are intentional patterns, not latent bugs:
+#
+#   E402  — module-level import not at top: widely used for sys.modules stub
+#           setup before imports (see tests/conftest.py) and conditional
+#           Azure Monitor configuration in api/main.py.
+#   E701  — multiple statements on colon: used in short Streamlit widget
+#           blocks where inlining is more readable than 3-line spreads.
+#   E702  — multiple statements on semicolon: same rationale.
+#   E741  — ambiguous variable name (l, I, O): used in short loop variables
+#           where the context makes the meaning unambiguous.
+#
+# F401 (unused imports) and F821 (undefined names) are NOT ignored — F821
+# caught a real bug in ui/views/admin.py:_render_data_controls missing a
+# `headers = get_auth_headers()` call.
+[tool.ruff.lint]
+ignore = ["E402", "E701", "E702", "E741"]

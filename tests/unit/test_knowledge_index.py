@@ -231,7 +231,7 @@ def test_index_video_transcripts_skips_untitled_sections():
     db = _mock_db()
 
     with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
-        with patch("api.services.knowledge_index._store_chunk") as mock_store:
+        with patch("api.services.knowledge_index._store_chunk"):
             count = index_video_transcripts(db)
 
     assert count == 0
@@ -247,7 +247,7 @@ def test_index_video_transcripts_skips_short_body():
 
     with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
         with patch("api.services.knowledge_index._source_exists", return_value=False):
-            with patch("api.services.knowledge_index._store_chunk") as mock_store:
+            with patch("api.services.knowledge_index._store_chunk"):
                 count = index_video_transcripts(db)
 
     assert count == 0
@@ -263,7 +263,7 @@ def test_index_video_transcripts_skips_already_indexed_source():
 
     with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
         with patch("api.services.knowledge_index._source_exists", return_value=True):
-            with patch("api.services.knowledge_index._store_chunk") as mock_store:
+            with patch("api.services.knowledge_index._store_chunk"):
                 count = index_video_transcripts(db)
 
     assert count == 0

@@ -24,21 +24,27 @@ pytestmark = pytest.mark.skipif(
 
 # ── Shared mock data ───────────────────────────────────────────────────────────
 
+# Shape matches api.services.brreg_client.fetch_enhet_by_orgnr's return value
+# — flattened, not the raw BRREG nested response. See _build_enhet_dict at
+# api/services/brreg_client.py:14.
 _MOCK_ORG_BRREG = {
-    "organisasjonsnummer": "987654321",
+    "orgnr": "987654321",
     "navn": "Integrasjonstest AS",
-    "organisasjonsform": {"kode": "AS", "beskrivelse": "Aksjeselskap"},
-    "forretningsadresse": {
-        "poststed": "Oslo",
-        "postnummer": "0150",
-        "adresse": ["Testgata 1"],
-        "kommune": "Oslo",
-        "land": "Norge",
-    },
-    "naeringskode1": {"kode": "62.010", "beskrivelse": "Programvareutvikling"},
+    "organisasjonsform": "Aksjeselskap",
+    "organisasjonsform_kode": "AS",
+    "kommune": "Oslo",
+    "postnummer": "0150",
+    "land": "Norge",
+    "naeringskode1": "62.010",
+    "naeringskode1_beskrivelse": "Programvareutvikling",
+    "kommunenummer": "0301",
+    "poststed": "Oslo",
+    "adresse": ["Testgata 1"],
+    "stiftelsesdato": None,
+    "hjemmeside": None,
     "konkurs": False,
-    "underAvvikling": False,
-    "antallAnsatte": 10,
+    "under_konkursbehandling": False,
+    "under_avvikling": False,
 }
 
 _MOCK_REGNSKAP = {
@@ -141,10 +147,11 @@ class TestSearch:
             }
         ]
         with patch(
-            "api.services.external_apis.fetch_enhetsregisteret",
+            "api.routers.company.fetch_enhetsregisteret",
             return_value=mock_results,
         ):
-            resp = client.get("/search", params={"q": "dnb"})
+            # Endpoint expects `name`, not `q` — see api/routers/company.py:26
+            resp = client.get("/search", params={"name": "dnb"})
 
         assert resp.status_code == 200
         data = resp.json()
@@ -161,10 +168,15 @@ class TestOrgProfile:
     ORGNR = "987654321"
 
     def test_profile_returns_org_and_risk(self, client):
+        # Patch the names bound in api.services.company (where fetch_org_profile
+        # imports them via `from api.services.external_apis import ...`). Patching
+        # external_apis directly would be a no-op because company.py has already
+        # resolved its own local references at import time. Classic Python mock
+        # pitfall — the target must be "where the name is looked up".
         with (
-            patch("api.services.external_apis.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
-            patch("api.services.external_apis.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
-            patch("api.services.external_apis.pep_screen_name", return_value=[]),
+            patch("api.services.company.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
+            patch("api.services.company.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
+            patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
         ):
             resp = client.get(f"/org/{self.ORGNR}")
@@ -176,9 +188,9 @@ class TestOrgProfile:
 
     def test_unknown_org_returns_404(self, client):
         with (
-            patch("api.services.external_apis.fetch_enhet_by_orgnr", return_value=None),
-            patch("api.services.external_apis.fetch_regnskap_keyfigures", return_value={}),
-            patch("api.services.external_apis.pep_screen_name", return_value=[]),
+            patch("api.services.company.fetch_enhet_by_orgnr", return_value=None),
+            patch("api.services.company.fetch_regnskap_keyfigures", return_value={}),
+            patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
         ):
             resp = client.get("/org/000000000")
@@ -215,6 +227,8 @@ def _ensure_firm(db, firm_id: int = 1):
 def _make_policy(db, orgnr: str, **kwargs):
     from api.db import Policy, PolicyStatus
     _ensure_firm(db)
+    # Policy has both created_at and updated_at NOT NULL columns — set both.
+    now = datetime.now(timezone.utc)
     p = Policy(
         orgnr=orgnr,
         firm_id=1,
@@ -224,7 +238,8 @@ def _make_policy(db, orgnr: str, **kwargs):
         annual_premium_nok=kwargs.get("annual_premium_nok", 100_000.0),
         commission_rate_pct=kwargs.get("commission_rate_pct", 10.0),
         commission_amount_nok=kwargs.get("commission_amount_nok", None),
-        created_at=datetime.now(timezone.utc),
+        created_at=now,
+        updated_at=now,
     )
     db.add(p)
     db.flush()
@@ -279,6 +294,13 @@ class TestCommission:
 class TestConsent:
     ORGNR = "666777888"
 
+    @pytest.fixture(autouse=True)
+    def _seed_firm(self, test_db):
+        """consent_records.firm_id is a FK to broker_firms; seed it before
+        every test in this class so INSERT doesn't hit a ForeignKeyViolation."""
+        _ensure_firm(test_db)
+        test_db.commit()
+
     def test_record_consent_returns_201_with_fields(self, client):
         resp = client.post(
             f"/gdpr/company/{self.ORGNR}/consent",
@@ -306,7 +328,10 @@ class TestConsent:
             json={"lawful_basis": "consent", "purpose": "marketing"},
         ).json()["id"]
 
-        resp = client.delete(
+        # Starlette TestClient.delete() doesn't accept a json kwarg; use
+        # request() for DELETE-with-body.
+        resp = client.request(
+            "DELETE",
             f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
             json={"reason": "customer request"},
         )
@@ -318,7 +343,12 @@ class TestConsent:
             f"/gdpr/company/{self.ORGNR}/consent",
             json={"lawful_basis": "consent", "purpose": "credit_check"},
         ).json()["id"]
-        client.delete(f"/gdpr/company/{self.ORGNR}/consent/{consent_id}")
+        # Endpoint requires a body (reason). Use request() for DELETE-with-body.
+        client.request(
+            "DELETE",
+            f"/gdpr/company/{self.ORGNR}/consent/{consent_id}",
+            json={"reason": "customer request"},
+        )
 
         active = client.get(f"/gdpr/company/{self.ORGNR}/consents").json()
         assert all(c["id"] != consent_id for c in active)

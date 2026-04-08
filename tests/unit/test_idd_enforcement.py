@@ -50,7 +50,6 @@ class TestIddGate:
         company_query.filter.return_value = company_query
         company_query.first.return_value = None
 
-        call_count = [0]
         def _query_side(model):
             from api.db import IddBehovsanalyse
             if model is IddBehovsanalyse:

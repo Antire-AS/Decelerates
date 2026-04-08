@@ -125,6 +125,34 @@ except ImportError:
 _TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "")
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _configure_di_container_for_tests():
+    """Pre-configure the DI container with empty adapter configs so route
+    handlers that call `resolve(NotificationPort)` etc. don't crash during
+    tests. Integration tests use `TestClient(app)` WITHOUT the context
+    manager (see the `client` fixture below) which means the app's
+    `on_startup` event — where `configure(AppConfig(...))` normally runs —
+    never fires. Pre-2026-04-07 this was silently tolerated because the
+    failing tests were admin-bypassed; now that branch protection actually
+    gates merges, we need the container wired up for tests to pass.
+
+    The adapters are created with empty configs so `is_configured()` returns
+    False on both — anything that actually tries to SEND via the adapters
+    will skip gracefully. For tests that need real adapter behaviour, they
+    should patch the adapter class explicitly.
+    """
+    # Skip for pure unit tests that don't even import api.main — saves ~0.5s
+    # of startup time on the fast test suite. Integration tests import it
+    # transitively via TestClient(app) and need the configured container.
+    try:
+        from api.container import configure, AppConfig
+    except Exception:
+        yield
+        return
+    configure(AppConfig())
+    yield
+
+
 @pytest.fixture(scope="session")
 def test_engine():
     """Session-scoped engine: enables pgvector extension and creates all tables once."""

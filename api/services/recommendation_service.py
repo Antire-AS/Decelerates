@@ -23,7 +23,7 @@ def _build_rationale_prompt(
     idd: Optional[IddBehovsanalyse],
 ) -> str:
     lines = [
-        f"Du er en erfaren forsikringsmegler. Skriv en kort faglig begrunnelse (3-5 avsnitt) på norsk",
+        "Du er en erfaren forsikringsmegler. Skriv en kort faglig begrunnelse (3-5 avsnitt) på norsk",
         f"for hvorfor {recommended_insurer} er det beste valget for klienten {company_name} (org.nr {orgnr}).",
         "",
         "Begrunnelsen skal:",

@@ -65,7 +65,7 @@ class TestPolicyServiceCreate:
         body = PolicyIn(insurer="Gjensidige", product_type="Ansvarsforsikring", annual_premium_nok=30_000)
 
         with patch.object(Policy, "__init__", return_value=None):
-            result = svc.create("987654321", firm_id=1, body=body)
+            svc.create("987654321", firm_id=1, body=body)
 
         db.add.assert_called_once()
         db.commit.assert_called_once()
