@@ -46,7 +46,7 @@ jobs:
 
       - name: Lint
         run: |
-          uv run pylint api/ ui/ \
+          uv run pylint api/ \
             --fail-under=8 \
             --disable=C0114,C0115,C0116,R0903,W0611
 
@@ -55,10 +55,10 @@ jobs:
         # ruff F401 is faster and more precise. Ran via uvx so we don't add
         # ruff to project deps — the external Antire reusable-ruff job already
         # owns the broader formatting check.
-        run: uvx ruff check --select F401 api/ ui/ tests/ scripts/
+        run: uvx ruff check --select F401 api/ tests/ scripts/
 
       - name: Complexity report (informational)
-        run: uv run radon cc api/ ui/ -n C -s || true
+        run: uv run radon cc api/ -n C -s || true
 
   # Inlined ruff check (was Antire-AS/antire-reusable-actions@v0.18.0 but its
   # setup-deploy-key step fails on repos without a DEPLOY_KEY secret —
@@ -75,7 +75,7 @@ jobs:
           version: "latest"
 
       - name: Run ruff check
-        run: uvx ruff check api/ ui/ tests/ scripts/
+        run: uvx ruff check api/ tests/ scripts/
 
   # Inlined pyright type check — same reasoning as ruff above.
   pyright:

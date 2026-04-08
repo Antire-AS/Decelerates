@@ -67,7 +67,8 @@ def _get_jwks(tenant_id: str) -> dict:
 
 def _validate_token(token: str) -> dict:
     tenant_id = os.getenv("AZURE_TENANT_ID", "")
-    # AUTH_AUDIENCE = App Registration client ID (ca-ui Easy Auth).
+    # AUTH_AUDIENCE = App Registration client ID (the Next.js frontend's
+    # NextAuth Azure AD app — used to issue id_tokens that the API validates).
     # Falls back to AZURE_CLIENT_ID only if AUTH_AUDIENCE is absent (legacy / local dev).
     audience  = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
     if not tenant_id or not audience:

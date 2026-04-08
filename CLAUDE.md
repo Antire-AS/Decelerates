@@ -29,7 +29,7 @@
 
 ```mermaid
 graph TD
-    UI[ui/main.py · Streamlit :8501] -->|HTTP| API[api/main.py · FastAPI :8000]
+    FE[frontend/ · Next.js 15 :3000] -->|HTTP /bapi/*| API[api/main.py · FastAPI :8000]
     API --> R[api/routers/]
     R --> S[api/services/]
     S --> DB[(PostgreSQL + pgvector)]
@@ -37,6 +37,8 @@ graph TD
     S --> Gemini[Gemini API]
     S --> Claude[Claude API]
 ```
+
+The legacy Streamlit `ui/` was deleted on 2026-04-08 once the Next.js frontend reached feature parity. See the git history for the migration story.
 
 Sequence diagrams for key flows (PlantUML — render with IntelliJ, VS Code PlantUML extension, or [plantuml.com](https://www.plantuml.com/plantuml)):
 - [`docs/company_lookup_flow.puml`](docs/company_lookup_flow.puml) — `GET /org/{orgnr}` end-to-end
@@ -95,10 +97,12 @@ api/
                    PdfExtractionError, ExternalApiError
   db.py / risk.py / constants.py / prompts.py / schemas.py
 
-ui/
-  main.py          ← entry: streamlit run ui/main.py
-  styles.css       ← extracted CSS (loaded at runtime)
-  translations.json ← extracted i18n dict (loaded at runtime)
+frontend/        ← Next.js 15 app (Pages Router on /bapi/* rewrites)
+  src/app/       ← all routes (dashboard, search, portfolio, renewals, etc.)
+  src/components/ ← reusable React components
+  src/lib/       ← API client (api.ts), generated types (api-schema.ts)
+  next.config.ts ← server-side rewrites /bapi/* → ${API_BASE_URL}/*
+  package.json   ← npm scripts (dev, build, gen:api-types)
 ```
 
 ---
@@ -128,7 +132,6 @@ The following are intentional deviations from Antire Python standards — docume
 | Deviation | Antire Standard | Why we deviate |
 |-----------|----------------|----------------|
 | **Env vars read in some services** | All `os.getenv` in `main.py` only | LLM keys are optional and read lazily — services check `_is_key_set()` at call time and gracefully skip missing keys; centralising them in `main.py` would require plumbing optional config through every service constructor. Phase 1 hexagonal migration owns blob + notification; remaining services are Phase 2. |
-| **UI render functions F/E complexity** | All functions ≤ cyclomatic C (10) | Streamlit's imperative widget API means each section branch is one mandatory call; splitting render functions breaks cohesion and increases navigation overhead |
 | **High-complexity agent loops** | All functions ≤ cyclomatic C (10) | `_agent_discover_pdfs_*` are tool-use state machines; branching reflects the multi-turn protocol, not accidental complexity |
 
 ---
@@ -224,34 +227,23 @@ def get_settings(svc: BrokerService = Depends(_get_broker_service)):
 
 **API endpoints**: See `http://localhost:8000/docs` for the full auto-generated reference.
 
-### [ui/main.py](ui/main.py) — Streamlit frontend
+### [frontend/](frontend/) — Next.js 15 frontend
 
-Single-page app. Uses `st.session_state` to hold search results and the selected org number between rerenders.
+Replaces the legacy Streamlit `ui/` (deleted 2026-04-08). Routes live under `frontend/src/app/` and use Next.js's app router. The browser only ever talks to `/bapi/*`, which `next.config.ts` rewrites server-side to `${API_BASE_URL}/*` (the FastAPI backend) — this avoids CORS, hides the backend URL from the browser, and makes the API URL a runtime env var instead of a build-time constant.
 
-- **CSS** is loaded at runtime from `ui/styles.css`
-- **Translations** are loaded at runtime from `ui/translations.json` via `_TRANSLATIONS = json.loads(...)`
-- **`T(key)`** helper returns the translated label for the current language (`st.session_state["lang"]`)
+**Top-level pages** (`frontend/src/app/`):
+- `/dashboard` — landing page with key metrics
+- `/search` + `/search/[orgnr]` — company search and full profile (6 tabs: oversikt, økonomi, forsikring, crm, notater, chat)
+- `/portfolio` + `/portfolio/[id]` + `/portfolio/analytics` — portfolio list, detail, and 5-tab analytics
+- `/renewals` — upcoming policy renewals
+- `/sla` — SLA agreement generator
+- `/pipeline` — deal kanban (drag-and-drop)
+- `/knowledge` — RAG chat + semantic search + document/video management
+- `/idd` + `/insurers` + `/recommendations` + `/prospecting` — feature pages
+- `/portal/[token]` — token-based client view (no auth required)
+- `/admin` — admin panel (users, exports, data controls, audit log)
 
-**Sections rendered:**
-
-*Company Search tab:*
-1. Search bar → calls `/search` → lists results with "View profile" buttons
-2. Organisation info — two columns: left = company details; right = `st.map()` from Kartverket geocoding
-3. Bankruptcy & liquidation status
-4. Board members (styremedlemmer) from BRREG
-5. Risk summary metrics + risk flags + SSB industry benchmark
-6. Key figures table for most recent accounting year
-7. Financial history — YoY comparison table + bar charts + equity ratio trend + year drill-down
-8. "Add Annual Report PDF" expander — paste any public PDF URL to manually enrich history
-9. Insurance offers — upload, compare, view structured comparison
-10. PEP / sanctions screening results
-11. AI-generated risk narrative and financial estimates
-12. Finanstilsynet licences
-13. Raw JSON debug views
-
-*Agreements tab:* SLA agreement generator + list existing agreements with download links
-
-*Settings tab (sidebar):* Broker firm settings saved to DB, embedded in SLA PDFs
+**Type safety end-to-end**: API response types are auto-generated from Pydantic via `npm run gen:api-types` (runs `scripts/dump_openapi.py` + `openapi-typescript`). The result is committed to `frontend/src/lib/api-schema.ts` and CI verifies it's fresh on every PR via the `api-types-fresh` job.
 
 ### [api/risk.py](api/risk.py) — Risk scoring
 
@@ -295,8 +287,8 @@ docker compose down         # stop everything
 
 **Individual services (native hot-reload, separate terminals):**
 ```bash
-bash scripts/run_api.sh     # FastAPI on http://localhost:8000
-bash scripts/run_ui.sh      # Streamlit on http://localhost:8501
+bash scripts/run_api.sh                # FastAPI on http://localhost:8000
+cd frontend && npm run dev             # Next.js on http://localhost:3000
 # Note: you must have Postgres running separately (docker compose up postgres -d)
 ```
 
@@ -397,8 +389,7 @@ tests/
 │   ├── test_company.py  seed, upsert, financials fallback with mocked DB (5 tests)
 │   ├── test_external_apis.py  pure data-transform functions (7 tests)
 │   ├── test_insurance_needs.py  rule engine + premium estimates (43 tests)
-│   ├── test_clean_code.py  AST + static analysis (4 tests)
-│   └── test_ui.py       UI helper functions
+│   └── test_clean_code.py  AST + static analysis (4 tests)
 ├── integration/         needs TEST_DATABASE_URL (real PostgreSQL)
 │   └── test_integration.py
 └── system/              needs SYSTEM_TEST_URL (live deployed API), skipped in CI
