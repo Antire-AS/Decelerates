@@ -21,19 +21,19 @@ _ORGNR    = "111222333"
 
 # ── Shared fixtures ────────────────────────────────────────────────────────────
 
+from tests.integration.conftest import AuthClient, make_user, resolve_user_factory
+
+
 @pytest.fixture
 def auth_client(test_db):
     from fastapi.testclient import TestClient
     from api.main import app
-    from api.auth import CurrentUser, get_current_user
+    from api.auth import get_current_user
     from api.dependencies import get_db
 
-    def _fake_user():
-        return CurrentUser(email="test@broker.no", name="Test", oid="oid-1", firm_id=_FIRM_ID)
-
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = _fake_user
-    yield TestClient(app)
+    app.dependency_overrides[get_current_user] = resolve_user_factory("test@broker.no", "oid-1", _FIRM_ID)
+    yield AuthClient(TestClient(app), make_user("test@broker.no", "oid-1", _FIRM_ID))
     app.dependency_overrides.clear()
 
 
@@ -41,15 +41,12 @@ def auth_client(test_db):
 def auth_client_firm2(test_db):
     from fastapi.testclient import TestClient
     from api.main import app
-    from api.auth import CurrentUser, get_current_user
+    from api.auth import get_current_user
     from api.dependencies import get_db
 
-    def _fake_user():
-        return CurrentUser(email="other@broker.no", name="Other", oid="oid-2", firm_id=_FIRM2_ID)
-
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = _fake_user
-    yield TestClient(app)
+    app.dependency_overrides[get_current_user] = resolve_user_factory("other@broker.no", "oid-2", _FIRM2_ID)
+    yield AuthClient(TestClient(app), make_user("other@broker.no", "oid-2", _FIRM2_ID))
     app.dependency_overrides.clear()
 
 
@@ -109,30 +106,17 @@ class TestPortfolioCRUD:
 
 # ── Firm isolation ─────────────────────────────────────────────────────────────
 
-# See tests/integration/test_policies.py for xfail rationale.
-_PORTFOLIO_ISOLATION_FOLLOWUP = (
-    "Pre-existing: /portfolio endpoints don't scope by firm_id. "
-    "See tier 🟡 follow-up."
-)
-_PORTFOLIO_ANALYTICS_FOLLOWUP = (
-    "Pre-existing: portfolio analytics aggregation drift "
-    "(possibly shared-DB test contamination). See tier 🟡 follow-up."
-)
-
 
 class TestFirmIsolation:
-    @pytest.mark.xfail(reason=_PORTFOLIO_ISOLATION_FOLLOWUP, strict=False)
     def test_portfolio_not_visible_to_other_firm(self, auth_client, auth_client_firm2):
         pid = auth_client.post("/portfolio", json={"name": "Firm1 Portfolio"}).json()["id"]
         firm2_portfolios = auth_client_firm2.get("/portfolio").json()
         assert not any(p["id"] == pid for p in firm2_portfolios)
 
-    @pytest.mark.xfail(reason=_PORTFOLIO_ISOLATION_FOLLOWUP, strict=False)
     def test_delete_other_firms_portfolio_returns_404(self, auth_client, auth_client_firm2):
         pid = auth_client.post("/portfolio", json={"name": "Only Firm1"}).json()["id"]
         assert auth_client_firm2.delete(f"/portfolio/{pid}").status_code == 404
 
-    @pytest.mark.xfail(reason=_PORTFOLIO_ISOLATION_FOLLOWUP, strict=False)
     def test_analytics_scoped_to_firm(self, auth_client, auth_client_firm2, test_db):
         """Policies created under firm 1 must not appear in firm 2's analytics."""
         from datetime import datetime, timezone
@@ -161,6 +145,13 @@ class TestPortfolioAnalytics:
     def _make_portfolio_with_policies(self, auth_client, test_db):
         from datetime import datetime, timezone
         from api.db import Policy, PolicyStatus
+        # Clean up any leftover policies from prior test runs to keep aggregate
+        # assertions deterministic. test_db.rollback() in the fixture is a no-op
+        # because the service layer commits inside each request.
+        test_db.query(Policy).filter(
+            Policy.orgnr == _ORGNR, Policy.firm_id == _FIRM_ID,
+        ).delete(synchronize_session=False)
+        test_db.commit()
         pid = auth_client.post("/portfolio", json={"name": "Analytics Test"}).json()["id"]
         auth_client.post(f"/portfolio/{pid}/companies", json={"orgnr": _ORGNR})
         now = datetime.now(timezone.utc)
@@ -186,7 +177,6 @@ class TestPortfolioAnalytics:
                     "upcoming_renewals_90d", "upcoming_renewals_30d"):
             assert key in data, f"missing key: {key}"
 
-    @pytest.mark.xfail(reason=_PORTFOLIO_ANALYTICS_FOLLOWUP, strict=False)
     def test_analytics_sums_premiums(self, auth_client, test_db):
         pid = self._make_portfolio_with_policies(auth_client, test_db)
         data = auth_client.get(f"/portfolio/{pid}/analytics").json()
@@ -205,7 +195,6 @@ class TestPortfolioAnalytics:
         total = sum(r["share_pct"] for r in data["insurer_concentration"])
         assert abs(total - 100.0) < 0.5
 
-    @pytest.mark.xfail(reason=_PORTFOLIO_ANALYTICS_FOLLOWUP, strict=False)
     def test_analytics_renewals_counted(self, auth_client, test_db):
         pid = self._make_portfolio_with_policies(auth_client, test_db)
         data = auth_client.get(f"/portfolio/{pid}/analytics").json()
