@@ -55,8 +55,8 @@ docker compose up postgres -d
 Then in two separate terminals:
 
 ```bash
-bash scripts/run_api.sh   # FastAPI on http://localhost:8000
-bash scripts/run_ui.sh    # Streamlit on http://localhost:8501
+bash scripts/run_api.sh                # FastAPI on http://localhost:8000
+cd frontend && npm run dev             # Next.js on http://localhost:3000
 ```
 
 ---
@@ -181,10 +181,10 @@ az acr login --name brokeracr
 
 **3. Build and push images**
 ```bash
-docker build -t brokeracr.azurecr.io/broker-api:latest .
-docker build -f Dockerfile.ui -t brokeracr.azurecr.io/broker-ui:latest .
+docker build -f docker/Dockerfile          -t brokeracr.azurecr.io/broker-api:latest .
+docker build -f docker/Dockerfile.frontend -t brokeracr.azurecr.io/broker-frontend:latest .
 docker push brokeracr.azurecr.io/broker-api:latest
-docker push brokeracr.azurecr.io/broker-ui:latest
+docker push brokeracr.azurecr.io/broker-frontend:latest
 ```
 
 **4. Create PostgreSQL Flexible Server**
@@ -238,15 +238,15 @@ az containerapp create \
     ANTHROPIC_API_KEY=secretref:anthropic-key
 ```
 
-**7. Deploy the UI** (point it at the API container app URL)
+**7. Deploy the frontend** (point it at the API container app URL)
 ```bash
 az containerapp create \
-  --name broker-ui \
+  --name broker-frontend \
   --resource-group broker-rg \
   --environment broker-env \
-  --image brokeracr.azurecr.io/broker-ui:latest \
+  --image brokeracr.azurecr.io/broker-frontend:latest \
   --registry-server brokeracr.azurecr.io \
-  --target-port 8501 \
+  --target-port 3000 \
   --ingress external \
   --min-replicas 1 \
   --env-vars \
@@ -258,7 +258,7 @@ az containerapp create \
 - **pgvector** — must run `CREATE EXTENSION IF NOT EXISTS vector;` once on the database after provisioning. The `azure.extensions=vector` parameter above enables it at the server level, but you still need to activate it per database.
 - **Playwright cold starts** — set `--min-replicas 1` on the API container to avoid 30-second cold starts during agentic PDF discovery.
 - **Firewall** — Azure Postgres Flexible Server blocks all IPs by default. Add a firewall rule to allow the Container Apps outbound IPs, or use VNet integration.
-- **SSL** — Container Apps handles TLS termination. The `--server.headless=true` flag in Dockerfile.ui tells Streamlit not to open a browser.
+- **SSL** — Container Apps handles TLS termination. The Next.js frontend uses standalone output (`next.config.ts`) so the runtime image only needs Node, no separate web server.
 
 ---
 

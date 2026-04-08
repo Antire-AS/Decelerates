@@ -46,7 +46,7 @@ jobs:
 
       - name: Lint
         run: |
-          uv run pylint api/ ui/ \
+          uv run pylint api/ \
             --fail-under=8 \
             --disable=C0114,C0115,C0116,R0903,W0611
 
@@ -55,10 +55,10 @@ jobs:
         # ruff F401 is faster and more precise. Ran via uvx so we don't add
         # ruff to project deps — the external Antire reusable-ruff job already
         # owns the broader formatting check.
-        run: uvx ruff check --select F401 api/ ui/ tests/ scripts/
+        run: uvx ruff check --select F401 api/ tests/ scripts/
 
       - name: Complexity report (informational)
-        run: uv run radon cc api/ ui/ -n C -s || true
+        run: uv run radon cc api/ -n C -s || true
 
   # Inlined ruff check (was Antire-AS/antire-reusable-actions@v0.18.0 but its
   # setup-deploy-key step fails on repos without a DEPLOY_KEY secret —
@@ -75,7 +75,7 @@ jobs:
           version: "latest"
 
       - name: Run ruff check
-        run: uvx ruff check api/ ui/ tests/ scripts/
+        run: uvx ruff check api/ tests/ scripts/
 
   # Inlined pyright type check — same reasoning as ruff above.
   pyright:
@@ -92,11 +92,11 @@ jobs:
         run: uv sync --frozen
 
       - name: Run pyright
-        run: uv run --with pyright pyright api/ ui/ || true
-        # `|| true` for now — pyright finds many pre-existing issues in the
-        # codebase that aren't the scope of this PR. Once branch protection
-        # is fully green and we've triaged the real pyright errors, remove
-        # this and turn pyright into a real gate.
+        run: uv run --with pyright pyright
+        # Reads pyrightconfig.json from repo root. SQLAlchemy 1.x Column[X]
+        # type categories are downgraded to warnings — until we migrate to
+        # SQLAlchemy 2.0 Mapped[] types they're >90% false positives. Real
+        # bugs in other categories still fail the build.
 
   duplication:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.18.0
