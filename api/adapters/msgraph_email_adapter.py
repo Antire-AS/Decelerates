@@ -24,6 +24,8 @@ from typing import Optional
 
 import httpx
 
+from api.ports.driven.email_outbound_port import EmailOutboundPort
+
 
 @dataclass(frozen=True)
 class MsGraphConfig:
@@ -41,7 +43,7 @@ _TOKEN_URL_TMPL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
 _GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 
 
-class MsGraphEmailAdapter:
+class MsGraphEmailAdapter(EmailOutboundPort):
     def __init__(self, config: MsGraphConfig) -> None:
         self.config = config
 

@@ -93,7 +93,7 @@ def _embed(text: str) -> List[float]:
     voyage_key = os.getenv("VOYAGE_API_KEY")
     if _is_key_set(voyage_key):
         try:
-            vo = voyageai.Client(api_key=voyage_key)
+            vo = voyageai.Client(api_key=voyage_key)  # pyright: ignore[reportPrivateImportUsage]
             result = vo.embed([text], model=VOYAGE_MODEL)
             return result.embeddings[0] if result.embeddings else []
         except Exception as exc:
@@ -108,7 +108,8 @@ def _embed(text: str) -> List[float]:
                 contents=text,
                 config=genai_types.EmbedContentConfig(output_dimensionality=512),
             )
-            return result.embeddings[0].values
+            if result.embeddings and result.embeddings[0].values:
+                return result.embeddings[0].values
         except Exception as exc:
             logger.warning("Gemini embed failed: %s", exc)
 

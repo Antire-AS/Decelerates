@@ -35,19 +35,19 @@ _KNOWN_SCHEMA_DRIFT = (
 
 # ── Shared fixtures ─────────────────────────────────────────────────────────────
 
+from tests.integration.conftest import AuthClient, make_user, resolve_user_factory
+
+
 @pytest.fixture
 def auth_client(test_db):
     from fastapi.testclient import TestClient
     from api.main import app
-    from api.auth import CurrentUser, get_current_user
+    from api.auth import get_current_user
     from api.dependencies import get_db
 
-    def _fake_user():
-        return CurrentUser(email="broker@firm.no", name="Broker", oid="oid-10", firm_id=_FIRM_ID)
-
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = _fake_user
-    yield TestClient(app)
+    app.dependency_overrides[get_current_user] = resolve_user_factory("broker@firm.no", "oid-10", _FIRM_ID)
+    yield AuthClient(TestClient(app), make_user("broker@firm.no", "oid-10", _FIRM_ID))
     app.dependency_overrides.clear()
 
 
@@ -55,15 +55,12 @@ def auth_client(test_db):
 def auth_client_firm2(test_db):
     from fastapi.testclient import TestClient
     from api.main import app
-    from api.auth import CurrentUser, get_current_user
+    from api.auth import get_current_user
     from api.dependencies import get_db
 
-    def _fake_user():
-        return CurrentUser(email="other@firm2.no", name="Other", oid="oid-11", firm_id=_FIRM2_ID)
-
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = _fake_user
-    yield TestClient(app)
+    app.dependency_overrides[get_current_user] = resolve_user_factory("other@firm2.no", "oid-11", _FIRM2_ID)
+    yield AuthClient(TestClient(app), make_user("other@firm2.no", "oid-11", _FIRM2_ID))
     app.dependency_overrides.clear()
 
 
@@ -179,18 +176,17 @@ class TestRenewals:
         all_resp = auth_client.get("/renewals", params={"days": 90})
         far_ids = [
             p["id"] for p in all_resp.json()
-            if (p.get("days_to_renewal") or 0) > 30
+            if (p.get("days_until_renewal") or 0) > 30
         ]
         for fid in far_ids:
             assert fid not in ids
 
-    @pytest.mark.xfail(reason=_KNOWN_SCHEMA_DRIFT, strict=False)
-    def test_renewals_returns_days_to_renewal(self, auth_client):
+    def test_renewals_returns_days_until_renewal(self, auth_client):
         self._create_policy_with_renewal(auth_client, days=15)
         renewals = auth_client.get("/renewals", params={"days": 30}).json()
         for r in renewals:
-            assert "days_to_renewal" in r
-            assert r["days_to_renewal"] >= 0
+            assert "days_until_renewal" in r
+            assert r["days_until_renewal"] >= 0
 
     @pytest.mark.xfail(reason=_KNOWN_FIRM_ISOLATION_BUG, strict=False)
     def test_renewals_scoped_to_firm(self, auth_client, auth_client_firm2):

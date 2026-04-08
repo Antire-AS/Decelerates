@@ -68,6 +68,27 @@ _ai_conn_str = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 if _ai_conn_str:
     from azure.monitor.opentelemetry import configure_azure_monitor
     configure_azure_monitor(connection_string=_ai_conn_str)
+
+# Sentry — secondary error tracker (free tier 5K errors/month). DSN empty by
+# default → SDK no-ops, no traffic sent. Set SENTRY_DSN env var to activate.
+# Sentry is complementary to App Insights: App Insights = infra metrics +
+# alerts, Sentry = error grouping + stack traces + release tracking.
+_sentry_dsn = os.getenv("SENTRY_DSN")
+if _sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment=os.getenv("ENVIRONMENT", "development"),
+        release=os.getenv("GIT_SHA", "unknown"),
+        # Capture 10% of transactions for performance monitoring; full sample
+        # of errors. Tune up if you need more APM detail and have headroom in
+        # your free-tier monthly event quota.
+        traces_sample_rate=0.1,
+        # Send default PII (req IPs, usernames) — fine for B2B, revisit if
+        # we ever serve consumer end-users directly.
+        send_default_pii=True,
+    )
+
 from api.services import _seed_pdf_sources
 from api.services.search_service import SearchService
 from api.dependencies import get_db
@@ -107,6 +128,16 @@ from api.routers import (
 )
 
 app = FastAPI(title="Broker Accelerator API")
+
+# OpenTelemetry FastAPI instrumentation — populates AppRequests + AppDependencies
+# tables in Application Insights with per-endpoint method/status/duration data.
+# Without this, only AppTraces / AppPerformanceCounters / AppExceptions get
+# populated. configure_azure_monitor() above does NOT auto-instrument FastAPI
+# in 1.8.x; explicit instrument_app() is required.
+if _ai_conn_str:
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    FastAPIInstrumentor.instrument_app(app)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 _cors_origins_env = os.getenv("CORS_ORIGINS", "")

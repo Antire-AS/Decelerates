@@ -346,8 +346,15 @@ def email_forsikringstilbud(
         orgnr, label=f"E-post til {recipient_email}", db=db
     )
 
-    ui_base = os.getenv("UI_BASE_URL", "https://ca-ui.thankfulplant-2ef6e3b0.norwayeast.azurecontainerapps.io")
-    share_url = f"{ui_base}/?token={token_row.token}"
+    # FRONTEND_BASE_URL points at the Next.js frontend (ca-frontend). The Streamlit
+    # ca-ui that previously hosted /?token= shareable links was deleted on 2026-04-08.
+    # The Next.js client portal lives at /portal/<token>. UI_BASE_URL is kept as a
+    # legacy fallback only — set FRONTEND_BASE_URL on ca-api to override.
+    frontend_base = os.getenv(
+        "FRONTEND_BASE_URL",
+        "https://ca-frontend.whitepebble-3ac25616.norwayeast.azurecontainerapps.io",
+    )
+    share_url = f"{frontend_base}/portal/{token_row.token}"
 
     sent = notification.send_forsikringstilbud(
         to=recipient_email,

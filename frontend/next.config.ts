@@ -1,10 +1,18 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  // Suppress the "multiple lockfiles" workspace-root warning from the monorepo structure
-  outputFileTracingRoot: path.join(__dirname, "../"),
+  // NOTE: a previous version set outputFileTracingRoot here to suppress the
+  // "multiple lockfiles" warning from a stray root-level package-lock.json.
+  // That setting changed the standalone build output structure: server.js
+  // moved from /app/.next/standalone/server.js to a nested path, which broke
+  // `docker/Dockerfile.frontend`'s `CMD ["node", "server.js"]` and made every
+  // production deploy crashloop (caught after the fact: prod was serving from
+  // an Unhealthy revision via Azure rolling fallback). Don't re-add this
+  // without also updating the Dockerfile to match the new standalone path.
+  // The right fix for the underlying lockfile warning is to delete the
+  // orphan root package-lock.json (it's not tracked and `frontend/` is the
+  // only real npm workspace).
   // /org/:orgnr → /search/:orgnr  (matches the migration plan URL spec)
   async redirects() {
     return [
