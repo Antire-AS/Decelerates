@@ -244,12 +244,8 @@ def test_find_similar_returns_sorted_by_similarity(mock_embed):
 @patch("api.services.documents._analyze_document_with_gemini", return_value=None)
 @patch("api.services.documents._llm_answer_raw", return_value=None)
 def test_get_keypoints_returns_fallback_dict_when_all_fail(mock_llm, mock_gemini):
-    with patch("api.services.document_intelligence.DocumentIntelligenceService") as mock_di_cls:
-        mock_di = MagicMock()
-        mock_di.is_configured.return_value = False
-        mock_di_cls.return_value = mock_di
-        doc = _mock_doc(extracted_text="short")
-        result = DocumentAnalysisService().get_document_keypoints(doc)
+    doc = _mock_doc(extracted_text="short")
+    result = DocumentAnalysisService().get_document_keypoints(doc)
     assert "sammendrag" in result
     assert "viktige_vilkaar" in result
     assert "unntak" in result
@@ -258,12 +254,8 @@ def test_get_keypoints_returns_fallback_dict_when_all_fail(mock_llm, mock_gemini
 @patch("api.services.documents._parse_json_from_llm_response", return_value={"hva_dekkes": ["A"]})
 @patch("api.services.documents._llm_answer_raw", return_value='{"hva_dekkes": ["A"]}')
 def test_get_keypoints_uses_extracted_text_path(mock_llm, mock_parse):
-    with patch("api.services.document_intelligence.DocumentIntelligenceService") as mock_di_cls:
-        mock_di = MagicMock()
-        mock_di.is_configured.return_value = False
-        mock_di_cls.return_value = mock_di
-        doc = _mock_doc(extracted_text="A" * 600)
-        result = DocumentAnalysisService().get_document_keypoints(doc)
+    doc = _mock_doc(extracted_text="A" * 600)
+    result = DocumentAnalysisService().get_document_keypoints(doc)
     assert result == {"hva_dekkes": ["A"]}
     mock_llm.assert_called_once()
 
@@ -272,27 +264,10 @@ def test_get_keypoints_uses_extracted_text_path(mock_llm, mock_parse):
 @patch("api.services.documents._analyze_document_with_gemini", return_value='{"hva_dekkes": ["B"]}')
 @patch("api.services.documents._llm_answer_raw", return_value=None)
 def test_get_keypoints_falls_back_to_gemini(mock_llm, mock_gemini, mock_parse):
-    with patch("api.services.document_intelligence.DocumentIntelligenceService") as mock_di_cls:
-        mock_di = MagicMock()
-        mock_di.is_configured.return_value = False
-        mock_di_cls.return_value = mock_di
-        doc = _mock_doc(extracted_text="short")
-        result = DocumentAnalysisService().get_document_keypoints(doc)
+    doc = _mock_doc(extracted_text="short")
+    result = DocumentAnalysisService().get_document_keypoints(doc)
     mock_gemini.assert_called_once()
     assert result == {"hva_dekkes": ["B"]}
-
-
-@patch("api.services.documents._parse_json_from_llm_response", return_value={"di": "result"})
-@patch("api.services.documents._llm_answer_raw", return_value='{"di": "result"}')
-def test_get_keypoints_uses_di_when_configured(mock_llm, mock_parse):
-    with patch("api.services.document_intelligence.DocumentIntelligenceService") as mock_di_cls:
-        mock_di = MagicMock()
-        mock_di.is_configured.return_value = True
-        mock_di.analyze_pdf.return_value = "A" * 300
-        mock_di_cls.return_value = mock_di
-        doc = _mock_doc()
-        result = DocumentAnalysisService().get_document_keypoints(doc)
-    assert result == {"di": "result"}
 
 
 # ── DocumentAnalysisService.answer_document_question ──────────────────────────

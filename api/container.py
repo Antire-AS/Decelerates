@@ -18,10 +18,12 @@ from dataclasses import dataclass, field
 import punq
 
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
+from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter
 from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
 from api.adapters.notification_adapter import AzureEmailNotificationAdapter, NotificationConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
 from api.ports.driven.email_outbound_port import EmailOutboundPort
+from api.ports.driven.llm_port import LlmPort
 from api.ports.driven.notification_port import NotificationPort
 
 
@@ -30,6 +32,7 @@ class AppConfig:
     blob: BlobStorageConfig = field(default_factory=BlobStorageConfig)
     notification: NotificationConfig = field(default_factory=NotificationConfig)
     msgraph: MsGraphConfig = field(default_factory=MsGraphConfig)
+    foundry: FoundryConfig = field(default_factory=FoundryConfig)
 
 
 class ContainerFactory:
@@ -46,6 +49,9 @@ class ContainerFactory:
     def _make_email_outbound_adapter(self) -> EmailOutboundPort:
         return MsGraphEmailAdapter(self._config.msgraph)
 
+    def _make_foundry_llm_adapter(self) -> LlmPort:
+        return FoundryLlmAdapter(self._config.foundry)
+
     def build(self) -> punq.Container:
         self.container.register(
             BlobStoragePort,
@@ -60,6 +66,11 @@ class ContainerFactory:
         self.container.register(
             EmailOutboundPort,
             factory=self._make_email_outbound_adapter,
+            scope=punq.Scope.singleton,
+        )
+        self.container.register(
+            LlmPort,
+            factory=self._make_foundry_llm_adapter,
             scope=punq.Scope.singleton,
         )
         return self.container

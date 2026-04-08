@@ -2,7 +2,7 @@
 """Backward-compatibility shim — re-exports all public symbols from the split pdf_* modules.
 
 The 1203-line original has been split into focused modules:
-  pdf_parse.py       — JSON parsing, Gemini extraction, pdfplumber fallback
+  pdf_parse.py       — JSON parsing, Gemini PDF extraction
   pdf_history.py     — DB upsert, history merge (BRREG + PDF rows)
   pdf_web.py         — DuckDuckGo helpers, HTML fetching (Playwright + requests fallback)
   pdf_agents.py      — Claude / Gemini / Azure OpenAI agent loops + orchestration
@@ -15,14 +15,11 @@ re-exports that aren't directly used inside this file.
 
 from api.services.pdf_parse import (
     _parse_json_financials,
-    _extract_pdf_text,
-    _parse_financials_from_text,
     _gemini_api_keys,
     _parse_financials_from_pdf,
     _sanity_check_financials,
     _download_pdf_bytes,
     _try_gemini,
-    _pdfplumber_fallback,
 )
 from api.services.pdf_history import (
     fetch_history_from_pdf,
@@ -60,8 +57,6 @@ from api.services.pdf_background import (
 __all__ = [
     # pdf_parse
     "_parse_json_financials",
-    "_extract_pdf_text",
-    "_parse_financials_from_text",
     "_gemini_api_keys",
     "_parse_financials_from_pdf",
     # pdf_history

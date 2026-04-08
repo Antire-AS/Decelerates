@@ -21,6 +21,7 @@ from api.db import init_db
 from api.limiter import limiter
 from api.container import configure, AppConfig
 from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.foundry_llm_adapter import FoundryConfig
 from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
 
@@ -237,6 +238,14 @@ def on_startup():
             client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
             client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
             service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
+        ),
+        # Antire Azure AI Foundry — primary LLM provider. OpenAI-compatible
+        # endpoint fronting gpt-5.4 / gpt-5.4-mini / kimi / glm. Phase 1 of
+        # the LLM-stack consolidation; consumers migrate one at a time.
+        foundry=FoundryConfig(
+            base_url=os.getenv("AZURE_FOUNDRY_BASE_URL"),
+            api_key=os.getenv("AZURE_FOUNDRY_API_KEY"),
+            default_text_model=os.getenv("AZURE_FOUNDRY_MODEL", "gpt-5.4-mini"),
         ),
     ))
 

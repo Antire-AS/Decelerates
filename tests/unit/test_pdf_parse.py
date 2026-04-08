@@ -1,6 +1,6 @@
-"""Unit tests for api/services/pdf_parse.py — JSON parsing, Gemini extraction, pdfplumber fallback.
+"""Unit tests for api/services/pdf_parse.py — JSON parsing, Gemini extraction.
 
-Pure static tests — all HTTP, Gemini, and pdfplumber calls are mocked.
+Pure static tests — all HTTP and Gemini calls are mocked.
 _parse_json_financials basics are already in test_pdf_extract.py; this file
 covers the remaining functions and edge cases.
 """
@@ -14,9 +14,7 @@ from api.services.pdf_parse import (
     _download_pdf_bytes,
     _gemini_api_keys,
     _parse_financials_from_pdf,
-    _parse_financials_from_text,
     _parse_json_financials,
-    _pdfplumber_fallback,
     _sanity_check_financials,
     _try_gemini_with_retry,
 )
@@ -130,31 +128,6 @@ def test_gemini_api_keys_returns_empty_when_none_set():
     assert keys == []
 
 
-# ── _parse_financials_from_text ───────────────────────────────────────────────
-
-@patch("api.services.pdf_parse._llm_answer_raw", return_value=None)
-def test_parse_financials_from_text_returns_none_when_llm_fails(mock_llm):
-    result = _parse_financials_from_text("annual report text", "123456789", 2023)
-    assert result is None
-    mock_llm.assert_called_once()
-
-
-@patch("api.services.pdf_parse._parse_json_financials", return_value={"revenue": 1_000_000, "equity_ratio": 0.2})
-@patch("api.services.pdf_parse._llm_answer_raw", return_value='{"revenue": 1000000}')
-def test_parse_financials_from_text_returns_parsed_dict(mock_llm, mock_parse):
-    result = _parse_financials_from_text("report text", "123", 2023)
-    assert result == {"revenue": 1_000_000, "equity_ratio": 0.2}
-
-
-@patch("api.services.pdf_parse._llm_answer_raw", return_value=None)
-def test_parse_financials_from_text_truncates_long_text(mock_llm):
-    long_text = "x" * 200_000
-    _parse_financials_from_text(long_text, "123", 2023)
-    prompt_sent = mock_llm.call_args[0][0]
-    # Prompt is built from FINANCIALS_PROMPT + truncated text
-    assert len(prompt_sent) < len(long_text)
-
-
 # ── _download_pdf_bytes ───────────────────────────────────────────────────────
 
 def test_download_pdf_bytes_returns_content_on_success():
@@ -241,52 +214,6 @@ def test_try_gemini_with_retry_returns_none_when_parse_fails(mock_try, mock_pars
     assert result is None
 
 
-# ── _pdfplumber_fallback ──────────────────────────────────────────────────────
-
-@patch("api.services.pdf_parse._parse_financials_from_text",
-       return_value={"revenue": 800_000, "equity_ratio": 0.25})
-def test_pdfplumber_fallback_happy_path(mock_parse_text):
-    mock_page = MagicMock()
-    mock_page.extract_text.return_value = "Driftsinntekter 800 000"
-    mock_pdf_obj = MagicMock()
-    mock_pdf_obj.pages = [mock_page]
-    with patch("api.services.pdf_parse.pdfplumber.open", return_value=mock_pdf_obj):
-        with patch("api.services.pdf_parse._sanity_check_financials", return_value=True):
-            result = _pdfplumber_fallback(b"pdf bytes", "123", 2023)
-    assert result == {"revenue": 800_000, "equity_ratio": 0.25}
-    mock_parse_text.assert_called_once()
-
-
-@patch("api.services.pdf_parse._parse_financials_from_text", return_value=None)
-def test_pdfplumber_fallback_returns_none_when_llm_fails(mock_parse_text):
-    mock_page = MagicMock()
-    mock_page.extract_text.return_value = "some text"
-    mock_pdf_obj = MagicMock()
-    mock_pdf_obj.pages = [mock_page]
-    with patch("api.services.pdf_parse.pdfplumber.open", return_value=mock_pdf_obj):
-        result = _pdfplumber_fallback(b"pdf bytes", "123", 2023)
-    assert result is None
-
-
-def test_pdfplumber_fallback_returns_none_on_pdfplumber_exception():
-    with patch("api.services.pdf_parse.pdfplumber.open", side_effect=Exception("corrupt PDF")):
-        result = _pdfplumber_fallback(b"bad bytes", "123", 2023)
-    assert result is None
-
-
-@patch("api.services.pdf_parse._parse_financials_from_text",
-       return_value={"revenue": 500_000, "equity_ratio": 99.0})
-def test_pdfplumber_fallback_returns_none_when_sanity_fails(mock_parse_text):
-    mock_page = MagicMock()
-    mock_page.extract_text.return_value = "text"
-    mock_pdf_obj = MagicMock()
-    mock_pdf_obj.pages = [mock_page]
-    with patch("api.services.pdf_parse.pdfplumber.open", return_value=mock_pdf_obj):
-        with patch("api.services.pdf_parse._sanity_check_financials", return_value=False):
-            result = _pdfplumber_fallback(b"pdf bytes", "123", 2023)
-    assert result is None
-
-
 # ── _parse_financials_from_pdf ────────────────────────────────────────────────
 
 @patch("api.services.pdf_parse._download_pdf_bytes", return_value=None)
@@ -296,29 +223,18 @@ def test_parse_financials_from_pdf_returns_none_when_download_fails(mock_dl):
     mock_dl.assert_called_once()
 
 
-@patch("api.services.pdf_parse._pdfplumber_fallback")
 @patch("api.services.pdf_parse._try_gemini_with_retry",
        return_value={"revenue": 1_000_000, "equity_ratio": 0.3})
 @patch("api.services.pdf_parse._download_pdf_bytes", return_value=b"pdf bytes")
-def test_parse_financials_from_pdf_returns_gemini_result(mock_dl, mock_gemini, mock_fb):
+def test_parse_financials_from_pdf_returns_gemini_result(mock_dl, mock_gemini):
     result = _parse_financials_from_pdf("http://example.com/r.pdf", "123", 2023)
     assert result == {"revenue": 1_000_000, "equity_ratio": 0.3}
-    mock_fb.assert_not_called()
+    mock_gemini.assert_called_once()
 
 
-@patch("api.services.pdf_parse._pdfplumber_fallback",
-       return_value={"revenue": 700_000, "equity_ratio": 0.15})
 @patch("api.services.pdf_parse._try_gemini_with_retry", return_value=None)
 @patch("api.services.pdf_parse._download_pdf_bytes", return_value=b"pdf bytes")
-def test_parse_financials_from_pdf_falls_back_to_pdfplumber(mock_dl, mock_gemini, mock_fb):
-    result = _parse_financials_from_pdf("http://example.com/r.pdf", "123", 2023)
-    assert result == {"revenue": 700_000, "equity_ratio": 0.15}
-    mock_fb.assert_called_once()
-
-
-@patch("api.services.pdf_parse._pdfplumber_fallback", return_value=None)
-@patch("api.services.pdf_parse._try_gemini_with_retry", return_value=None)
-@patch("api.services.pdf_parse._download_pdf_bytes", return_value=b"pdf bytes")
-def test_parse_financials_from_pdf_returns_none_when_both_fail(mock_dl, mock_gemini, mock_fb):
+def test_parse_financials_from_pdf_returns_none_when_gemini_fails(mock_dl, mock_gemini):
+    """Phase 3 — pdfplumber fallback removed; Gemini failure now propagates as None."""
     result = _parse_financials_from_pdf("http://example.com/r.pdf", "123", 2023)
     assert result is None
