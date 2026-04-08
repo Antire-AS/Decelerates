@@ -125,34 +125,42 @@ def _fmt_nok(value) -> str:
 
 
 def _gemini_raw_with_fallback(prompt: str) -> Optional[str]:
-    """Legacy Gemini fallback for `_llm_answer_raw` — tries multiple models on quota."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not _is_key_set(gemini_key):
+    """Legacy Gemini fallback for `_llm_answer_raw` — tries Vertex AI then API key.
+
+    Iterates every configured Gemini client × every model. Raises QuotaError
+    only if every client/model combination is quota-blocked.
+    """
+    clients = _build_gemini_clients(timeout=_LLM_TIMEOUT_SECONDS)
+    if not clients:
         return None
-    client = google_genai.Client(api_key=gemini_key)
     models_to_try = [
         "gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash",
         "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it",
     ]
     seen: set = set()
     ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-    for model_name in ordered:
-        try:
-            with ThreadPoolExecutor(max_workers=1) as _pool:
-                future = _pool.submit(client.models.generate_content, model_name, prompt)
-                response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
-            return response.text
-        except FuturesTimeoutError:
-            logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
-            continue
-        except Exception as exc:
-            err = str(exc)
-            if "quota" in err.lower() or "429" in err or "RESOURCE_EXHAUSTED" in err:
+    quota_blocked = False
+    for client in clients:
+        for model_name in ordered:
+            try:
+                with ThreadPoolExecutor(max_workers=1) as _pool:
+                    future = _pool.submit(client.models.generate_content, model_name, prompt)
+                    response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
+                return response.text
+            except FuturesTimeoutError:
+                logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
                 continue
-            raise
-    raise QuotaError(
-        "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
-    )
+            except Exception as exc:
+                err = str(exc)
+                if "quota" in err.lower() or "429" in err or "RESOURCE_EXHAUSTED" in err:
+                    quota_blocked = True
+                    continue
+                raise
+    if quota_blocked:
+        raise QuotaError(
+            "Gemini quota exhausted on all clients/models — wait a few minutes or enable billing."
+        )
+    return None
 
 
 def _llm_answer_raw(prompt: str) -> Optional[str]:
@@ -206,16 +214,50 @@ def _compare_offers_with_llm(prompt: str) -> Optional[str]:
     return _gemini_generate_with_fallback([prompt])
 
 
+def _build_gemini_clients(timeout: int = 120) -> list:
+    """Build a list of `genai.Client` instances in priority order.
+
+    Vertex AI (project + location, service account auth via
+    GOOGLE_APPLICATION_CREDENTIALS) comes first when configured. Falls back
+    to a single legacy AI-Studio API-key client.
+    """
+    clients: list = []
+    project = os.getenv("GCP_VERTEX_AI_PROJECT")
+    location = os.getenv("GCP_VERTEX_AI_LOCATION", "europe-west4")
+    if project:
+        try:
+            clients.append(
+                google_genai.Client(
+                    vertexai=True, project=project, location=location,
+                    http_options={"timeout": timeout},
+                )
+            )
+        except Exception as exc:
+            logger.warning("Vertex AI client init failed: %s", exc)
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if _is_key_set(gemini_key):
+        try:
+            clients.append(
+                google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
+            )
+        except Exception as exc:
+            logger.warning("Legacy Gemini client init failed: %s", exc)
+    return clients
+
+
 def _gemini_generate_with_fallback(
     parts: list, timeout: int = 120, system_instruction: Optional[str] = None
 ) -> Optional[str]:
-    """Try each Gemini model in order with the given content parts. Returns first successful text."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
+    """Try each Gemini client × model in order. Returns first successful text.
+
+    Vertex AI is preferred when configured; legacy AI-Studio API key acts as
+    fallback. Will be reduced to Vertex-only in Phase 4.5 once stable in prod.
+    """
+    clients = _build_gemini_clients(timeout=timeout)
+    if not clients:
         return None
     config = genai_types.GenerateContentConfig(system_instruction=system_instruction) if system_instruction else None
-    try:
-        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
+    for client in clients:
         for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
             try:
                 resp = client.models.generate_content(model=model, contents=parts, config=config)
@@ -223,8 +265,6 @@ def _gemini_generate_with_fallback(
             except Exception as exc:
                 logger.warning("Gemini model %s failed: %s", model, exc)
                 continue
-    except Exception as exc:
-        logger.error("Gemini generate_with_fallback failed: %s", exc)
     return None
 
 
