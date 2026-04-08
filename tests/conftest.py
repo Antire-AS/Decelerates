@@ -100,14 +100,6 @@ sys.modules.setdefault("azure.communication.email", _azure_comm_email_stub)
 # fpdf2 / fpdf — services/pdf_generate.py
 sys.modules.setdefault("fpdf", MagicMock())
 
-# streamlit — ui modules
-# Must be stubbed before any ui.* import so that google.protobuf (which streamlit
-# imports internally) does not conflict with the google.genai MagicMock above.
-_st_stub = MagicMock()
-_st_stub.session_state = {}
-_st_stub.cache_data = lambda **kwargs: (lambda fn: fn)  # pass-through decorator
-sys.modules.setdefault("streamlit", _st_stub)
-
 # pgvector — use the real installed package (required for integration tests that
 # create Vector columns in PostgreSQL). Fall back to stub only if not installed.
 try:

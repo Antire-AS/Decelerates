@@ -219,21 +219,24 @@ _JUSTIFIED = {
     "generate_recommendation_pdf",
     # recommendation_service.create — LLM draft + DB persist + optional IDD link; single atomic flow
     "create",
-    # Streamlit expander helpers — each wraps one expander with tightly coupled widget sequence
-    "_render_insurance_needs_expander",
-    "_render_insurance_recommendation_expander",
-    "_render_insurance_offers_expander",
 }
 
-# Files excluded from function-length checks (non-production scripts)
-_EXCLUDED_FILES = {"generate_sample_offers.py"}
+# Files excluded from function-length checks (non-production scripts).
+# Note: the entire `scripts/` directory is also excluded by the path filter
+# below — this set is kept for any standalone files outside `scripts/` that
+# need an exemption.
+_EXCLUDED_FILES: set[str] = set()
 
 
 def test_no_function_exceeds_40_lines():
     """Every production function must be ≤ 40 lines unless explicitly justified."""
     violations = []
     for path in ROOT.rglob("*.py"):
-        if any(part in {".venv", "__pycache__", ".git", "tests", "alembic"} for part in path.parts):
+        # Skip dev/ops directories — these aren't production code paths.
+        # `scripts/` holds dev tools, seeds, ops helpers; the same standards
+        # don't apply.
+        if any(part in {".venv", "__pycache__", ".git", "tests", "alembic", "scripts"}
+               for part in path.parts):
             continue
         if path.name in _EXCLUDED_FILES:
             continue
