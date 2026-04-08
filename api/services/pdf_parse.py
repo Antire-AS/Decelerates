@@ -91,7 +91,11 @@ def _gemini_files_api(
 
 
 def _gemini_api_keys() -> List[str]:
-    """Return all configured Gemini API keys (primary + fallbacks), deduped."""
+    """Return all configured legacy Gemini API keys (primary + fallbacks), deduped.
+
+    Legacy AI-Studio API-key path. Used as fallback when Vertex AI is not
+    configured. Will be removed once Vertex AI is stable in prod.
+    """
     keys = []
     for var in ("GEMINI_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"):
         k = os.getenv(var)
@@ -100,16 +104,49 @@ def _gemini_api_keys() -> List[str]:
     return keys
 
 
+def _build_gemini_clients() -> List[Any]:
+    """Build a list of `genai.Client` instances in priority order.
+
+    Vertex AI (project + location, service account auth via
+    GOOGLE_APPLICATION_CREDENTIALS) comes first when configured. Falls back
+    to one client per legacy AI-Studio API key.
+    """
+    clients: List[Any] = []
+    project = os.getenv("GCP_VERTEX_AI_PROJECT")
+    location = os.getenv("GCP_VERTEX_AI_LOCATION", "europe-west4")
+    if project:
+        try:
+            clients.append(
+                google_genai.Client(vertexai=True, project=project, location=location)
+            )
+        except Exception as exc:
+            logger.warning("[extract] Vertex AI client init failed: %s", exc)
+    for api_key in _gemini_api_keys():
+        try:
+            clients.append(google_genai.Client(api_key=api_key))
+        except Exception as exc:
+            logger.warning("[extract] Legacy Gemini client init failed: %s", exc)
+    return clients
+
+
 def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
-    """Try all Gemini API keys × all PDF models; return raw text or None on quota/failure."""
+    """Try every configured Gemini client × every PDF model; return raw text or None.
+
+    Vertex AI is preferred (prod-grade SLA, EU residency). Legacy AI-Studio
+    API keys remain as fallback until Phase 4 cleanup. Vertex AI handles
+    PDFs of any size inline — the Files API path is only needed for the
+    legacy AI-Studio clients which cap at ~18 MB inline.
+    """
     prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
     use_files_api = len(pdf_bytes) > GEMINI_FILES_API_THRESHOLD
 
-    for api_key in _gemini_api_keys():
-        client = google_genai.Client(api_key=api_key)
+    for client in _build_gemini_clients():
+        is_vertex = bool(getattr(getattr(client, "_api_client", None), "vertexai", False))
         for model_name in GEMINI_PDF_MODELS:
             try:
-                if use_files_api:
+                # Vertex AI accepts inline PDFs of any practical size; the
+                # AI-Studio Files API path is only needed for the legacy keys.
+                if use_files_api and not is_vertex:
                     raw = _gemini_files_api(client, model_name, pdf_bytes, orgnr, year)
                 else:
                     raw = _gemini_inline(client, model_name, pdf_bytes, prompt)
@@ -118,8 +155,8 @@ def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
             except Exception as exc:
                 msg = str(exc)
                 if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    continue  # try next model or key
-                break  # non-quota error on this key, skip remaining models
+                    continue  # try next model or client
+                break  # non-quota error on this client, skip remaining models
     return None
 
 

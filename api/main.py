@@ -10,6 +10,19 @@ See CLAUDE.md for architecture reference; live API docs at /docs.
 import logging
 import os
 
+# ── Vertex AI service-account bootstrap ───────────────────────────────────────
+# In Container Apps we receive the SA key as a base64-or-raw JSON env var
+# (`GCP_VERTEX_AI_SA_JSON`). Materialize it to a file so the google-auth ADC
+# chain picks it up via GOOGLE_APPLICATION_CREDENTIALS. Locally the developer
+# sets GOOGLE_APPLICATION_CREDENTIALS directly to the downloaded JSON path,
+# so this block is a no-op in dev.
+_sa_json = os.getenv("GCP_VERTEX_AI_SA_JSON")
+if _sa_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    _sa_path = "/tmp/gcp-vertex-ai-sa.json"
+    with open(_sa_path, "w") as _fh:
+        _fh.write(_sa_json)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _sa_path
+
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI
