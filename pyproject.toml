@@ -37,6 +37,7 @@ dependencies = [
     "punq>=0.7.0",
     "pyjwt[crypto]>=2.8.0",
     "azure-monitor-opentelemetry>=1.6.0",
+    "sentry-sdk[fastapi]>=2.18.0",
     "openpyxl>=3.1.5",
 ]
 
