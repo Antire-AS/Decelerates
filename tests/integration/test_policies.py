@@ -27,10 +27,6 @@ _KNOWN_FIRM_ISOLATION_BUG = (
     "Pre-existing product bug: firm_id scoping not enforced on this endpoint. "
     "Pre-2026-04-07 this was admin-bypassed. See tier 🟡 follow-up."
 )
-_KNOWN_SCHEMA_DRIFT = (
-    "Pre-existing schema drift: response shape changed but test not updated. "
-    "See tier 🟡 follow-up."
-)
 
 
 # ── Shared fixtures ─────────────────────────────────────────────────────────────
