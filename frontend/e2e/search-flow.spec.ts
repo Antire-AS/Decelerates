@@ -10,7 +10,6 @@ import { test, expect } from "@playwright/test";
  */
 
 const DNB_ORGNR = "984851006";
-const DNB_NAVN = "DNB BANK ASA";
 
 test("search-flow: search page renders heading and input", async ({ page }) => {
   await page.goto("/search");
