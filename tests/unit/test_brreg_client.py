@@ -7,11 +7,9 @@ are the parts where a regression is silent and only shows up in the UI
 (see UI audit F02 for the kind of bug this is meant to catch).
 """
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
-from api.services import brreg_client
 from api.services.brreg_client import (
     _build_enhet_dict,
     _build_regnskap_row,
