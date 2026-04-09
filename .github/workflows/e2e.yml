@@ -42,7 +42,7 @@ jobs:
       PLAYWRIGHT_API_BASE_URL: https://ca-api-staging.whitepebble-3ac25616.norwayeast.azurecontainerapps.io
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # workflow_run defaults to the workflow file's branch (staging) which
           # is correct for our suite. workflow_dispatch uses the branch picked
@@ -55,7 +55,7 @@ jobs:
           echo "PLAYWRIGHT_BASE_URL=https://ca-frontend.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
           echo "PLAYWRIGHT_API_BASE_URL=https://ca-api.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: "npm"
@@ -84,7 +84,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report-${{ github.run_id }}
           path: frontend/playwright-report/
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload Playwright traces (failures only)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-traces-${{ github.run_id }}
           path: frontend/test-results/
