@@ -275,6 +275,49 @@ CI (`ci.yml`) now runs on PRs to **both** `staging` and `main`.
 **Infra changes** (new Azure resources, OIDC config): run `terraform apply` locally from `infra/terraform/`
 — Terraform is NOT part of CI/CD. See `infra/README.md` for details.
 
+### Solo-maintainer merge pattern
+
+GitHub forbids approving your own PR, so when there's only one human committer
+the `required_approving_review_count: 1` rule on `main` blocks every merge.
+Use the toggle script:
+
+```bash
+scripts/merge-pr.sh <PR_NUMBER>            # squash-merge into main
+scripts/merge-pr.sh <PR_NUMBER> staging    # squash-merge into staging
+```
+
+The script snapshots branch protection, lowers `required_approving_review_count`
+to 0, squash-merges the PR, then restores the original count via a `trap EXIT`
+handler so the gate is restored even if the merge fails. The whole sequence
+takes ~3 seconds and is auditable in the repo's Settings → Audit log.
+
+Refuses to run if the PR is not OPEN, has merge conflicts, is BEHIND the base
+branch, or has any failing required CI check. Requires `gh` CLI authenticated
+as a repo admin (write access isn't enough — branch protection is admin-only).
+
+When you onboard a second human committer, this script becomes obsolete and
+should be deleted along with the documentation in this section.
+
+### Database users (least privilege)
+
+Prod and staging connect to Postgres as **separate roles**, NOT as the
+`brokeradmin` superuser:
+
+| Env | DB user | Database | Notes |
+|---|---|---|---|
+| prod    | `broker_prod`    | `brokerdb`         | App role, no superuser, no cross-DB access |
+| staging | `broker_staging` | `brokerdb_staging` | App role, no superuser, no cross-DB access |
+| admin   | `brokeradmin`    | both               | `azure_pg_admin` member; only used by humans for migrations + extension installs |
+
+**Never put `brokeradmin` credentials into `DATABASE_URL` or
+`STAGING_DATABASE_URL`** — that's how prod almost went down on 2026-04-08
+when the brokeradmin password rotation cascaded across both envs.
+
+`init_db()` in `api/db.py` checks `pg_extension` before calling
+`CREATE EXTENSION vector`, because Azure Postgres treats pgvector as
+"untrusted" and only `azure_pg_admin` members can create it. The check makes
+the startup hook safe for the least-privileged app roles.
+
 ---
 
 ## Running locally
