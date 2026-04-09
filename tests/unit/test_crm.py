@@ -169,7 +169,8 @@ class TestPolicyServiceUpdate:
         body = PolicyUpdate(insurer="Fremtind", annual_premium_nok=60_000.0)
         svc.update(policy_id=1, firm_id=1, body=body)
 
-        assert existing.insurer == "Fremtind"
+        # Canonicalised since UI audit F06 (2026-04-09).
+        assert existing.insurer == "Fremtind Forsikring"
         assert existing.annual_premium_nok == 60_000.0
         db.commit.assert_called_once()
 
