@@ -96,13 +96,42 @@ def _validate_token(token: str) -> dict:
     return jwt.decode(token, key, **decode_kwargs)
 
 
+# Synthetic dev user used when AUTH_DISABLED=1. The same triple is used by
+# both `get_optional_user` and `get_current_user` so a single User row in the
+# database satisfies both code paths. Without provisioning this row, every
+# router that does `db.query(User).filter(User.azure_oid == user.oid).first()`
+# returns 404 in dev mode (notifications, saved_searches, etc).
+_DEV_USER_OID   = "dev-oid"
+_DEV_USER_EMAIL = "dev@local"
+_DEV_USER_NAME  = "Dev User"
+
+
+def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
+    """Idempotently insert the dev@local row into the users table.
+
+    Called from get_current_user / get_optional_user when AUTH_DISABLED=1.
+    Without this, every router that resolves the current user via
+    `User.azure_oid` lookup returns 404 in dev mode (UI audit F01, 2026-04-09).
+    UserService.get_or_create is itself idempotent — does nothing if the row
+    already exists.
+    """
+    from api.services.user_service import UserService
+    user = UserService(db).get_or_create(
+        oid=_DEV_USER_OID, email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
+    )
+    return CurrentUser(
+        email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
+        oid=_DEV_USER_OID, firm_id=user.firm_id,
+    )
+
+
 def get_optional_user(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> Optional[CurrentUser]:
     """Like get_current_user but returns None instead of 401 when no token is present."""
     if _is_auth_disabled():
-        return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
+        return _ensure_dev_user_provisioned(db)
     if not creds:
         return None
     try:
@@ -124,11 +153,13 @@ def get_current_user(
     """FastAPI dependency — validates the bearer token and returns the current user.
 
     With ENVIRONMENT != "production" AND AUTH_DISABLED=1 returns a dev user
-    without hitting Azure AD. In production, AUTH_DISABLED is ignored.
-    On first login, auto-provisions the user in the users table.
+    without hitting Azure AD AND auto-provisions a matching row in the users
+    table on first request, so downstream `azure_oid` lookups succeed. In
+    production, AUTH_DISABLED is ignored.
+    On first login (real Azure AD), also auto-provisions the user in the users table.
     """
     if _is_auth_disabled():
-        return CurrentUser(email="dev@local", name="Dev User", oid="dev-oid", firm_id=1)
+        return _ensure_dev_user_provisioned(db)
 
     if not creds:
         raise HTTPException(

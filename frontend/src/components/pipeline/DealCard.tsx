@@ -89,12 +89,18 @@ export function DealCard({
           </span>
         )}
         {deal.owner_user_id != null && (
-          <span className="flex items-center gap-0.5">
+          <span
+            className="flex items-center gap-0.5"
+            title={`Bruker-ID ${deal.owner_user_id} eier denne dealen`}
+          >
             <User className="w-3 h-3" /> #{deal.owner_user_id}
           </span>
         )}
         {daysInStage != null && daysInStage >= 0 && (
-          <span className={daysInStage > 30 ? "text-amber-600" : ""}>
+          <span
+            className={daysInStage > 30 ? "text-amber-600" : ""}
+            title={`${daysInStage} dag${daysInStage === 1 ? "" : "er"} i denne fasen`}
+          >
             {daysInStage}d
           </span>
         )}

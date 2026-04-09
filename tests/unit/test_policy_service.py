@@ -159,7 +159,9 @@ def test_update_sets_field_on_policy():
         model_dump=lambda exclude_none: {"insurer": "Codan"}
     )
     PolicyService(db).update(1, 10, body)
-    assert policy.insurer == "Codan"
+    # PolicyService.update routes insurer through canonical_insurer_name
+    # since UI audit F06 (2026-04-09); "Codan" → "Codan Forsikring".
+    assert policy.insurer == "Codan Forsikring"
 
 
 def test_update_commits():

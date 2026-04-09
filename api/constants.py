@@ -5,7 +5,6 @@ from typing import Any, Dict, List
 # Model configuration
 # ======================
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
-VOYAGE_MODEL = os.getenv("VOYAGE_MODEL", "voyage-3-lite")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 # ======================

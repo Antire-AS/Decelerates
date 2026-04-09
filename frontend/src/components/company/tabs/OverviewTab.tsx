@@ -150,16 +150,24 @@ export default function OverviewTab({
             <KV label="Kommune"   value={org.kommune} />
             <KV label="Stiftet"   value={org.stiftelsesdato} />
             <KV label="Ansatte"   value={regn.antall_ansatte} />
-            {!!org.hjemmeside && (
-              <div className="flex justify-between text-sm">
-                <span className="text-[#8A7F74]">Nettsted</span>
-                <a href={String(org.hjemmeside)} target="_blank" rel="noopener noreferrer"
-                  className="text-[#4A6FA5] flex items-center gap-1 hover:underline">
-                  {String(org.hjemmeside).replace(/^https?:\/\//, "").slice(0, 30)}
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            )}
+            {!!org.hjemmeside && (() => {
+              // BRREG returns the website without a scheme (e.g. "www.dnb.no").
+              // The browser would resolve a bare href against the current
+              // origin, producing a broken /search/[orgnr]/www.dnb.no link —
+              // UI audit F03 (2026-04-09).
+              const raw = String(org.hjemmeside);
+              const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+              return (
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#8A7F74]">Nettsted</span>
+                  <a href={href} target="_blank" rel="noopener noreferrer"
+                    className="text-[#4A6FA5] flex items-center gap-1 hover:underline">
+                    {raw.replace(/^https?:\/\//, "").slice(0, 30)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              );
+            })()}
           </Section>
 
           {coords?.lat && coords?.lon && (
@@ -359,31 +367,45 @@ export default function OverviewTab({
           );
         })()}
 
-        {/* Industry benchmark — backend returns {orgnr, nace_code, benchmark: {...metrics}} */}
-        {benchmark?.benchmark && Object.keys(benchmark.benchmark).length > 0 && (
-          <Section title="SSB-bransjesammenligning">
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Typiske nøkkeltall for bransjen</span>
-            </div>
-            {Object.entries(benchmark.benchmark)
-              .filter(([k]) => !["naeringskode", "beskrivelse", "source"].includes(k))
-              .slice(0, 5)
-              .map(([key, val]) => {
-                const isRange = typeof val === "object" && val !== null && "low" in (val as Record<string, unknown>);
-                return (
-                  <div key={key} className="flex justify-between text-sm">
-                    <span className="text-[#8A7F74] capitalize">{key.replace(/_/g, " ")}</span>
-                    <span className="text-[#2C3E50] font-medium text-xs">
-                      {isRange
-                        ? `${(val as { low: number; high: number }).low}–${(val as { low: number; high: number }).high}%`
-                        : String(val)}
-                    </span>
-                  </div>
-                );
-              })}
-          </Section>
-        )}
+        {/* Industry benchmark — backend returns {orgnr, nace_code, benchmark: {...metrics}}.
+            Flattened min/max pairs are collapsed back into ranges here and
+            keys are rendered via a Norwegian label map instead of raw
+            snake_case. UI audit F08 (2026-04-09). */}
+        {benchmark?.benchmark && Object.keys(benchmark.benchmark).length > 0 && (() => {
+          const b = benchmark.benchmark as Record<string, unknown>;
+          const fmtPct = (v: unknown) => `${(Number(v) * 100).toFixed(0)} %`;
+          const fmtRange = (lo: unknown, hi: unknown) => `${fmtPct(lo)} – ${fmtPct(hi)}`;
+          const rows: { label: string; value: string }[] = [];
+          if (b.industry) rows.push({ label: "Bransje", value: String(b.industry) });
+          if (b.section)  rows.push({ label: "Seksjon", value: String(b.section) });
+          if (b.typical_equity_ratio_min != null && b.typical_equity_ratio_max != null) {
+            rows.push({
+              label: "Typisk egenkapitalandel",
+              value: fmtRange(b.typical_equity_ratio_min, b.typical_equity_ratio_max),
+            });
+          }
+          if (b.typical_profit_margin_min != null && b.typical_profit_margin_max != null) {
+            rows.push({
+              label: "Typisk resultatmargin",
+              value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max),
+            });
+          }
+          const sourceLive = b.live === true;
+          return (
+            <Section title="SSB-bransjesammenligning">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Typiske nøkkeltall for bransjen{sourceLive ? " (live SSB)" : ""}</span>
+              </div>
+              {rows.map((row) => (
+                <div key={row.label} className="flex justify-between text-sm">
+                  <span className="text-[#8A7F74]">{row.label}</span>
+                  <span className="text-[#2C3E50] font-medium text-xs">{row.value}</span>
+                </div>
+              ))}
+            </Section>
+          );
+        })()}
 
         {/* Peer benchmark — fetched from /org/{orgnr}/peer-benchmark */}
         {peerData && peerData.peer_count > 0 && (
@@ -391,7 +413,7 @@ export default function OverviewTab({
             <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
               <BarChart3 className="w-3.5 h-3.5" />
               <span>
-                NACE-seksjon {peerData.nace_section || "–"} · {peerData.peer_count} peers ·{" "}
+                NACE-seksjon {peerData.nace_section || "–"} · {peerData.peer_count} {peerData.peer_count === 1 ? "peer" : "peers"} ·{" "}
                 {peerData.source === "db_peers" ? "fra database" : "SSB-rangering"}
               </span>
             </div>
@@ -413,7 +435,7 @@ export default function OverviewTab({
                     <span className="text-[#8A7F74]">{label}</span>
                     <span className="text-[#2C3E50] font-medium">
                       {fmtVal(m.company)}
-                      <span className="text-[#C4BDB4] mx-1">vs</span>
+                      {" "}<span className="text-[#C4BDB4]">vs</span>{" "}
                       <span className="text-[#8A7F74]">{fmtVal(m.peer_avg)}</span>
                       {m.percentile != null && (
                         <span className="ml-2 text-[10px] text-[#4A6FA5]">P{m.percentile}</span>
@@ -426,8 +448,10 @@ export default function OverviewTab({
           </Section>
         )}
 
-        {/* Konsernstruktur */}
-        {struktur && (struktur.parent || (struktur.sub_units as unknown[] | undefined)?.length) && (
+        {/* Konsernstruktur — coerce the length check to a boolean so an empty
+            sub_units array (length === 0) doesn't leak a stray "0" into the
+            DOM. UI audit F11 (2026-04-09). */}
+        {struktur && (!!struktur.parent || !!(struktur.sub_units as unknown[] | undefined)?.length) && (
           <Section title="Konsernstruktur">
             {!!struktur.parent && (() => {
               const p = struktur.parent as Record<string, unknown>;

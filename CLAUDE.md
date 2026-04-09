@@ -275,6 +275,103 @@ CI (`ci.yml`) now runs on PRs to **both** `staging` and `main`.
 **Infra changes** (new Azure resources, OIDC config): run `terraform apply` locally from `infra/terraform/`
 — Terraform is NOT part of CI/CD. See `infra/README.md` for details.
 
+### `[skip-staging]` mode for low-risk PRs
+
+The staging hop adds ~15 minutes per change (CI + deploy + manual verification).
+For low-risk PRs that overhead is pure friction. The `staging-gate` job in
+`ci.yml` enforces the team convention but allows opt-out:
+
+**Default**: PRs to `main` must come from the `staging` branch. The `staging-gate`
+CI job fails if you try to merge a feature/fix branch directly into main.
+
+**Opt-out**: add `[skip-staging]` to the PR title OR apply the `skip-staging`
+label. The job then passes with a notice and the PR can target `main` directly.
+
+```bash
+# Normal flow (high-risk change)
+git checkout -b feat/new-thing
+# ... commit ...
+gh pr create --base staging
+# merge → staging → promote → main
+
+# Skip-staging flow (low-risk change)
+git checkout -b chore/bump-deps
+# ... commit ...
+gh pr create --base main --title "chore: bump foo to 1.2.3 [skip-staging]"
+# merge → main directly
+```
+
+**When `[skip-staging]` is acceptable**:
+- Docs-only changes (README, CLAUDE.md)
+- Dependabot security upgrades and similar dep bumps
+- Single-line config fixes (deploy.yml env var add/rename)
+- Comment-only edits
+- Hotfixes that need to land on prod within minutes (incident response)
+
+**When it is NOT**:
+- Any change to `api/services/`, `api/routers/`, `frontend/src/`
+- Any change touching DB schema or migrations
+- Any change to LLM provider routing or auth
+- Anything that could cause a 5xx if rolled back wrong
+
+If you find yourself reaching for `[skip-staging]` often, the change probably
+wants better test coverage instead — talk to whoever owns the area.
+
+To make `staging-gate` an actual hard gate (instead of advisory), add it to
+the required status checks on `main`:
+
+```bash
+gh api -X PATCH repos/Antire-AS/Decelerates/branches/main/protection/required_status_checks \
+  -F strict=true \
+  -F 'contexts[]=test' -F 'contexts[]=ruff' -F 'contexts[]=pyright' \
+  -F 'contexts[]=frontend' -F 'contexts[]=api-types-fresh' \
+  -F 'contexts[]=duplication / duplication-check' \
+  -F 'contexts[]=staging-gate'
+```
+
+### Solo-maintainer merge pattern
+
+GitHub forbids approving your own PR, so when there's only one human committer
+the `required_approving_review_count: 1` rule on `main` blocks every merge.
+Use the toggle script:
+
+```bash
+scripts/merge-pr.sh <PR_NUMBER>            # squash-merge into main
+scripts/merge-pr.sh <PR_NUMBER> staging    # squash-merge into staging
+```
+
+The script snapshots branch protection, lowers `required_approving_review_count`
+to 0, squash-merges the PR, then restores the original count via a `trap EXIT`
+handler so the gate is restored even if the merge fails. The whole sequence
+takes ~3 seconds and is auditable in the repo's Settings → Audit log.
+
+Refuses to run if the PR is not OPEN, has merge conflicts, is BEHIND the base
+branch, or has any failing required CI check. Requires `gh` CLI authenticated
+as a repo admin (write access isn't enough — branch protection is admin-only).
+
+When you onboard a second human committer, this script becomes obsolete and
+should be deleted along with the documentation in this section.
+
+### Database users (least privilege)
+
+Prod and staging connect to Postgres as **separate roles**, NOT as the
+`brokeradmin` superuser:
+
+| Env | DB user | Database | Notes |
+|---|---|---|---|
+| prod    | `broker_prod`    | `brokerdb`         | App role, no superuser, no cross-DB access |
+| staging | `broker_staging` | `brokerdb_staging` | App role, no superuser, no cross-DB access |
+| admin   | `brokeradmin`    | both               | `azure_pg_admin` member; only used by humans for migrations + extension installs |
+
+**Never put `brokeradmin` credentials into `DATABASE_URL` or
+`STAGING_DATABASE_URL`** — that's how prod almost went down on 2026-04-08
+when the brokeradmin password rotation cascaded across both envs.
+
+`init_db()` in `api/db.py` checks `pg_extension` before calling
+`CREATE EXTENSION vector`, because Azure Postgres treats pgvector as
+"untrusted" and only `azure_pg_admin` members can create it. The check makes
+the startup hook safe for the least-privileged app roles.
+
 ---
 
 ## Running locally
@@ -307,27 +404,38 @@ docker compose up --build
 
 ## LLM / Model Configuration
 
-The app uses a priority-based fallback for all LLM calls:
+After Phase 4.5 consolidation (2026-04-09) the LLM stack is **two providers,
+no fallbacks** for the chat / embedding / multimodal paths. A third dependency
+(Anthropic + AI-Studio Gemini) is still imported by the agentic IR PDF
+discovery feature in `pdf_agents.py` — a separate cleanup pending.
 
-**Agentic IR discovery** (`_agent_discover_pdfs`):
-1. Claude tool-use loop (`ANTHROPIC_API_KEY`) — preferred
-2. Gemini tool-use loop (`GEMINI_API_KEY`) — fallback
-3. DuckDuckGo + LLM validation — last resort
+| Path | Provider | Model | Auth |
+|---|---|---|---|
+| **Chat / NL→SQL / narrative** (`_llm_answer*`, `_compare_offers_with_llm`) | Antire Azure AI Foundry | `gpt-5.4-mini` | `AZURE_FOUNDRY_BASE_URL` + `AZURE_FOUNDRY_API_KEY` |
+| **Embeddings** (`_embed` → pgvector dim=512) | Antire Azure AI Foundry | `text-embedding-3-small` (512-dim mode) | same |
+| **PDF / multimodal extraction** (`_parse_financials_from_pdf`, `_analyze_document_with_gemini`, `_compare_documents_with_gemini`) | Google Vertex AI | `gemini-2.5-flash` | `GCP_VERTEX_AI_PROJECT` + `GCP_VERTEX_AI_LOCATION` + `GOOGLE_APPLICATION_CREDENTIALS` (or `GCP_VERTEX_AI_SA_JSON_B64` in Container Apps) |
+| **Agentic IR PDF discovery** (`_agent_discover_pdfs`) | Anthropic Claude → Azure OpenAI → Gemini AI Studio → DuckDuckGo | `claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.5-flash` | `ANTHROPIC_API_KEY`, `AZURE_OPENAI_*`, `GEMINI_API_KEY[_2/_3]` (legacy, slated for migration) |
 
-**PDF extraction** (`_parse_financials_from_pdf`):
-1. `gemini-2.5-flash` (primary — multimodal, reads PDF natively)
-2. `gemini-1.5-flash` (fallback)
-3. pdfplumber text extraction → text LLM (last resort)
+The chat + embedding + extraction paths each have **no fallback**: if the
+primary fails, the call returns `None` / empty / raises `LlmUnavailableError`.
+This is intentional — fallback chains hide bugs (e.g. yesterday's Foundry
+SA-JSON encoding break) and the new failure mode shows up immediately in
+the deploy health-check gate or the Playwright e2e tests.
 
-**Text generation** (`_llm_answer_raw`):
-1. Claude (`ANTHROPIC_API_KEY`) if set
-2. `gemini-2.5-flash`, then older Gemini/Gemma models
+The agentic IR discovery flow is a deliberate exception — its multi-provider
+fallback is expensive but the cost-of-failure is low (broker just doesn't
+get a candidate PDF) so reliability beats simplicity there. Until the
+agent is migrated to Foundry tool-use or deleted, the legacy keys stay.
 
-**Embeddings** (`_embed`):
-1. Voyage AI (`VOYAGE_API_KEY`) if set
-2. `text-embedding-004` via Gemini
-
-Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOYAGE_API_KEY`.
+Phase 4.5 removed:
+- Voyage AI embeddings (replaced by Foundry text-embedding-3-small)
+- Anthropic Claude direct chat in `_llm_answer*` (replaced by Foundry chat)
+- AI-Studio API-key Gemini in `_embed` and `_llm_answer*` (replaced by Foundry)
+- AI-Studio API-key Gemini in `_build_gemini_clients` for PDF extraction
+  (replaced by Vertex AI exclusively)
+- The `_gemini_files_api` path (Vertex AI accepts inline PDFs of any size,
+  so the >18 MB Files API workaround is no longer needed)
+- The `_gemini_raw_with_fallback` helper (no callers after the cleanup)
 
 ---
 

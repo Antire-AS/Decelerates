@@ -1,25 +1,26 @@
-"""PDF parsing and financial data extraction — Gemini native PDF only.
+"""PDF parsing and financial data extraction — Vertex AI Gemini only.
 
-Phase 3 of the LLM-stack consolidation removed the pdfplumber-based text
-fallback: it was rarely exercised, gpt-5.4 / Gemini handles even scanned
-PDFs better than text-extraction-then-LLM, and "fail loudly when extraction
-fails" is a clearer contract for downstream code than silent text fallback.
+Phase 3 removed the pdfplumber-based text fallback (rarely exercised; Gemini
+handles scanned PDFs better than text-extract-then-LLM). Phase 4.5 removed
+the legacy AI-Studio API-key Gemini clients and the Files API path that
+went with them — Vertex AI accepts inline PDFs of any practical size, and
+has been serving 100% of extraction in prod since 2026-04-08.
+
+Note: `_gemini_api_keys()` is kept here as a re-exported helper because
+the agentic IR PDF discovery in api/services/pdf_agents.py still uses the
+legacy API-key Gemini for its tool-use loop (separate cleanup pending).
 """
 import json
 import logging
 import os
 import re
-import tempfile
 from typing import Optional, List, Dict, Any
 
 import requests
 from google import genai as google_genai
 from google.genai import types as genai_types
 
-from api.constants import (
-    GEMINI_PDF_MODELS,
-    GEMINI_FILES_API_THRESHOLD,
-)
+from api.constants import GEMINI_PDF_MODELS
 from api.domain.exceptions import PdfExtractionError  # noqa: F401 — re-exported
 from api.prompts import FINANCIALS_PROMPT
 
@@ -54,40 +55,15 @@ def _parse_json_financials(raw: str) -> Optional[Dict[str, Any]]:
 # ── Gemini PDF extraction ──────────────────────────────────────────────────────
 
 def _gemini_inline(client: Any, model_name: str, pdf_bytes: bytes, prompt: str) -> Optional[str]:
-    """Send PDF bytes inline to Gemini (≤18 MB)."""
+    """Send PDF bytes inline to Vertex AI Gemini.
+
+    Vertex AI accepts PDFs of any practical size inline; the AI-Studio
+    Files API path was needed for the legacy API-key clients (≤18 MB inline
+    cap) and was removed in Phase 4.5 along with those clients.
+    """
     pdf_part = genai_types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
     resp = client.models.generate_content(model=model_name, contents=[pdf_part, prompt])
     return resp.text
-
-
-def _gemini_files_api(
-    client: Any, model_name: str, pdf_bytes: bytes, orgnr: str, year: int
-) -> Optional[str]:
-    """Upload PDF via Files API (>18 MB) and generate content, then delete upload."""
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        tmp.write(pdf_bytes)
-        tmp_path = tmp.name
-    try:
-        uploaded = client.files.upload(
-            file=tmp_path,
-            config=genai_types.UploadFileConfig(
-                mime_type="application/pdf",
-                display_name=f"annual_{orgnr}_{year}.pdf",
-            ),
-        )
-        try:
-            prompt_text = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
-            resp = client.models.generate_content(
-                model=model_name, contents=[uploaded, prompt_text]
-            )
-            return resp.text
-        finally:
-            try:
-                client.files.delete(name=uploaded.name)
-            except Exception:
-                pass
-    finally:
-        os.unlink(tmp_path)
 
 
 def _gemini_api_keys() -> List[str]:
@@ -105,57 +81,43 @@ def _gemini_api_keys() -> List[str]:
 
 
 def _build_gemini_clients() -> List[Any]:
-    """Build a list of `genai.Client` instances in priority order.
+    """Build the Vertex AI `genai.Client` for PDF extraction.
 
-    Vertex AI (project + location, service account auth via
-    GOOGLE_APPLICATION_CREDENTIALS) comes first when configured. Falls back
-    to one client per legacy AI-Studio API key.
+    Returns a list (length 0 or 1) so callers can iterate uniformly.
+    Phase 4.5 removed the legacy AI-Studio API-key fallback — Vertex AI
+    has been serving 100% of PDF extraction in prod since 2026-04-08.
+    Auth via GOOGLE_APPLICATION_CREDENTIALS, set up by api/main.py at
+    startup from the GCP_VERTEX_AI_SA_JSON_B64 env var.
     """
-    clients: List[Any] = []
     project = os.getenv("GCP_VERTEX_AI_PROJECT")
     location = os.getenv("GCP_VERTEX_AI_LOCATION", "europe-west4")
-    if project:
-        try:
-            clients.append(
-                google_genai.Client(vertexai=True, project=project, location=location)
-            )
-        except Exception as exc:
-            logger.warning("[extract] Vertex AI client init failed: %s", exc)
-    for api_key in _gemini_api_keys():
-        try:
-            clients.append(google_genai.Client(api_key=api_key))
-        except Exception as exc:
-            logger.warning("[extract] Legacy Gemini client init failed: %s", exc)
-    return clients
+    if not project:
+        return []
+    try:
+        return [google_genai.Client(vertexai=True, project=project, location=location)]
+    except Exception as exc:
+        logger.warning("[extract] Vertex AI client init failed: %s", exc)
+        return []
 
 
 def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
-    """Try every configured Gemini client × every PDF model; return raw text or None.
+    """Try every configured Gemini PDF model via Vertex AI; return raw text or None.
 
-    Vertex AI is preferred (prod-grade SLA, EU residency). Legacy AI-Studio
-    API keys remain as fallback until Phase 4 cleanup. Vertex AI handles
-    PDFs of any size inline — the Files API path is only needed for the
-    legacy AI-Studio clients which cap at ~18 MB inline.
+    Vertex AI accepts inline PDFs of any practical size — the AI-Studio
+    Files API path is no longer needed since Phase 4.5 dropped the legacy
+    API-key clients.
     """
     prompt = FINANCIALS_PROMPT.format(orgnr=orgnr, year=year)
-    use_files_api = len(pdf_bytes) > GEMINI_FILES_API_THRESHOLD
-
     for client in _build_gemini_clients():
-        is_vertex = bool(getattr(getattr(client, "_api_client", None), "vertexai", False))
         for model_name in GEMINI_PDF_MODELS:
             try:
-                # Vertex AI accepts inline PDFs of any practical size; the
-                # AI-Studio Files API path is only needed for the legacy keys.
-                if use_files_api and not is_vertex:
-                    raw = _gemini_files_api(client, model_name, pdf_bytes, orgnr, year)
-                else:
-                    raw = _gemini_inline(client, model_name, pdf_bytes, prompt)
+                raw = _gemini_inline(client, model_name, pdf_bytes, prompt)
                 if raw:
                     return raw
             except Exception as exc:
                 msg = str(exc)
                 if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    continue  # try next model or client
+                    continue  # try next model
                 break  # non-quota error on this client, skip remaining models
     return None
 
