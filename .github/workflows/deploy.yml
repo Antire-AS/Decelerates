@@ -145,22 +145,33 @@ jobs:
           REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
             --query properties.latestRevisionName -o tsv)
           echo "Watching revision: $REV"
+          # Container Apps uses several "running" states depending on KEDA
+          # scale state. All of these mean "the new revision is up and
+          # serving":
+          #   - Running              — replicas == desired (steady state)
+          #   - RunningAtMaxScale    — replicas == max-replicas (scaled out)
+          #   - Scaling              — replicas adjusting up/down but already serving
+          # Anything else (Activating / ActivationFailed / Deactivating) is not.
           while [ "$(date +%s)" -lt "$DEADLINE" ]; do
             HEALTH=$(az containerapp revision show --name "$APP" --resource-group "$RG" \
               --revision "$REV" --query properties.healthState -o tsv 2>/dev/null || echo "Unknown")
             STATE=$(az containerapp revision show --name "$APP" --resource-group "$RG" \
               --revision "$REV" --query properties.runningState -o tsv 2>/dev/null || echo "Unknown")
             echo "  health=$HEALTH state=$STATE"
-            if [ "$HEALTH" = "Healthy" ] && [ "$STATE" = "Running" ]; then
-              echo "Revision $REV is healthy."
-              exit 0
-            fi
-            if [ "$STATE" = "ActivationFailed" ]; then
-              echo "::error::Revision $REV failed to activate. See container logs."
-              az containerapp logs show --name "$APP" --resource-group "$RG" \
-                --revision "$REV" --tail 50 2>&1 || true
-              exit 1
-            fi
+            case "$STATE" in
+              Running|RunningAtMaxScale|Scaling)
+                if [ "$HEALTH" = "Healthy" ]; then
+                  echo "Revision $REV is healthy ($STATE)."
+                  exit 0
+                fi
+                ;;
+              ActivationFailed)
+                echo "::error::Revision $REV failed to activate. See container logs."
+                az containerapp logs show --name "$APP" --resource-group "$RG" \
+                  --revision "$REV" --tail 50 2>&1 || true
+                exit 1
+                ;;
+            esac
             sleep 10
           done
           echo "::error::Timed out waiting for $REV to become Healthy after 180s."
