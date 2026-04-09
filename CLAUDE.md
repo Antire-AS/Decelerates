@@ -350,27 +350,38 @@ docker compose up --build
 
 ## LLM / Model Configuration
 
-The app uses a priority-based fallback for all LLM calls:
+After Phase 4.5 consolidation (2026-04-09) the LLM stack is **two providers,
+no fallbacks** for the chat / embedding / multimodal paths. A third dependency
+(Anthropic + AI-Studio Gemini) is still imported by the agentic IR PDF
+discovery feature in `pdf_agents.py` — a separate cleanup pending.
 
-**Agentic IR discovery** (`_agent_discover_pdfs`):
-1. Claude tool-use loop (`ANTHROPIC_API_KEY`) — preferred
-2. Gemini tool-use loop (`GEMINI_API_KEY`) — fallback
-3. DuckDuckGo + LLM validation — last resort
+| Path | Provider | Model | Auth |
+|---|---|---|---|
+| **Chat / NL→SQL / narrative** (`_llm_answer*`, `_compare_offers_with_llm`) | Antire Azure AI Foundry | `gpt-5.4-mini` | `AZURE_FOUNDRY_BASE_URL` + `AZURE_FOUNDRY_API_KEY` |
+| **Embeddings** (`_embed` → pgvector dim=512) | Antire Azure AI Foundry | `text-embedding-3-small` (512-dim mode) | same |
+| **PDF / multimodal extraction** (`_parse_financials_from_pdf`, `_analyze_document_with_gemini`, `_compare_documents_with_gemini`) | Google Vertex AI | `gemini-2.5-flash` | `GCP_VERTEX_AI_PROJECT` + `GCP_VERTEX_AI_LOCATION` + `GOOGLE_APPLICATION_CREDENTIALS` (or `GCP_VERTEX_AI_SA_JSON_B64` in Container Apps) |
+| **Agentic IR PDF discovery** (`_agent_discover_pdfs`) | Anthropic Claude → Azure OpenAI → Gemini AI Studio → DuckDuckGo | `claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.5-flash` | `ANTHROPIC_API_KEY`, `AZURE_OPENAI_*`, `GEMINI_API_KEY[_2/_3]` (legacy, slated for migration) |
 
-**PDF extraction** (`_parse_financials_from_pdf`):
-1. `gemini-2.5-flash` (primary — multimodal, reads PDF natively)
-2. `gemini-1.5-flash` (fallback)
-3. pdfplumber text extraction → text LLM (last resort)
+The chat + embedding + extraction paths each have **no fallback**: if the
+primary fails, the call returns `None` / empty / raises `LlmUnavailableError`.
+This is intentional — fallback chains hide bugs (e.g. yesterday's Foundry
+SA-JSON encoding break) and the new failure mode shows up immediately in
+the deploy health-check gate or the Playwright e2e tests.
 
-**Text generation** (`_llm_answer_raw`):
-1. Claude (`ANTHROPIC_API_KEY`) if set
-2. `gemini-2.5-flash`, then older Gemini/Gemma models
+The agentic IR discovery flow is a deliberate exception — its multi-provider
+fallback is expensive but the cost-of-failure is low (broker just doesn't
+get a candidate PDF) so reliability beats simplicity there. Until the
+agent is migrated to Foundry tool-use or deleted, the legacy keys stay.
 
-**Embeddings** (`_embed`):
-1. Voyage AI (`VOYAGE_API_KEY`) if set
-2. `text-embedding-004` via Gemini
-
-Configure via environment variables: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VOYAGE_API_KEY`.
+Phase 4.5 removed:
+- Voyage AI embeddings (replaced by Foundry text-embedding-3-small)
+- Anthropic Claude direct chat in `_llm_answer*` (replaced by Foundry chat)
+- AI-Studio API-key Gemini in `_embed` and `_llm_answer*` (replaced by Foundry)
+- AI-Studio API-key Gemini in `_build_gemini_clients` for PDF extraction
+  (replaced by Vertex AI exclusively)
+- The `_gemini_files_api` path (Vertex AI accepts inline PDFs of any size,
+  so the >18 MB Files API workaround is no longer needed)
+- The `_gemini_raw_with_fallback` helper (no callers after the cleanup)
 
 ---
 

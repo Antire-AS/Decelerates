@@ -1,23 +1,32 @@
-"""LLM and embedding helpers — Claude, Gemini, Voyage AI."""
+"""LLM and embedding helpers — Antire Azure Foundry primary, Vertex AI for PDFs.
+
+Phase 4.5 cleanup removed the legacy fallback chains here:
+
+  - Voyage AI embeddings (gone — Foundry text-embedding-3-small handles it)
+  - Anthropic Claude direct chat (gone — Foundry gpt-5.4-mini handles it)
+  - AI Studio API-key Gemini chat (gone — Foundry handles all chat)
+
+Vertex AI is still primary for multimodal PDF analysis (the cost-efficient
+native PDF input), and that path uses GOOGLE_APPLICATION_CREDENTIALS, not
+GEMINI_API_KEY. The agentic IR PDF discovery in api/services/pdf_agents.py
+still depends on Anthropic + Gemini API keys; that's a separate follow-up.
+"""
 import json
 import logging
 import os
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Optional, List
 
 _LLM_TIMEOUT_SECONDS = 30
 
 logger = logging.getLogger(__name__)
 
-import anthropic
-import voyageai
 from google import genai as google_genai
 from google.genai import types as genai_types
 
-from api.constants import CLAUDE_MODEL, GEMINI_MODEL, VOYAGE_MODEL
-from api.domain.exceptions import LlmUnavailableError, QuotaError
+from api.constants import GEMINI_MODEL
+from api.domain.exceptions import LlmUnavailableError
 from api.prompts import CHAT_SYSTEM_PROMPT
 from api.telemetry import llm_calls, llm_duration_ms
 
@@ -66,10 +75,6 @@ def _parse_json_from_llm_response(raw: str) -> Optional[dict]:
         return None
 
 
-def _is_key_set(key: Optional[str]) -> bool:
-    return bool(key) and key != "your_key_here"
-
-
 def _try_foundry_embed(text: str) -> Optional[List[float]]:
     """Attempt an embedding via the configured LlmPort. Returns None on any failure."""
     try:
@@ -85,35 +90,14 @@ def _try_foundry_embed(text: str) -> Optional[List[float]]:
 
 
 def _embed(text: str) -> List[float]:
-    """Return a 512-dim embedding vector. Foundry primary, Voyage/Gemini legacy."""
+    """Return a 512-dim embedding vector via Foundry text-embedding-3-small.
+
+    Returns [] if Foundry isn't configured or the call fails. Phase 4.5
+    removed the Voyage and Gemini-API-key fallbacks since Foundry has been
+    serving 100% of embedding traffic in prod since 2026-04-08.
+    """
     result = _try_foundry_embed(text)
-    if result is not None:
-        return result
-
-    voyage_key = os.getenv("VOYAGE_API_KEY")
-    if _is_key_set(voyage_key):
-        try:
-            vo = voyageai.Client(api_key=voyage_key)  # pyright: ignore[reportPrivateImportUsage]
-            result = vo.embed([text], model=VOYAGE_MODEL)
-            return result.embeddings[0] if result.embeddings else []
-        except Exception as exc:
-            logger.warning("Voyage AI embed failed: %s", exc)
-
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if _is_key_set(gemini_key):
-        try:
-            client = google_genai.Client(api_key=gemini_key)
-            result = client.models.embed_content(
-                model="text-embedding-004",
-                contents=text,
-                config=genai_types.EmbedContentConfig(output_dimensionality=512),
-            )
-            if result.embeddings and result.embeddings[0].values:
-                return result.embeddings[0].values
-        except Exception as exc:
-            logger.warning("Gemini embed failed: %s", exc)
-
-    return []
+    return result if result is not None else []
 
 
 def _fmt_nok(value) -> str:
@@ -125,49 +109,10 @@ def _fmt_nok(value) -> str:
         return str(value)
 
 
-def _gemini_raw_with_fallback(prompt: str) -> Optional[str]:
-    """Legacy Gemini fallback for `_llm_answer_raw` — tries Vertex AI then API key.
-
-    Iterates every configured Gemini client × every model. Raises QuotaError
-    only if every client/model combination is quota-blocked.
-    """
-    clients = _build_gemini_clients(timeout=_LLM_TIMEOUT_SECONDS)
-    if not clients:
-        return None
-    models_to_try = [
-        "gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash",
-        "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it",
-    ]
-    seen: set = set()
-    ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-    quota_blocked = False
-    for client in clients:
-        for model_name in ordered:
-            try:
-                with ThreadPoolExecutor(max_workers=1) as _pool:
-                    future = _pool.submit(client.models.generate_content, model_name, prompt)
-                    response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
-                return response.text
-            except FuturesTimeoutError:
-                logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
-                continue
-            except Exception as exc:
-                err = str(exc)
-                if "quota" in err.lower() or "429" in err or "RESOURCE_EXHAUSTED" in err:
-                    quota_blocked = True
-                    continue
-                raise
-    if quota_blocked:
-        raise QuotaError(
-            "Gemini quota exhausted on all clients/models — wait a few minutes or enable billing."
-        )
-    return None
-
-
 def _llm_answer_raw(prompt: str) -> Optional[str]:
-    """Call LLM with a plain user prompt. Used for narrative and synthetic data generation.
-
-    Foundry primary via LlmPort, Anthropic + Gemini as legacy fallback (removed in Phase 3).
+    """Call LLM with a plain user prompt via Foundry. Used for narrative
+    and synthetic data generation. Returns None if Foundry isn't configured
+    or the call fails. Phase 4.5 removed the Anthropic + Gemini fallbacks.
     """
     _t0 = time.monotonic()
     _provider = "none"
@@ -177,24 +122,6 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
         if result is not None:
             _provider = "azure_foundry"
             return result
-
-        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        if _is_key_set(anthropic_key):
-            client = anthropic.Anthropic(api_key=anthropic_key)
-            msg = client.messages.create(
-                model=CLAUDE_MODEL,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}],
-                timeout=_LLM_TIMEOUT_SECONDS,
-            )
-            _provider = "claude"
-            return msg.content[0].text
-
-        result = _gemini_raw_with_fallback(prompt)
-        if result is not None:
-            _provider = "gemini"
-            return result
-
         return None
     except Exception:
         _outcome = "error"
@@ -205,45 +132,37 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
 
 
 def _compare_offers_with_llm(prompt: str) -> Optional[str]:
-    """Run an insurance offer comparison prompt through the LLM.
+    """Run an insurance offer comparison prompt through Foundry.
 
-    Phase 2.2 — Foundry primary via LlmPort, Gemini as legacy fallback.
+    Phase 4.5 removed the Gemini-API-key fallback; Foundry handles all
+    text comparison now.
     """
-    result = _try_foundry_chat(prompt, max_tokens=4096)
-    if result:
-        return result
-    return _gemini_generate_with_fallback([prompt])
+    return _try_foundry_chat(prompt, max_tokens=4096)
 
 
 def _build_gemini_clients(timeout: int = 120) -> list:
-    """Build a list of `genai.Client` instances in priority order.
+    """Build the Vertex AI `genai.Client` for multimodal PDF analysis.
 
-    Vertex AI (project + location, service account auth via
-    GOOGLE_APPLICATION_CREDENTIALS) comes first when configured. Falls back
-    to a single legacy AI-Studio API-key client.
+    Returns a list (length 0 or 1) so callers can iterate uniformly.
+    Phase 4.5 removed the legacy AI-Studio API-key fallback — Vertex AI
+    has been serving 100% of multimodal traffic in prod since 2026-04-08.
+    Auth is via GOOGLE_APPLICATION_CREDENTIALS, set up by api/main.py from
+    the GCP_VERTEX_AI_SA_JSON_B64 env var at startup.
     """
-    clients: list = []
     project = os.getenv("GCP_VERTEX_AI_PROJECT")
     location = os.getenv("GCP_VERTEX_AI_LOCATION", "europe-west4")
-    if project:
-        try:
-            clients.append(
-                google_genai.Client(
-                    vertexai=True, project=project, location=location,
-                    http_options={"timeout": timeout},
-                )
+    if not project:
+        return []
+    try:
+        return [
+            google_genai.Client(
+                vertexai=True, project=project, location=location,
+                http_options={"timeout": timeout},
             )
-        except Exception as exc:
-            logger.warning("Vertex AI client init failed: %s", exc)
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if _is_key_set(gemini_key):
-        try:
-            clients.append(
-                google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
-            )
-        except Exception as exc:
-            logger.warning("Legacy Gemini client init failed: %s", exc)
-    return clients
+        ]
+    except Exception as exc:
+        logger.warning("Vertex AI client init failed: %s", exc)
+        return []
 
 
 def _gemini_generate_with_fallback(
@@ -305,30 +224,13 @@ def _try_foundry_chat(
 
 
 def _llm_answer(context: str, question: str) -> str:
+    """Answer a question about a company via Foundry chat. Phase 4.5
+    removed the Anthropic + Gemini-API-key fallbacks.
+    """
     user_prompt = f"Company data:\n{context}\n\nQuestion: {question}"
-
-    # Phase 2.1 — Foundry primary via LlmPort.
     result = _try_foundry_chat(user_prompt, CHAT_SYSTEM_PROMPT, max_tokens=1024)
     if result:
         return result
-
-    # Legacy fallback — Anthropic, then Gemini. Removed in Phase 3.
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    if _is_key_set(anthropic_key):
-        client = anthropic.Anthropic(api_key=anthropic_key)
-        message = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=1024,
-            system=CHAT_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
-            timeout=_LLM_TIMEOUT_SECONDS,
-        )
-        return message.content[0].text
-
-    result = _gemini_generate_with_fallback([user_prompt], system_instruction=CHAT_SYSTEM_PROMPT)
-    if result is not None:
-        return result
-
     raise LlmUnavailableError(
         "No LLM provider configured (set AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY)"
     )
