@@ -7,16 +7,27 @@ from sqlalchemy.orm import Session
 from api.auth import CurrentUser, get_current_user
 from api.db import Policy, PolicyStatus
 from api.dependencies import get_db
+from api.services.canon import canonical_insurer_name, canonical_product_name
 
 router = APIRouter()
 
 
 def _aggregate(policies: list, key: str) -> list:
-    """Group policies by a string field; return sorted list of {key, count, total_premium, share_pct}."""
+    """Group policies by a string field; return sorted list of {key, count, total_premium, share_pct}.
+
+    Insurer + product_type values are canonicalised at read time as
+    defense-in-depth: even if a row predates the on-write canonicaliser
+    in PolicyService (UI audit F06, 2026-04-09) the analytics page still
+    rolls up "Tryg" and "Tryg Forsikring" into a single bucket.
+    """
     buckets: dict[str, dict] = {}
     for p in policies:
         val = getattr(p, key) or "Ukjent"
         val = val.value if hasattr(val, "value") else str(val)
+        if key == "insurer":
+            val = canonical_insurer_name(val) or "Ukjent"
+        elif key == "product_type":
+            val = canonical_product_name(val) or "Ukjent"
         if val not in buckets:
             buckets[val] = {"count": 0, "total_premium": 0.0}
         buckets[val]["count"] += 1
@@ -93,8 +104,11 @@ def get_commission_analytics(
             comm = 0.0
         total_commission += comm
 
-        for bucket, key in [(by_product, p.product_type or "Ukjent"),
-                            (by_insurer, p.insurer or "Ukjent")]:
+        # Same canonicalisation rationale as _aggregate above (UI audit F06).
+        canon_product = canonical_product_name(p.product_type) or "Ukjent"
+        canon_insurer = canonical_insurer_name(p.insurer) or "Ukjent"
+        for bucket, key in [(by_product, canon_product),
+                            (by_insurer, canon_insurer)]:
             if key not in bucket:
                 bucket[key] = {"count": 0, "commission": 0.0, "premium": 0.0}
             bucket[key]["count"] += 1
