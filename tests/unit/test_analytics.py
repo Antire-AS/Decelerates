@@ -18,10 +18,13 @@ def _policy(insurer: str, product: str, premium: float, status=None):
 
 
 def test_aggregate_single():
+    # Note: "If" is a known synonym for "If Skadeforsikring" since the
+    # F06 canonicaliser landed (2026-04-09). The aggregate now reports
+    # the canonical name even when the raw column held the short form.
     policies = [_policy("If", "Ting", 100_000)]
     result = _aggregate(policies, "insurer")
     assert len(result) == 1
-    assert result[0]["insurer"] == "If"
+    assert result[0]["insurer"] == "If Skadeforsikring"
     assert result[0]["count"] == 1
     assert result[0]["total_premium"] == 100_000
     assert result[0]["share_pct"] == 100.0
@@ -35,9 +38,23 @@ def test_aggregate_multiple_insurers():
     ]
     result = _aggregate(policies, "insurer")
     by_insurer = {r["insurer"]: r for r in result}
-    assert by_insurer["If"]["count"] == 2
-    assert by_insurer["If"]["total_premium"] == 150_000
-    assert by_insurer["Gjensidige"]["total_premium"] == 200_000
+    assert by_insurer["If Skadeforsikring"]["count"] == 2
+    assert by_insurer["If Skadeforsikring"]["total_premium"] == 150_000
+    assert by_insurer["Gjensidige Forsikring"]["total_premium"] == 200_000
+
+
+def test_aggregate_canonicalises_split_variants():
+    """Two non-canonical synonyms collapse into one bucket — UI audit F06."""
+    policies = [
+        _policy("Tryg", "Eiendom", 100_000),
+        _policy("Tryg Forsikring", "Eiendom", 200_000),
+        _policy("tryg", "Eiendom", 50_000),
+    ]
+    result = _aggregate(policies, "insurer")
+    assert len(result) == 1
+    assert result[0]["insurer"] == "Tryg Forsikring"
+    assert result[0]["count"] == 3
+    assert result[0]["total_premium"] == 350_000
 
 
 def test_aggregate_sorted_by_premium_desc():

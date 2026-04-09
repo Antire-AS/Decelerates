@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from api.db import Policy, PolicyStatus, RenewalStage
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.schemas import PolicyIn, PolicyUpdate
+from api.services.canon import canonical_insurer_name, canonical_product_name
 
 _RENEWAL_THRESHOLDS = [90, 60, 30, 14, 7]
 
@@ -51,8 +52,8 @@ class PolicyService:
             firm_id=firm_id,
             contact_person_id=body.contact_person_id,
             policy_number=body.policy_number,
-            insurer=body.insurer,
-            product_type=body.product_type,
+            insurer=canonical_insurer_name(body.insurer),
+            product_type=canonical_product_name(body.product_type),
             coverage_amount_nok=body.coverage_amount_nok,
             annual_premium_nok=body.annual_premium_nok,
             start_date=body.start_date,
@@ -79,6 +80,13 @@ class PolicyService:
             data["status"] = self._parse_status(data["status"])
         if "renewal_stage" in data:
             data["renewal_stage"] = self._parse_renewal_stage(data["renewal_stage"])
+        # Route insurer + product_type through the canonicaliser on update
+        # too, so an existing non-canonical row gets fixed the next time the
+        # broker edits it (UI audit F06, 2026-04-09).
+        if "insurer" in data:
+            data["insurer"] = canonical_insurer_name(data["insurer"])
+        if "product_type" in data:
+            data["product_type"] = canonical_product_name(data["product_type"])
         for field, value in data.items():
             setattr(policy, field, value)
         policy.updated_at = datetime.now(timezone.utc)

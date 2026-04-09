@@ -100,7 +100,8 @@ class TestPolicyCRUD:
         resp = auth_client.get(f"/org/{_ORGNR}/policies")
         assert resp.status_code == 200
         insurers = [p["insurer"] for p in resp.json()]
-        assert "Gjensidige" in insurers
+        # PolicyService canonicalises on write since UI audit F06 (2026-04-09).
+        assert "Gjensidige Forsikring" in insurers
 
     @pytest.mark.xfail(reason=_KNOWN_FIRM_ISOLATION_BUG, strict=False)
     def test_list_policies_scoped_to_firm(self, auth_client, auth_client_firm2):
@@ -118,7 +119,8 @@ class TestPolicyCRUD:
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data["insurer"] == "Fremtind"
+        # Canonicalised on update — UI audit F06.
+        assert data["insurer"] == "Fremtind Forsikring"
         assert data["annual_premium_nok"] == 75_000
 
     def test_update_unknown_policy_returns_404(self, auth_client):
