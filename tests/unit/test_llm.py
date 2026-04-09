@@ -1,142 +1,70 @@
-"""Unit tests for services/llm.py — all external calls are mocked."""
-from unittest.mock import MagicMock, patch
+"""Unit tests for services/llm.py — all external calls are mocked.
+
+After Phase 4.5: chat + embeddings only go through Foundry (no Anthropic
+or Voyage or Gemini-API-key fallbacks). Tests assert that behaviour.
+"""
+from unittest.mock import patch
 
 import pytest
 
-from api.domain.exceptions import LlmUnavailableError, QuotaError
+from api.domain.exceptions import LlmUnavailableError
 
 
 # ── _embed ────────────────────────────────────────────────────────────────────
 
-def test_embed_voyage_success(monkeypatch):
-    monkeypatch.setenv("VOYAGE_API_KEY", "test-voyage-key")
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
-    mock_result = MagicMock()
-    mock_result.embeddings = [[0.1, 0.2, 0.3]]
-
-    with patch("voyageai.Client") as mock_client_cls:
-        mock_client_cls.return_value.embed.return_value = mock_result
-        from api.services.llm import _embed
+def test_embed_returns_foundry_vector():
+    from api.services.llm import _embed
+    with patch("api.services.llm._try_foundry_embed", return_value=[0.1, 0.2, 0.3]):
         result = _embed("hello world")
-
     assert result == [0.1, 0.2, 0.3]
 
 
-def test_embed_gemini_fallback(monkeypatch):
-    monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
-    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
-
-    mock_embedding = MagicMock()
-    mock_embedding.values = [0.4, 0.5]
-    mock_result = MagicMock()
-    mock_result.embeddings = [mock_embedding]
-
-    with patch("google.genai.Client") as mock_client_cls:
-        mock_client_cls.return_value.models.embed_content.return_value = mock_result
-        from api.services.llm import _embed
-        result = _embed("hello world")
-
-    assert result == [0.4, 0.5]
-
-
-def test_embed_no_keys_returns_empty(monkeypatch):
-    monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
+def test_embed_returns_empty_when_foundry_unavailable():
     from api.services.llm import _embed
-    result = _embed("hello world")
+    with patch("api.services.llm._try_foundry_embed", return_value=None):
+        result = _embed("hello world")
     assert result == []
 
 
 # ── _llm_answer_raw ───────────────────────────────────────────────────────────
 
-def test_llm_answer_raw_claude(monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-claude-key")
-
-    mock_content = MagicMock()
-    mock_content.text = "The answer is 42."
-    mock_msg = MagicMock()
-    mock_msg.content = [mock_content]
-
-    with patch("anthropic.Anthropic") as mock_cls:
-        mock_cls.return_value.messages.create.return_value = mock_msg
-        from api.services.llm import _llm_answer_raw
-        result = _llm_answer_raw("What is the answer?")
-
-    assert result == "The answer is 42."
+def test_llm_answer_raw_returns_foundry_response():
+    from api.services.llm import _llm_answer_raw
+    with patch("api.services.llm._try_foundry_chat", return_value="hi from foundry"):
+        result = _llm_answer_raw("ping")
+    assert result == "hi from foundry"
 
 
-def test_llm_answer_raw_raises_quota_error(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
-
-    quota_exc = Exception("RESOURCE_EXHAUSTED: quota exceeded")
-
-    with patch("google.genai.Client") as mock_cls:
-        mock_cls.return_value.models.generate_content.side_effect = quota_exc
-        from api.services.llm import _llm_answer_raw
-        with pytest.raises(QuotaError):
-            _llm_answer_raw("What is the answer?")
-
-
-def test_llm_answer_raises_lm_unavailable(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
-    from api.services.llm import _llm_answer
-    with pytest.raises(LlmUnavailableError):
-        _llm_answer("some context", "some question")
-
-
-# ── Fallback chain ─────────────────────────────────────────────────────────────
-
-def test_llm_answer_raw_falls_back_to_claude_when_foundry_fails(monkeypatch):
-    """If Foundry returns None, the chain should fall back to Claude."""
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-claude-key")
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
-    mock_content = MagicMock()
-    mock_content.text = "Fallback answer."
-    mock_msg = MagicMock()
-    mock_msg.content = [mock_content]
-
+def test_llm_answer_raw_returns_none_when_foundry_unavailable():
+    from api.services.llm import _llm_answer_raw
     with patch("api.services.llm._try_foundry_chat", return_value=None):
-        with patch("anthropic.Anthropic") as mock_anthropic:
-            mock_anthropic.return_value.messages.create.return_value = mock_msg
-            from api.services.llm import _llm_answer_raw
-            result = _llm_answer_raw("test prompt")
-
-    assert result == "Fallback answer."
-
-
-def test_llm_answer_raw_falls_back_to_gemini_when_claude_not_set(monkeypatch):
-    """If ANTHROPIC_API_KEY is not set and Foundry is unavailable, use Gemini."""
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
-
-    mock_response = MagicMock()
-    mock_response.text = "Gemini says hi."
-
-    with patch("api.services.llm._try_foundry_chat", return_value=None):
-        with patch("google.genai.Client") as mock_cls:
-            mock_cls.return_value.models.generate_content.return_value = mock_response
-            from api.services.llm import _llm_answer_raw
-            result = _llm_answer_raw("test prompt")
-
-    assert result == "Gemini says hi."
-
-
-def test_llm_answer_raw_returns_none_when_all_providers_absent(monkeypatch):
-    """With no provider keys set, _llm_answer_raw should return None."""
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
-    with patch("api.services.llm._try_foundry_chat", return_value=None):
-        from api.services.llm import _llm_answer_raw
-        result = _llm_answer_raw("test prompt")
-
+        result = _llm_answer_raw("ping")
     assert result is None
+
+
+# ── _llm_answer ───────────────────────────────────────────────────────────────
+
+def test_llm_answer_returns_foundry_response():
+    from api.services.llm import _llm_answer
+    with patch("api.services.llm._try_foundry_chat", return_value="42"):
+        result = _llm_answer("some context", "some question")
+    assert result == "42"
+
+
+def test_llm_answer_raises_lm_unavailable_when_foundry_unavailable():
+    from api.services.llm import _llm_answer
+    with patch("api.services.llm._try_foundry_chat", return_value=None):
+        with pytest.raises(LlmUnavailableError, match="AZURE_FOUNDRY"):
+            _llm_answer("some context", "some question")
+
+
+# ── _compare_offers_with_llm ──────────────────────────────────────────────────
+
+def test_compare_offers_returns_foundry_response():
+    from api.services.llm import _compare_offers_with_llm
+    with patch("api.services.llm._try_foundry_chat", return_value="A is better"):
+        result = _compare_offers_with_llm("compare these offers")
+    assert result == "A is better"
 
 
 # ── _sanitize_user_input ───────────────────────────────────────────────────────
