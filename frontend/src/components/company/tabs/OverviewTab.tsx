@@ -150,16 +150,24 @@ export default function OverviewTab({
             <KV label="Kommune"   value={org.kommune} />
             <KV label="Stiftet"   value={org.stiftelsesdato} />
             <KV label="Ansatte"   value={regn.antall_ansatte} />
-            {!!org.hjemmeside && (
-              <div className="flex justify-between text-sm">
-                <span className="text-[#8A7F74]">Nettsted</span>
-                <a href={String(org.hjemmeside)} target="_blank" rel="noopener noreferrer"
-                  className="text-[#4A6FA5] flex items-center gap-1 hover:underline">
-                  {String(org.hjemmeside).replace(/^https?:\/\//, "").slice(0, 30)}
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            )}
+            {!!org.hjemmeside && (() => {
+              // BRREG returns the website without a scheme (e.g. "www.dnb.no").
+              // The browser would resolve a bare href against the current
+              // origin, producing a broken /search/[orgnr]/www.dnb.no link —
+              // UI audit F03 (2026-04-09).
+              const raw = String(org.hjemmeside);
+              const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+              return (
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#8A7F74]">Nettsted</span>
+                  <a href={href} target="_blank" rel="noopener noreferrer"
+                    className="text-[#4A6FA5] flex items-center gap-1 hover:underline">
+                    {raw.replace(/^https?:\/\//, "").slice(0, 30)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              );
+            })()}
           </Section>
 
           {coords?.lat && coords?.lon && (
@@ -391,7 +399,7 @@ export default function OverviewTab({
             <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
               <BarChart3 className="w-3.5 h-3.5" />
               <span>
-                NACE-seksjon {peerData.nace_section || "–"} · {peerData.peer_count} peers ·{" "}
+                NACE-seksjon {peerData.nace_section || "–"} · {peerData.peer_count} {peerData.peer_count === 1 ? "peer" : "peers"} ·{" "}
                 {peerData.source === "db_peers" ? "fra database" : "SSB-rangering"}
               </span>
             </div>
@@ -413,7 +421,7 @@ export default function OverviewTab({
                     <span className="text-[#8A7F74]">{label}</span>
                     <span className="text-[#2C3E50] font-medium">
                       {fmtVal(m.company)}
-                      <span className="text-[#C4BDB4] mx-1">vs</span>
+                      {" "}<span className="text-[#C4BDB4]">vs</span>{" "}
                       <span className="text-[#8A7F74]">{fmtVal(m.peer_avg)}</span>
                       {m.percentile != null && (
                         <span className="ml-2 text-[10px] text-[#4A6FA5]">P{m.percentile}</span>

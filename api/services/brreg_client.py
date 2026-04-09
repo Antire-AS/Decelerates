@@ -30,6 +30,50 @@ def _build_enhet_dict(e: dict) -> dict:
     }
 
 
+# Org-form relevance order — when a broker searches "DNB" they almost
+# always want the operating bank (ASA), not a sports club (FLI) or a
+# foreign branch (UTLA). Higher score = more interesting to a broker.
+# Defaults to 0 for any code not listed below.
+_ORG_FORM_PRIORITY = {
+    "ASA":  9,   # Allmennaksjeselskap (publicly traded)
+    "AS":   8,   # Aksjeselskap (private limited)
+    "SA":   6,   # Samvirkeforetak (cooperative)
+    "ANS":  5,   # Ansvarlig selskap
+    "DA":   5,   # Delt ansvar
+    "ENK":  4,   # Enkeltpersonforetak (sole proprietor)
+    "BBL":  4,   # Boligbyggelag
+    "BRL":  4,   # Borettslag
+    "STI":  3,   # Stiftelse
+    "KS":   3,   # Kommandittselskap
+    "FLI":  1,   # Forening / lag / innretning
+    "UTLA": 0,   # Utenlandsk enhet
+    "SÆR":  2,   # Særkilt offentlig (RHF, etc)
+}
+
+
+def _relevance_score(row: Dict[str, Any], query: str) -> tuple:
+    """Sort key — higher tuple = more relevant. Reverse-sorted by caller.
+
+    Ranking, in priority order:
+      1. Exact name match (case-insensitive)
+      2. Name starts with the query
+      3. Name contains the query as a whole word
+      4. Org form priority (ASA > AS > … > UTLA)
+      5. Length of name (shorter = closer to the query)
+    """
+    navn = (row.get("navn") or "").upper()
+    q = query.upper().strip()
+    org_form = (row.get("organisasjonsform_kode") or "").upper()
+
+    exact_match  = 1 if navn == q else 0
+    starts_with  = 1 if navn.startswith(q) else 0
+    word_match   = 1 if (f" {q} " in f" {navn} " or navn.startswith(f"{q} ")) else 0
+    form_score   = _ORG_FORM_PRIORITY.get(org_form, 0)
+    length_score = -len(navn)  # shorter names rank higher within the same bucket
+
+    return (exact_match, starts_with, word_match, form_score, length_score)
+
+
 def fetch_enhetsregisteret(
     name: str,
     kommunenummer: Optional[str] = None,
@@ -51,6 +95,11 @@ def fetch_enhetsregisteret(
         row.pop("_addr", None)
         results.append(row)
 
+    # BRREG returns alphabetic order — re-sort by relevance so the result a
+    # broker actually wants (e.g. DNB BANK ASA when searching "DNB") rises
+    # to the top instead of being buried at #14 by sports clubs and
+    # foreign branches. UI audit F02 (2026-04-09).
+    results.sort(key=lambda r: _relevance_score(r, name), reverse=True)
     return results
 
 
