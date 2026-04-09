@@ -628,6 +628,15 @@ class SavedSearch(Base):
 
 def init_db():
     with engine.connect() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        conn.commit()
+        # Check first, then create — `CREATE EXTENSION IF NOT EXISTS` still
+        # runs the privilege check even when the extension already exists,
+        # which fails for non-superuser app roles (e.g. broker_prod /
+        # broker_staging) on Azure Postgres because pgvector is "untrusted"
+        # there. Skip the call entirely if the extension is already installed.
+        existing = conn.execute(
+            text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+        ).scalar()
+        if not existing:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            conn.commit()
     Base.metadata.create_all(bind=engine)
