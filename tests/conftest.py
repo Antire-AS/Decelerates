@@ -1,6 +1,6 @@
 """
 Stub out optional heavy dependencies so service modules can be imported
-in tests without requiring google-genai, voyageai, anthropic, or pdfplumber.
+in tests without requiring google-genai, anthropic, or pdfplumber.
 
 The google.genai stub is set up so that both:
   from google import genai as google_genai   (used in services/llm.py)
@@ -35,10 +35,9 @@ _google.genai = _google_genai
 sys.modules["google.genai"] = _google_genai
 sys.modules["google.genai.types"] = _google_genai_types
 
-# voyageai — services/llm.py
-sys.modules.setdefault("voyageai", MagicMock())
-
-# anthropic — services/llm.py
+# anthropic — used by api/services/pdf_agents.py (the agentic IR PDF
+# discovery Claude tool-use loop). The chat path in services/llm.py no
+# longer touches anthropic after the Phase 4.5 cleanup.
 sys.modules.setdefault("anthropic", MagicMock())
 
 # pdfplumber — services/pdf_extract.py
