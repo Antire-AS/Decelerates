@@ -1,0 +1,99 @@
+name: E2E (staging)
+
+# Runs the Playwright e2e suite against the staging environment after a
+# successful staging deploy. Smoke + flow tests catch UI regressions; the
+# llm-stack tests catch backend LLM-provider regressions (Foundry chat,
+# NL→SQL, Vertex AI PDF extraction). The full suite consumes ~$0.006 of
+# Vertex AI tokens per run.
+#
+# Manual triggers via workflow_dispatch let you re-run against staging or
+# prod without re-deploying.
+
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which environment to test"
+        required: true
+        type: choice
+        default: staging
+        options:
+          - staging
+          - prod
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    # On workflow_run, only proceed if the upstream Deploy job succeeded.
+    # workflow_dispatch always runs.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      # Default to staging URLs; overridden below for prod via workflow_dispatch.
+      PLAYWRIGHT_BASE_URL: https://ca-frontend-staging.whitepebble-3ac25616.norwayeast.azurecontainerapps.io
+      PLAYWRIGHT_API_BASE_URL: https://ca-api-staging.whitepebble-3ac25616.norwayeast.azurecontainerapps.io
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # workflow_run defaults to the workflow file's branch (staging) which
+          # is correct for our suite. workflow_dispatch uses the branch picked
+          # in the GitHub UI.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Override URLs for prod target
+        if: github.event_name == 'workflow_dispatch' && inputs.target == 'prod'
+        run: |
+          echo "PLAYWRIGHT_BASE_URL=https://ca-frontend.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_API_BASE_URL=https://ca-api.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit case)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run e2e suite
+        run: npx playwright test --project chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: frontend/playwright-report/
+          retention-days: 14
+
+      - name: Upload Playwright traces (failures only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ github.run_id }}
+          path: frontend/test-results/
+          retention-days: 14
