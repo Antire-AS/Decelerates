@@ -43,12 +43,13 @@ jobs:
 
       - name: Run unit + integration tests
         # --cov-fail-under is the floor against regression. Today's number
-        # is ~59%; we set the gate at 55 so natural fluctuation doesn't
-        # break the build, but a meaningful drop will. Raise this whenever
-        # you intentionally bump coverage in a PR. Don't lower it.
+        # is ~61% (tier-2 fill 2026-04-09: brreg_client 26→98%, geo_stats
+        # 23→99%); the gate sits at 60 so natural fluctuation can't break
+        # the build but a meaningful drop will. Raise this whenever you
+        # intentionally bump coverage in a PR. Don't lower it.
         run: |
           uv run python -m pytest tests/unit tests/integration -v --tb=short \
-            --cov=api --cov-report=term --cov-fail-under=55
+            --cov=api --cov-report=term --cov-fail-under=60
 
       - name: Lint
         run: |
