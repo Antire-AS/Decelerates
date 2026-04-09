@@ -131,7 +131,10 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
     if not raw:
-        raise HTTPException(status_code=503, detail="Ingen LLM tilgjengelig — legg til GEMINI_API_KEY eller ANTHROPIC_API_KEY i .env")
+        raise HTTPException(
+            status_code=503,
+            detail="Ingen LLM tilgjengelig — sett AZURE_FOUNDRY_BASE_URL og AZURE_FOUNDRY_API_KEY i .env",
+        )
 
     result = _parse_json_from_llm_response(raw) or {"sammendrag": raw, "anbefalinger": [], "total_premieanslag": "ukjent"}
     _save_offer_recommendation_to_rag(orgnr, result, db)
@@ -395,7 +398,7 @@ def generate_narrative(orgnr: str, lang: str = Query("no"), db: Session = Depend
     if narrative is None:
         raise HTTPException(
             status_code=503,
-            detail="No LLM API key configured (ANTHROPIC_API_KEY or GEMINI_API_KEY)",
+            detail="No LLM provider configured (set AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY)",
         )
 
     # Save to RAG so the analyst chat can reference this narrative

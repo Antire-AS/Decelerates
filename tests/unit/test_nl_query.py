@@ -1,6 +1,6 @@
 """Unit tests for api/services/nl_query.py — NL-to-SQL query service.
 
-Pure static tests — Claude API calls and DB execution are mocked.
+Pure static tests — LLM port and DB execution are mocked.
 """
 from unittest.mock import MagicMock, patch
 
@@ -20,31 +20,37 @@ def _mock_db_result(columns, rows):
     return result
 
 
+def _mock_llm(chat_return=None, configured=True):
+    llm = MagicMock()
+    llm.is_configured.return_value = configured
+    llm.chat.return_value = chat_return
+    return llm
+
+
 # ── _generate_sql ─────────────────────────────────────────────────────────────
 
-def test_generate_sql_returns_none_when_no_api_key():
-    with patch("api.services.llm._is_key_set", return_value=False):
+def test_generate_sql_returns_none_when_llm_not_configured():
+    with patch("api.services.nl_query.resolve", return_value=_mock_llm(configured=False)):
         result = _generate_sql("List companies with high risk")
     assert result is None
 
 
-def test_generate_sql_returns_sql_from_claude():
-    mock_msg = MagicMock()
-    mock_msg.content = [MagicMock(text="SELECT * FROM companies ORDER BY risk_score DESC LIMIT 10")]
-    mock_client = MagicMock()
-    mock_client.messages.create.return_value = mock_msg
-
-    with patch("api.services.llm._is_key_set", return_value=True):
-        with patch("anthropic.Anthropic", return_value=mock_client):
-            result = _generate_sql("Top 10 highest risk companies")
-
-    assert result == "SELECT * FROM companies ORDER BY risk_score DESC LIMIT 10"
+def test_generate_sql_returns_sql_from_llm():
+    sql = "SELECT * FROM companies ORDER BY risk_score DESC LIMIT 10"
+    with patch("api.services.nl_query.resolve", return_value=_mock_llm(chat_return=sql)):
+        result = _generate_sql("Top 10 highest risk companies")
+    assert result == sql
 
 
-def test_generate_sql_returns_none_on_exception():
-    with patch("api.services.llm._is_key_set", return_value=True):
-        with patch("anthropic.Anthropic", side_effect=Exception("API error")):
-            result = _generate_sql("any question")
+def test_generate_sql_returns_none_when_resolve_fails():
+    with patch("api.services.nl_query.resolve", side_effect=RuntimeError("container not configured")):
+        result = _generate_sql("any question")
+    assert result is None
+
+
+def test_generate_sql_returns_none_when_chat_returns_none():
+    with patch("api.services.nl_query.resolve", return_value=_mock_llm(chat_return=None)):
+        result = _generate_sql("any question")
     assert result is None
 
 

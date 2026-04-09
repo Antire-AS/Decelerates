@@ -10,6 +10,29 @@ See CLAUDE.md for architecture reference; live API docs at /docs.
 import logging
 import os
 
+# ── Vertex AI service-account bootstrap ───────────────────────────────────────
+# In Container Apps the SA key arrives base64-encoded
+# (`GCP_VERTEX_AI_SA_JSON_B64`) — multi-line JSON with quotes/newlines breaks
+# the bash --env-vars array used by `az containerapp create`, so deploy.yml
+# encodes it before passing. Materialize it to a file so the google-auth ADC
+# chain picks it up via GOOGLE_APPLICATION_CREDENTIALS. Locally the developer
+# sets GOOGLE_APPLICATION_CREDENTIALS directly to the downloaded JSON path,
+# so this block is a no-op in dev.
+import base64 as _base64
+
+_sa_json_b64 = os.getenv("GCP_VERTEX_AI_SA_JSON_B64")
+_sa_json = os.getenv("GCP_VERTEX_AI_SA_JSON")
+if _sa_json_b64 and not _sa_json:
+    try:
+        _sa_json = _base64.b64decode(_sa_json_b64).decode("utf-8")
+    except Exception:  # noqa: BLE001 — bad input falls through to ADC default
+        _sa_json = None
+if _sa_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    _sa_path = "/tmp/gcp-vertex-ai-sa.json"
+    with open(_sa_path, "w") as _fh:
+        _fh.write(_sa_json)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _sa_path
+
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI
@@ -21,6 +44,7 @@ from api.db import init_db
 from api.limiter import limiter
 from api.container import configure, AppConfig
 from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.foundry_llm_adapter import FoundryConfig
 from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
 
@@ -268,6 +292,14 @@ def on_startup():
             client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
             client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
             service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
+        ),
+        # Antire Azure AI Foundry — primary LLM provider. OpenAI-compatible
+        # endpoint fronting gpt-5.4 / gpt-5.4-mini / kimi / glm. Phase 1 of
+        # the LLM-stack consolidation; consumers migrate one at a time.
+        foundry=FoundryConfig(
+            base_url=os.getenv("AZURE_FOUNDRY_BASE_URL"),
+            api_key=os.getenv("AZURE_FOUNDRY_API_KEY"),
+            default_text_model=os.getenv("AZURE_FOUNDRY_MODEL", "gpt-5.4-mini"),
         ),
     ))
 

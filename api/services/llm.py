@@ -70,62 +70,23 @@ def _is_key_set(key: Optional[str]) -> bool:
     return bool(key) and key != "your_key_here"
 
 
-def _azure_openai_embed(text: str) -> Optional[List[float]]:
-    """Return embeddings from Azure OpenAI text-embedding-3-large (dim=512), or None."""
-    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    key = os.getenv("AZURE_OPENAI_API_KEY")
-    if not (_is_key_set(endpoint) and _is_key_set(key)):
-        return None
+def _try_foundry_embed(text: str) -> Optional[List[float]]:
+    """Attempt an embedding via the configured LlmPort. Returns None on any failure."""
     try:
-        from openai import AzureOpenAI
-        client = AzureOpenAI(api_key=key, azure_endpoint=endpoint, api_version="2024-02-01")
-        resp = client.embeddings.create(model="text-embedding-3-large", input=text, dimensions=512)
-        return resp.data[0].embedding
-    except Exception:
-        return None
-
-
-def _azure_foundry_answer(prompt: str, model: str = "gpt-5.4") -> Optional[str]:
-    """Call Azure AI Foundry (OpenAI-compatible) for chat completion. Returns text or None."""
-    base_url = os.getenv("AZURE_FOUNDRY_BASE_URL")
-    key = os.getenv("AZURE_FOUNDRY_API_KEY")
-    if not (_is_key_set(base_url) and _is_key_set(key)):
-        return None
-    try:
-        from openai import OpenAI
-        client = OpenAI(base_url=base_url, api_key=key)
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_completion_tokens=4096,
-        )
-        return resp.choices[0].message.content
-    except Exception:
-        return None
-
-
-def _azure_openai_answer(prompt: str) -> Optional[str]:
-    """Call Azure OpenAI gpt-4o chat completion. Returns text or None."""
-    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    key = os.getenv("AZURE_OPENAI_API_KEY")
-    if not (_is_key_set(endpoint) and _is_key_set(key)):
-        return None
-    try:
-        from openai import AzureOpenAI
-        deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
-        client = AzureOpenAI(api_key=key, azure_endpoint=endpoint, api_version="2024-02-01")
-        resp = client.chat.completions.create(
-            model=deployment,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=1024,
-        )
-        return resp.choices[0].message.content
-    except Exception:
+        from api.container import resolve
+        from api.ports.driven.llm_port import LlmPort
+        llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
+        if not llm.embeddings_configured():
+            return None
+        return llm.embed(text)
+    except Exception as exc:
+        logger.warning("Foundry embed failed: %s", exc)
         return None
 
 
 def _embed(text: str) -> List[float]:
-    result = _azure_openai_embed(text)
+    """Return a 512-dim embedding vector. Foundry primary, Voyage/Gemini legacy."""
+    result = _try_foundry_embed(text)
     if result is not None:
         return result
 
@@ -164,20 +125,57 @@ def _fmt_nok(value) -> str:
         return str(value)
 
 
+def _gemini_raw_with_fallback(prompt: str) -> Optional[str]:
+    """Legacy Gemini fallback for `_llm_answer_raw` — tries Vertex AI then API key.
+
+    Iterates every configured Gemini client × every model. Raises QuotaError
+    only if every client/model combination is quota-blocked.
+    """
+    clients = _build_gemini_clients(timeout=_LLM_TIMEOUT_SECONDS)
+    if not clients:
+        return None
+    models_to_try = [
+        "gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash",
+        "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it",
+    ]
+    seen: set = set()
+    ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
+    quota_blocked = False
+    for client in clients:
+        for model_name in ordered:
+            try:
+                with ThreadPoolExecutor(max_workers=1) as _pool:
+                    future = _pool.submit(client.models.generate_content, model_name, prompt)
+                    response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
+                return response.text
+            except FuturesTimeoutError:
+                logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
+                continue
+            except Exception as exc:
+                err = str(exc)
+                if "quota" in err.lower() or "429" in err or "RESOURCE_EXHAUSTED" in err:
+                    quota_blocked = True
+                    continue
+                raise
+    if quota_blocked:
+        raise QuotaError(
+            "Gemini quota exhausted on all clients/models — wait a few minutes or enable billing."
+        )
+    return None
+
+
 def _llm_answer_raw(prompt: str) -> Optional[str]:
-    """Call LLM with a plain user prompt. Used for narrative and synthetic data generation."""
+    """Call LLM with a plain user prompt. Used for narrative and synthetic data generation.
+
+    Foundry primary via LlmPort, Anthropic + Gemini as legacy fallback (removed in Phase 3).
+    """
     _t0 = time.monotonic()
     _provider = "none"
     _outcome = "success"
     try:
-        result = _azure_foundry_answer(prompt)
+        result = _try_foundry_chat(prompt)
         if result is not None:
             _provider = "azure_foundry"
-            return result
-
-        result = _azure_openai_answer(prompt)
-        if result is not None:
-            _provider = "azure_openai"
             return result
 
         anthropic_key = os.getenv("ANTHROPIC_API_KEY")
@@ -192,32 +190,10 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
             _provider = "claude"
             return msg.content[0].text
 
-        gemini_key = os.getenv("GEMINI_API_KEY")
-        if _is_key_set(gemini_key):
-            client = google_genai.Client(api_key=gemini_key)
-            models_to_try = ["gemini-2.5-flash", GEMINI_MODEL, "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemma-3-12b-it", "gemma-3-27b-it"]
-            seen: set = set()
-            ordered = [m for m in models_to_try if not (m in seen or seen.add(m))]
-            for model_name in ordered:
-                try:
-                    with ThreadPoolExecutor(max_workers=1) as _pool:
-                        future = _pool.submit(
-                            client.models.generate_content, model_name, prompt
-                        )
-                        response = future.result(timeout=_LLM_TIMEOUT_SECONDS)
-                    _provider = "gemini"
-                    return response.text
-                except FuturesTimeoutError:
-                    logger.warning("Gemini model %s timed out after %ds", model_name, _LLM_TIMEOUT_SECONDS)
-                    continue
-                except Exception as exc:
-                    msg = str(exc)
-                    if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                        continue
-                    raise
-            raise QuotaError(
-                "Gemini free-tier quota exhausted on all models — wait a few minutes or enable billing."
-            )
+        result = _gemini_raw_with_fallback(prompt)
+        if result is not None:
+            _provider = "gemini"
+            return result
 
         return None
     except Exception:
@@ -229,20 +205,60 @@ def _llm_answer_raw(prompt: str) -> Optional[str]:
 
 
 def _compare_offers_with_llm(prompt: str) -> Optional[str]:
-    """Run an insurance offer comparison prompt through Gemini and return the text response."""
+    """Run an insurance offer comparison prompt through the LLM.
+
+    Phase 2.2 — Foundry primary via LlmPort, Gemini as legacy fallback.
+    """
+    result = _try_foundry_chat(prompt, max_tokens=4096)
+    if result:
+        return result
     return _gemini_generate_with_fallback([prompt])
+
+
+def _build_gemini_clients(timeout: int = 120) -> list:
+    """Build a list of `genai.Client` instances in priority order.
+
+    Vertex AI (project + location, service account auth via
+    GOOGLE_APPLICATION_CREDENTIALS) comes first when configured. Falls back
+    to a single legacy AI-Studio API-key client.
+    """
+    clients: list = []
+    project = os.getenv("GCP_VERTEX_AI_PROJECT")
+    location = os.getenv("GCP_VERTEX_AI_LOCATION", "europe-west4")
+    if project:
+        try:
+            clients.append(
+                google_genai.Client(
+                    vertexai=True, project=project, location=location,
+                    http_options={"timeout": timeout},
+                )
+            )
+        except Exception as exc:
+            logger.warning("Vertex AI client init failed: %s", exc)
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if _is_key_set(gemini_key):
+        try:
+            clients.append(
+                google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
+            )
+        except Exception as exc:
+            logger.warning("Legacy Gemini client init failed: %s", exc)
+    return clients
 
 
 def _gemini_generate_with_fallback(
     parts: list, timeout: int = 120, system_instruction: Optional[str] = None
 ) -> Optional[str]:
-    """Try each Gemini model in order with the given content parts. Returns first successful text."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
+    """Try each Gemini client × model in order. Returns first successful text.
+
+    Vertex AI is preferred when configured; legacy AI-Studio API key acts as
+    fallback. Will be reduced to Vertex-only in Phase 4.5 once stable in prod.
+    """
+    clients = _build_gemini_clients(timeout=timeout)
+    if not clients:
         return None
     config = genai_types.GenerateContentConfig(system_instruction=system_instruction) if system_instruction else None
-    try:
-        client = google_genai.Client(api_key=gemini_key, http_options={"timeout": timeout})
+    for client in clients:
         for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
             try:
                 resp = client.models.generate_content(model=model, contents=parts, config=config)
@@ -250,8 +266,6 @@ def _gemini_generate_with_fallback(
             except Exception as exc:
                 logger.warning("Gemini model %s failed: %s", model, exc)
                 continue
-    except Exception as exc:
-        logger.error("Gemini generate_with_fallback failed: %s", exc)
     return None
 
 
@@ -270,7 +284,35 @@ def _compare_documents_with_gemini(
     return _gemini_generate_with_fallback([pdf_a, pdf_b, prompt], timeout=280)
 
 
+def _try_foundry_chat(
+    user_prompt: str, system_prompt: Optional[str] = None, max_tokens: int = 1024
+) -> Optional[str]:
+    """Attempt a chat call via the configured LlmPort. Returns None on any failure."""
+    try:
+        from api.container import resolve
+        from api.ports.driven.llm_port import LlmPort
+        llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
+        if not llm.is_configured():
+            return None
+        return llm.chat(
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
+            max_completion_tokens=max_tokens,
+        )
+    except Exception as exc:
+        logger.warning("Foundry chat failed: %s", exc)
+        return None
+
+
 def _llm_answer(context: str, question: str) -> str:
+    user_prompt = f"Company data:\n{context}\n\nQuestion: {question}"
+
+    # Phase 2.1 — Foundry primary via LlmPort.
+    result = _try_foundry_chat(user_prompt, CHAT_SYSTEM_PROMPT, max_tokens=1024)
+    if result:
+        return result
+
+    # Legacy fallback — Anthropic, then Gemini. Removed in Phase 3.
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if _is_key_set(anthropic_key):
         client = anthropic.Anthropic(api_key=anthropic_key)
@@ -278,19 +320,18 @@ def _llm_answer(context: str, question: str) -> str:
             model=CLAUDE_MODEL,
             max_tokens=1024,
             system=CHAT_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": f"Company data:\n{context}\n\nQuestion: {question}"}],
+            messages=[{"role": "user", "content": user_prompt}],
             timeout=_LLM_TIMEOUT_SECONDS,
         )
         return message.content[0].text
 
-    result = _gemini_generate_with_fallback(
-        [f"Company data:\n{context}\n\nQuestion: {question}"],
-        system_instruction=CHAT_SYSTEM_PROMPT,
-    )
+    result = _gemini_generate_with_fallback([user_prompt], system_instruction=CHAT_SYSTEM_PROMPT)
     if result is not None:
         return result
 
-    raise LlmUnavailableError("No LLM API key configured (ANTHROPIC_API_KEY or GEMINI_API_KEY)")
+    raise LlmUnavailableError(
+        "No LLM provider configured (set AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY)"
+    )
 
 
 # ── Service class wrapper ──────────────────────────────────────────────────────

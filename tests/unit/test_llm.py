@@ -91,10 +91,8 @@ def test_llm_answer_raises_lm_unavailable(monkeypatch):
 
 # ── Fallback chain ─────────────────────────────────────────────────────────────
 
-def test_llm_answer_raw_falls_back_to_claude_when_azure_fails(monkeypatch):
-    """If Azure Foundry raises, the chain should fall back to Claude."""
-    monkeypatch.setenv("AZURE_FOUNDRY_BASE_URL", "https://fake-foundry")
-    monkeypatch.setenv("AZURE_FOUNDRY_API_KEY", "fake-foundry-key")
+def test_llm_answer_raw_falls_back_to_claude_when_foundry_fails(monkeypatch):
+    """If Foundry returns None, the chain should fall back to Claude."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-claude-key")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
@@ -103,32 +101,28 @@ def test_llm_answer_raw_falls_back_to_claude_when_azure_fails(monkeypatch):
     mock_msg = MagicMock()
     mock_msg.content = [mock_content]
 
-    with patch("api.services.llm._azure_foundry_answer", return_value=None):
-        with patch("api.services.llm._azure_openai_answer", return_value=None):
-            with patch("anthropic.Anthropic") as mock_anthropic:
-                mock_anthropic.return_value.messages.create.return_value = mock_msg
-                from api.services.llm import _llm_answer_raw
-                result = _llm_answer_raw("test prompt")
+    with patch("api.services.llm._try_foundry_chat", return_value=None):
+        with patch("anthropic.Anthropic") as mock_anthropic:
+            mock_anthropic.return_value.messages.create.return_value = mock_msg
+            from api.services.llm import _llm_answer_raw
+            result = _llm_answer_raw("test prompt")
 
     assert result == "Fallback answer."
 
 
 def test_llm_answer_raw_falls_back_to_gemini_when_claude_not_set(monkeypatch):
-    """If ANTHROPIC_API_KEY is not set, the chain should use Gemini."""
+    """If ANTHROPIC_API_KEY is not set and Foundry is unavailable, use Gemini."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("AZURE_FOUNDRY_BASE_URL", raising=False)
-    monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
     monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
 
     mock_response = MagicMock()
     mock_response.text = "Gemini says hi."
 
-    with patch("api.services.llm._azure_foundry_answer", return_value=None):
-        with patch("api.services.llm._azure_openai_answer", return_value=None):
-            with patch("google.genai.Client") as mock_cls:
-                mock_cls.return_value.models.generate_content.return_value = mock_response
-                from api.services.llm import _llm_answer_raw
-                result = _llm_answer_raw("test prompt")
+    with patch("api.services.llm._try_foundry_chat", return_value=None):
+        with patch("google.genai.Client") as mock_cls:
+            mock_cls.return_value.models.generate_content.return_value = mock_response
+            from api.services.llm import _llm_answer_raw
+            result = _llm_answer_raw("test prompt")
 
     assert result == "Gemini says hi."
 
@@ -137,13 +131,10 @@ def test_llm_answer_raw_returns_none_when_all_providers_absent(monkeypatch):
     """With no provider keys set, _llm_answer_raw should return None."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    monkeypatch.delenv("AZURE_FOUNDRY_BASE_URL", raising=False)
-    monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
 
-    with patch("api.services.llm._azure_foundry_answer", return_value=None):
-        with patch("api.services.llm._azure_openai_answer", return_value=None):
-            from api.services.llm import _llm_answer_raw
-            result = _llm_answer_raw("test prompt")
+    with patch("api.services.llm._try_foundry_chat", return_value=None):
+        from api.services.llm import _llm_answer_raw
+        result = _llm_answer_raw("test prompt")
 
     assert result is None
 

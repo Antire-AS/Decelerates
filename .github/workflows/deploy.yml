@@ -67,7 +67,17 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy API
+        env:
+          # GitHub Actions handles multiline secrets safely as env vars but
+          # NOT as inline ${{ }} interpolation in bash arrays. So bring the
+          # SA JSON in via the env: block, then base64-encode it below.
+          GCP_VERTEX_AI_SA_JSON_RAW: ${{ secrets.GCP_VERTEX_AI_SA_JSON }}
         run: |
+          # Base64-encode the SA JSON so it survives the --env-vars bash
+          # array (multiline JSON with quotes/newlines breaks --env-vars).
+          # main.py decodes GCP_VERTEX_AI_SA_JSON_B64 back at startup.
+          GCP_VERTEX_AI_SA_JSON_B64=$(printf '%s' "$GCP_VERTEX_AI_SA_JSON_RAW" | base64 | tr -d '\n')
+
           # Shared env-vars block used by both create and update
           ENV_VARS=(
             "ENVIRONMENT=${{ steps.config.outputs.environment }}"
@@ -79,11 +89,12 @@ jobs:
             "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}"
             "AZURE_FOUNDRY_BASE_URL=${{ secrets.AZURE_FOUNDRY_BASE_URL }}"
             "AZURE_FOUNDRY_API_KEY=${{ secrets.AZURE_FOUNDRY_API_KEY }}"
+            "GCP_VERTEX_AI_PROJECT=${{ secrets.GCP_VERTEX_AI_PROJECT }}"
+            "GCP_VERTEX_AI_LOCATION=${{ secrets.GCP_VERTEX_AI_LOCATION }}"
+            "GCP_VERTEX_AI_SA_JSON_B64=$GCP_VERTEX_AI_SA_JSON_B64"
             "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}"
             "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}"
             "AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o"
-            "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}"
-            "AZURE_DOCUMENT_INTELLIGENCE_KEY=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}"
             "AZURE_BLOB_ENDPOINT=${{ secrets.AZURE_BLOB_ENDPOINT }}"
             "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}"
             "AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }}"
