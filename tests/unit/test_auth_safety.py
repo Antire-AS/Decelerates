@@ -73,12 +73,32 @@ def test_auth_disabled_rejects_invalid_values(monkeypatch):
 # ── get_current_user — end-to-end gate behavior ───────────────────────────────
 
 def test_get_current_user_returns_dev_user_when_disabled(monkeypatch):
-    """Bypass mode returns the canonical dev user without touching JWT."""
+    """Bypass mode returns the canonical dev user without touching JWT.
+
+    Since the UI audit (2026-04-09) the bypass also auto-provisions a
+    matching `users` row via UserService.get_or_create so downstream
+    `azure_oid` lookups in routers (notifications, saved_searches, …)
+    can find the user. We mock UserService here to avoid touching a
+    real DB session in this unit test.
+    """
+    from unittest.mock import MagicMock, patch
+
     _set_env(monkeypatch, "development", "1")
-    user = get_current_user(creds=None, db=None)
+
+    fake_user_row = MagicMock(firm_id=1)
+    fake_service = MagicMock()
+    fake_service.get_or_create.return_value = fake_user_row
+
+    with patch("api.services.user_service.UserService", return_value=fake_service):
+        user = get_current_user(creds=None, db=MagicMock())
+
     assert user.email == "dev@local"
     assert user.oid == "dev-oid"
     assert user.firm_id == 1
+    # Confirm the user-row provisioning was actually invoked.
+    fake_service.get_or_create.assert_called_once_with(
+        oid="dev-oid", email="dev@local", name="Dev User",
+    )
 
 
 def test_get_current_user_requires_token_in_production(monkeypatch):
