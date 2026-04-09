@@ -130,6 +130,55 @@ jobs:
             --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
             --set-env-vars "${ENV_VARS[@]}"
 
+      - name: Wait for API revision to become Healthy
+        # Catches startup crashes that the deploy step would otherwise report
+        # as "success". Polls the latest revision's healthState for up to 3
+        # min and fails the workflow if it's still Provisioning/Failed/None.
+        # This is the gate that would have caught the brokeradmin password
+        # rotation incident on 2026-04-08 (revision 0000309 crashed on
+        # alembic migration with `password authentication failed`, deploy
+        # workflow still reported success because it never checked health).
+        run: |
+          APP=${{ steps.config.outputs.api_app }}
+          RG=${{ env.RG }}
+          DEADLINE=$(( $(date +%s) + 180 ))
+          REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
+            --query properties.latestRevisionName -o tsv)
+          echo "Watching revision: $REV"
+          # Container Apps uses several "running" states depending on KEDA
+          # scale state. All of these mean "the new revision is up and
+          # serving":
+          #   - Running              — replicas == desired (steady state)
+          #   - RunningAtMaxScale    — replicas == max-replicas (scaled out)
+          #   - Scaling              — replicas adjusting up/down but already serving
+          # Anything else (Activating / ActivationFailed / Deactivating) is not.
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            HEALTH=$(az containerapp revision show --name "$APP" --resource-group "$RG" \
+              --revision "$REV" --query properties.healthState -o tsv 2>/dev/null || echo "Unknown")
+            STATE=$(az containerapp revision show --name "$APP" --resource-group "$RG" \
+              --revision "$REV" --query properties.runningState -o tsv 2>/dev/null || echo "Unknown")
+            echo "  health=$HEALTH state=$STATE"
+            case "$STATE" in
+              Running|RunningAtMaxScale|Scaling)
+                if [ "$HEALTH" = "Healthy" ]; then
+                  echo "Revision $REV is healthy ($STATE)."
+                  exit 0
+                fi
+                ;;
+              ActivationFailed)
+                echo "::error::Revision $REV failed to activate. See container logs."
+                az containerapp logs show --name "$APP" --resource-group "$RG" \
+                  --revision "$REV" --tail 50 2>&1 || true
+                exit 1
+                ;;
+            esac
+            sleep 10
+          done
+          echo "::error::Timed out waiting for $REV to become Healthy after 180s."
+          az containerapp logs show --name "$APP" --resource-group "$RG" \
+            --revision "$REV" --tail 50 2>&1 || true
+          exit 1
+
       - name: Get API URL
         id: api
         run: |
