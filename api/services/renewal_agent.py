@@ -1,7 +1,24 @@
-"""Renewal recommendation agent — generates renewal briefs using LLM + coverage gap analysis."""
+"""Renewal recommendation agent — generates renewal briefs + client email drafts.
+
+The proactive renewal agent enhances the daily cron (`/admin/renewal-threshold-emails`)
+with AI-generated content:
+
+1. **Renewal brief** (3 bullets) — for the broker's internal use: what to do next,
+   market arguments, and client recommendation.
+2. **Email draft** — a professional Norwegian email to the client summarising the
+   upcoming renewal and next steps.
+
+Both are cached on the Policy row so the LLM is only called once per renewal cycle.
+The cron idempotency still comes from `last_renewal_notified_days`.
+"""
+import logging
+from datetime import date
+
 from sqlalchemy.orm import Session
 
 from api.db import Company, Policy, Submission
+
+_log = logging.getLogger(__name__)
 
 
 def _get_gap_summary(policy: Policy, db: Session) -> str:
@@ -69,3 +86,69 @@ class RenewalAgentService:
             "(3) anbefaling til kunden. Svar kun med kulepunktene."
         )
         return _llm_answer_raw(prompt) or ""
+
+    def generate_renewal_email_draft(self, policy: Policy, brief: str, db: Session) -> str:
+        """Draft a professional Norwegian email to the client about the upcoming renewal."""
+        from api.services.llm import _llm_answer_raw
+
+        company = db.query(Company).filter(Company.orgnr == policy.orgnr).first()
+        company_name = company.navn if company else policy.orgnr
+        renewal_date = policy.renewal_date.isoformat() if policy.renewal_date else "ukjent"
+        prompt = (
+            f"Du er en norsk forsikringsmegler. Skriv en profesjonell e-post til kunden "
+            f"om kommende fornyelse av forsikringspolisen.\n\n"
+            f"Kunde: {company_name}\n"
+            f"Forsikringstype: {policy.product_type}\n"
+            f"Forsikringsselskap: {policy.insurer}\n"
+            f"Fornyelsesdato: {renewal_date}\n\n"
+            f"Din interne briefing (ikke vis til kunden, bruk som grunnlag):\n{brief}\n\n"
+            "E-posten skal:\n"
+            "- Informere om at fornyelsen nærmer seg\n"
+            "- Kort nevne hva megleren vil gjøre (f.eks. innhente tilbud fra flere selskaper)\n"
+            "- Be om et møte eller en samtale for å gjennomgå behovene\n"
+            "- Være høflig, profesjonell og kort (maks 150 ord)\n"
+            "- Bruk 'Med vennlig hilsen' som avslutning\n"
+            "Svar kun med selve e-postteksten."
+        )
+        return _llm_answer_raw(prompt) or ""
+
+    def process_renewals_batch(
+        self, firm_id: int, db: Session
+    ) -> list[dict]:
+        """Generate AI briefs + email drafts for all policies approaching renewal.
+
+        Called by the daily cron endpoint. Caches results on the Policy row so
+        the LLM is only called once per renewal cycle. Returns a summary list.
+        """
+        from api.services.policy_service import PolicyService
+
+        svc = PolicyService(db)
+        results = []
+        for threshold in [90, 60, 30]:
+            policies = svc.get_policies_needing_renewal_notification(
+                firm_id=firm_id, threshold_days=threshold,
+            )
+            for p in policies:
+                try:
+                    if not p.renewal_brief:
+                        brief = self.generate_renewal_brief(p, db)
+                        p.renewal_brief = brief
+                    else:
+                        brief = p.renewal_brief
+
+                    if not p.renewal_email_draft:
+                        p.renewal_email_draft = self.generate_renewal_email_draft(p, brief, db)
+
+                    db.commit()
+                    results.append({
+                        "orgnr": p.orgnr, "policy_id": p.id,
+                        "threshold": threshold, "brief_generated": True,
+                    })
+                except Exception as exc:
+                    _log.warning("Renewal agent: failed for policy %d: %s", p.id, exc)
+                    db.rollback()
+                    results.append({
+                        "orgnr": p.orgnr, "policy_id": p.id,
+                        "threshold": threshold, "brief_generated": False, "error": str(exc),
+                    })
+        return results

@@ -44,6 +44,8 @@ def _serialize(p) -> dict:
         "document_url":        p.document_url,
         "commission_rate_pct":  p.commission_rate_pct,
         "commission_amount_nok": p.commission_amount_nok,
+        "renewal_brief":       p.renewal_brief,
+        "renewal_email_draft": p.renewal_email_draft,
         "created_at":          p.created_at.isoformat() if p.created_at else None,
         "updated_at":          p.updated_at.isoformat() if p.updated_at else None,
     }
