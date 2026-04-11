@@ -32,7 +32,9 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
     row: HistoryRow;
     rev: number | undefined;
     net: number | undefined;
+    driftsres: number | undefined;
     margin: number | null;
+    driftsmargin: number | null;
     revYoy: string | null;
     marginDelta: string | null;
     ekDelta: string | null;
@@ -41,7 +43,9 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
   const meta: YearMeta[] = sorted.map((r, i) => {
     const rev = (r.revenue ?? r.sumDriftsinntekter) as number | undefined;
     const net = r.arsresultat as number | undefined;
+    const driftsres = r.driftsresultat as number | undefined;
     const margin = rev && net ? (net / rev) * 100 : null;
+    const driftsmargin = rev && driftsres ? (driftsres / rev) * 100 : null;
     const prev = i > 0 ? sorted[i - 1] : null;
     const prevRev = prev ? ((prev.revenue ?? prev.sumDriftsinntekter) as number | undefined) : null;
     const prevNet = prev ? (prev.arsresultat as number | undefined) : null;
@@ -61,7 +65,7 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
         ? `${((r.equity_ratio - prevEq) * 100) >= 0 ? "+" : ""}${((r.equity_ratio - prevEq) * 100).toFixed(1)}pp`
         : null;
 
-    return { row: r, rev, net, margin, revYoy, marginDelta, ekDelta };
+    return { row: r, rev, net, driftsres, margin, driftsmargin, revYoy, marginDelta, ekDelta };
   });
 
   if (sorted.length < 2) return null;
@@ -75,6 +79,8 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
               <th className="text-left pb-1.5 font-medium">År</th>
               <th className="text-right pb-1.5 font-medium">Omsetning</th>
               <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Rev YoY</th>
+              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">Driftsresultat</th>
+              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">Dr.margin</th>
               <th className="text-right pb-1.5 font-medium">Nettoresultat</th>
               <th className="text-right pb-1.5 font-medium hidden sm:table-cell">Margin</th>
               <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Margin Δ</th>
@@ -86,7 +92,7 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
             </tr>
           </thead>
           <tbody>
-            {[...meta].reverse().map(({ row: r, rev, net, margin, revYoy, marginDelta, ekDelta }) => {
+            {[...meta].reverse().map(({ row: r, rev, net, driftsres, margin, driftsmargin, revYoy, marginDelta, ekDelta }) => {
               const isExp = expandedYear === r.year;
               return (
                 <Fragment key={r.year}>
@@ -103,6 +109,13 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                     <td className="py-1.5 text-right text-[#8A7F74]">{fmtMnok(rev)}</td>
                     <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(revYoy)}`}>
                       {revYoy ?? "–"}
+                    </td>
+                    <td className="py-1.5 text-right text-[#8A7F74] hidden xl:table-cell"
+                      style={{ color: driftsres != null && driftsres < 0 ? "#C0392B" : undefined }}>
+                      {fmtMnok(driftsres)}
+                    </td>
+                    <td className="py-1.5 text-right text-[#8A7F74] hidden xl:table-cell">
+                      {driftsmargin != null ? `${driftsmargin.toFixed(1)}%` : "–"}
                     </td>
                     <td className="py-1.5 text-right" style={{ color: net != null && net < 0 ? "#C0392B" : "#2C3E50" }}>
                       {fmtMnok(net)}
@@ -129,7 +142,7 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                   </tr>
                   {isExp && (
                     <tr key={`${r.year}-detail`} className="bg-[#F9F7F4]">
-                      <td colSpan={11} className="py-3 px-2">
+                      <td colSpan={13} className="py-3 px-2">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <p className="text-xs font-semibold text-[#2C3E50] mb-2">Resultatregnskap</p>
