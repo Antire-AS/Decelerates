@@ -330,6 +330,85 @@ def find_similar_documents(doc: InsuranceDocument, db: Session, limit: int = 3) 
     return DocumentService(db).find_similar(doc, limit)
 
 
+def _auto_extract_keypoints(doc: InsuranceDocument, db: Session) -> None:
+    """Extract keypoints + structured premium data from a document."""
+    import logging
+    _log = logging.getLogger(__name__)
+    if doc.cached_keypoints:
+        return
+    try:
+        kp = DocumentAnalysisService().get_document_keypoints(doc)
+        doc.cached_keypoints = kp
+        if isinstance(kp, dict):
+            _try_parse_premium(doc, kp)
+        db.commit()
+        _log.info("Doc intel agent: keypoints extracted for doc %d", doc.id)
+    except Exception as exc:
+        _log.warning("Doc intel agent: keypoint extraction failed for doc %d: %s", doc.id, exc)
+        db.rollback()
+
+
+def _auto_compare_tilbuds(doc: InsuranceDocument, db: Session) -> None:
+    """If 2+ tilbuds exist for the same orgnr, auto-compare the two most recent."""
+    import logging
+    _log = logging.getLogger(__name__)
+    if not doc.orgnr or doc.category not in ("tilbud", "forsikringstilbud", "tilbud_sammenligning"):
+        return
+    try:
+        others = (
+            db.query(InsuranceDocument)
+            .filter(
+                InsuranceDocument.orgnr == doc.orgnr,
+                InsuranceDocument.id != doc.id,
+                InsuranceDocument.category.in_(["tilbud", "forsikringstilbud", "tilbud_sammenligning"]),
+            )
+            .order_by(InsuranceDocument.id.desc())
+            .limit(1)
+            .all()
+        )
+        if others:
+            comparison = DocumentAnalysisService().compare_two_documents(doc, others[0])
+            doc.auto_comparison_result = comparison
+            db.commit()
+            _log.info("Doc intel agent: auto-compared doc %d with doc %d", doc.id, others[0].id)
+    except Exception as exc:
+        _log.warning("Doc intel agent: auto-comparison failed for doc %d: %s", doc.id, exc)
+        db.rollback()
+
+
+def auto_analyze_document(doc_id: int, db: Session) -> None:
+    """Background agent: auto-extract keypoints + structured tilbud data.
+
+    Called asynchronously after document upload. Caches results on the
+    InsuranceDocument row so subsequent reads don't re-invoke the LLM.
+    """
+    doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
+    if not doc:
+        return
+    _auto_extract_keypoints(doc, db)
+    _auto_compare_tilbuds(doc, db)
+
+
+def _try_parse_premium(doc: InsuranceDocument, kp: dict) -> None:
+    """Best-effort extraction of premium/coverage/deductible from keypoints dict."""
+    import re
+    def _parse_nok(val: str | None) -> float | None:
+        if not val:
+            return None
+        cleaned = re.sub(r"[^\d.,]", "", str(val).replace(" ", ""))
+        try:
+            return float(cleaned.replace(",", "."))
+        except (ValueError, TypeError):
+            return None
+
+    if not doc.parsed_premium_nok:
+        doc.parsed_premium_nok = _parse_nok(kp.get("forsikringspremie") or kp.get("premie"))
+    if not doc.parsed_coverage_nok:
+        doc.parsed_coverage_nok = _parse_nok(kp.get("forsikringssum"))
+    if not doc.parsed_deductible_nok:
+        doc.parsed_deductible_nok = _parse_nok(kp.get("egenandel"))
+
+
 def update_offer_status(offer_id: int, orgnr: str, status: str, db: Session) -> bool:
     """Update the win/loss status of a stored offer. Returns False if not found."""
     from api.db import OfferStatus
