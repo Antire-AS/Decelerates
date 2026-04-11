@@ -1,11 +1,12 @@
 """Portfolio endpoints — named company lists with risk analysis and cross-company chat."""
+import logging
 
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
-from api.db import PortfolioCompany, Company, Portfolio, SessionLocal
+from api.db import NotificationKind, PortfolioCompany, Company, Portfolio, SessionLocal
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.limiter import limiter
@@ -18,11 +19,53 @@ from api.schemas import (
 )
 from api.services.portfolio import PortfolioService, collect_alerts
 
+_log = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
 def _svc(db: Session = Depends(get_db)) -> PortfolioService:
     return PortfolioService(db)
+
+
+def _run_coverage_gap_background(orgnr: str, firm_id: int) -> None:
+    """Background task: run coverage gap analysis and notify the broker if gaps exist.
+
+    Uses its own DB session (SessionLocal) so the background task is
+    independent of the request lifecycle — same pattern as
+    _auto_extract_pdf_sources in pdf_background.py.
+    """
+    db = SessionLocal()
+    try:
+        from api.services.coverage_gap import analyze_coverage_gap
+        from api.services.notification_inbox_service import create_notification_for_users_safe
+
+        result = analyze_coverage_gap(orgnr, firm_id, db)
+        if result["gap_count"] == 0:
+            return
+
+        company = db.query(Company).filter(Company.orgnr == orgnr).first()
+        navn = company.navn if company else orgnr
+
+        gap_types = [i["type"] for i in result["items"] if i["status"] == "gap"]
+        gap_list = ", ".join(gap_types[:4])
+        if len(gap_types) > 4:
+            gap_list += f" (+{len(gap_types) - 4} til)"
+
+        create_notification_for_users_safe(
+            db,
+            firm_id=firm_id,
+            kind=NotificationKind.coverage_gap,
+            title=f"Dekningsgap funnet: {navn}",
+            message=f"{result['gap_count']} av {result['total_count']} anbefalte forsikringer mangler: {gap_list}",
+            link=f"/search/{orgnr}?tab=forsikring",
+            orgnr=orgnr,
+        )
+        _log.info("Coverage gap agent: %s has %d gaps — notification created", orgnr, result["gap_count"])
+    except Exception as exc:
+        _log.warning("Coverage gap agent failed for %s: %s", orgnr, exc)
+    finally:
+        db.close()
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -78,6 +121,7 @@ def delete_portfolio(
 def add_company(
     portfolio_id: int,
     body: PortfolioAddCompany,
+    background_tasks: BackgroundTasks,
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -85,6 +129,9 @@ def add_company(
         svc.add_company(portfolio_id, body.orgnr)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    # Auto-run coverage gap analysis in the background so the broker gets
+    # a notification if the new company has missing insurance coverage.
+    background_tasks.add_task(_run_coverage_gap_background, body.orgnr, user.firm_id)
     return {"portfolio_id": portfolio_id, "orgnr": body.orgnr}
 
 
@@ -92,6 +139,7 @@ def add_company(
 def add_companies_bulk(
     portfolio_id: int,
     body: PortfolioBulkAdd,
+    background_tasks: BackgroundTasks,
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -103,13 +151,18 @@ def add_companies_bulk(
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     added = skipped = 0
+    added_orgnrs: list[str] = []
     for orgnr in body.orgnrs:
         try:
             svc.add_company(portfolio_id, orgnr)
             added += 1
+            added_orgnrs.append(orgnr)
         except Exception:
             # Already-member, missing company, etc. — count and continue.
             skipped += 1
+    # Schedule coverage gap analysis for each newly added company.
+    for orgnr in added_orgnrs:
+        background_tasks.add_task(_run_coverage_gap_background, orgnr, user.firm_id)
     return {"added": added, "skipped": skipped}
 
 
