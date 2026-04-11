@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import useSWR from "swr";
 import { getRenewals, advanceRenewalStage, type Renewal } from "@/lib/api";
 import { fmt, fmtDate } from "@/lib/format";
 import { downloadXlsx } from "@/lib/excel-export";
-import { Download } from "lucide-react";
+import { Download, Sparkles, Mail } from "lucide-react";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";
@@ -156,41 +156,68 @@ export default function RenewalsPage() {
                 const stage = (r.renewal_stage ?? "not_started") as StageId;
                 const meta = stageMeta(stage);
                 const nextStages = STAGES.filter((s) => s.id !== stage);
+                const hasBrief = !!r.renewal_brief;
                 return (
-                  <tr key={r.id} className="hover:bg-[#F9F7F4]">
-                    <td className="py-2">
-                      <span className="font-medium text-[#2C3E50]">{r.client_name}</span>
-                      <span className="block text-xs text-[#8A7F74]">{r.orgnr}</span>
-                    </td>
-                    <td className="py-2 text-[#2C3E50]">{r.product_type ?? r.insurance_type}</td>
-                    <td className="py-2 text-[#8A7F74]">{r.insurer}</td>
-                    <td className="py-2 text-right font-medium text-[#2C3E50]">
-                      {fmt(r.annual_premium_nok ?? r.premium)}
-                    </td>
-                    <td className="py-2 text-right text-[#8A7F74]">
-                      {r.start_date ? fmtDate(r.start_date) : "–"}
-                    </td>
-                    <td className="py-2 text-right text-[#8A7F74]">{fmtDate(r.renewal_date)}</td>
-                    <td className="py-2 text-right">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`}>
-                        {r.days_until_renewal}d
-                      </span>
-                    </td>
-                    <td className="py-2 text-center">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${meta.color}`}>{meta.label}</span>
-                    </td>
-                    <td className="py-2 text-center">
-                      <select
-                        disabled={advancing === r.id}
-                        value=""
-                        onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
-                        className="text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white"
-                      >
-                        <option value="">Flytt…</option>
-                        {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-                      </select>
-                    </td>
-                  </tr>
+                  <Fragment key={r.id}>
+                    <tr className="hover:bg-[#F9F7F4]">
+                      <td className="py-2">
+                        <span className="font-medium text-[#2C3E50]">{r.client_name}</span>
+                        <span className="block text-xs text-[#8A7F74]">{r.orgnr}</span>
+                      </td>
+                      <td className="py-2 text-[#2C3E50]">{r.product_type ?? r.insurance_type}</td>
+                      <td className="py-2 text-[#8A7F74]">{r.insurer}</td>
+                      <td className="py-2 text-right font-medium text-[#2C3E50]">
+                        {fmt(r.annual_premium_nok ?? r.premium)}
+                      </td>
+                      <td className="py-2 text-right text-[#8A7F74]">
+                        {r.start_date ? fmtDate(r.start_date) : "–"}
+                      </td>
+                      <td className="py-2 text-right text-[#8A7F74]">{fmtDate(r.renewal_date)}</td>
+                      <td className="py-2 text-right">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`}>
+                          {r.days_until_renewal}d
+                        </span>
+                      </td>
+                      <td className="py-2 text-center">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${meta.color}`}>{meta.label}</span>
+                      </td>
+                      <td className="py-2 text-center">
+                        <select
+                          disabled={advancing === r.id}
+                          value=""
+                          onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
+                          className="text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white"
+                        >
+                          <option value="">Flytt…</option>
+                          {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                    {hasBrief && (
+                      <tr className="bg-[#F0F4FB]">
+                        <td colSpan={9} className="px-4 py-2">
+                          <div className="flex gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Sparkles className="w-3 h-3 text-[#4A6FA5]" />
+                                <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">AI Fornyelsesbriefing</span>
+                              </div>
+                              <p className="text-xs text-[#2C3E50] whitespace-pre-line">{r.renewal_brief}</p>
+                            </div>
+                            {r.renewal_email_draft && (
+                              <div className="flex-1 border-l border-[#C5D8F0] pl-4">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <Mail className="w-3 h-3 text-[#4A6FA5]" />
+                                  <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">Utkast til klient-epost</span>
+                                </div>
+                                <p className="text-xs text-[#8A7F74] whitespace-pre-line">{r.renewal_email_draft}</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </tbody>

@@ -317,6 +317,8 @@ class Policy(Base):
     last_renewal_notified_days = Column(Integer, nullable=True)
     commission_rate_pct = Column(Float, nullable=True)
     commission_amount_nok = Column(Float, nullable=True)
+    renewal_brief       = Column(String, nullable=True)
+    renewal_email_draft = Column(String, nullable=True)
     created_at          = Column(DateTime(timezone=True), nullable=False)
     updated_at          = Column(DateTime(timezone=True), nullable=False)
 

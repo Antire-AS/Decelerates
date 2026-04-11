@@ -188,6 +188,8 @@ export interface Renewal {
   annual_premium_nok?: number;
   product_type?: string;
   start_date?: string;
+  renewal_brief?: string | null;
+  renewal_email_draft?: string | null;
 }
 
 export interface PremiumAnalytics {
