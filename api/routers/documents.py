@@ -2,7 +2,7 @@ import io
 import os
 import re
 
-from fastapi import APIRouter, HTTPException, Depends, File, Request, UploadFile, Form
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, Request, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -36,16 +36,31 @@ from api.schemas import (
     DocumentCompareOut,
     DocumentKeypointsOut,
 )
+from api.db import SessionLocal
 from api.dependencies import get_db
 from api.services.audit import log_audit
 
 router = APIRouter()
 
 
+def _auto_analyze_background(doc_id: int) -> None:
+    """Background task wrapper — own DB session, never raises."""
+    import logging
+    db = SessionLocal()
+    try:
+        from api.services.documents import auto_analyze_document
+        auto_analyze_document(doc_id, db)
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Doc intel background failed for %d: %s", doc_id, exc)
+    finally:
+        db.close()
+
+
 @router.post("/insurance-documents")
 @limiter.limit("30/minute")
 async def upload_insurance_document(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     title: str = Form(...),
     category: str = Form("annet"),
@@ -80,6 +95,9 @@ async def upload_insurance_document(
         raise HTTPException(status_code=400, detail=str(e))
     log_audit(db, "document.upload", orgnr=orgnr,
               detail={"title": title, "doc_id": doc.id})
+    # Auto-analyze in the background: extract keypoints, parse structured
+    # tilbud data, and auto-compare if 2+ documents exist for the same orgnr.
+    background_tasks.add_task(_auto_analyze_background, doc.id)
     return {
         "id": doc.id,
         "title": doc.title,
