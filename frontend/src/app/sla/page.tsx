@@ -333,7 +333,12 @@ export default function SlaPage() {
         {TAB("mine", "Mine avtaler")}
         {TAB("innstillinger", "Meglerinnstillinger")}
       </div>
-      {tab === "ny" && <NewAgreementWizard />}
+      {tab === "ny" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <NewAgreementWizard />
+          <AgreementsList />
+        </div>
+      )}
       {tab === "mine" && <AgreementsList />}
       {tab === "innstillinger" && <BrokerSettingsForm />}
     </div>

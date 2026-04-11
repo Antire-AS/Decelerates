@@ -8,25 +8,21 @@ import {
 } from "recharts";
 import {
   getCompanies, getPortfolios, createPortfolio, seedFullDemo,
-  type Company, type PortfolioItem,
+  getRiskConfig,
+  type Company, type PortfolioItem, type RiskBand,
 } from "@/lib/api";
 import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
 
-const RISK_BANDS = [
-  { label: "Lav (0–39)",      min: 0,  max: 39,  color: "#27AE60" },
-  { label: "Moderat (40–69)", min: 40, max: 69,  color: "#C8A951" },
-  { label: "Høy (70–100)",    min: 70, max: 100, color: "#C0392B" },
-  { label: "Ukjent",          min: -1, max: -1,  color: "#C4BDB4" },
+// Fallback used until the backend responds — matches api/risk.py::RISK_BANDS
+const _FALLBACK_BANDS: RiskBand[] = [
+  { label: "Lav",        min: 0,  max: 3,  color: "#27AE60" },
+  { label: "Moderat",    min: 4,  max: 7,  color: "#C8A951" },
+  { label: "Høy",        min: 8,  max: 12, color: "#E67E22" },
+  { label: "Svært høy",  min: 13, max: 20, color: "#C0392B" },
 ];
-
-function band(score?: number) {
-  if (score == null) return 3;
-  if (score < 40) return 0;
-  if (score < 70) return 1;
-  return 2;
-}
+const _UNKNOWN_BAND: RiskBand = { label: "Ukjent", min: -1, max: -1, color: "#C4BDB4" };
 
 export default function PortfolioPage() {
   const { data: companies, isLoading } = useSWR<Company[]>(
@@ -35,6 +31,25 @@ export default function PortfolioPage() {
   const { data: portfolios = [], mutate: mutatePortfolios } = useSWR<PortfolioItem[]>(
     "portfolios", getPortfolios,
   );
+  const { data: riskCfg } = useSWR("risk-config", getRiskConfig);
+
+  // Dynamic risk bands from GET /risk/config — single source of truth in
+  // api/risk.py. Falls back to _FALLBACK_BANDS until the endpoint responds.
+  const RISK_BANDS = useMemo(() => {
+    const bands = riskCfg?.bands ?? _FALLBACK_BANDS;
+    return [...bands, _UNKNOWN_BAND];
+  }, [riskCfg]);
+
+  const band = useMemo(() => {
+    const bands = riskCfg?.bands ?? _FALLBACK_BANDS;
+    return (score?: number) => {
+      if (score == null) return bands.length; // Ukjent index
+      for (let i = 0; i < bands.length; i++) {
+        if (score >= bands[i].min && score <= bands[i].max) return i;
+      }
+      return bands.length - 1; // above max → last real band
+    };
+  }, [riskCfg]);
 
   const [search, setSearch]         = useState("");
   const [riskFilter, setRiskFilter] = useState<number | null>(null);
@@ -53,14 +68,14 @@ export default function PortfolioPage() {
       const matchRisk   = riskFilter === null || band(c.risk_score) === riskFilter;
       return matchSearch && matchRisk;
     });
-  }, [companies, search, riskFilter]);
+  }, [companies, search, riskFilter, band]);
 
   const pieData = useMemo(() => {
     if (!companies) return [];
-    const counts = [0, 0, 0, 0];
+    const counts = new Array(RISK_BANDS.length).fill(0);
     for (const c of companies) counts[band(c.risk_score)]++;
-    return RISK_BANDS.map((b, i) => ({ name: b.label, value: counts[i], color: b.color })).filter((d) => d.value > 0);
-  }, [companies]);
+    return RISK_BANDS.map((b, i) => ({ name: b.label, value: counts[i], color: b.color })).filter((d: { value: number }) => d.value > 0);
+  }, [companies, RISK_BANDS, band]);
 
   const industryData = useMemo(() => {
     if (!companies) return [];
@@ -190,7 +205,7 @@ export default function PortfolioPage() {
               <p className="text-xs text-[#8A7F74] font-medium mb-1">Totalt kunder</p>
               <p className="text-2xl font-bold text-[#2C3E50]">{companies.length}</p>
             </div>
-            {RISK_BANDS.slice(0, 3).map((b, i) => {
+            {RISK_BANDS.slice(0, -1).map((b, i) => {
               const count = companies.filter((c) => band(c.risk_score) === i).length;
               return (
                 <div key={b.label}
