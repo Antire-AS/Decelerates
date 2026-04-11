@@ -311,7 +311,7 @@ export default function PortfolioPage() {
 
       {!isLoading && !companies && (
         <div className="broker-card text-center py-10">
-          <p className="text-sm text-[#8A7F74]">Ingen selskaper i databasen. Trykk «Seed demo-data» for å komme i gang.</p>
+          <p className="text-sm text-[#8A7F74]">Ingen selskaper i databasen ennå. Demo-data lastes automatisk ved oppstart.</p>
         </div>
       )}
     </div>
