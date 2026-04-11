@@ -183,6 +183,12 @@ class InsuranceDocument(Base):
     extracted_text = Column(String)          # cached pdfplumber extraction
     uploaded_at    = Column(String, nullable=False)
     tags           = Column(String, nullable=True)  # comma-separated tags
+    # Auto-analysis fields (populated by background doc-intelligence agent)
+    cached_keypoints      = Column(JSON, nullable=True)
+    parsed_premium_nok    = Column(Float, nullable=True)
+    parsed_coverage_nok   = Column(Float, nullable=True)
+    parsed_deductible_nok = Column(Float, nullable=True)
+    auto_comparison_result = Column(JSON, nullable=True)
 
 
 class BrokerNote(Base):
