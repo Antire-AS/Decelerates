@@ -2671,6 +2671,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/risk/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Risk Config
+         * @description Return the canonical risk band definitions.
+         *
+         *     The frontend reads this once on mount so risk thresholds, labels, and
+         *     colors are never hardcoded in TypeScript. A change to RISK_BANDS in
+         *     api/risk.py propagates to every chart and legend without a frontend
+         *     redeploy.
+         */
+        get: operations["get_risk_config_risk_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/saved-searches": {
         parameters: {
             query?: never;
@@ -9597,6 +9622,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_risk_config_risk_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

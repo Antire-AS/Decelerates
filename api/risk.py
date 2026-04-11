@@ -22,6 +22,17 @@ CATEGORY_COLORS = {
     "Eksponering":    "🟣",
 }
 
+# Canonical risk band definitions — the single source of truth for both
+# the backend (risk narrative, PDF reports) and frontend (portfolio charts,
+# company profile legend). The frontend reads these via GET /risk/config
+# so changes here propagate everywhere without a frontend redeploy.
+RISK_BANDS = [
+    {"label": "Lav",        "min": 0,  "max": 3,  "color": "#27AE60"},
+    {"label": "Moderat",    "min": 4,  "max": 7,  "color": "#C8A951"},
+    {"label": "Høy",        "min": 8,  "max": 12, "color": "#E67E22"},
+    {"label": "Svært høy",  "min": 13, "max": 20, "color": "#C0392B"},
+]
+
 _AddFn = Callable[[str, int, str, str], None]
 
 

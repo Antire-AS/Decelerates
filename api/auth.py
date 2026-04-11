@@ -116,9 +116,19 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
     already exists.
     """
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(
+    svc = UserService(db)
+    user = svc.get_or_create(
         oid=_DEV_USER_OID, email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
     )
+    # Reconcile firm_id: if the dev user row predates the demo seed (or the
+    # DB was partially reset), it may point at a non-existent firm. Force it
+    # back to the default firm so seeded demo data (policies, IDD, insurers,
+    # renewals) is always visible in dev mode. MVP polish 2026-04-12.
+    _DEFAULT_FIRM_ID = 1
+    if user.firm_id != _DEFAULT_FIRM_ID:
+        user.firm_id = _DEFAULT_FIRM_ID
+        db.commit()
+        db.refresh(user)
     return CurrentUser(
         email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
         oid=_DEV_USER_OID, firm_id=user.firm_id,
