@@ -457,8 +457,7 @@ def send_renewal_threshold_emails(
     # Pre-generate AI briefs + email drafts for all approaching renewals.
     # Cached on the Policy row so subsequent cron runs skip the LLM calls.
     from api.services.renewal_agent import RenewalAgentService
-    agent = RenewalAgentService()
-    agent_results = agent.process_renewals_batch(user.firm_id, db)
+    RenewalAgentService().process_renewals_batch(user.firm_id, db)
 
     for threshold in [90, 60, 30]:
         policies_needing = svc.get_policies_needing_renewal_notification(

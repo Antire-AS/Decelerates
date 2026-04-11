@@ -12,7 +12,6 @@ Both are cached on the Policy row so the LLM is only called once per renewal cyc
 The cron idempotency still comes from `last_renewal_notified_days`.
 """
 import logging
-from datetime import date
 
 from sqlalchemy.orm import Session
 
