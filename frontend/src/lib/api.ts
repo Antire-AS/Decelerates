@@ -872,3 +872,19 @@ export const markNotificationRead = (notificationId: number) =>
 
 export const markAllNotificationsRead = () =>
   apiFetch<NotificationMarkReadOut>("/notifications/read-all", { method: "POST" });
+
+// ── Risk config ─────────────────────────────────────────────────────────────
+export interface RiskBand {
+  label: string;
+  min: number;
+  max: number;
+  color: string;
+}
+
+export interface RiskConfig {
+  bands: RiskBand[];
+  max_score: number;
+}
+
+export const getRiskConfig = () =>
+  apiFetch<RiskConfig>("/risk/config");

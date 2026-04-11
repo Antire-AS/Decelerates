@@ -207,6 +207,26 @@ def on_startup():
     finally:
         db.close()
 
+    # ── Auto-seed demo data on first boot ────────────────────────────────────
+    # An MVP should feel alive on first visit. seed_full_demo is idempotent
+    # (skips existing orgnrs), but we add a fast guard so subsequent boots
+    # don't even enter the loop. Opt out with AUTO_SEED_DEMO=0 in prod if
+    # you want a clean slate for real broker data.
+    if os.getenv("AUTO_SEED_DEMO", "1") != "0":
+        from api.db import Company
+        db_seed = next(get_db())
+        try:
+            first_demo_orgnr = "999100101"  # first fictional company in demo_seed._COMPANIES
+            if not db_seed.query(Company).filter(Company.orgnr == first_demo_orgnr).first():
+                from api.services.demo_seed import seed_full_demo
+                result = seed_full_demo(db_seed)
+                logging.getLogger(__name__).info("Auto-seeded demo data: %s", result.get("message", ""))
+        except Exception as exc:
+            logging.getLogger(__name__).warning("Auto-seed demo data failed: %s", exc)
+            db_seed.rollback()
+        finally:
+            db_seed.close()
+
     # ── Default firm name (set via BROKER_FIRM_NAME env var) ──────────────────
     firm_name = os.getenv("BROKER_FIRM_NAME")
     if firm_name:

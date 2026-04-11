@@ -40,6 +40,19 @@ _log = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/risk/config")
+def get_risk_config() -> dict:
+    """Return the canonical risk band definitions.
+
+    The frontend reads this once on mount so risk thresholds, labels, and
+    colors are never hardcoded in TypeScript. A change to RISK_BANDS in
+    api/risk.py propagates to every chart and legend without a frontend
+    redeploy.
+    """
+    from api.risk import RISK_BANDS
+    return {"bands": RISK_BANDS, "max_score": 20}
+
+
 def _org_dict_from_db(db_obj: Company) -> dict:
     return {
         "orgnr": db_obj.orgnr,

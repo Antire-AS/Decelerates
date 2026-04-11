@@ -13,7 +13,7 @@ from api.db import (
     Company, CompanyHistory, Policy, PolicyStatus,
     Claim, ClaimStatus, Activity, ActivityType, BrokerFirm,
     ContactPerson, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
-    Recommendation,
+    Recommendation, PipelineStage, PipelineStageKind,
 )
 
 random.seed(42)  # Reproducible but looks realistic
@@ -473,6 +473,28 @@ def _seed_demo_activity(db: Session, c: dict, firm_id: int, today: date, now: da
     return True
 
 
+_DEFAULT_PIPELINE_STAGES = [
+    {"name": "Prospekt",    "kind": PipelineStageKind.lead,      "order_index": 0},
+    {"name": "Kvalifisert", "kind": PipelineStageKind.qualified, "order_index": 1},
+    {"name": "Tilbud sendt","kind": PipelineStageKind.quoted,    "order_index": 2},
+    {"name": "Bundet",      "kind": PipelineStageKind.bound,     "order_index": 3},
+    {"name": "Vunnet",      "kind": PipelineStageKind.won,       "order_index": 4},
+]
+
+
+def _seed_default_pipeline_stages(db: Session, firm_id: int, now: datetime) -> int:
+    """Create default kanban stages for the demo firm. Idempotent — skips if any stages exist."""
+    existing = db.query(PipelineStage).filter(PipelineStage.firm_id == firm_id).count()
+    if existing > 0:
+        return 0
+    for s in _DEFAULT_PIPELINE_STAGES:
+        db.add(PipelineStage(
+            firm_id=firm_id, name=s["name"], kind=s["kind"],
+            order_index=s["order_index"], created_at=now,
+        ))
+    return len(_DEFAULT_PIPELINE_STAGES)
+
+
 def seed_full_demo(db: Session) -> dict:
     """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
     today = date.today()
@@ -500,6 +522,7 @@ def seed_full_demo(db: Session) -> dict:
     idd_created = _seed_idd(db, firm_id, now)
     submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
     recommendations_created = _seed_recommendations(db, firm_id, now)
+    _seed_default_pipeline_stages(db, firm_id, now)
 
     db.commit()
     return {
