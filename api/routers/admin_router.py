@@ -624,3 +624,17 @@ def trigger_renewal_digest(
             link="/renewals",
         )
     return {"recipient": recipient, "policies_included": len(renewal_dicts), "sent": sent}
+
+
+@router.post("/admin/refresh-portfolio-risk")
+def refresh_portfolio_risk(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Re-fetch BRREG data for all portfolio companies, re-score risk, notify on changes.
+
+    Designed for weekly cron (Monday 05:00 UTC). Rate-limited to 500ms
+    between BRREG requests to avoid hammering the government API.
+    """
+    from api.services.risk_monitor import refresh_all_portfolios
+    return refresh_all_portfolios(user.firm_id, db)

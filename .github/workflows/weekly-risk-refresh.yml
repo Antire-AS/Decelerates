@@ -1,0 +1,19 @@
+name: Weekly Risk Refresh
+
+on:
+  schedule:
+    # Monday 05:00 UTC (07:00 Norwegian summer time)
+    - cron: "0 5 * * 1"
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  refresh-risk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh portfolio risk scores from BRREG
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/refresh-portfolio-risk" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
