@@ -49,13 +49,22 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations against a live database connection."""
+    """Run migrations against a live database connection.
+
+    Sets a 30s lock_timeout so ALTER TABLE statements fail fast if the
+    old container revision is still holding locks, instead of hanging
+    until the startup probe kills the container.
+    """
+    from sqlalchemy import text
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
+        # Fail fast on lock conflicts instead of hanging forever
+        connection.execute(text("SET lock_timeout = '30s'"))
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
