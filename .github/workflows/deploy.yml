@@ -131,34 +131,33 @@ jobs:
 
       - name: Configure API startup probe
         # Alembic migrations + auto-seed can take 30-60s on first deploy.
-        # The default startup probe (5s period × 30 retries = 150s) is
-        # too aggressive. Set a longer probe so the container has time to
-        # run migrations before Azure declares it failed.
+        # We PATCH the full container spec (preserving existing env vars and
+        # resources) to set a generous startup probe. The Azure REST API
+        # replaces the container array entirely, so we must include the full
+        # current spec with only the probe changed.
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
-          IMAGE=${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
           SUBSCRIPTION=$(az account show --query id -o tsv)
-          az rest --method PATCH \
-            --url "https://management.azure.com/subscriptions/$SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP?api-version=2024-03-01" \
-            --body "{
-              \"properties\": {
-                \"template\": {
-                  \"containers\": [{
-                    \"name\": \"$APP\",
-                    \"image\": \"$IMAGE\",
-                    \"probes\": [{
-                      \"type\": \"Startup\",
-                      \"httpGet\": {\"path\": \"/ping\", \"port\": 8000},
-                      \"initialDelaySeconds\": 60,
-                      \"periodSeconds\": 10,
-                      \"failureThreshold\": 30,
-                      \"timeoutSeconds\": 10
-                    }]
-                  }]
-                }
-              }
-            }" > /dev/null 2>&1 || echo "Probe config update failed — continuing with defaults"
+          API_URL="https://management.azure.com/subscriptions/$SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP?api-version=2024-03-01"
+
+          # Fetch the current full container spec, modify only probes
+          CURRENT=$(az rest --method GET --url "$API_URL" --query "properties.template.containers[0]" -o json)
+          PATCHED=$(echo "$CURRENT" | python3 -c "
+          import sys, json
+          c = json.load(sys.stdin)
+          c['probes'] = [{
+            'type': 'Startup',
+            'httpGet': {'path': '/ping', 'port': 8000},
+            'initialDelaySeconds': 60,
+            'periodSeconds': 10,
+            'failureThreshold': 30,
+            'timeoutSeconds': 10
+          }]
+          print(json.dumps({'properties': {'template': {'containers': [c]}}}))
+          ")
+          az rest --method PATCH --url "$API_URL" --body "$PATCHED" > /dev/null 2>&1 \
+            || echo "Probe config update failed — continuing with defaults"
 
       - name: Wait for API revision to become Healthy
         # Catches startup crashes that the deploy step would otherwise report
