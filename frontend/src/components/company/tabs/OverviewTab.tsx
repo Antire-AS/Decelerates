@@ -30,9 +30,9 @@ const CATEGORY_DOTS: Record<string, string> = {
 
 function riskBandLabel(score?: number): { label: string; guidance: string } {
   if (score == null) return { label: "Ukjent", guidance: "Score ikke beregnet." };
-  if (score <= 3)  return { label: "Lav",        guidance: "Normalpremie forventes. Godt grunnlag for tegning." };
-  if (score <= 7)  return { label: "Moderat",    guidance: "Forvent normal til lett forhøyet premie. Standard tegning." };
-  if (score <= 12) return { label: "Høy",        guidance: "Forhøyet premie sannsynlig. Krever ekstra dokumentasjon." };
+  if (score <= 5)  return { label: "Lav",        guidance: "Normalpremie forventes. Godt grunnlag for tegning." };
+  if (score <= 10) return { label: "Moderat",    guidance: "Forvent normal til lett forhøyet premie. Standard tegning." };
+  if (score <= 15) return { label: "Høy",        guidance: "Forhøyet premie sannsynlig. Krever ekstra dokumentasjon." };
   return            { label: "Svært høy", guidance: "Tegning kan være vanskelig. Vurder spesialmarked." };
 }
 
@@ -233,7 +233,7 @@ export default function OverviewTab({
                 ))}
               </div>
               <p className="text-[10px] text-[#C4BDB4] pt-2 border-t border-[#EDE8E3]">
-                Skala: 0–3 Lav · 4–7 Moderat · 8–12 Høy · 13+ Svært høy
+                Skala: 0–5 Lav · 6–10 Moderat · 11–15 Høy · 16–20 Svært høy
               </p>
             </Section>
           )}

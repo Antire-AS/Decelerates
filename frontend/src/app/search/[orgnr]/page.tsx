@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import {
@@ -133,6 +133,18 @@ export default function OrgProfilePage({
   const regn = prof.regnskap ?? {};
   const risk = prof.risk ?? {};
   const pep  = prof.pep  ?? {};
+
+  // Track recently viewed companies for the search page "Nylig sett" section
+  useEffect(() => {
+    if (!org.navn) return;
+    try {
+      const key = "ba_recent_companies";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const entry = { orgnr, navn: String(org.navn) };
+      const updated = [entry, ...prev.filter((c: { orgnr: string }) => c.orgnr !== orgnr)].slice(0, 10);
+      localStorage.setItem(key, JSON.stringify(updated));
+    } catch { /* ignore */ }
+  }, [orgnr, org.navn]);
 
   const hasContract = Array.isArray(slaList) &&
     slaList.some((s: unknown) => (s as Record<string, unknown>).client_orgnr === orgnr);

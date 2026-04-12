@@ -36,7 +36,7 @@ export default function WorkflowStepper({ steps }: WorkflowStepperProps) {
                     !isDone && !isActive && "bg-[#EDEAE6] text-[#A09890] border border-[#D0CBC3]",
                   )}
                 >
-                  {isDone ? "✓" : i + 1}
+                  {isDone ? "✓" : isActive ? "●" : ""}
                 </div>
                 <span
                   className={cn(

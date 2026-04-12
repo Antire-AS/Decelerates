@@ -11,8 +11,8 @@ const STEPS = [
   },
   {
     icon: "📊",
-    title: "Se risikoprofilen",
-    body: "Under Oversikt ser du risikoscore, nøkkeltall og styremedlemmer. Under Økonomi finner du historiske regnskapstall, equity ratio-trend og AI-generert finanskommentar.",
+    title: "Dashbordet ditt",
+    body: "Dashbordet viser dine viktigste KPI-er: porteføljerisiko, fornyelser de neste 90 dagene, og kommende oppgaver. Klikk på et selskap fra tabellen eller bruk søket for å åpne en full risikoprofil med score, nøkkeltall og styremedlemmer.",
   },
   {
     icon: "📁",

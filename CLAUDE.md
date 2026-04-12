@@ -107,6 +107,13 @@ frontend/        ← Next.js 15 app (Pages Router on /bapi/* rewrites)
 
 ---
 
+## UX Conventions
+
+- **Don't put numbers in workflow circles unless they're the canonical user-facing index.** Use ✓ for completed steps, a dot (●) for the active step, and empty circles for upcoming ones. Numbers in state-indicator slots get misread as task counts (see UI audit F07 / F19, 2026-04-09).
+- **Risk scale is 0–20.** Buckets: 0–5 Lav, 6–10 Moderat, 11–15 Høy, 16–20 Svært høy. The single source of truth is `RISK_BANDS` in `api/risk.py`, served via `GET /risk/config`. Never hardcode thresholds in frontend code.
+
+---
+
 ## Clean Code Principles Followed
 
 - **Hexagonal architecture (Phase 1)** — outbound infrastructure is behind `ports/driven/` ABCs; implementations live in `adapters/`; pure logic in `use_cases/`. DI wired via `container.py` (punq). Phase 2 will migrate remaining services.
