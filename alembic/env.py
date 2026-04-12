@@ -51,23 +51,20 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations against a live database connection.
 
-    Sets a 30s lock_timeout so ALTER TABLE statements fail fast if the
-    old container revision is still holding locks, instead of hanging
-    until the startup probe kills the container.
+    Sets statement_timeout=60s via connect_args so ALTER TABLE fails fast
+    if the old container revision holds table locks. This prevents deploy
+    hangs — the container crashes, Azure restarts it, and the next attempt
+    either succeeds (old revision released locks) or the columns already
+    exist (IF NOT EXISTS in migration DDL).
     """
-    from sqlalchemy import text
-
+    section = config.get_section(config.config_ini_section, {})
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"options": "-c statement_timeout=60000 -c lock_timeout=30000"},
     )
     with connectable.connect() as connection:
-        # Fail fast on lock conflicts instead of hanging forever.
-        # lock_timeout covers explicit LOCK TABLE; statement_timeout covers
-        # DDL (ALTER TABLE) which implicitly acquires ACCESS EXCLUSIVE lock.
-        connection.execute(text("SET lock_timeout = '30s'"))
-        connection.execute(text("SET statement_timeout = '60s'"))
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
