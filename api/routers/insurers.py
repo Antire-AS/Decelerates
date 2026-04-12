@@ -181,3 +181,25 @@ def draft_submission_email(
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
     return {"submission_id": submission_id, "draft_email": draft}
+
+
+# ── Insurer matching agent ────────────────────────────────────────────────────
+
+@router.post("/org/{orgnr}/recommend-insurers")
+def recommend_insurers_for_company(
+    orgnr: str,
+    body: dict | None = None,
+    user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Score and rank insurers for a company based on appetite, win rate, and profile.
+
+    Optionally pass `{"product_types": ["Cyberforsikring", "Ansvarsforsikring"]}`
+    in the request body. If omitted, product types are auto-derived from the
+    company's coverage gap analysis.
+
+    Returns top 3 recommended insurers with LLM-generated Norwegian reasoning.
+    """
+    from api.services.insurer_matching import recommend_insurers
+    product_types = (body or {}).get("product_types")
+    return recommend_insurers(orgnr, user.firm_id, product_types, db)
