@@ -18,8 +18,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("policies", sa.Column("renewal_brief", sa.String(), nullable=True))
-    op.add_column("policies", sa.Column("renewal_email_draft", sa.String(), nullable=True))
+    # Use raw SQL with IF NOT EXISTS for idempotency — a previous container
+    # may have added the columns before crashing without committing the
+    # alembic_version update.
+    op.execute("ALTER TABLE policies ADD COLUMN IF NOT EXISTS renewal_brief VARCHAR")
+    op.execute("ALTER TABLE policies ADD COLUMN IF NOT EXISTS renewal_email_draft VARCHAR")
 
 
 def downgrade() -> None:
