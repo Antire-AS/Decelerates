@@ -653,11 +653,16 @@ export const addOrgPdfHistory = (
 
 // ── Company-specific RAG chat ─────────────────────────────────────────────────
 
-export const chatWithOrg = (orgnr: string, question: string, session_id?: string) =>
-  apiFetch<OrgChatOut>(`/org/${orgnr}/chat`, {
-    method: "POST",
-    body: JSON.stringify({ question, ...(session_id ? { session_id } : {}) }),
-  });
+export const chatWithOrg = (orgnr: string, question: string, session_id?: string, mode?: "rag" | "agent") => {
+  const params = new URLSearchParams();
+  if (session_id) params.set("session_id", session_id);
+  if (mode) params.set("mode", mode);
+  const qs = params.toString();
+  return apiFetch<OrgChatOut & { tool_calls?: { tool: string; args: string; result: string }[] }>(
+    `/org/${orgnr}/chat${qs ? `?${qs}` : ""}`,
+    { method: "POST", body: JSON.stringify({ question }) },
+  );
+};
 
 // ── Broker settings ───────────────────────────────────────────────────────────
 
