@@ -9,7 +9,6 @@ All handlers receive db + firm_id + orgnr for authorization context.
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any
 
 from sqlalchemy.orm import Session
 
