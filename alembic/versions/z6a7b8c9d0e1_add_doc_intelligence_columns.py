@@ -17,11 +17,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("insurance_documents", sa.Column("cached_keypoints", sa.JSON(), nullable=True))
-    op.add_column("insurance_documents", sa.Column("parsed_premium_nok", sa.Float(), nullable=True))
-    op.add_column("insurance_documents", sa.Column("parsed_coverage_nok", sa.Float(), nullable=True))
-    op.add_column("insurance_documents", sa.Column("parsed_deductible_nok", sa.Float(), nullable=True))
-    op.add_column("insurance_documents", sa.Column("auto_comparison_result", sa.JSON(), nullable=True))
+    op.execute("ALTER TABLE insurance_documents ADD COLUMN IF NOT EXISTS cached_keypoints JSONB")
+    op.execute("ALTER TABLE insurance_documents ADD COLUMN IF NOT EXISTS parsed_premium_nok DOUBLE PRECISION")
+    op.execute("ALTER TABLE insurance_documents ADD COLUMN IF NOT EXISTS parsed_coverage_nok DOUBLE PRECISION")
+    op.execute("ALTER TABLE insurance_documents ADD COLUMN IF NOT EXISTS parsed_deductible_nok DOUBLE PRECISION")
+    op.execute("ALTER TABLE insurance_documents ADD COLUMN IF NOT EXISTS auto_comparison_result JSONB")
 
 
 def downgrade() -> None:

@@ -18,7 +18,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("companies", sa.Column("last_refreshed_at", sa.DateTime(timezone=True), nullable=True))
+    op.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS last_refreshed_at TIMESTAMPTZ")
 
 
 def downgrade() -> None:

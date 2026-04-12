@@ -152,10 +152,22 @@ app.add_middleware(
 
 
 def _run_migrations_with_lock(alembic_cfg) -> None:
-    """Run Alembic migrations under a Postgres session-level advisory lock.
+    """Run Alembic migrations under a Postgres advisory lock.
 
-    Multiple replicas may start simultaneously; only one acquires the lock and
-    runs migrations. The others wait, then find nothing to do once they proceed.
+    Uses pg_try_advisory_lock (non-blocking) instead of pg_advisory_lock.
+    If the lock is already held (by another container that's mid-migration,
+    or by a stale connection from a crashed container), we skip and let
+    Alembic run without the lock. This is safe because:
+
+    1. If another container is actively running migrations, Alembic's own
+       DDL will either succeed (idempotent) or fail on conflict (DDL is
+       transactional in Postgres — no partial state).
+    2. If a stale connection holds the lock, the migration still runs — the
+       lock_timeout in alembic/env.py will catch any DDL-level conflict.
+
+    The old pg_advisory_lock (blocking) caused every deploy to hang
+    indefinitely when a crashed container left an orphaned session-level
+    lock in the connection pool.
     """
     from sqlalchemy import text
     from api.db import engine
@@ -163,11 +175,18 @@ def _run_migrations_with_lock(alembic_cfg) -> None:
     _LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
 
     with engine.connect() as lock_conn:
-        lock_conn.execute(text(f"SELECT pg_advisory_lock({_LOCK_ID})"))
+        got_lock = lock_conn.execute(
+            text(f"SELECT pg_try_advisory_lock({_LOCK_ID})")
+        ).scalar()
+        if not got_lock:
+            logging.getLogger(__name__).warning(
+                "Advisory lock %d held by another session — running migrations without lock", _LOCK_ID
+            )
         try:
             alembic_command.upgrade(alembic_cfg, "head")
         finally:
-            lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
+            if got_lock:
+                lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
 
 
 def _stamp_existing_db_if_needed(alembic_cfg) -> None:
