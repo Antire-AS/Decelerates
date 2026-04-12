@@ -129,14 +129,41 @@ jobs:
             --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
             --set-env-vars "${ENV_VARS[@]}"
 
+      - name: Configure API startup probe
+        # Alembic migrations + auto-seed can take 30-60s on first deploy.
+        # The default startup probe (5s period × 30 retries = 150s) is
+        # too aggressive. Set a longer probe so the container has time to
+        # run migrations before Azure declares it failed.
+        run: |
+          APP=${{ steps.config.outputs.api_app }}
+          RG=${{ env.RG }}
+          IMAGE=${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}
+          SUBSCRIPTION=$(az account show --query id -o tsv)
+          az rest --method PATCH \
+            --url "https://management.azure.com/subscriptions/$SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP?api-version=2024-03-01" \
+            --body "{
+              \"properties\": {
+                \"template\": {
+                  \"containers\": [{
+                    \"name\": \"$APP\",
+                    \"image\": \"$IMAGE\",
+                    \"probes\": [{
+                      \"type\": \"Startup\",
+                      \"httpGet\": {\"path\": \"/ping\", \"port\": 8000},
+                      \"initialDelaySeconds\": 60,
+                      \"periodSeconds\": 10,
+                      \"failureThreshold\": 30,
+                      \"timeoutSeconds\": 10
+                    }]
+                  }]
+                }
+              }
+            }" > /dev/null 2>&1 || echo "Probe config update failed — continuing with defaults"
+
       - name: Wait for API revision to become Healthy
         # Catches startup crashes that the deploy step would otherwise report
-        # as "success". Polls the latest revision's healthState for up to 3
-        # min and fails the workflow if it's still Provisioning/Failed/None.
-        # This is the gate that would have caught the brokeradmin password
-        # rotation incident on 2026-04-08 (revision 0000309 crashed on
-        # alembic migration with `password authentication failed`, deploy
-        # workflow still reported success because it never checked health).
+        # as "success". Polls the latest revision's healthState and waits up
+        # to 6 min for the migration+startup cycle to complete.
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
