@@ -454,6 +454,11 @@ def send_renewal_threshold_emails(
     today = date.today()
     results = []
 
+    # Pre-generate AI briefs + email drafts for all approaching renewals.
+    # Cached on the Policy row so subsequent cron runs skip the LLM calls.
+    from api.services.renewal_agent import RenewalAgentService
+    RenewalAgentService().process_renewals_batch(user.firm_id, db)
+
     for threshold in [90, 60, 30]:
         policies_needing = svc.get_policies_needing_renewal_notification(
             firm_id=user.firm_id, threshold_days=threshold
@@ -470,6 +475,8 @@ def send_renewal_threshold_emails(
                 "annual_premium_nok": p.annual_premium_nok,
                 "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
                 "days_to_renewal": (p.renewal_date - today).days if p.renewal_date else threshold,
+                "renewal_brief": p.renewal_brief,
+                "renewal_email_draft": p.renewal_email_draft,
             }
             for p in policies_needing
         ]
@@ -617,3 +624,17 @@ def trigger_renewal_digest(
             link="/renewals",
         )
     return {"recipient": recipient, "policies_included": len(renewal_dicts), "sent": sent}
+
+
+@router.post("/admin/refresh-portfolio-risk")
+def refresh_portfolio_risk(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Re-fetch BRREG data for all portfolio companies, re-score risk, notify on changes.
+
+    Designed for weekly cron (Monday 05:00 UTC). Rate-limited to 500ms
+    between BRREG requests to avoid hammering the government API.
+    """
+    from api.services.risk_monitor import refresh_all_portfolios
+    return refresh_all_portfolios(user.firm_id, db)

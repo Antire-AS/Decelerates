@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, HTTPException, Depends, Request
 logger = logging.getLogger(__name__)
 from sqlalchemy.orm import Session
 
+from api.auth import CurrentUser, get_current_user
 from api.db import Company, CompanyNote, CompanyChunk, CompanyHistory, InsuranceOffer
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.services import (
@@ -103,6 +104,22 @@ def _answer_with_rag_or_notes(
     return _llm_answer(context, question)
 
 
+def _chat_agent_mode(orgnr: str, question: str, firm_id: int, db: Session, session_id: str) -> dict:
+    """Copilot agent mode — tool-use chat that can take actions."""
+    from api.services.copilot_agent import chat_with_tools
+    try:
+        result = chat_with_tools(question, orgnr, firm_id, db)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    answer = result["answer"]
+    save_qa_note(orgnr, question, answer, db, session_id=session_id)
+    return {
+        "orgnr": orgnr, "question": question, "answer": answer,
+        "session_id": session_id,
+        "tool_calls": result.get("tool_calls_made", []),
+    }
+
+
 @router.post("/org/{orgnr}/chat", response_model=OrgChatOut)
 @limiter.limit("10/minute")
 def chat_about_org(
@@ -110,16 +127,18 @@ def chat_about_org(
     orgnr: str,
     body: ChatRequest,
     session_id: str = Query(default=""),
+    mode: str = Query(default="rag"),
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
     from api.rag_chain import build_rag_chain  # noqa: F401 (imported for side-effects)
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
-        raise HTTPException(
-            status_code=404,
-            detail="Company not in database — call /org/{orgnr} first to load it",
-        )
+        raise HTTPException(status_code=404,
+            detail="Company not in database — call /org/{orgnr} first to load it")
     active_session = session_id.strip() or str(uuid.uuid4())
+    if mode == "agent":
+        return _chat_agent_mode(orgnr, body.question, user.firm_id, db, active_session)
     _auto_ingest_company_data(orgnr, db)
     history_ctx = _build_history_context(orgnr, db, session_id=active_session)
     try:
@@ -128,7 +147,6 @@ def chat_about_org(
         raise HTTPException(status_code=429, detail=str(e))
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
-
     note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
     _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
     return {"orgnr": orgnr, "question": body.question, "answer": answer, "session_id": active_session}

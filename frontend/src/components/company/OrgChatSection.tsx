@@ -2,11 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { chatWithOrg } from "@/lib/api";
-import { Loader2, Send, Bot, User, Trash2 } from "lucide-react";
+import { Loader2, Send, Bot, User, Trash2, Wrench, Sparkles } from "lucide-react";
+
+interface ToolCall { tool: string; args: string; result: string }
 
 interface Message {
   role: "user" | "assistant";
   text: string;
+  toolCalls?: ToolCall[];
 }
 
 export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgName?: string }) {
@@ -14,6 +17,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [agentMode, setAgentMode] = useState(false);
   const sessionId = useRef<string | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -29,9 +33,9 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
     setMessages((prev) => [...prev, { role: "user", text: question }]);
     setLoading(true);
     try {
-      const res = await chatWithOrg(orgnr, question, sessionId.current);
+      const res = await chatWithOrg(orgnr, question, sessionId.current, agentMode ? "agent" : "rag");
       if (res.session_id) sessionId.current = res.session_id;
-      setMessages((prev) => [...prev, { role: "assistant", text: res.answer }]);
+      setMessages((prev) => [...prev, { role: "assistant", text: res.answer, toolCalls: res.tool_calls }]);
     } catch (e) {
       setErr(String(e));
     } finally {
@@ -65,15 +69,28 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
             Stilt spørsmål basert på årsrapporter, tilbud og regnskapsdata
           </p>
         </div>
-        {messages.length > 0 && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={clearChat}
-            className="flex items-center gap-1 text-xs text-[#C4BDB4] hover:text-red-500"
+            onClick={() => setAgentMode((m) => !m)}
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-full transition-colors ${
+              agentMode
+                ? "bg-[#4A6FA5] text-white"
+                : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
+            }`}
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Tøm
+            {agentMode ? <Sparkles className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
+            {agentMode ? "Agent" : "RAG"}
           </button>
-        )}
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="flex items-center gap-1 text-xs text-[#C4BDB4] hover:text-red-500"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Tøm
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Message thread */}
@@ -116,6 +133,19 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
                 }`}
               >
                 <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                {m.toolCalls && m.toolCalls.length > 0 && (
+                  <div className="mt-2 border-t border-[#E0DBD5] pt-2 space-y-1">
+                    {m.toolCalls.map((tc, j) => (
+                      <div key={j} className="flex items-start gap-1.5 text-[10px] text-[#8A7F74]">
+                        <Wrench className="w-3 h-3 flex-shrink-0 mt-0.5 text-[#4A6FA5]" />
+                        <div>
+                          <span className="font-semibold text-[#2C3E50]">{tc.tool}</span>
+                          <span className="block text-[#C4BDB4]">{tc.result.slice(0, 200)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {m.role === "user" && (
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#EDE8E3] flex items-center justify-center mt-0.5">

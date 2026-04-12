@@ -140,7 +140,7 @@ jobs:
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
-          DEADLINE=$(( $(date +%s) + 180 ))
+          DEADLINE=$(( $(date +%s) + 360 ))
           REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
             --query properties.latestRevisionName -o tsv)
           echo "Watching revision: $REV"
@@ -173,7 +173,7 @@ jobs:
             esac
             sleep 10
           done
-          echo "::error::Timed out waiting for $REV to become Healthy after 180s."
+          echo "::error::Timed out waiting for $REV to become Healthy after 360s."
           az containerapp logs show --name "$APP" --resource-group "$RG" \
             --revision "$REV" --tail 50 2>&1 || true
           exit 1
