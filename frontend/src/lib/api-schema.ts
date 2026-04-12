@@ -87,6 +87,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/refresh-portfolio-risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Portfolio Risk
+         * @description Re-fetch BRREG data for all portfolio companies, re-score risk, notify on changes.
+         *
+         *     Designed for weekly cron (Monday 05:00 UTC). Rate-limited to 500ms
+         *     between BRREG requests to avoid hammering the government API.
+         */
+        post: operations["refresh_portfolio_risk_admin_refresh_portfolio_risk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/renewal-threshold-emails": {
         parameters: {
             query?: never;
@@ -4565,6 +4588,28 @@ export interface operations {
         };
     };
     send_portfolio_digest_admin_portfolio_digest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    refresh_portfolio_risk_admin_refresh_portfolio_risk_post: {
         parameters: {
             query?: never;
             header?: never;
