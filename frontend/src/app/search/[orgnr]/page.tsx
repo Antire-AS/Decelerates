@@ -112,6 +112,20 @@ export default function OrgProfilePage({
     finally { setPdfLoading(false); }
   }
 
+  // Track recently viewed companies for the search page "Nylig sett" section.
+  // Must be before early returns to satisfy React hooks rules-of-hooks.
+  const profNavn = prof?.org?.navn;
+  useEffect(() => {
+    if (!profNavn) return;
+    try {
+      const key = "ba_recent_companies";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const entry = { orgnr, navn: String(profNavn) };
+      const updated = [entry, ...prev.filter((c: { orgnr: string }) => c.orgnr !== orgnr)].slice(0, 10);
+      localStorage.setItem(key, JSON.stringify(updated));
+    } catch { /* ignore */ }
+  }, [orgnr, profNavn]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -133,18 +147,6 @@ export default function OrgProfilePage({
   const regn = prof.regnskap ?? {};
   const risk = prof.risk ?? {};
   const pep  = prof.pep  ?? {};
-
-  // Track recently viewed companies for the search page "Nylig sett" section
-  useEffect(() => {
-    if (!org.navn) return;
-    try {
-      const key = "ba_recent_companies";
-      const prev = JSON.parse(localStorage.getItem(key) || "[]");
-      const entry = { orgnr, navn: String(org.navn) };
-      const updated = [entry, ...prev.filter((c: { orgnr: string }) => c.orgnr !== orgnr)].slice(0, 10);
-      localStorage.setItem(key, JSON.stringify(updated));
-    } catch { /* ignore */ }
-  }, [orgnr, org.navn]);
 
   const hasContract = Array.isArray(slaList) &&
     slaList.some((s: unknown) => (s as Record<string, unknown>).client_orgnr === orgnr);
