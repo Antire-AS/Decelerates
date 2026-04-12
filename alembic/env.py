@@ -63,8 +63,11 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        # Fail fast on lock conflicts instead of hanging forever
+        # Fail fast on lock conflicts instead of hanging forever.
+        # lock_timeout covers explicit LOCK TABLE; statement_timeout covers
+        # DDL (ALTER TABLE) which implicitly acquires ACCESS EXCLUSIVE lock.
         connection.execute(text("SET lock_timeout = '30s'"))
+        connection.execute(text("SET statement_timeout = '60s'"))
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
