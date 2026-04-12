@@ -156,6 +156,12 @@ def _run_migrations_with_lock(alembic_cfg) -> None:
 
     Multiple replicas may start simultaneously; only one acquires the lock and
     runs migrations. The others wait, then find nothing to do once they proceed.
+
+    The advisory lock acquire has a 30s timeout so a stuck migration from a
+    crashed container doesn't block all future deploys indefinitely. The
+    ALTER TABLE statements themselves get a 30s lock_timeout so they fail
+    fast if the old revision's connection pool is holding a conflicting lock
+    (rather than hanging until the startup probe kills the container).
     """
     from sqlalchemy import text
     from api.db import engine
@@ -163,6 +169,8 @@ def _run_migrations_with_lock(alembic_cfg) -> None:
     _LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
 
     with engine.connect() as lock_conn:
+        # Set statement timeout so we don't hang forever waiting for locks
+        lock_conn.execute(text("SET lock_timeout = '30s'"))
         lock_conn.execute(text(f"SELECT pg_advisory_lock({_LOCK_ID})"))
         try:
             alembic_command.upgrade(alembic_cfg, "head")
