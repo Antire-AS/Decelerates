@@ -6887,6 +6887,7 @@ export interface operations {
         parameters: {
             query?: {
                 session_id?: string;
+                mode?: string;
             };
             header?: never;
             path: {
