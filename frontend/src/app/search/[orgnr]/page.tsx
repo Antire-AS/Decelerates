@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import {
@@ -111,6 +111,20 @@ export default function OrgProfilePage({
     } catch (e) { setPdfErr(String(e)); }
     finally { setPdfLoading(false); }
   }
+
+  // Track recently viewed companies for the search page "Nylig sett" section.
+  // Must be before early returns to satisfy React hooks rules-of-hooks.
+  const profNavn = prof?.org?.navn;
+  useEffect(() => {
+    if (!profNavn) return;
+    try {
+      const key = "ba_recent_companies";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const entry = { orgnr, navn: String(profNavn) };
+      const updated = [entry, ...prev.filter((c: { orgnr: string }) => c.orgnr !== orgnr)].slice(0, 10);
+      localStorage.setItem(key, JSON.stringify(updated));
+    } catch { /* ignore */ }
+  }, [orgnr, profNavn]);
 
   if (isLoading) {
     return (

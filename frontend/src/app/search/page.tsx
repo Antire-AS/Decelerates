@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { searchCompanies, type SearchResult } from "@/lib/api";
-import { Search, ChevronRight, Loader2 } from "lucide-react";
+import { Search, ChevronRight, Loader2, Clock } from "lucide-react";
 
 export default function SearchPage() {
   const [query, setQuery]         = useState("");
@@ -13,6 +13,14 @@ export default function SearchPage() {
   const [searched, setSearched]   = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [recent, setRecent] = useState<{ orgnr: string; navn: string }[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("ba_recent_companies") || "[]");
+      if (Array.isArray(stored)) setRecent(stored.slice(0, 8));
+    } catch { /* ignore */ }
+  }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -93,6 +101,31 @@ export default function SearchPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
+
+      {/* Recently viewed */}
+      {!searched && recent.length > 0 && (
+        <div className="broker-card">
+          <div className="flex items-center gap-1.5 mb-3 text-xs text-[#8A7F74]">
+            <Clock className="w-3.5 h-3.5" />
+            <span className="font-medium">Nylig sett</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {recent.map((c) => (
+              <Link
+                key={c.orgnr}
+                href={`/search/${c.orgnr}`}
+                className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#EDE8E3] hover:bg-[#F9F7F4] transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#2C3E50] truncate">{c.navn}</p>
+                  <p className="text-xs text-[#8A7F74]">{c.orgnr}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#C4BDB4] flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {searched && (
