@@ -1,7 +1,7 @@
 """Unit tests for api/routers/policies.py — policy CRUD + renewals + certificates."""
 import sys
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI

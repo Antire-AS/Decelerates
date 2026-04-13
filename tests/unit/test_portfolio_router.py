@@ -1,6 +1,6 @@
 """Unit tests for api/routers/portfolio_router.py — portfolio CRUD + agents."""
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI

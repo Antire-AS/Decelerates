@@ -1,5 +1,5 @@
 """Unit tests for api/services/demo_seed.py — fictional company seeding."""
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 from api.services.demo_seed import (
