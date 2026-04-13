@@ -72,6 +72,16 @@ def test_reset_includes_companies_table():
     assert "companies" in result["deleted_rows"]
 
 
+def test_reset_rollbacks_on_commit_error():
+    db = _mock_db()
+    db.execute.return_value.rowcount = 0
+    db.commit.side_effect = RuntimeError("db error")
+    import pytest
+    with pytest.raises(RuntimeError):
+        AdminService(db).reset()
+    db.rollback.assert_called_once()
+
+
 # ── _get_or_create_portfolio ──────────────────────────────────────────────────
 
 def test_get_or_create_portfolio_returns_existing():
@@ -105,6 +115,18 @@ def test_get_or_create_portfolio_sets_description():
     AdminService(db)._get_or_create_portfolio("P", "My description")
     added = db.add.call_args[0][0]
     assert added.description == "My description"
+
+
+def test_get_or_create_portfolio_rollbacks_on_error():
+    db = _mock_db()
+    db.query.return_value.filter.return_value.first.return_value = None
+    db.commit.side_effect = RuntimeError("constraint violation")
+    import pytest
+    with pytest.raises(RuntimeError):
+        AdminService(db)._get_or_create_portfolio("P", "d")
+    db.rollback.assert_called_once()
+
+
 
 
 # ── _seed_policies ────────────────────────────────────────────────────────────
