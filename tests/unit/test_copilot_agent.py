@@ -2,7 +2,6 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.copilot_agent import (
     _build_context_message,

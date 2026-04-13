@@ -2,7 +2,6 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from api.services.risk_monitor import (
     _fetch_brreg_data,
