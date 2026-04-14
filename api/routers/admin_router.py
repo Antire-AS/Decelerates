@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from api.limiter import limiter
 
-from api.auth import CurrentUser, get_current_user
+from api.auth import CurrentUser, get_current_user, require_role
 from api.container import resolve
 from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity, BrokerFirm, NotificationKind
 from api.dependencies import get_db
