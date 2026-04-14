@@ -26,6 +26,7 @@ def test_seed_pipeline_stages_skips_if_exist():
     db.add.assert_not_called()
 
 
+@patch("api.services.demo_seed._seed_demo_deals", return_value=6)
 @patch("api.services.demo_seed._seed_default_pipeline_stages", return_value=5)
 @patch("api.services.demo_seed._seed_recommendations", return_value=0)
 @patch("api.services.demo_seed._seed_submissions", return_value=0)

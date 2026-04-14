@@ -51,17 +51,19 @@ function DataControlsSection() {
           title="CRM demo-data"
           subtitle="Oppretter realistiske forsikringsavtaler, skader og aktiviteter for demo-selskapene."
         />
-        <ActionButton
-          label="Seed fiktive selskaper (full demo)" loadingLabel="Seeder…"
-          disabled={loading === "fulldemo"}
-          onClick={() => run("fulldemo", seedFullDemo)}
-        />
+        <div className="flex flex-wrap gap-3">
+          <ActionButton
+            label="Seed fiktive selskaper (full demo)" loadingLabel="Seeder…"
+            disabled={loading === "fulldemo"}
+            onClick={() => run("fulldemo", seedFullDemo)}
+          />
+          <ActionButton
+            label="Seed CRM demo-data" loadingLabel="Seeder…"
+            disabled={loading === "crm"}
+            onClick={() => run("crm", seedCrmDemo)}
+          />
+        </div>
         <ResultMessage msg={messages.fulldemo ?? null} />
-        <ActionButton
-          label="Seed CRM demo-data" loadingLabel="Seeder…"
-          disabled={loading === "crm"}
-          onClick={() => run("crm", seedCrmDemo)}
-        />
         <ResultMessage msg={messages.crm ?? null} />
       </div>
 
