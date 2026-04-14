@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from api.db import (
     Company, CompanyHistory, Policy, PolicyStatus,
     Claim, ClaimStatus, Activity, ActivityType, BrokerFirm,
-    ContactPerson, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
+    ContactPerson, Deal, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
     Recommendation, PipelineStage, PipelineStageKind,
 )
 
@@ -495,6 +495,40 @@ def _seed_default_pipeline_stages(db: Session, firm_id: int, now: datetime) -> i
     return len(_DEFAULT_PIPELINE_STAGES)
 
 
+_DEMO_DEALS = [
+    {"orgnr": "999100101", "title": "Fornye eiendomsforsikring", "premium": 969_000, "stage_kind": PipelineStageKind.qualified, "days_out": 30},
+    {"orgnr": "999100102", "title": "Ny cyberforsikring", "premium": 635_000, "stage_kind": PipelineStageKind.lead, "days_out": 60},
+    {"orgnr": "999100103", "title": "Utvidet entrepriseforsikring", "premium": 1_120_000, "stage_kind": PipelineStageKind.quoted, "days_out": 14},
+    {"orgnr": "999100104", "title": "Fornye transportforsikring", "premium": 1_495_000, "stage_kind": PipelineStageKind.bound, "days_out": 7},
+    {"orgnr": "999100105", "title": "Ny fiskefartøyforsikring", "premium": 651_000, "stage_kind": PipelineStageKind.lead, "days_out": 45},
+    {"orgnr": "999100106", "title": "D&O utvidelse", "premium": 721_000, "stage_kind": PipelineStageKind.qualified, "days_out": 21},
+]
+
+
+def _seed_demo_deals(db: Session, firm_id: int, now: datetime) -> int:
+    """Create demo deals in the pipeline. Idempotent — skips if deals exist."""
+    existing = db.query(Deal).filter(Deal.firm_id == firm_id).count()
+    if existing > 0:
+        return 0
+    stages = {s.kind: s.id for s in db.query(PipelineStage).filter(PipelineStage.firm_id == firm_id).all()}
+    if not stages:
+        return 0
+    created = 0
+    for d in _DEMO_DEALS:
+        stage_id = stages.get(d["stage_kind"])
+        if not stage_id:
+            continue
+        db.add(Deal(
+            firm_id=firm_id, orgnr=d["orgnr"], stage_id=stage_id,
+            title=d["title"], expected_premium_nok=d["premium"],
+            expected_close_date=date.today() + timedelta(days=d["days_out"]),
+            source="Demo", notes="Fiktiv deal for demo",
+            created_at=now, updated_at=now,
+        ))
+        created += 1
+    return created
+
+
 def seed_full_demo(db: Session) -> dict:
     """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
     today = date.today()
@@ -523,6 +557,7 @@ def seed_full_demo(db: Session) -> dict:
     submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
     recommendations_created = _seed_recommendations(db, firm_id, now)
     _seed_default_pipeline_stages(db, firm_id, now)
+    deals_created = _seed_demo_deals(db, firm_id, now)
 
     db.commit()
     return {
