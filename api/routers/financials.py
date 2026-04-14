@@ -18,6 +18,7 @@ from api.schemas import (
 )
 from api.domain.exceptions import PdfExtractionError
 from api.dependencies import get_db
+from api.services.audit import log_audit
 
 router = APIRouter()
 
@@ -38,6 +39,7 @@ def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(g
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"PDF extraction failed: {e}")
+    log_audit(db, "financials.add_pdf", orgnr=orgnr, detail={"year": body.year, "pdf_url": body.pdf_url})
     return {"orgnr": orgnr, "extracted": row}
 
 
@@ -93,6 +95,7 @@ def get_extraction_status(orgnr: str, db: Session = Depends(get_db)) -> dict:
 def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Delete all company_history rows for this org so extraction re-runs on next load."""
     deleted = delete_history_year(orgnr, db)
+    log_audit(db, "financials.delete", orgnr=orgnr, detail={"deleted_rows": deleted})
     return {"orgnr": orgnr, "deleted_rows": deleted}
 
 
@@ -151,4 +154,6 @@ def nl_query(request: Request, body: dict, db: Session = Depends(get_db)) -> dic
     if not question:
         raise HTTPException(status_code=400, detail="question is required")
     from api.services.nl_query import run_nl_query
-    return run_nl_query(question, db)
+    result = run_nl_query(question, db)
+    log_audit(db, "financials.query", detail={"question": question[:200]})
+    return result

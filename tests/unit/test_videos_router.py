@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
+from api.dependencies import get_db
 from api.routers.videos import router
 
 
@@ -25,7 +26,9 @@ _app.include_router(router)
 
 @pytest.fixture
 def client():
+    _app.dependency_overrides[get_db] = lambda: MagicMock()
     yield TestClient(_app)
+    _app.dependency_overrides.clear()
 
 
 # -- POST /videos/upload -------------------------------------------------------

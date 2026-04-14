@@ -10,6 +10,7 @@ from api.domain.exceptions import NotFoundError
 from api.schemas import RecommendationIn, SigningSessionOut
 from api.services.pdf_recommendation import generate_recommendation_pdf
 from api.services.recommendation_service import RecommendationService
+from api.services.audit import log_audit
 from api.services.signicat_service import SignicatService
 
 router = APIRouter()
@@ -90,6 +91,7 @@ def create_recommendation(
         idd_id=body.idd_id,
         rationale_override=body.rationale_text,
     )
+    log_audit(db, "recommendation.create", orgnr=orgnr, detail={"rec_id": row.id, "insurer": body.recommended_insurer})
     return _serialize(row)
 
 
@@ -157,6 +159,7 @@ def get_recommendation_pdf(
 def delete_recommendation(
     orgnr: str,
     rec_id: int,
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     svc: RecommendationService = Depends(_get_svc),
 ) -> None:
@@ -164,6 +167,7 @@ def delete_recommendation(
         svc.delete(orgnr, user.firm_id, rec_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Recommendation not found")
+    log_audit(db, "recommendation.delete", orgnr=orgnr, detail={"rec_id": rec_id})
 
 
 def _resolve_signable_recommendation(
@@ -214,4 +218,5 @@ def sign_recommendation(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Signicat feilet: {exc}")
     svc.attach_signing_session(rec_id, session["session_id"])
+    log_audit(db, "recommendation.sign", orgnr=orgnr, detail={"rec_id": rec_id, "session_id": session["session_id"]})
     return session

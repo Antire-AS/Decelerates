@@ -5,9 +5,13 @@ import posixpath
 import re
 import uuid
 
-from fastapi import APIRouter, HTTPException, File, UploadFile, Request
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request
 from fastapi.responses import StreamingResponse
 
+from sqlalchemy.orm import Session
+
+from api.dependencies import get_db
+from api.services.audit import log_audit
 from api.services.blob_storage import BlobStorageService
 
 _ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
@@ -61,7 +65,7 @@ def _build_vtt_data_uri(sections: list) -> str | None:
 
 
 @router.post("/videos/upload")
-async def upload_video(file: UploadFile = File(...)) -> dict:
+async def upload_video(file: UploadFile = File(...), db: Session = Depends(get_db)) -> dict:
     """Upload a video file to Azure Blob Storage."""
     content_type = file.content_type or ""
     if content_type not in _ALLOWED_VIDEO_TYPES:
@@ -76,6 +80,7 @@ async def upload_video(file: UploadFile = File(...)) -> dict:
     url = svc.upload(_VIDEOS_CONTAINER, blob_name, video_bytes)
     if not url:
         raise HTTPException(status_code=502, detail="Opplasting til Blob Storage feilet")
+    log_audit(db, "video.upload", detail={"filename": file.filename, "blob_name": blob_name})
     return {"blob_name": blob_name, "url": url, "filename": file.filename}
 
 

@@ -7,6 +7,7 @@ from api.db import Insurer, Submission
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.schemas import InsurerIn, InsurerOut, InsurerUpdate, SubmissionIn, SubmissionOut, SubmissionUpdate
+from api.services.audit import log_audit
 from api.services.insurer_service import InsurerService
 
 router = APIRouter()
@@ -63,8 +64,10 @@ def create_insurer(
     body: InsurerIn,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> dict:
     row = svc.create_insurer(user.firm_id, body.model_dump())
+    log_audit(db, "insurer.create", detail={"insurer_id": row.id, "name": body.name})
     return _serialize_insurer(row)
 
 
@@ -74,11 +77,13 @@ def update_insurer(
     body: InsurerUpdate,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> dict:
     try:
         row = svc.update_insurer(user.firm_id, insurer_id, body.model_dump(exclude_none=True))
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Insurer not found")
+    log_audit(db, "insurer.update", detail={"insurer_id": insurer_id})
     return _serialize_insurer(row)
 
 
@@ -87,11 +92,13 @@ def delete_insurer(
     insurer_id: int,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> None:
     try:
         svc.delete_insurer(user.firm_id, insurer_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Insurer not found")
+    log_audit(db, "insurer.delete", detail={"insurer_id": insurer_id})
 
 
 # ── Submission CRUD ───────────────────────────────────────────────────────────
@@ -116,6 +123,7 @@ def create_submission(
     data = body.model_dump()
     row = svc.create_submission(orgnr, user.firm_id, user.email, data)
     insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
+    log_audit(db, "submission.create", orgnr=orgnr, detail={"submission_id": row.id, "insurer_id": row.insurer_id})
     return _serialize_submission(row, insurer.name if insurer else None)
 
 
@@ -132,6 +140,7 @@ def update_submission(
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
     insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
+    log_audit(db, "submission.update", detail={"submission_id": submission_id})
     return _serialize_submission(row, insurer.name if insurer else None)
 
 
@@ -140,11 +149,13 @@ def delete_submission(
     submission_id: int,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> None:
     try:
         svc.delete_submission(user.firm_id, submission_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
+    log_audit(db, "submission.delete", detail={"submission_id": submission_id})
 
 
 # ── Analytics ────────────────────────────────────────────────────────────────
@@ -174,12 +185,14 @@ def draft_submission_email(
     submission_id: int,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> dict:
     """Generate a professional Norwegian submission email to the insurer via LLM."""
     try:
         draft = svc.draft_submission_email(user.firm_id, submission_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
+    log_audit(db, "submission.draft_email", detail={"submission_id": submission_id})
     return {"submission_id": submission_id, "draft_email": draft}
 
 
@@ -202,4 +215,6 @@ def recommend_insurers_for_company(
     """
     from api.services.insurer_matching import recommend_insurers
     product_types = (body or {}).get("product_types")
-    return recommend_insurers(orgnr, user.firm_id, product_types, db)
+    result = recommend_insurers(orgnr, user.firm_id, product_types, db)
+    log_audit(db, "recommend.create", orgnr=orgnr, detail={"product_types": product_types})
+    return result

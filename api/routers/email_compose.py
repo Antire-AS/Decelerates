@@ -13,6 +13,7 @@ from api.container import resolve
 from api.dependencies import get_db
 from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.schemas import EmailComposeIn, EmailComposeOut
+from api.services.audit import log_audit
 from api.services.email_compose_service import EmailComposeService
 
 router = APIRouter()
@@ -49,4 +50,5 @@ def compose_email(
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"E-postsending feilet: {exc}")
+    log_audit(db, "email.send", orgnr=body.orgnr, detail={"to": body.to, "subject": body.subject})
     return {"sent": True, "activity_id": activity.id}
