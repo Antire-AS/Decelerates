@@ -405,46 +405,53 @@ def _agent_discover_pdfs(
 ) -> List[Dict[str, Any]]:
     """Run an LLM tool-use agent to find official annual report PDFs.
 
-    Priority: Claude → Azure OpenAI → Gemini per-year search → Gemini agent loop.
+    Primary: Foundry tool-use agent (single provider, reliable).
+    Fallback: Legacy Claude → Azure OpenAI → Gemini chain (kept for
+    environments where Foundry is not configured).
     Returns [] if no agent succeeds — caller falls back to _discover_ir_pdfs.
     """
     logger.info("[discovery] Starting agent PDF discovery for %s (%s), years=%s", navn, orgnr, target_years)
 
+    # Primary: Foundry tool-use agent (Phase 5 migration — single provider)
+    try:
+        from api.services.pdf_agents_v2 import agent_discover_pdfs as foundry_discover
+        result = foundry_discover(orgnr, navn, hjemmeside or "", target_years)
+        if result:
+            logger.info("[discovery] Foundry agent returned %d results for %s", len(result), orgnr)
+            return result
+        logger.info("[discovery] Foundry agent returned empty for %s, trying legacy chain", orgnr)
+    except Exception as exc:
+        logger.warning("[discovery] Foundry agent failed for %s: %s — trying legacy chain", orgnr, exc)
+
+    # Legacy fallback: Claude → Azure OpenAI → Gemini (kept until Foundry is proven stable)
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if anthropic_key and anthropic_key != "your_key_here":
         try:
-            logger.info("[discovery] Trying Claude agent for %s", orgnr)
             result = _agent_discover_pdfs_claude(orgnr, navn, hjemmeside, target_years, anthropic_key)
-            logger.info("[discovery] Claude agent returned %d results for %s", len(result), orgnr)
-            return result
+            if result:
+                return result
         except Exception as exc:
             logger.warning("[discovery] Claude agent failed for %s: %s", orgnr, exc)
 
     try:
-        logger.info("[discovery] Trying Azure OpenAI agent for %s", orgnr)
         result = _agent_discover_pdfs_azure_openai(orgnr, navn, hjemmeside, target_years)
         if result:
-            logger.info("[discovery] Azure OpenAI agent returned %d results for %s", len(result), orgnr)
             return result
     except Exception as exc:
         logger.warning("[discovery] Azure OpenAI agent failed for %s: %s", orgnr, exc)
 
     for gemini_key in _gemini_api_keys():
         try:
-            logger.info("[discovery] Trying per-year Google Search for %s (key ...%s)", orgnr, gemini_key[-4:])
             result = _discover_pdfs_per_year_search(orgnr, navn, hjemmeside, target_years, gemini_key)
-            logger.info("[discovery] Per-year search returned %d results for %s", len(result), orgnr)
             if result:
                 return result
-            logger.info("[discovery] Trying Gemini agent for %s (key ...%s)", orgnr, gemini_key[-4:])
             result = _agent_discover_pdfs_gemini(orgnr, navn, hjemmeside, target_years, gemini_key)
-            logger.info("[discovery] Gemini agent returned %d results for %s", len(result), orgnr)
             if result:
                 return result
         except Exception as exc:
-            logger.warning("[discovery] Gemini agent failed for %s (key ...%s): %s", orgnr, gemini_key[-4:], exc)
+            logger.warning("[discovery] Gemini failed for %s: %s", orgnr, exc)
 
-    logger.warning("[discovery] All LLM agents returned no results for %s", orgnr)
+    logger.warning("[discovery] All agents returned no results for %s", orgnr)
     return []
 
 
