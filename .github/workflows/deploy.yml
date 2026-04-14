@@ -107,6 +107,7 @@ jobs:
             "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
             "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
             "FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}"
+            "AUTH_DISABLED=1"
           )
 
           az containerapp create \
