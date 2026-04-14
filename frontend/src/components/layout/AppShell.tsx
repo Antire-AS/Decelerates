@@ -19,6 +19,7 @@ import {
   LogOut,
   User,
   HelpCircle,
+  PlayCircle,
   Building2,
   Crosshair,
   Menu,
@@ -99,6 +100,13 @@ function SidebarContent({
         >
           <HelpCircle className="w-4 h-4 flex-shrink-0" />
           <span>Veiledning</span>
+        </button>
+        <button
+          onClick={() => (window as { __openDemoVideo?: () => void }).__openDemoVideo?.()}
+          className="nav-item w-full"
+        >
+          <PlayCircle className="w-4 h-4 flex-shrink-0" />
+          <span>Demo-video</span>
         </button>
         <button
           onClick={() => setLang(lang === "no" ? "en" : "no")}
