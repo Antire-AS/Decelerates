@@ -341,8 +341,11 @@ def _resolve_default_firm(db: Session, now: datetime) -> int:
     """Return the first BrokerFirm id, creating a demo firm if none exists."""
     firm = db.query(BrokerFirm).order_by(BrokerFirm.id).first()
     if not firm:
-        firm = BrokerFirm(name="Demo Meglerfirma", created_at=now)
+        firm = BrokerFirm(name="Demo Meglerfirma", is_demo=True, created_at=now)
         db.add(firm)
+        db.flush()
+    elif not firm.is_demo:
+        firm.is_demo = True
         db.flush()
     return firm.id
 
