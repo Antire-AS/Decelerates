@@ -250,6 +250,7 @@ class BrokerFirm(Base):
     id         = Column(Integer, primary_key=True, index=True)
     name       = Column(String, nullable=False)
     orgnr      = Column(String(9), nullable=True)
+    is_demo    = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 

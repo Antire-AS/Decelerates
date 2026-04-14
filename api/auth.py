@@ -52,6 +52,23 @@ class CurrentUser:
     name:    str
     oid:     str
     firm_id: int = 1
+    role:    str = "broker"
+
+
+def require_role(*allowed_roles: str):
+    """FastAPI dependency that checks the current user has one of the allowed roles.
+
+    Usage: `user: CurrentUser = Depends(require_role("admin"))`
+    or:    `user: CurrentUser = Depends(require_role("admin", "broker"))`
+    """
+    def _check(user: CurrentUser = Depends(get_current_user)):
+        if user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Krever rolle: {', '.join(allowed_roles)}. Din rolle: {user.role}",
+            )
+        return user
+    return _check
 
 
 def _get_jwks(tenant_id: str) -> dict:
@@ -129,9 +146,10 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
         user.firm_id = _DEFAULT_FIRM_ID
         db.commit()
         db.refresh(user)
+    # Dev user always gets admin role so all endpoints are accessible in dev mode
     return CurrentUser(
         email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
-        oid=_DEV_USER_OID, firm_id=user.firm_id,
+        oid=_DEV_USER_OID, firm_id=user.firm_id, role="admin",
     )
 
 
@@ -153,7 +171,8 @@ def get_optional_user(
     name  = claims.get("name", "")
     from api.services.user_service import UserService
     user = UserService(db).get_or_create(oid=oid, email=email, name=name)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id)
+    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
+                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
 
 
 def get_current_user(
@@ -193,4 +212,5 @@ def get_current_user(
 
     from api.services.user_service import UserService
     user = UserService(db).get_or_create(oid=oid, email=email, name=name)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id)
+    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
+                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
