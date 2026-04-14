@@ -247,11 +247,12 @@ class BrokerFirm(Base):
     """Multi-tenant broker firm — all CRM data is scoped to a firm."""
     __tablename__ = "broker_firms"
 
-    id         = Column(Integer, primary_key=True, index=True)
-    name       = Column(String, nullable=False)
-    orgnr      = Column(String(9), nullable=True)
-    is_demo    = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), nullable=False)
+    id               = Column(Integer, primary_key=True, index=True)
+    name             = Column(String, nullable=False)
+    orgnr            = Column(String(9), nullable=True)
+    azure_tenant_id  = Column(String(36), nullable=True, unique=True, index=True)
+    is_demo          = Column(Boolean, default=False, nullable=False)
+    created_at       = Column(DateTime(timezone=True), nullable=False)
 
 
 class User(Base):
@@ -442,6 +443,7 @@ class Insurer(Base):
     contact_phone = Column(String, nullable=True)
     appetite      = Column(JSON, nullable=True)   # ["Eiendom", "Ansvar", "Cyber", ...]
     notes         = Column(String, nullable=True)
+    api_key       = Column(String(64), nullable=True, unique=True, index=True)
     created_at    = Column(DateTime(timezone=True), nullable=False)
 
 

@@ -17,6 +17,7 @@ from api.schemas import (
     NotificationMarkReadOut,
     NotificationOut,
 )
+from api.services.audit import log_audit
 from api.services.notification_inbox_service import NotificationInboxService
 
 router = APIRouter()
@@ -75,6 +76,7 @@ def mark_notification_read(
         notif = NotificationInboxService(db).mark_read(notification_id, user_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "notification.read", detail={"notification_id": notification_id})
     return _serialize(notif)
 
 
@@ -85,4 +87,5 @@ def mark_all_notifications_read(
 ) -> dict:
     user_id = _resolve_user_id(db, user)
     updated = NotificationInboxService(db).mark_all_read(user_id)
+    log_audit(db, "notification.read_all", detail={"updated": updated})
     return {"updated": updated}

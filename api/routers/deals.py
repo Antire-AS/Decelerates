@@ -22,6 +22,7 @@ from api.schemas import (
     PipelineStageOut,
     PipelineStageUpdate,
 )
+from api.services.audit import log_audit
 from api.services.deal_service import DealService
 
 router = APIRouter()
@@ -77,6 +78,7 @@ def list_stages(
 @router.post("/pipeline/stages", response_model=PipelineStageOut, status_code=201)
 def create_stage(
     body: PipelineStageCreate,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -84,6 +86,7 @@ def create_stage(
         stage = svc.create_stage(user.firm_id, body, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    log_audit(db, "stage.create", detail={"stage_id": stage.id, "name": body.name})
     return _serialize_stage(stage)
 
 
@@ -91,6 +94,7 @@ def create_stage(
 def update_stage(
     stage_id: int,
     body: PipelineStageUpdate,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -98,12 +102,14 @@ def update_stage(
         stage = svc.update_stage(stage_id, user.firm_id, body, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "stage.update", detail={"stage_id": stage_id})
     return _serialize_stage(stage)
 
 
 @router.delete("/pipeline/stages/{stage_id}", status_code=204)
 def delete_stage(
     stage_id: int,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> None:
@@ -114,6 +120,7 @@ def delete_stage(
         # message disambiguates for the caller.
         status = 409 if "still has" in str(exc) else 404
         raise HTTPException(status_code=status, detail=str(exc))
+    log_audit(db, "stage.delete", detail={"stage_id": stage_id})
 
 
 # ── Deals ────────────────────────────────────────────────────────────────────
@@ -139,6 +146,7 @@ def list_deals(
 @router.post("/deals", response_model=DealOut, status_code=201)
 def create_deal(
     body: DealCreate,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -146,6 +154,7 @@ def create_deal(
         deal = svc.create_deal(user.firm_id, body, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    log_audit(db, "deal.create", orgnr=body.orgnr, detail={"deal_id": deal.id})
     return _serialize_deal(deal)
 
 
@@ -153,6 +162,7 @@ def create_deal(
 def update_deal(
     deal_id: int,
     body: DealUpdate,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -160,6 +170,7 @@ def update_deal(
         deal = svc.update_deal(deal_id, user.firm_id, body, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "deal.update", orgnr=deal.orgnr, detail={"deal_id": deal_id})
     return _serialize_deal(deal)
 
 
@@ -167,6 +178,7 @@ def update_deal(
 def move_deal_stage(
     deal_id: int,
     body: DealStageChange,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -174,6 +186,7 @@ def move_deal_stage(
         deal = svc.move_to_stage(deal_id, user.firm_id, body.stage_id, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "deal.move", orgnr=deal.orgnr, detail={"deal_id": deal_id, "stage_id": body.stage_id})
     return _serialize_deal(deal)
 
 
@@ -181,6 +194,7 @@ def move_deal_stage(
 def lose_deal(
     deal_id: int,
     body: DealLose,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -188,12 +202,14 @@ def lose_deal(
         deal = svc.lose_deal(deal_id, user.firm_id, body.reason, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "deal.lose", orgnr=deal.orgnr, detail={"deal_id": deal_id, "reason": body.reason})
     return _serialize_deal(deal)
 
 
 @router.delete("/deals/{deal_id}", status_code=204)
 def delete_deal(
     deal_id: int,
+    db: Session = Depends(get_db),
     svc: DealService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> None:
@@ -201,3 +217,4 @@ def delete_deal(
         svc.delete_deal(deal_id, user.firm_id, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "deal.delete", detail={"deal_id": deal_id})

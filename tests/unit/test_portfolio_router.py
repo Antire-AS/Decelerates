@@ -10,6 +10,7 @@ sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.auth import CurrentUser, get_current_user
+from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.routers.portfolio_router import router, _svc
 from api.services.portfolio import PortfolioService
@@ -36,9 +37,15 @@ def mock_svc():
 
 
 @pytest.fixture
-def client(mock_svc):
+def mock_db():
+    return MagicMock()
+
+
+@pytest.fixture
+def client(mock_svc, mock_db):
     _app.dependency_overrides[_svc] = lambda: mock_svc
     _app.dependency_overrides[get_current_user] = lambda: _USER
+    _app.dependency_overrides[get_db] = lambda: mock_db
     yield TestClient(_app)
     _app.dependency_overrides.clear()
 

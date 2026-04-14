@@ -11,6 +11,7 @@ from api.services.sla_service import SlaService
 from api.services.notification_service import NotificationService
 from api.schemas import SlaIn
 from api.dependencies import get_db
+from api.services.audit import log_audit
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Ses
             NotificationService().send_sla_generated(broker_email, agreement.client_navn or "")
     except Exception as exc:
         logger.warning("SLA notification failed — %s", exc)
+    log_audit(db, "sla.create", orgnr=agreement.client_orgnr, detail={"sla_id": agreement.id})
     return {"id": agreement.id, "created_at": agreement.created_at}
 
 
@@ -57,6 +59,7 @@ def list_slas(db: Session = Depends(get_db)) -> list:
 def sign_sla(
     sla_id: int,
     body: dict,
+    db: Session = Depends(get_db),
     svc: SlaService = Depends(_get_sla_service),
 ) -> dict:
     """Mark an SLA as signed (records timestamp + signer name)."""
@@ -64,6 +67,7 @@ def sign_sla(
     row = svc.mark_signed(sla_id, signed_by=signed_by)
     if not row:
         raise HTTPException(status_code=404, detail="SLA not found")
+    log_audit(db, "sla.sign", detail={"sla_id": sla_id, "signed_by": signed_by})
     return {
         "id": row.id,
         "status": row.status,

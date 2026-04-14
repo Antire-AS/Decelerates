@@ -13,14 +13,18 @@ class UserService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def get_or_create(self, oid: str, email: str, name: str) -> User:
-        """Auto-provision user on first Azure AD login, assigned to the default firm."""
+    def get_or_create(self, oid: str, email: str, name: str, firm_id: Optional[int] = None) -> User:
+        """Auto-provision user on first Azure AD login.
+
+        If *firm_id* is provided (e.g. from SSO tenant resolution), assign the
+        user to that firm. Otherwise fall back to the default firm (id=1).
+        """
         user = self.db.query(User).filter(User.azure_oid == oid).first()
         if user:
             return user
-        firm = self._ensure_default_firm()
+        resolved_firm_id = firm_id or self._ensure_default_firm().id
         user = User(
-            firm_id=firm.id,
+            firm_id=resolved_firm_id,
             azure_oid=oid,
             email=email,
             name=name,

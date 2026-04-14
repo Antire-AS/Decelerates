@@ -14,6 +14,7 @@ from api.db import SavedSearch, User
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.schemas import SavedSearchCreate, SavedSearchOut
+from api.services.audit import log_audit
 from api.services.saved_search_service import SavedSearchService
 
 router = APIRouter()
@@ -59,6 +60,7 @@ def create_saved_search(
 ) -> dict:
     user_id = _resolve_user_id(db, user)
     row = svc.create(user_id, body.name, body.params)
+    log_audit(db, "search.create", detail={"search_id": row.id, "name": body.name})
     return _serialize(row)
 
 
@@ -74,3 +76,4 @@ def delete_saved_search(
         svc.delete(search_id, user_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    log_audit(db, "search.delete", detail={"search_id": search_id})

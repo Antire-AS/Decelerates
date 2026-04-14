@@ -31,6 +31,7 @@ from api.schemas import (
     SeedRegulationsOut,
 )
 from api.dependencies import get_db
+from api.services.audit import log_audit
 from api.limiter import limiter
 from api.prompts import CHAT_SYSTEM_PROMPT, KNOWLEDGE_CHAT_SYSTEM_PROMPT
 
@@ -149,6 +150,7 @@ def chat_about_org(
         raise HTTPException(status_code=503, detail=str(e))
     note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
     _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
+    log_audit(db, "chat.org", orgnr=orgnr, detail={"session_id": active_session})
     return {"orgnr": orgnr, "question": body.question, "answer": answer, "session_id": active_session}
 
 
@@ -158,6 +160,7 @@ def ingest_knowledge(orgnr: str, body: IngestKnowledgeRequest, db: Session = Dep
     if not body.text.strip():
         raise HTTPException(status_code=422, detail="text must not be empty")
     count = _chunk_and_store(orgnr, body.source, body.text, db)
+    log_audit(db, "knowledge.ingest", orgnr=orgnr, detail={"source": body.source, "chunks": count})
     return {"orgnr": orgnr, "source": body.source, "chunks_stored": count}
 
 
@@ -226,6 +229,7 @@ def delete_chat_session(
 ) -> dict:
     """Delete all Q&A notes for a specific chat session."""
     deleted = _clear_chat_session(orgnr, session_id, db)
+    log_audit(db, "chat.delete", orgnr=orgnr, detail={"session_id": session_id, "deleted": deleted})
     return {"deleted": deleted, "session_id": session_id}
 
 
@@ -322,6 +326,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
         raise HTTPException(status_code=503, detail=str(e))
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
+    log_audit(db, "knowledge.chat", detail={"sources_count": len(sources)})
     return {"question": body.question, "answer": answer, "sources": sources, "source_snippets": source_snippets}
 
 
@@ -336,6 +341,7 @@ def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) 
         cleared = 0
     result = index_all(db)
     stats = get_stats(db)
+    log_audit(db, "knowledge.index", detail={"force": force, "cleared": cleared})
     return {
         **result,
         "cleared_chunks": cleared,
@@ -436,4 +442,5 @@ def seed_regulations(db: Session = Depends(get_db)) -> dict:
         results.append({"name": reg["name"], "chunks": chunks, "status": "indexed"})
         logger.info("seed_regulations: indexed %s — %d chunks", reg["name"], chunks)
 
+    log_audit(db, "knowledge.seed", detail={"total_chunks": sum(r["chunks"] for r in results)})
     return {"seeded": results, "total_chunks": sum(r["chunks"] for r in results)}

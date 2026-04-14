@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from api.dependencies import get_db
 from api.schemas import SignicatWebhookAck
+from api.services.audit import log_audit
 from api.services.recommendation_service import RecommendationService
 from api.services.signicat_service import SignicatService
 
@@ -47,4 +48,5 @@ async def signicat_webhook(
             parsed["session_id"],
             signed_pdf_blob_url=parsed.get("signed_pdf_url"),
         )
+    log_audit(db, "webhook.signicat", detail={"session_id": parsed.get("session_id"), "status": parsed.get("status")})
     return {"received": True}

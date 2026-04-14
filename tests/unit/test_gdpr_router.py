@@ -89,7 +89,7 @@ def test_serialize_consent_handles_null_created_at():
 def test_erase_company_returns_service_result():
     svc = MagicMock()
     svc.erase_company.return_value = {"erased": True, "orgnr": "123456789"}
-    result = erase_company(orgnr="123456789", svc=svc, user=_user())
+    result = erase_company(orgnr="123456789", db=MagicMock(), svc=svc, user=_user())
     assert result["erased"] is True
     svc.erase_company.assert_called_once_with("123456789")
 
@@ -98,7 +98,7 @@ def test_erase_company_raises_404_when_not_found():
     svc = MagicMock()
     svc.erase_company.side_effect = NotFoundError("not found")
     with pytest.raises(HTTPException) as exc:
-        erase_company(orgnr="999", svc=svc, user=_user())
+        erase_company(orgnr="999", db=MagicMock(), svc=svc, user=_user())
     assert exc.value.status_code == 404
     assert "not found" in str(exc.value.detail).lower()
 
@@ -108,7 +108,7 @@ def test_erase_company_raises_404_when_not_found():
 def test_export_returns_service_result():
     svc = MagicMock()
     svc.export_company_data.return_value = {"orgnr": "123", "data": {"companies": []}}
-    result = export_company_data(orgnr="123", svc=svc, user=_user())
+    result = export_company_data(orgnr="123", db=MagicMock(), svc=svc, user=_user())
     assert "data" in result
     svc.export_company_data.assert_called_once_with("123")
 
@@ -117,7 +117,7 @@ def test_export_raises_404_when_not_found():
     svc = MagicMock()
     svc.export_company_data.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        export_company_data(orgnr="999", svc=svc, user=_user())
+        export_company_data(orgnr="999", db=MagicMock(), svc=svc, user=_user())
     assert exc.value.status_code == 404
 
 
@@ -143,7 +143,7 @@ def test_record_consent_serializes_returned_row():
     svc = MagicMock()
     svc.record_consent.return_value = _consent_row(id=42)
     body = ConsentIn(lawful_basis="consent", purpose="insurance_advice")
-    result = record_consent(orgnr="123", body=body, svc=svc, user=_user())
+    result = record_consent(orgnr="123", body=body, db=MagicMock(), svc=svc, user=_user())
     assert result["id"] == 42
     svc.record_consent.assert_called_once_with(
         "123", 1, "broker@test.no", "consent", "insurance_advice"
@@ -182,7 +182,7 @@ def test_withdraw_consent_returns_serialized_withdrawn_row():
         withdrawal_reason="No longer needed",
     )
     body = ConsentWithdrawIn(reason="No longer needed")
-    result = withdraw_consent(orgnr="123", consent_id=7, body=body, svc=svc, user=_user())
+    result = withdraw_consent(orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user())
     assert result["id"] == 7
     assert result["withdrawal_reason"] == "No longer needed"
     svc.withdraw_consent.assert_called_once_with(1, 7, "No longer needed")
@@ -193,7 +193,7 @@ def test_withdraw_consent_raises_404_when_not_found():
     svc.withdraw_consent.side_effect = NotFoundError("missing")
     body = ConsentWithdrawIn(reason="x")
     with pytest.raises(HTTPException) as exc:
-        withdraw_consent(orgnr="123", consent_id=999, body=body, svc=svc, user=_user())
+        withdraw_consent(orgnr="123", consent_id=999, body=body, db=MagicMock(), svc=svc, user=_user())
     assert exc.value.status_code == 404
 
 
@@ -201,5 +201,5 @@ def test_withdraw_consent_accepts_null_reason():
     svc = MagicMock()
     svc.withdraw_consent.return_value = _consent_row(id=7)
     body = ConsentWithdrawIn()  # no reason
-    withdraw_consent(orgnr="123", consent_id=7, body=body, svc=svc, user=_user())
+    withdraw_consent(orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user())
     svc.withdraw_consent.assert_called_once_with(1, 7, None)
