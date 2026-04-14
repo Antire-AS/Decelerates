@@ -1,38 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { Player } from "@remotion/player";
+import { X, ArrowRight, ArrowLeft, CheckCircle, Maximize2 } from "lucide-react";
+import {
+  Clip1Search,
+  Clip2Dashboard,
+  Clip3Portfolio,
+  Clip4Insurance,
+  Clip5IDD,
+  Clip6AI,
+  CLIP_CONFIG,
+} from "../video/StepClips";
+import {
+  DemoVideo,
+  DEMO_VIDEO_CONFIG,
+} from "../video/DemoComposition";
 
 const STEPS = [
   {
-    icon: "🔍",
     title: "Søk opp et selskap",
-    body: "Gå til Selskapsøk og skriv inn et firmanavn eller organisasjonsnummer. Data hentes automatisk fra BRREG, regnskapsregisteret og risikoscore beregnes.",
+    body: "Skriv inn et firmanavn eller organisasjonsnummer. Data hentes automatisk fra BRREG, regnskapsregisteret og risikoscore beregnes.",
+    clip: Clip1Search,
   },
   {
-    icon: "📊",
     title: "Dashbordet ditt",
-    body: "Dashbordet viser dine viktigste KPI-er: porteføljerisiko, fornyelser de neste 90 dagene, og kommende oppgaver. Klikk på et selskap fra tabellen eller bruk søket for å åpne en full risikoprofil med score, nøkkeltall og styremedlemmer.",
+    body: "Dashbordet viser dine viktigste KPI-er: porteføljerisiko, fornyelser de neste 90 dagene, og kommende oppgaver.",
+    clip: Clip2Dashboard,
   },
   {
-    icon: "📁",
     title: "Bygg en portefølje",
-    body: "Gå til Portefølje, opprett en ny portefølje og legg til selskaper. Du får konsentrasjonsanalyse, kart over alle kunder og fornyelsesvarsel.",
+    body: "Gå til Portefølje, opprett en ny portefølje og legg til selskaper. Du får konsentrasjonsanalyse, kart og fornyelsesvarsel.",
+    clip: Clip3Portfolio,
   },
   {
-    icon: "📋",
     title: "Administrer forsikringsavtaler",
-    body: "Under CRM-fanen på hvert selskap kan du registrere poliser med provisjonssats, skader, kontaktpersoner og aktiviteter. Fornyelser-siden gir deg en pipeline.",
+    body: "Under CRM-fanen kan du registrere poliser med provisjonssats, skader, kontaktpersoner og aktiviteter. Fornyelser-siden gir deg en pipeline.",
+    clip: Clip4Insurance,
   },
   {
-    icon: "📄",
     title: "IDD og klientdeling",
-    body: "Bruk IDD / Behov i menyen for å lage behovsanalyser (forsikringsformidlingsloven § 7). Del en skrivebeskyttet portal med klienten via Del med klient i CRM-fanen.",
+    body: "Bruk IDD / Behov i menyen for å lage behovsanalyser (forsikringsformidlingsloven § 7). Del en skrivebeskyttet portal med klienten.",
+    clip: Clip5IDD,
   },
   {
-    icon: "💬",
     title: "AI-assistenten og kunnskapsbase",
-    body: "Bruk Chat-fanen på et selskap for å stille spørsmål om økonomi og risiko. Kunnskapsbase-siden lar deg chatte med opplastede dokumenter og videoer.",
+    body: "Bruk Chat-fanen på et selskap for å stille spørsmål om økonomi og risiko. Kunnskapsbasen lar deg chatte med opplastede dokumenter og videoer.",
+    clip: Clip6AI,
   },
 ];
 
@@ -41,6 +55,7 @@ const STORAGE_KEY = "ba_onboarding_seen";
 export default function OnboardingTour() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [fullVideo, setFullVideo] = useState(false);
 
   useEffect(() => {
     if (typeof localStorage !== "undefined" && !localStorage.getItem(STORAGE_KEY)) {
@@ -50,17 +65,16 @@ export default function OnboardingTour() {
 
   function close() {
     setOpen(false);
+    setFullVideo(false);
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(STORAGE_KEY, "1");
     }
   }
 
-  // Expose reopen via a global so AppShell can call it. Must be a stable
-  // reference (not a fresh closure) so old window.__openOnboarding handles
-  // captured by other components keep working even after re-renders.
   useEffect(() => {
     const reopen = () => {
       setStep(0);
+      setFullVideo(false);
       setOpen(true);
     };
     (window as unknown as Record<string, unknown>).__openOnboarding = reopen;
@@ -69,16 +83,77 @@ export default function OnboardingTour() {
     };
   }, []);
 
+  useEffect(() => {
+    const openFull = () => {
+      setStep(0);
+      setFullVideo(true);
+      setOpen(true);
+    };
+    (window as unknown as Record<string, unknown>).__openDemoVideo = openFull;
+    return () => {
+      delete (window as unknown as Record<string, unknown>).__openDemoVideo;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (!open) return null;
 
+  /* ── Full video mode ─────────────────────────────────────── */
+  if (fullVideo) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+        <div className="relative w-full max-w-5xl">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setFullVideo(false)}
+              className="text-white/60 hover:text-white text-sm flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Tilbake til steg-for-steg
+            </button>
+            <button onClick={close} className="text-white/60 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="rounded-xl overflow-hidden shadow-2xl bg-[#2C3E50]">
+            <Player
+              component={DemoVideo}
+              durationInFrames={DEMO_VIDEO_CONFIG.durationInFrames}
+              compositionWidth={DEMO_VIDEO_CONFIG.width}
+              compositionHeight={DEMO_VIDEO_CONFIG.height}
+              fps={DEMO_VIDEO_CONFIG.fps}
+              style={{ width: "100%", aspectRatio: "16/9" }}
+              controls
+              autoPlay
+              loop
+            />
+          </div>
+          <p className="text-center text-white/40 text-xs mt-3">
+            Komplett demo · 40 sekunder
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Step-by-step mode with inline clips ─────────────────── */
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+  const ClipComponent = current.clip;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-[#2C3E50] px-6 py-4 flex items-center justify-between">
+        <div className="bg-[#2C3E50] px-6 py-3 flex items-center justify-between">
           <p className="text-xs font-medium text-white/60 uppercase tracking-wide">
             Veiledning · Steg {step + 1} av {STEPS.length}
           </p>
@@ -95,15 +170,36 @@ export default function OnboardingTour() {
           />
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-6">
-          <div className="text-4xl mb-4">{current.icon}</div>
-          <h2 className="text-lg font-bold text-[#2C3E50] mb-2">{current.title}</h2>
+        {/* Inline video clip — compact, purpose-built for this size */}
+        <div className="relative">
+          <Player
+            key={step}
+            component={ClipComponent}
+            durationInFrames={CLIP_CONFIG.durationInFrames}
+            compositionWidth={CLIP_CONFIG.width}
+            compositionHeight={CLIP_CONFIG.height}
+            fps={CLIP_CONFIG.fps}
+            style={{ width: "100%" }}
+            autoPlay
+            loop
+          />
+          <button
+            onClick={() => setFullVideo(true)}
+            className="absolute bottom-2 right-2 p-1.5 rounded-md bg-black/20 text-white/60 hover:text-white hover:bg-black/40 transition-colors"
+            title="Se hele videoen"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Text content */}
+        <div className="px-6 py-4">
+          <h2 className="text-lg font-bold text-[#2C3E50] mb-1.5">{current.title}</h2>
           <p className="text-sm text-[#8A7F74] leading-relaxed">{current.body}</p>
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 flex items-center justify-between gap-3">
+        <div className="px-6 pb-5 flex items-center justify-between gap-3">
           <button
             onClick={() => setStep((s) => s - 1)}
             disabled={step === 0}
