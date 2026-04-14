@@ -130,7 +130,7 @@ def test_create_returns_serialized_row():
     svc.create.return_value = _row(id=99)
     body = MagicMock()
     body.model_dump.return_value = {"client_name": "New AS"}
-    result = create_behovsanalyse(orgnr="123", body=body, user=_user(), svc=svc)
+    result = create_behovsanalyse(orgnr="123", body=body, db=MagicMock(), user=_user(), svc=svc)
     assert result["id"] == 99
     svc.create.assert_called_once_with("123", 1, "broker@test.no", {"client_name": "New AS"})
 
@@ -157,7 +157,7 @@ def test_get_raises_404_when_not_found():
 
 def test_delete_calls_service():
     svc = MagicMock()
-    delete_behovsanalyse(orgnr="123", idd_id=7, user=_user(), svc=svc)
+    delete_behovsanalyse(orgnr="123", idd_id=7, db=MagicMock(), user=_user(), svc=svc)
     svc.delete.assert_called_once_with("123", 1, 7)
 
 
@@ -165,7 +165,7 @@ def test_delete_raises_404_when_not_found():
     svc = MagicMock()
     svc.delete.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        delete_behovsanalyse(orgnr="123", idd_id=999, user=_user(), svc=svc)
+        delete_behovsanalyse(orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc)
     assert exc.value.status_code == 404
 
 
@@ -174,7 +174,7 @@ def test_delete_raises_404_when_not_found():
 def test_generate_suitability_returns_reasoning():
     svc = MagicMock()
     svc.generate_suitability_reasoning.return_value = "Den anbefalte løsningen passer fordi..."
-    result = generate_suitability(orgnr="123", idd_id=7, user=_user(), svc=svc)
+    result = generate_suitability(orgnr="123", idd_id=7, db=MagicMock(), user=_user(), svc=svc)
     assert "Den anbefalte løsningen" in str(result)
 
 
@@ -182,5 +182,5 @@ def test_generate_suitability_raises_404_when_not_found():
     svc = MagicMock()
     svc.generate_suitability_reasoning.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        generate_suitability(orgnr="123", idd_id=999, user=_user(), svc=svc)
+        generate_suitability(orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc)
     assert exc.value.status_code == 404

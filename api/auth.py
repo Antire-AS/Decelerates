@@ -169,48 +169,49 @@ def get_optional_user(
     oid   = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
     name  = claims.get("name", "")
+    firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name)
+    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
     return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
                        role=user.role.value if hasattr(user.role, "value") else str(user.role))
+
+
+def _validate_and_extract_claims(creds: Optional[HTTPAuthorizationCredentials]) -> dict:
+    """Validate JWT token and return claims, or raise 401."""
+    if not creds:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Missing Authorization header", headers={"WWW-Authenticate": "Bearer"})
+    try:
+        return _validate_token(creds.credentials)
+    except Exception as exc:
+        _log.debug("Token validation failed: %s", exc)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid or expired token", headers={"WWW-Authenticate": "Bearer"})
+
+
+def _resolve_sso_firm(claims: dict, db: Session) -> int | None:
+    """Try to map Azure AD tenant to a BrokerFirm. Returns firm_id or None."""
+    try:
+        from api.services.sso_service import SsoService
+        return SsoService().resolve_firm_from_token(claims, db).id
+    except Exception as exc:
+        _log.debug("SSO firm resolution failed (non-fatal): %s", exc)
+        return None
 
 
 def get_current_user(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> CurrentUser:
-    """FastAPI dependency — validates the bearer token and returns the current user.
-
-    With ENVIRONMENT != "production" AND AUTH_DISABLED=1 returns a dev user
-    without hitting Azure AD AND auto-provisions a matching row in the users
-    table on first request, so downstream `azure_oid` lookups succeed. In
-    production, AUTH_DISABLED is ignored.
-    On first login (real Azure AD), also auto-provisions the user in the users table.
-    """
+    """FastAPI dependency — validates bearer token, provisions user, returns CurrentUser."""
     if _is_auth_disabled():
         return _ensure_dev_user_provisioned(db)
-
-    if not creds:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing Authorization header",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    try:
-        claims = _validate_token(creds.credentials)
-    except Exception as exc:
-        _log.debug("Token validation failed: %s", exc)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
+    claims = _validate_and_extract_claims(creds)
     oid   = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
     name  = claims.get("name", "")
-
+    firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name)
+    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
     return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
                        role=user.role.value if hasattr(user.role, "value") else str(user.role))

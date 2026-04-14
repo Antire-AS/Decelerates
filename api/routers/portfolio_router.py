@@ -17,6 +17,7 @@ from api.schemas import (
     PortfolioBulkAddOut,
     ChatRequest,
 )
+from api.services.audit import log_audit
 from api.services.portfolio import PortfolioService, collect_alerts
 
 _log = logging.getLogger(__name__)
@@ -73,10 +74,12 @@ def _run_coverage_gap_background(orgnr: str, firm_id: int) -> None:
 @router.post("/portfolio")
 def create_portfolio(
     body: PortfolioCreate,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     p = svc.create(body.name, user.firm_id, body.description or "")
+    log_audit(db, "portfolio.create", detail={"portfolio_id": p.id, "name": body.name})
     return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
 
 
@@ -107,6 +110,7 @@ def get_portfolio(
 @router.delete("/portfolio/{portfolio_id}")
 def delete_portfolio(
     portfolio_id: int,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -114,6 +118,7 @@ def delete_portfolio(
         svc.delete(portfolio_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "portfolio.delete", detail={"portfolio_id": portfolio_id})
     return {"deleted": portfolio_id}
 
 
@@ -122,6 +127,7 @@ def add_company(
     portfolio_id: int,
     body: PortfolioAddCompany,
     background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -132,6 +138,7 @@ def add_company(
     # Auto-run coverage gap analysis in the background so the broker gets
     # a notification if the new company has missing insurance coverage.
     background_tasks.add_task(_run_coverage_gap_background, body.orgnr, user.firm_id)
+    log_audit(db, "portfolio.add_company", orgnr=body.orgnr, detail={"portfolio_id": portfolio_id})
     return {"portfolio_id": portfolio_id, "orgnr": body.orgnr}
 
 
@@ -140,6 +147,7 @@ def add_companies_bulk(
     portfolio_id: int,
     body: PortfolioBulkAdd,
     background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -163,6 +171,7 @@ def add_companies_bulk(
     # Schedule coverage gap analysis for each newly added company.
     for orgnr in added_orgnrs:
         background_tasks.add_task(_run_coverage_gap_background, orgnr, user.firm_id)
+    log_audit(db, "portfolio.add_bulk", detail={"portfolio_id": portfolio_id, "added": added, "skipped": skipped})
     return {"added": added, "skipped": skipped}
 
 
@@ -170,10 +179,12 @@ def add_companies_bulk(
 def remove_company(
     portfolio_id: int,
     orgnr: str,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     svc.remove_company(portfolio_id, orgnr)
+    log_audit(db, "portfolio.remove_company", orgnr=orgnr, detail={"portfolio_id": portfolio_id})
     return {"portfolio_id": portfolio_id, "orgnr": orgnr}
 
 
@@ -195,14 +206,17 @@ def get_portfolio_risk(
 @router.post("/portfolio/{portfolio_id}/ingest")
 def ingest_portfolio(
     portfolio_id: int,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Batch-fetch BRREG + financial data for all companies not yet in the database."""
     try:
-        return svc.ingest_companies(portfolio_id)
+        result = svc.ingest_companies(portfolio_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "portfolio.ingest", detail={"portfolio_id": portfolio_id})
+    return result
 
 
 @router.get("/portfolio/{portfolio_id}/ingest/stream")
@@ -238,6 +252,7 @@ def stream_seed_norway(portfolio_id: int):
 @router.post("/portfolio/{portfolio_id}/enrich-pdfs")
 def enrich_pdfs(
     portfolio_id: int,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
@@ -246,9 +261,11 @@ def enrich_pdfs(
     Returns immediately. Check /portfolio/{id}/risk for progress as data populates.
     """
     try:
-        return svc.enrich_pdfs_background(portfolio_id)
+        result = svc.enrich_pdfs_background(portfolio_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "portfolio.enrich", detail={"portfolio_id": portfolio_id})
+    return result
 
 
 @router.post("/portfolio/{portfolio_id}/chat")
@@ -257,14 +274,17 @@ def portfolio_chat(
     request: Request,
     portfolio_id: int,
     body: ChatRequest,
+    db: Session = Depends(get_db),
     svc: PortfolioService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Answer a question grounded in the financial data of all companies in the portfolio."""
     try:
-        return svc.chat(portfolio_id, body.question)
+        result = svc.chat(portfolio_id, body.question)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_audit(db, "portfolio.chat", detail={"portfolio_id": portfolio_id})
+    return result
 
 
 @router.get("/portfolio/{portfolio_id}/analytics")

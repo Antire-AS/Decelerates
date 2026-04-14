@@ -7,6 +7,7 @@ from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
 from api.domain.exceptions import ForbiddenError, NotFoundError
 from api.schemas import UserRoleUpdate
+from api.services.audit import log_audit
 from api.services.user_service import UserService
 
 router = APIRouter()
@@ -53,12 +54,14 @@ def list_users(
 def update_role(
     user_id: int,
     body: UserRoleUpdate,
+    db: Session = Depends(get_db),
     svc: UserService = Depends(_svc),
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Change a user's role (admin only)."""
     try:
         updated = svc.update_role(user_id, body, requester_role=user.role if hasattr(user, "role") else "broker")
+        log_audit(db, "user.role.update", detail={"user_id": user_id, "new_role": body.role})
         return _serialize(updated)
     except ForbiddenError as e:
         raise HTTPException(status_code=403, detail=str(e))

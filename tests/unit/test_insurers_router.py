@@ -126,7 +126,7 @@ def test_create_insurer_returns_serialized_row():
     svc.create_insurer.return_value = _insurer_row(id=99)
     body = MagicMock()
     body.model_dump.return_value = {"name": "New Insurer"}
-    result = create_insurer(body=body, user=_user(), svc=svc)
+    result = create_insurer(body=body, user=_user(), svc=svc, db=MagicMock())
     assert result["id"] == 99
     svc.create_insurer.assert_called_once_with(1, {"name": "New Insurer"})
 
@@ -136,7 +136,7 @@ def test_update_insurer_returns_serialized_row():
     svc.update_insurer.return_value = _insurer_row(id=7)
     body = MagicMock()
     body.model_dump.return_value = {"name": "Updated"}
-    result = update_insurer(insurer_id=7, body=body, user=_user(), svc=svc)
+    result = update_insurer(insurer_id=7, body=body, user=_user(), svc=svc, db=MagicMock())
     assert result["id"] == 7
 
 
@@ -146,13 +146,13 @@ def test_update_insurer_raises_404_when_not_found():
     body = MagicMock()
     body.model_dump.return_value = {}
     with pytest.raises(HTTPException) as exc:
-        update_insurer(insurer_id=999, body=body, user=_user(), svc=svc)
+        update_insurer(insurer_id=999, body=body, user=_user(), svc=svc, db=MagicMock())
     assert exc.value.status_code == 404
 
 
 def test_delete_insurer_calls_service():
     svc = MagicMock()
-    delete_insurer(insurer_id=7, user=_user(), svc=svc)
+    delete_insurer(insurer_id=7, user=_user(), svc=svc, db=MagicMock())
     svc.delete_insurer.assert_called_once_with(1, 7)
 
 
@@ -160,7 +160,7 @@ def test_delete_insurer_raises_404_when_not_found():
     svc = MagicMock()
     svc.delete_insurer.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        delete_insurer(insurer_id=999, user=_user(), svc=svc)
+        delete_insurer(insurer_id=999, user=_user(), svc=svc, db=MagicMock())
     assert exc.value.status_code == 404
 
 
@@ -230,7 +230,7 @@ def test_update_submission_raises_404_when_not_found():
 
 def test_delete_submission_calls_service():
     svc = MagicMock()
-    delete_submission(submission_id=7, user=_user(), svc=svc)
+    delete_submission(submission_id=7, user=_user(), svc=svc, db=MagicMock())
     svc.delete_submission.assert_called_once_with(1, 7)
 
 
@@ -238,7 +238,7 @@ def test_delete_submission_raises_404_when_not_found():
     svc = MagicMock()
     svc.delete_submission.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        delete_submission(submission_id=999, user=_user(), svc=svc)
+        delete_submission(submission_id=999, user=_user(), svc=svc, db=MagicMock())
     assert exc.value.status_code == 404
 
 
@@ -263,7 +263,7 @@ def test_get_win_loss_summary_returns_service_result():
 def test_draft_submission_email_returns_payload():
     svc = MagicMock()
     svc.draft_submission_email.return_value = "Hei, vi ønsker å innhente tilbud..."
-    result = draft_submission_email(submission_id=7, user=_user(), svc=svc)
+    result = draft_submission_email(submission_id=7, user=_user(), svc=svc, db=MagicMock())
     assert result["submission_id"] == 7
     assert "Hei" in result["draft_email"]
 
@@ -272,5 +272,5 @@ def test_draft_submission_email_raises_404_when_not_found():
     svc = MagicMock()
     svc.draft_submission_email.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        draft_submission_email(submission_id=999, user=_user(), svc=svc)
+        draft_submission_email(submission_id=999, user=_user(), svc=svc, db=MagicMock())
     assert exc.value.status_code == 404

@@ -15,6 +15,7 @@ sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.auth import CurrentUser, get_current_user
+from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.routers.broker import router, _get_broker_service
 from api.services.broker import BrokerService
@@ -54,6 +55,7 @@ def mock_svc():
 @pytest.fixture
 def client(mock_svc):
     _app.dependency_overrides[_get_broker_service] = lambda: mock_svc
+    _app.dependency_overrides[get_db] = lambda: MagicMock()
     # Override get_current_user so the F01 dev-user provisioning (which hits
     # the real DB via UserService.get_or_create) is bypassed in this unit
     # test. Without this, CI's test DB — which has no `users` table — fails

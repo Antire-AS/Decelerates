@@ -12,6 +12,7 @@ from api.db import IddBehovsanalyse
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
 from api.schemas import IddBehovsanalyseIn, IddBehovsanalyseOut
+from api.services.audit import log_audit
 from api.services.idd import IddService
 
 router = APIRouter()
@@ -72,11 +73,13 @@ def list_all_behovsanalyser(
 def create_behovsanalyse(
     orgnr: str,
     body: IddBehovsanalyseIn,
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     svc: IddService = Depends(_get_idd_service),
 ) -> dict:
     """Create a new IDD behovsanalyse for a company."""
     row = svc.create(orgnr, user.firm_id, user.email, body.model_dump())
+    log_audit(db, "idd.create", orgnr=orgnr, detail={"idd_id": row.id})
     return _serialize(row)
 
 
@@ -98,6 +101,7 @@ def get_behovsanalyse(
 def delete_behovsanalyse(
     orgnr: str,
     idd_id: int,
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     svc: IddService = Depends(_get_idd_service),
 ) -> None:
@@ -105,12 +109,14 @@ def delete_behovsanalyse(
         svc.delete(orgnr, user.firm_id, idd_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Behovsanalyse not found")
+    log_audit(db, "idd.delete", orgnr=orgnr, detail={"idd_id": idd_id})
 
 
 @router.post("/org/{orgnr}/idd/{idd_id}/generate-suitability")
 def generate_suitability(
     orgnr: str,
     idd_id: int,
+    db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
     svc: IddService = Depends(_get_idd_service),
 ) -> dict:
@@ -119,4 +125,5 @@ def generate_suitability(
         reasoning = svc.generate_suitability_reasoning(orgnr, user.firm_id, idd_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Behovsanalyse not found")
+    log_audit(db, "idd.suitability", orgnr=orgnr, detail={"idd_id": idd_id})
     return {"idd_id": idd_id, "suitability_basis": reasoning}
