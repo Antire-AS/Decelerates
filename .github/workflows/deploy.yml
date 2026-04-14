@@ -27,7 +27,9 @@ jobs:
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
-            echo "environment=production" >> $GITHUB_OUTPUT
+            # POC mode: use "staging" so AUTH_DISABLED=1 is honored.
+            # When Azure AD SSO is configured, change back to "production".
+            echo "environment=staging" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
             echo "frontend_app=ca-frontend" >> $GITHUB_OUTPUT
