@@ -110,43 +110,51 @@ jobs:
             "AUTH_DISABLED=1"
           )
 
-          az containerapp create \
-            --name ${{ steps.config.outputs.api_app }} \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ steps.config.outputs.cae }} \
-            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
-            --registry-server ${{ env.ACR }}.azurecr.io \
-            --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
-            --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
-            --target-port 8000 \
-            --ingress external \
-            --min-replicas 1 \
-            --max-replicas 3 \
-            --env-vars "${ENV_VARS[@]}" \
-          2>/dev/null \
-          || az containerapp update \
-            --name ${{ steps.config.outputs.api_app }} \
-            --resource-group ${{ env.RG }} \
-            --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
-            --set-env-vars "${ENV_VARS[@]}"
+          # Create-or-update: create only runs the first time; update uses
+          # the atomic probe+image PATCH below to avoid the probe race.
+          if ! az containerapp show --name ${{ steps.config.outputs.api_app }} \
+               --resource-group ${{ env.RG }} --query name -o tsv 2>/dev/null; then
+            echo "App doesn't exist — creating..."
+            az containerapp create \
+              --name ${{ steps.config.outputs.api_app }} \
+              --resource-group ${{ env.RG }} \
+              --environment ${{ steps.config.outputs.cae }} \
+              --image ${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }} \
+              --registry-server ${{ env.ACR }}.azurecr.io \
+              --registry-identity "${{ env.RUNTIME_IDENTITY }}" \
+              --user-assigned "${{ env.RUNTIME_IDENTITY }}" \
+              --target-port 8000 \
+              --ingress external \
+              --min-replicas 1 \
+              --max-replicas 3 \
+              --env-vars "${ENV_VARS[@]}"
+          else
+            echo "App exists — env-vars only (image + probe via atomic PATCH below)"
+            az containerapp update \
+              --name ${{ steps.config.outputs.api_app }} \
+              --resource-group ${{ env.RG }} \
+              --set-env-vars "${ENV_VARS[@]}"
+          fi
 
-      - name: Configure API startup probe
+      - name: Deploy API image + startup probe (atomic)
         # Alembic migrations + auto-seed can take 30-60s on first deploy.
-        # We PATCH the full container spec (preserving existing env vars and
-        # resources) to set a generous startup probe. The Azure REST API
-        # replaces the container array entirely, so we must include the full
-        # current spec with only the probe changed.
+        # The probe and image MUST be updated in a single PATCH so the new
+        # revision starts with the correct probe. If the probe is set AFTER
+        # the deploy, the old revision's probe (10s) kills the container
+        # before the new probe (60s) takes effect.
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
           SUBSCRIPTION=$(az account show --query id -o tsv)
           API_URL="https://management.azure.com/subscriptions/$SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP?api-version=2024-03-01"
+          IMAGE="${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}"
 
-          # Fetch the current full container spec, modify only probes
+          # Fetch the current container spec, update image + probe in one PATCH
           CURRENT=$(az rest --method GET --url "$API_URL" --query "properties.template.containers[0]" -o json)
           PATCHED=$(echo "$CURRENT" | python3 -c "
           import sys, json
           c = json.load(sys.stdin)
+          c['image'] = '$IMAGE'
           c['probes'] = [{
             'type': 'Startup',
             'httpGet': {'path': '/ping', 'port': 8000},
@@ -157,8 +165,9 @@ jobs:
           }]
           print(json.dumps({'properties': {'template': {'containers': [c]}}}))
           ")
-          az rest --method PATCH --url "$API_URL" --body "$PATCHED" > /dev/null 2>&1 \
-            || echo "Probe config update failed — continuing with defaults"
+          az rest --method PATCH --url "$API_URL" \
+            --headers "Content-Type=application/json" \
+            --body "$PATCHED"
 
       - name: Wait for API revision to become Healthy
         # Catches startup crashes that the deploy step would otherwise report
