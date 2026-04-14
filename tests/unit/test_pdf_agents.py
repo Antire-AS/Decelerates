@@ -404,22 +404,20 @@ def test_azure_openai_agent_handles_tool_call_then_stop():
 
 # ── _agent_discover_pdfs (orchestrator) ──────────────────────────────────────
 
-def test_orchestrator_tries_claude_first():
+def test_orchestrator_tries_foundry_first():
     from api.services.pdf_agents import _agent_discover_pdfs
-    expected = [{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]
-    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "real-key"}), \
-         patch("api.services.pdf_agents._agent_discover_pdfs_claude", return_value=expected) as m:
+    expected = [{"year": 2023, "url": "https://x.com/a.pdf", "label": "annual"}]
+    with patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=expected):
         result = _agent_discover_pdfs("123", "TestCo", None, [2023])
     assert result == expected
-    m.assert_called_once()
 
 
-def test_orchestrator_falls_back_to_azure_when_claude_fails():
+def test_orchestrator_falls_back_to_claude_when_foundry_empty():
     from api.services.pdf_agents import _agent_discover_pdfs
     expected = [{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]
-    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "real-key"}), \
-         patch("api.services.pdf_agents._agent_discover_pdfs_claude", side_effect=Exception("fail")), \
-         patch("api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=expected):
+    with patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=[]), \
+         patch.dict("os.environ", {"ANTHROPIC_API_KEY": "real-key"}), \
+         patch("api.services.pdf_agents._agent_discover_pdfs_claude", return_value=expected):
         result = _agent_discover_pdfs("123", "TestCo", None, [2023])
     assert result == expected
 
@@ -427,7 +425,8 @@ def test_orchestrator_falls_back_to_azure_when_claude_fails():
 def test_orchestrator_falls_through_to_gemini_per_year():
     from api.services.pdf_agents import _agent_discover_pdfs
     expected = [{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]
-    with patch.dict("os.environ", {}, clear=True), \
+    with patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=[]), \
+         patch.dict("os.environ", {}, clear=True), \
          patch("api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]), \
          patch("api.services.pdf_agents._gemini_api_keys", return_value=["gkey"]), \
          patch("api.services.pdf_agents._discover_pdfs_per_year_search", return_value=expected):
