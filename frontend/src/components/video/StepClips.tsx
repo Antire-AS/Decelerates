@@ -1,50 +1,27 @@
 /**
  * Compact animated clips for each onboarding step.
- * Hybrid approach: real app screenshot as background + animated overlays.
+ * Clean mockup style on brand beige background.
  * Designed for 560x320 — small, focused, and readable at modal size.
  */
 import React from "react";
-import { AbsoluteFill, Img, interpolate, useCurrentFrame, staticFile } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { colors, fonts } from "./theme";
 import { FadeIn, MockCard, MockMetric, RiskBadge } from "./Primitives";
 
-/** Background: real app screenshot with a subtle zoom-in */
-const AppBg: React.FC<{ src: string; children: React.ReactNode }> = ({
-  src,
-  children,
-}) => {
-  const frame = useCurrentFrame();
-  const scale = interpolate(frame, [0, 120], [1, 1.04], {
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <AbsoluteFill style={{ fontFamily: fonts.body, overflow: "hidden" }}>
-      {/* Screenshot layer */}
-      <Img
-        src={staticFile(`demo/${src}`)}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          transform: `scale(${scale})`,
-          filter: "brightness(0.6)",
-        }}
-      />
-      {/* Overlay content */}
-      <AbsoluteFill
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-        }}
-      >
-        {children}
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
+const Bg: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <AbsoluteFill
+    style={{
+      background: colors.beige,
+      fontFamily: fonts.body,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    }}
+  >
+    {children}
+  </AbsoluteFill>
+);
 
 /* ── Clip 1: Search ─────────────────────────────────────────── */
 
@@ -64,7 +41,7 @@ export const Clip1Search: React.FC = () => {
   });
 
   return (
-    <AppBg src="search.png">
+    <Bg>
       <div
         style={{
           width: "100%",
@@ -104,7 +81,7 @@ export const Clip1Search: React.FC = () => {
           </span>
         </div>
         <div style={{ opacity: showResult }}>
-          <MockCard style={{ padding: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+          <MockCard style={{ padding: 16 }}>
             <div
               style={{
                 display: "flex",
@@ -156,14 +133,14 @@ export const Clip1Search: React.FC = () => {
           </MockCard>
         </div>
       </div>
-    </AppBg>
+    </Bg>
   );
 };
 
 /* ── Clip 2: Dashboard ──────────────────────────────────────── */
 
 export const Clip2Dashboard: React.FC = () => (
-  <AppBg src="dashboard.png">
+  <Bg>
     <div
       style={{
         display: "grid",
@@ -186,7 +163,7 @@ export const Clip2Dashboard: React.FC = () => (
         <MockMetric label="Risikoscore" value="4.2" color={colors.success} />
       </FadeIn>
     </div>
-  </AppBg>
+  </Bg>
 );
 
 /* ── Clip 3: Portfolio ──────────────────────────────────────── */
@@ -200,8 +177,8 @@ export const Clip3Portfolio: React.FC = () => {
   ];
 
   return (
-    <AppBg src="portfolio.png">
-      <MockCard style={{ width: "100%", maxWidth: 380, padding: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+    <Bg>
+      <MockCard style={{ width: "100%", maxWidth: 380, padding: 16 }}>
         <div
           style={{
             fontSize: 14,
@@ -262,7 +239,7 @@ export const Clip3Portfolio: React.FC = () => {
           );
         })}
       </MockCard>
-    </AppBg>
+    </Bg>
   );
 };
 
@@ -286,7 +263,7 @@ export const Clip4Insurance: React.FC = () => {
   ];
 
   return (
-    <AppBg src="renewals.png">
+    <Bg>
       <div
         style={{
           display: "flex",
@@ -305,7 +282,7 @@ export const Clip4Insurance: React.FC = () => {
           );
           return (
             <div key={p.type} style={{ opacity: show }}>
-              <MockCard style={{ padding: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+              <MockCard style={{ padding: 14 }}>
                 <div
                   style={{
                     display: "flex",
@@ -335,7 +312,7 @@ export const Clip4Insurance: React.FC = () => {
           );
         })}
       </div>
-    </AppBg>
+    </Bg>
   );
 };
 
@@ -351,8 +328,8 @@ export const Clip5IDD: React.FC = () => {
   ];
 
   return (
-    <AppBg src="idd.png">
-      <MockCard style={{ width: "100%", maxWidth: 360, padding: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+    <Bg>
+      <MockCard style={{ width: "100%", maxWidth: 360, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: colors.dark, marginBottom: 16 }}>
           IDD Arbeidsflyt
         </div>
@@ -421,7 +398,7 @@ export const Clip5IDD: React.FC = () => {
           </div>
         </FadeIn>
       </MockCard>
-    </AppBg>
+    </Bg>
   );
 };
 
@@ -438,8 +415,8 @@ export const Clip6AI: React.FC = () => {
   ];
 
   return (
-    <AppBg src="knowledge.png">
-      <MockCard style={{ width: "100%", maxWidth: 380, padding: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+    <Bg>
+      <MockCard style={{ width: "100%", maxWidth: 380, padding: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {messages.map((msg, i) => {
             const show = interpolate(
@@ -497,7 +474,7 @@ export const Clip6AI: React.FC = () => {
           ))}
         </div>
       </MockCard>
-    </AppBg>
+    </Bg>
   );
 };
 
