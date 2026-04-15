@@ -287,6 +287,25 @@ jobs:
             --resource-group ${{ env.RG }} \
             --set-env-vars "NEXTAUTH_URL=https://$FQDN"
 
+      - name: Restore custom domains (deploy can drop them)
+        if: steps.config.outputs.env == 'prod'
+        run: |
+          APP=${{ steps.config.outputs.frontend_app }}
+          RG=${{ env.RG }}
+          CAE=${{ steps.config.outputs.cae }}
+          for DOMAIN in meglerai.no www.meglerai.no; do
+            EXISTING=$(az containerapp hostname list --name "$APP" --resource-group "$RG" \
+              --query "[?name=='$DOMAIN'].name" -o tsv 2>/dev/null)
+            if [ -z "$EXISTING" ]; then
+              echo "Re-binding $DOMAIN..."
+              az containerapp hostname add --name "$APP" --resource-group "$RG" --hostname "$DOMAIN" || true
+              az containerapp hostname bind --name "$APP" --resource-group "$RG" \
+                --hostname "$DOMAIN" --environment "$CAE" --validation-method HTTP || true
+            else
+              echo "$DOMAIN already bound"
+            fi
+          done
+
       # NOTE: Duplicate "Configure API startup probe" step was removed here.
       # The earlier step (line ~133) already sets the correct probe with
       # initialDelaySeconds=60. This second step was overwriting it with 10s,
