@@ -638,6 +638,95 @@ class SavedSearch(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 
+# ── Tender / Bidding module ──────────────────────────────────────────────
+
+
+class TenderStatus(enum.Enum):
+    draft    = "draft"
+    sent     = "sent"
+    closed   = "closed"
+    analysed = "analysed"
+
+
+class Tender(Base):
+    """An invitation-to-quote sent to one or more insurers for a client."""
+    __tablename__ = "tenders"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    orgnr            = Column(String(9), nullable=False, index=True)
+    firm_id          = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_by_email = Column(String, nullable=True)
+    title            = Column(String, nullable=False)
+    product_types    = Column(JSON, nullable=False)     # ["Personal", "Yrkesskade", "Bil", ...]
+    deadline         = Column(Date, nullable=True)
+    notes            = Column(String, nullable=True)    # kravspesifikasjon / fritekst
+    status           = Column(SAEnum(TenderStatus, name="tender_status", create_type=False), nullable=False, default=TenderStatus.draft)
+    analysis_result  = Column(JSON, nullable=True)      # AI comparison output
+    created_at       = Column(DateTime(timezone=True), nullable=False)
+
+
+class TenderRecipientStatus(enum.Enum):
+    pending  = "pending"
+    sent     = "sent"
+    received = "received"
+    declined = "declined"
+
+
+class TenderRecipient(Base):
+    """An insurer invited to respond to a tender."""
+    __tablename__ = "tender_recipients"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    tender_id      = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False, index=True)
+    insurer_name   = Column(String, nullable=False)
+    insurer_email  = Column(String, nullable=True)
+    status         = Column(SAEnum(TenderRecipientStatus, name="tender_recipient_status", create_type=False), nullable=False, default=TenderRecipientStatus.pending)
+    sent_at        = Column(DateTime(timezone=True), nullable=True)
+    response_at    = Column(DateTime(timezone=True), nullable=True)
+    created_at     = Column(DateTime(timezone=True), nullable=False)
+
+
+class TenderOffer(Base):
+    """A PDF offer received from an insurer in response to a tender."""
+    __tablename__ = "tender_offers"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    tender_id        = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False, index=True)
+    recipient_id     = Column(Integer, ForeignKey("tender_recipients.id", ondelete="SET NULL"), nullable=True, index=True)
+    insurer_name     = Column(String, nullable=False)
+    filename         = Column(String, nullable=False)
+    pdf_content      = Column(LargeBinary, nullable=False)
+    extracted_text   = Column(String, nullable=True)
+    extracted_data   = Column(JSON, nullable=True)      # structured AI extraction
+    uploaded_at      = Column(DateTime(timezone=True), nullable=False)
+
+
+# ── Coverage analysis module ────────────────────────────────────────────────
+
+
+class CoverageAnalysis(Base):
+    """AI-parsed coverage breakdown of an uploaded insurance policy document."""
+    __tablename__ = "coverage_analyses"
+
+    id                 = Column(Integer, primary_key=True, index=True)
+    orgnr              = Column(String(9), nullable=False, index=True)
+    firm_id            = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id        = Column(Integer, ForeignKey("insurance_documents.id", ondelete="SET NULL"), nullable=True, index=True)
+    title              = Column(String, nullable=False)          # e.g. "Ansvarsforsikring — If 2026"
+    insurer            = Column(String, nullable=True)
+    product_type       = Column(String, nullable=True)
+    filename           = Column(String, nullable=True)
+    pdf_content        = Column(LargeBinary, nullable=True)
+    extracted_text     = Column(String, nullable=True)
+    # Structured AI extraction — coverage details
+    coverage_data      = Column(JSON, nullable=True)             # full structured coverage breakdown
+    premium_nok        = Column(Float, nullable=True)
+    deductible_nok     = Column(Float, nullable=True)
+    coverage_sum_nok   = Column(Float, nullable=True)
+    status             = Column(String, nullable=False, default="pending")  # pending | analysed | error
+    created_at         = Column(DateTime(timezone=True), nullable=False)
+
+
 def init_db():
     with engine.connect() as conn:
         # Check first, then create — `CREATE EXTENSION IF NOT EXISTS` still

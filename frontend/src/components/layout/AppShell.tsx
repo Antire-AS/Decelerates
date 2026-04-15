@@ -41,6 +41,7 @@ const NAV_ITEMS = [
   { href: "/portfolio",   label: "Portefølje",           icon: BarChart2 },
   { href: "/prospecting", label: "Prospektering",        icon: Crosshair },
   { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw },
+  { href: "/tenders",     label: "Anbud",                icon: FileText },
   { href: "/idd",         label: "IDD / Behov",          icon: Scale },
   { href: "/insurers",    label: "Forsikringsselskaper", icon: Building2 },
   { href: "/sla",         label: "Avtaler",              icon: FileText },

@@ -893,3 +893,148 @@ export interface RiskConfig {
 
 export const getRiskConfig = () =>
   apiFetch<RiskConfig>("/risk/config");
+
+// ── Coverage Analysis ────────────────────────────────────────────────────────
+
+export interface CoverageAnalysis {
+  id: number;
+  orgnr: string;
+  title: string;
+  insurer?: string;
+  product_type?: string;
+  filename?: string;
+  coverage_data?: Record<string, unknown>;
+  premium_nok?: number;
+  deductible_nok?: number;
+  coverage_sum_nok?: number;
+  status: string;
+  created_at: string;
+}
+
+export const getOrgCoverageAnalyses = (orgnr: string) =>
+  apiFetch<CoverageAnalysis[]>(`/org/${orgnr}/coverage`);
+
+export const getCoverageAnalysis = (id: number) =>
+  apiFetch<CoverageAnalysis>(`/coverage/${id}`);
+
+export async function uploadCoverageAnalysis(
+  orgnr: string,
+  file: File,
+  opts?: { title?: string; insurer?: string; product_type?: string }
+): Promise<CoverageAnalysis> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts?.title) fd.append("title", opts.title);
+  if (opts?.insurer) fd.append("insurer", opts.insurer);
+  if (opts?.product_type) fd.append("product_type", opts.product_type);
+  const res = await fetch(`${apiBaseUrl()}/org/${orgnr}/coverage/analyse`, {
+    method: "POST",
+    body: fd,
+    headers: _authToken ? { Authorization: `Bearer ${_authToken}` } : {},
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return res.json();
+}
+
+export const deleteCoverageAnalysis = (id: number) =>
+  apiFetch<void>(`/coverage/${id}`, { method: "DELETE" });
+
+// ── Tenders (Anbud) ──────────────────────────────────────────────────────────
+
+export interface TenderRecipient {
+  id: number;
+  tender_id: number;
+  insurer_name: string;
+  insurer_email?: string;
+  status: string;
+  sent_at?: string;
+  response_at?: string;
+}
+
+export interface TenderOffer {
+  id: number;
+  tender_id: number;
+  recipient_id?: number;
+  insurer_name: string;
+  filename: string;
+  extracted_data?: Record<string, unknown>;
+  uploaded_at: string;
+}
+
+export interface Tender {
+  id: number;
+  orgnr: string;
+  title: string;
+  product_types: string[];
+  deadline?: string;
+  notes?: string;
+  status: string;
+  analysis_result?: Record<string, unknown>;
+  recipients: TenderRecipient[];
+  offers: TenderOffer[];
+  created_by_email?: string;
+  created_at: string;
+}
+
+export interface TenderListItem {
+  id: number;
+  orgnr: string;
+  title: string;
+  product_types: string[];
+  deadline?: string;
+  status: string;
+  recipient_count: number;
+  offer_count: number;
+  created_at: string;
+}
+
+export const getTenders = (orgnr?: string) => {
+  const qs = orgnr ? `?orgnr=${orgnr}` : "";
+  return apiFetch<TenderListItem[]>(`/tenders${qs}`);
+};
+
+export const getTender = (id: number) =>
+  apiFetch<Tender>(`/tenders/${id}`);
+
+export const createTender = (data: {
+  orgnr: string;
+  title: string;
+  product_types: string[];
+  deadline?: string;
+  notes?: string;
+  recipients?: { insurer_name: string; insurer_email?: string }[];
+}) => apiFetch<Tender>("/tenders", { method: "POST", body: JSON.stringify(data) });
+
+export const updateTender = (id: number, data: Record<string, unknown>) =>
+  apiFetch<Tender>(`/tenders/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteTender = (id: number) =>
+  apiFetch<void>(`/tenders/${id}`, { method: "DELETE" });
+
+export const sendTender = (id: number) =>
+  apiFetch<Tender>(`/tenders/${id}/send`, { method: "POST" });
+
+export async function uploadTenderOffer(
+  tenderId: number,
+  file: File,
+  insurerName: string,
+  recipientId?: number
+): Promise<TenderOffer> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("insurer_name", insurerName);
+  if (recipientId) fd.append("recipient_id", String(recipientId));
+  const res = await fetch(`${apiBaseUrl()}/tenders/${tenderId}/offers`, {
+    method: "POST",
+    body: fd,
+    headers: _authToken ? { Authorization: `Bearer ${_authToken}` } : {},
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return res.json();
+}
+
+export const analyseTender = (id: number) =>
+  apiFetch<{ tender_id: number; analysis: Record<string, unknown> }>(
+    `/tenders/${id}/analyse`,
+    { method: "POST" }
+  );

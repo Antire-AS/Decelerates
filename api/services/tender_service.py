@@ -1,0 +1,318 @@
+"""Tender (anbud) service — structured bidding process for insurance placement.
+
+Flow: Create tender → Add recipients → Send invitations → Collect offers →
+AI comparison → Broker makes decision.
+"""
+import logging
+from datetime import datetime, timezone
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
+from api.db import (
+    Tender, TenderRecipient, TenderOffer, TenderStatus,
+    TenderRecipientStatus, Company,
+)
+
+logger = logging.getLogger(__name__)
+
+_COMPARISON_PROMPT = """Du er en ekspert forsikringsmegler. Sammenlign følgende forsikringstilbud og returner en JSON-struktur:
+
+{
+  "anbefaling": {
+    "forsikringsgiver": "navn på anbefalt selskap",
+    "begrunnelse": "kort begrunnelse for anbefalingen"
+  },
+  "sammenligning": [
+    {
+      "kategori": "Premie / Dekning / Egenandel / Vilkår / Unntak / Karenstid",
+      "felter": [
+        {
+          "felt": "navn på dekningspunkt",
+          "verdier": {"SelskapA": "verdi", "SelskapB": "verdi"},
+          "kommentar": "vesentlig forskjell å merke seg",
+          "konfidens": "høy/middels/lav"
+        }
+      ]
+    }
+  ],
+  "nøkkelforskjeller": ["liste over de viktigste forskjellene"],
+  "oppsummering": "2-3 setninger om samlet vurdering"
+}
+
+Vær nøyaktig. Marker felt med lav konfidens der tallene er usikre.
+Returner KUN gyldig JSON."""
+
+
+class TenderService:
+    """Manages the tender lifecycle."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def create(
+        self,
+        orgnr: str,
+        firm_id: int,
+        title: str,
+        product_types: list,
+        deadline=None,
+        notes: Optional[str] = None,
+        created_by_email: Optional[str] = None,
+        recipients: Optional[list] = None,
+    ) -> Tender:
+        tender = Tender(
+            orgnr=orgnr,
+            firm_id=firm_id,
+            created_by_email=created_by_email,
+            title=title,
+            product_types=product_types,
+            deadline=deadline,
+            notes=notes,
+            status=TenderStatus.draft,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.db.add(tender)
+        self.db.flush()
+
+        for r in (recipients or []):
+            self.db.add(TenderRecipient(
+                tender_id=tender.id,
+                insurer_name=r.get("insurer_name", r.get("name", "")),
+                insurer_email=r.get("insurer_email", r.get("email")),
+                status=TenderRecipientStatus.pending,
+                created_at=datetime.now(timezone.utc),
+            ))
+
+        self.db.commit()
+        self.db.refresh(tender)
+        return tender
+
+    def get(self, tender_id: int) -> Optional[Tender]:
+        return self.db.query(Tender).get(tender_id)
+
+    def list_all(self, firm_id: int) -> list:
+        return (
+            self.db.query(Tender)
+            .filter(Tender.firm_id == firm_id)
+            .order_by(Tender.created_at.desc())
+            .all()
+        )
+
+    def list_for_company(self, orgnr: str) -> list:
+        return (
+            self.db.query(Tender)
+            .filter(Tender.orgnr == orgnr)
+            .order_by(Tender.created_at.desc())
+            .all()
+        )
+
+    def update(self, tender_id: int, **kwargs) -> Optional[Tender]:
+        tender = self.db.query(Tender).get(tender_id)
+        if not tender:
+            return None
+        for k, v in kwargs.items():
+            if v is not None and hasattr(tender, k):
+                if k == "status":
+                    v = TenderStatus(v)
+                setattr(tender, k, v)
+        self.db.commit()
+        self.db.refresh(tender)
+        return tender
+
+    def delete(self, tender_id: int) -> bool:
+        tender = self.db.query(Tender).get(tender_id)
+        if not tender:
+            return False
+        self.db.delete(tender)
+        self.db.commit()
+        return True
+
+    def get_recipients(self, tender_id: int) -> list:
+        return (
+            self.db.query(TenderRecipient)
+            .filter(TenderRecipient.tender_id == tender_id)
+            .all()
+        )
+
+    def add_recipient(self, tender_id: int, insurer_name: str, insurer_email: Optional[str] = None) -> TenderRecipient:
+        r = TenderRecipient(
+            tender_id=tender_id,
+            insurer_name=insurer_name,
+            insurer_email=insurer_email,
+            status=TenderRecipientStatus.pending,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.db.add(r)
+        self.db.commit()
+        self.db.refresh(r)
+        return r
+
+    def send_invitations(self, tender_id: int) -> Tender:
+        """Mark tender as sent and send emails to all recipients."""
+        tender = self.db.query(Tender).get(tender_id)
+        if not tender:
+            raise ValueError(f"Tender {tender_id} not found")
+
+        recipients = self.get_recipients(tender_id)
+        company = self.db.query(Company).filter(Company.orgnr == tender.orgnr).first()
+        company_name = company.navn if company else tender.orgnr
+
+        for r in recipients:
+            if r.insurer_email:
+                success = _send_tender_email(
+                    to=r.insurer_email,
+                    tender=tender,
+                    company_name=company_name,
+                    insurer_name=r.insurer_name,
+                )
+                if success:
+                    r.status = TenderRecipientStatus.sent
+                    r.sent_at = datetime.now(timezone.utc)
+
+        tender.status = TenderStatus.sent
+        self.db.commit()
+        self.db.refresh(tender)
+        return tender
+
+    def upload_offer(
+        self,
+        tender_id: int,
+        insurer_name: str,
+        filename: str,
+        pdf_bytes: bytes,
+        recipient_id: Optional[int] = None,
+    ) -> TenderOffer:
+        """Upload a PDF offer from an insurer."""
+        from api.services.coverage_service import _extract_text
+
+        extracted_text = _extract_text(pdf_bytes)
+
+        offer = TenderOffer(
+            tender_id=tender_id,
+            recipient_id=recipient_id,
+            insurer_name=insurer_name,
+            filename=filename,
+            pdf_content=pdf_bytes,
+            extracted_text=extracted_text,
+            uploaded_at=datetime.now(timezone.utc),
+        )
+        self.db.add(offer)
+
+        # Mark recipient as received
+        if recipient_id:
+            r = self.db.query(TenderRecipient).get(recipient_id)
+            if r:
+                r.status = TenderRecipientStatus.received
+                r.response_at = datetime.now(timezone.utc)
+
+        self.db.commit()
+        self.db.refresh(offer)
+        return offer
+
+    def get_offers(self, tender_id: int) -> list:
+        return (
+            self.db.query(TenderOffer)
+            .filter(TenderOffer.tender_id == tender_id)
+            .all()
+        )
+
+    def extract_offer(self, offer_id: int) -> TenderOffer:
+        """Run AI extraction on a single offer PDF."""
+        offer = self.db.query(TenderOffer).get(offer_id)
+        if not offer:
+            raise ValueError(f"Offer {offer_id} not found")
+
+        from api.services.coverage_service import _analyse_with_ai
+        result = _analyse_with_ai(offer.pdf_content, offer.extracted_text)
+        if result:
+            offer.extracted_data = result
+        self.db.commit()
+        self.db.refresh(offer)
+        return offer
+
+    def analyse_offers(self, tender_id: int) -> dict:
+        """Compare all offers for a tender using AI."""
+        offers = self.get_offers(tender_id)
+        if len(offers) < 2:
+            raise ValueError("Minst 2 tilbud kreves for sammenligning")
+
+        tender = self.db.query(Tender).get(tender_id)
+
+        # First ensure all offers have extracted data
+        for offer in offers:
+            if not offer.extracted_data:
+                self.extract_offer(offer.id)
+
+        # Reload offers with fresh data
+        offers = self.get_offers(tender_id)
+
+        # Build comparison input
+        offer_summaries = []
+        for o in offers:
+            summary = f"## {o.insurer_name}\n"
+            if o.extracted_data:
+                import json
+                summary += json.dumps(o.extracted_data, ensure_ascii=False, indent=2)
+            elif o.extracted_text:
+                summary += o.extracted_text[:4000]
+            else:
+                summary += "(Ingen data tilgjengelig)"
+            offer_summaries.append(summary)
+
+        combined = "\n\n---\n\n".join(offer_summaries)
+
+        from api.services.llm import _try_foundry_chat, _parse_json_from_llm_response
+        raw = _try_foundry_chat(
+            f"Her er {len(offers)} forsikringstilbud som skal sammenlignes:\n\n{combined}",
+            _COMPARISON_PROMPT,
+            max_tokens=4000,
+        )
+
+        result = {}
+        if raw:
+            parsed = _parse_json_from_llm_response(raw)
+            if parsed:
+                result = parsed
+
+        tender.analysis_result = result
+        tender.status = TenderStatus.analysed
+        self.db.commit()
+
+        return result
+
+
+def _send_tender_email(to: str, tender, company_name: str, insurer_name: str) -> bool:
+    """Send tender invitation email to an insurer."""
+    try:
+        from api.container import resolve
+        from api.ports.driven.notification_port import NotificationPort
+        notification = resolve(NotificationPort)
+
+        deadline_str = tender.deadline.strftime("%d.%m.%Y") if tender.deadline else "Ikke satt"
+        products = ", ".join(tender.product_types) if tender.product_types else "Diverse"
+
+        body_html = f"""
+        <html><body style='font-family:Arial,sans-serif;color:#222'>
+        <h2 style='color:#1a252f'>Anbudsforespørsel — {company_name}</h2>
+        <p>Hei {insurer_name},</p>
+        <p>Vi sender herved en anbudsforespørsel på vegne av vår klient <strong>{company_name}</strong>.</p>
+        <table style='border-collapse:collapse;width:100%;font-size:14px;margin:16px 0'>
+          <tr style='background:#f5f5f5'>
+            <td style='padding:8px;border:1px solid #ddd'><strong>Produkter</strong></td>
+            <td style='padding:8px;border:1px solid #ddd'>{products}</td>
+          </tr>
+          <tr>
+            <td style='padding:8px;border:1px solid #ddd'><strong>Anbudsfrist</strong></td>
+            <td style='padding:8px;border:1px solid #ddd'>{deadline_str}</td>
+          </tr>
+        </table>
+        {"<p><strong>Kravspesifikasjon:</strong></p><p>" + tender.notes + "</p>" if tender.notes else ""}
+        <p>Vennligst send deres tilbud som PDF-vedlegg til denne e-posten innen fristen.</p>
+        <p style='color:#888;font-size:12px'>Sendt via Broker Accelerator — meglerai.no</p>
+        </body></html>
+        """
+        return notification.send_email(to, f"Anbudsforespørsel: {company_name} — {products}", body_html)
+    except Exception as exc:
+        logger.warning("Failed to send tender email to %s: %s", to, exc)
+        return False

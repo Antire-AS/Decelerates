@@ -127,6 +127,8 @@ from api.routers import (
     webhooks,
     accounting,
     insurer_api,
+    coverage_router,
+    tender_router,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -383,5 +385,7 @@ app.include_router(email_compose.router)
 app.include_router(webhooks.router)
 app.include_router(accounting.router)
 app.include_router(insurer_api.router)
+app.include_router(coverage_router.router)
+app.include_router(tender_router.router)
 
 __all__ = ["app", "limiter"]
