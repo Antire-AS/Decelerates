@@ -894,6 +894,36 @@ export interface RiskConfig {
 export const getRiskConfig = () =>
   apiFetch<RiskConfig>("/risk/config");
 
+// ── Insurance premium benchmarks ─────────────────────────────────────────
+
+export interface PremiumEstimate {
+  label: string;
+  description: string;
+  bracket: string;
+  bracket_label: string;
+  low: number;
+  mid: number;
+  high: number;
+  nace_adjustment: number;
+}
+
+export interface PremiumBenchmarkResponse {
+  mode: string;
+  revenue?: number;
+  nace_section?: string;
+  estimates?: Record<string, PremiumEstimate>;
+  brackets?: Record<string, unknown>;
+  products?: Record<string, unknown>;
+}
+
+export const getInsuranceBenchmarks = (revenue?: number, naceSection?: string) => {
+  const params = new URLSearchParams();
+  if (revenue != null) params.set("revenue", String(revenue));
+  if (naceSection) params.set("nace_section", naceSection);
+  const qs = params.toString();
+  return apiFetch<PremiumBenchmarkResponse>(`/insurance/benchmarks${qs ? "?" + qs : ""}`);
+};
+
 // ── Coverage Analysis ────────────────────────────────────────────────────────
 
 export interface CoverageAnalysis {

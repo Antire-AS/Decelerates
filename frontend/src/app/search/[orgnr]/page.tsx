@@ -24,6 +24,7 @@ const ClientPortalSection = dynamic(() => import("@/components/crm/ClientPortalS
 const SubmissionsSection = dynamic(() => import("@/components/crm/SubmissionsSection"));
 const RecommendationsSection = dynamic(() => import("@/components/crm/RecommendationsSection"));
 const CoverageSection = dynamic(() => import("@/components/company/CoverageSection"));
+import PremiumBenchmark from "@/components/company/PremiumBenchmark";
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
@@ -264,6 +265,10 @@ export default function OrgProfilePage({
       {/* ── Forsikring ──────────────────────────────────────────────── */}
       {activeTab === "forsikring" && (
         <div className="space-y-6">
+          <PremiumBenchmark
+            revenue={(prof?.regnskap?.revenue as number | undefined) ?? undefined}
+            naceSection={(prof?.org?.naeringskode1 as string | undefined) ?? undefined}
+          />
           <CoverageSection orgnr={orgnr} />
           <ForsikringSection orgnr={orgnr} />
         </div>

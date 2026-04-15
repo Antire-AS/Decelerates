@@ -103,3 +103,29 @@ def get_norgesbank_rate(currency: str) -> dict:
         "nok_rate": rate,
         "source": "Norges Bank Data API (data.norges-bank.no)",
     }
+
+
+@router.get("/insurance/benchmarks")
+def get_insurance_benchmarks(revenue: float = None, nace_section: str = None):
+    """Return indicative premium ranges for Norwegian business insurance.
+
+    Optionally supply revenue (NOK) and nace_section (A-S) to get
+    company-specific estimates with NACE risk adjustments.
+    """
+    from api.constants_insurance import (
+        PREMIUM_BENCHMARKS, REVENUE_BRACKETS, NACE_RISK_MULTIPLIERS,
+        estimate_premiums_for_company,
+    )
+    if revenue is not None:
+        return {
+            "mode": "company",
+            "revenue": revenue,
+            "nace_section": nace_section,
+            "estimates": estimate_premiums_for_company(revenue, nace_section),
+        }
+    return {
+        "mode": "reference",
+        "brackets": REVENUE_BRACKETS,
+        "products": PREMIUM_BENCHMARKS,
+        "nace_adjustments": NACE_RISK_MULTIPLIERS,
+    }
