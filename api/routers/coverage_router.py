@@ -68,7 +68,7 @@ async def list_coverage(
     user: User = Depends(get_current_user),
 ):
     """List all coverage analyses for a company."""
-    return [_to_out(a) for a in svc.list_for_company(orgnr)]
+    return [_to_out(a) for a in svc.list_for_company(orgnr, user.firm_id)]
 
 
 @router.get("/coverage/{analysis_id}", response_model=CoverageAnalysisOut)
@@ -80,7 +80,7 @@ async def get_coverage(
     user: User = Depends(get_current_user),
 ):
     """Get a single coverage analysis."""
-    analysis = svc.get(analysis_id)
+    analysis = svc.get(analysis_id, user.firm_id)
     if not analysis:
         raise HTTPException(status_code=404, detail="Analyse ikke funnet")
     return _to_out(analysis)
@@ -95,7 +95,7 @@ async def delete_coverage(
     user: User = Depends(get_current_user),
 ):
     """Delete a coverage analysis."""
-    if not svc.delete(analysis_id):
+    if not svc.delete(analysis_id, user.firm_id):
         raise HTTPException(status_code=404, detail="Analyse ikke funnet")
     return {"deleted": True}
 

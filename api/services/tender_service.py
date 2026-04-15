@@ -88,8 +88,12 @@ class TenderService:
         self.db.refresh(tender)
         return tender
 
-    def get(self, tender_id: int) -> Optional[Tender]:
-        return self.db.query(Tender).get(tender_id)
+    def get(self, tender_id: int, firm_id: int) -> Optional[Tender]:
+        return (
+            self.db.query(Tender)
+            .filter(Tender.id == tender_id, Tender.firm_id == firm_id)
+            .first()
+        )
 
     def list_all(self, firm_id: int) -> list:
         return (
@@ -99,16 +103,16 @@ class TenderService:
             .all()
         )
 
-    def list_for_company(self, orgnr: str) -> list:
+    def list_for_company(self, orgnr: str, firm_id: int) -> list:
         return (
             self.db.query(Tender)
-            .filter(Tender.orgnr == orgnr)
+            .filter(Tender.orgnr == orgnr, Tender.firm_id == firm_id)
             .order_by(Tender.created_at.desc())
             .all()
         )
 
-    def update(self, tender_id: int, **kwargs) -> Optional[Tender]:
-        tender = self.db.query(Tender).get(tender_id)
+    def update(self, tender_id: int, firm_id: int, **kwargs) -> Optional[Tender]:
+        tender = self.get(tender_id, firm_id)
         if not tender:
             return None
         for k, v in kwargs.items():
@@ -120,8 +124,8 @@ class TenderService:
         self.db.refresh(tender)
         return tender
 
-    def delete(self, tender_id: int) -> bool:
-        tender = self.db.query(Tender).get(tender_id)
+    def delete(self, tender_id: int, firm_id: int) -> bool:
+        tender = self.get(tender_id, firm_id)
         if not tender:
             return False
         self.db.delete(tender)
@@ -148,9 +152,9 @@ class TenderService:
         self.db.refresh(r)
         return r
 
-    def send_invitations(self, tender_id: int) -> Tender:
+    def send_invitations(self, tender_id: int, firm_id: int) -> Tender:
         """Mark tender as sent and send emails to all recipients."""
-        tender = self.db.query(Tender).get(tender_id)
+        tender = self.get(tender_id, firm_id)
         if not tender:
             raise ValueError(f"Tender {tender_id} not found")
 
@@ -231,13 +235,15 @@ class TenderService:
         self.db.refresh(offer)
         return offer
 
-    def analyse_offers(self, tender_id: int) -> dict:
+    def analyse_offers(self, tender_id: int, firm_id: int) -> dict:
         """Compare all offers for a tender using AI."""
         offers = self.get_offers(tender_id)
         if len(offers) < 2:
             raise ValueError("Minst 2 tilbud kreves for sammenligning")
 
-        tender = self.db.query(Tender).get(tender_id)
+        tender = self.get(tender_id, firm_id)
+        if not tender:
+            raise ValueError(f"Tender {tender_id} not found")
 
         # First ensure all offers have extracted data
         for offer in offers:
@@ -307,7 +313,7 @@ def _send_tender_email(to: str, tender, company_name: str, insurer_name: str) ->
             <td style='padding:8px;border:1px solid #ddd'>{deadline_str}</td>
           </tr>
         </table>
-        {"<p><strong>Kravspesifikasjon:</strong></p><p>" + tender.notes + "</p>" if tender.notes else ""}
+        {"<p><strong>Kravspesifikasjon:</strong></p><p>" + __import__('html').escape(tender.notes) + "</p>" if tender.notes else ""}
         <p>Vennligst send deres tilbud som PDF-vedlegg til denne e-posten innen fristen.</p>
         <p style='color:#888;font-size:12px'>Sendt via Broker Accelerator — meglerai.no</p>
         </body></html>

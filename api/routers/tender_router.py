@@ -57,7 +57,7 @@ async def list_tenders(
 ):
     """List tenders, optionally filtered by company."""
     if orgnr:
-        tenders = svc.list_for_company(orgnr)
+        tenders = svc.list_for_company(orgnr, user.firm_id)
     else:
         tenders = svc.list_all(user.firm_id)
 
@@ -88,7 +88,7 @@ async def get_tender(
     user: User = Depends(get_current_user),
 ):
     """Get tender details with recipients and offers."""
-    tender = svc.get(tender_id)
+    tender = svc.get(tender_id, user.firm_id)
     if not tender:
         raise HTTPException(status_code=404, detail="Anbud ikke funnet")
     return _to_detail(tender, svc)
@@ -105,7 +105,7 @@ async def update_tender(
 ):
     """Update tender fields."""
     updates = body.model_dump(exclude_none=True)
-    tender = svc.update(tender_id, **updates)
+    tender = svc.update(tender_id, user.firm_id, **updates)
     if not tender:
         raise HTTPException(status_code=404, detail="Anbud ikke funnet")
     return _to_detail(tender, svc)
@@ -120,7 +120,7 @@ async def delete_tender(
     user: User = Depends(get_current_user),
 ):
     """Delete a tender and all associated offers."""
-    if not svc.delete(tender_id):
+    if not svc.delete(tender_id, user.firm_id):
         raise HTTPException(status_code=404, detail="Anbud ikke funnet")
     return {"deleted": True}
 
@@ -135,7 +135,7 @@ async def send_tender(
 ):
     """Send tender invitations to all recipients via email."""
     try:
-        tender = svc.send_invitations(tender_id)
+        tender = svc.send_invitations(tender_id, user.firm_id)
         return _to_detail(tender, svc)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -216,7 +216,7 @@ async def analyse_tender(
 ):
     """Run AI comparison of all offers in a tender."""
     try:
-        result = svc.analyse_offers(tender_id)
+        result = svc.analyse_offers(tender_id, user.firm_id)
         return {"tender_id": tender_id, "analysis": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

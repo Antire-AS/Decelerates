@@ -113,19 +113,23 @@ class CoverageService:
         self.db.refresh(analysis)
         return analysis
 
-    def list_for_company(self, orgnr: str) -> list:
+    def list_for_company(self, orgnr: str, firm_id: int) -> list:
         return (
             self.db.query(CoverageAnalysis)
-            .filter(CoverageAnalysis.orgnr == orgnr)
+            .filter(CoverageAnalysis.orgnr == orgnr, CoverageAnalysis.firm_id == firm_id)
             .order_by(CoverageAnalysis.created_at.desc())
             .all()
         )
 
-    def get(self, analysis_id: int) -> Optional[CoverageAnalysis]:
-        return self.db.query(CoverageAnalysis).get(analysis_id)
+    def get(self, analysis_id: int, firm_id: int) -> Optional[CoverageAnalysis]:
+        return (
+            self.db.query(CoverageAnalysis)
+            .filter(CoverageAnalysis.id == analysis_id, CoverageAnalysis.firm_id == firm_id)
+            .first()
+        )
 
-    def delete(self, analysis_id: int) -> bool:
-        row = self.db.query(CoverageAnalysis).get(analysis_id)
+    def delete(self, analysis_id: int, firm_id: int) -> bool:
+        row = self.get(analysis_id, firm_id)
         if not row:
             return False
         self.db.delete(row)
