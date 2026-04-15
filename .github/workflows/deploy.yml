@@ -113,6 +113,7 @@ jobs:
             "SIGNICAT_CLIENT_ID=${{ secrets.SIGNICAT_CLIENT_ID }}"
             "SIGNICAT_CLIENT_SECRET=${{ secrets.SIGNICAT_CLIENT_SECRET }}"
             "SIGNICAT_WEBHOOK_URL=${{ secrets.SIGNICAT_WEBHOOK_URL }}"
+            "ACS_SENDER_ADDRESS=anbud@meglerai.no"
             "AUTH_DISABLED=1"
           )
 
