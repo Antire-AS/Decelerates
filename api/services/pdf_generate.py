@@ -14,6 +14,10 @@ from api.services.pdf_offer import (  # noqa: F401
     generate_forsikringstilbud_pdf,
 )
 from api.services.pdf_portfolio import generate_portfolio_pdf  # noqa: F401
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 # ── Service class ─────────────────────────────────────────────────────────────

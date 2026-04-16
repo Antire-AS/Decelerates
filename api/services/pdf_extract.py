@@ -53,6 +53,10 @@ from api.services.pdf_background import (
     _auto_extract_pdf_sources,
     PdfExtractService,
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 __all__ = [
     # pdf_parse

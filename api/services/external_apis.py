@@ -41,6 +41,10 @@ from api.services.geo_stats_client import (  # noqa: F401
     fetch_ssb_benchmark,
     fetch_norgesbank_rate,
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class ExternalApiService:

@@ -13,6 +13,10 @@ import os
 
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class BlobStorageService(AzureBlobStorageAdapter):

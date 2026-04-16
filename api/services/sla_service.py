@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session
 
 from api.db import SlaAgreement, BrokerSettings
 from api.schemas import SlaIn
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class SlaService:

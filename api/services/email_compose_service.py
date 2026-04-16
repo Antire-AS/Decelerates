@@ -14,6 +14,10 @@ from sqlalchemy.orm import Session
 from api.db import Activity, ActivityType
 from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.services.audit import log_audit
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class EmailComposeService:

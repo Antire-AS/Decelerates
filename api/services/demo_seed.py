@@ -15,6 +15,10 @@ from api.db import (
     ContactPerson, Deal, IddBehovsanalyse, Insurer, Submission, SubmissionStatus,
     Recommendation, PipelineStage, PipelineStageKind,
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 random.seed(42)  # Reproducible but looks realistic
 

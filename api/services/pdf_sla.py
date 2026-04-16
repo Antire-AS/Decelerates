@@ -6,6 +6,10 @@ from fpdf import FPDF
 from api.constants import STANDARD_VILKAAR, BROKER_TASKS
 from api.db import SlaAgreement
 from api.services.pdf_base import _safe, _section_title
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 # ── Page-builder helpers ──────────────────────────────────────────────────────

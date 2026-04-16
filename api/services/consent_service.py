@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session
 
 from api.db import ConsentRecord, LawfulBasis
 from api.domain.exceptions import NotFoundError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class ConsentService:

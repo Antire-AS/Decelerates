@@ -3,6 +3,10 @@ from datetime import date
 from typing import Any, Dict, Optional
 
 from fpdf import FPDF
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 

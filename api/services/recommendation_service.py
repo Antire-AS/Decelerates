@@ -13,6 +13,10 @@ from sqlalchemy.orm import Session
 from api.db import Recommendation, Submission, IddBehovsanalyse
 from api.domain.exceptions import NotFoundError
 from api.services.llm import _llm_answer_raw
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _build_rationale_prompt(

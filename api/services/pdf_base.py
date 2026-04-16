@@ -1,5 +1,9 @@
 """Shared PDF infrastructure — colour constants, _safe(), _section_title()."""
 from typing import Any
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # ── Forsikringstilbud colour palette ─────────────────────────────────────────
 _DARK_BLUE  = (20,  50, 120)

@@ -9,6 +9,10 @@ from api.db import (
     Policy, Claim, Activity,
 )
 from api.domain.exceptions import NotFoundError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 _RETENTION_DAYS = 90  # hard-delete soft-deleted companies after this many days

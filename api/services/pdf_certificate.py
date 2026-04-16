@@ -5,6 +5,10 @@ from typing import Any, List
 from fpdf import FPDF
 
 from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _fmt_nok(v: Any) -> str:

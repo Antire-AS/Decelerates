@@ -12,6 +12,10 @@ from sqlalchemy.orm import Session
 
 from api.db import Notification, NotificationKind, User
 from api.domain.exceptions import NotFoundError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class NotificationInboxService:

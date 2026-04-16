@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session
 from api.db import Claim, ClaimStatus, Policy
 from api.domain.exceptions import NotFoundError
 from api.schemas import ClaimIn, ClaimUpdate
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class ClaimsService:

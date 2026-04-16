@@ -4,6 +4,10 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from api.db import PortfolioCompany, Company, Policy, PolicyStatus
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _insurer_concentration(policies: list, total_premium: float) -> list:

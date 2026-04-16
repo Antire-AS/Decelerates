@@ -5,6 +5,10 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from api.db import Policy, PolicyStatus
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _calc_policy_commission(p: Policy) -> float:

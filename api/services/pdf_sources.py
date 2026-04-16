@@ -4,6 +4,10 @@ from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 
 from api.db import CompanyPdfSource, CompanyHistory, InsuranceDocument
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class PdfSourcesService:

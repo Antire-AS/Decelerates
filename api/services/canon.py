@@ -28,6 +28,10 @@ page double-counts a single insurer until we notice.
 """
 
 from __future__ import annotations
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # ── Insurer canonicalisation ──────────────────────────────────────────────────
 

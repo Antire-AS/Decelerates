@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 
 from api.db import Insurer, Submission, SubmissionStatus
 from api.domain.exceptions import NotFoundError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _aggregate_submissions(submissions) -> tuple[dict, dict, dict]:

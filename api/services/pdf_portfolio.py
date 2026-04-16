@@ -6,6 +6,10 @@ from typing import Any
 from fpdf import FPDF
 
 from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _portfolio_cover(pdf: Any, portfolio_name: str, broker: dict, generated_at: str) -> None:

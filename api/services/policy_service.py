@@ -7,6 +7,10 @@ from api.db import Policy, PolicyStatus, RenewalStage
 from api.domain.exceptions import NotFoundError, ValidationError
 from api.schemas import PolicyIn, PolicyUpdate
 from api.services.canon import canonical_insurer_name, canonical_product_name
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 _RENEWAL_THRESHOLDS = [90, 60, 30, 14, 7]
 

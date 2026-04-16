@@ -13,6 +13,10 @@ from api.adapters.notification_adapter import (
     _DEFAULT_SENDER,
 )
 from api.ports.driven.notification_port import NotificationPort
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class NotificationService(AzureEmailNotificationAdapter):

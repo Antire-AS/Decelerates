@@ -17,6 +17,10 @@ from api.schemas import (
     PipelineStageUpdate,
 )
 from api.services.audit import log_audit
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class DealService:

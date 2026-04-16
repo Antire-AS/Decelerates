@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 from api.db import BrokerSettings, BrokerNote, NotificationKind, User
 from api.domain.exceptions import NotFoundError
 from api.schemas import BrokerSettingsIn, _BrokerNoteBody
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # @mention parser — accepts @user@firm.no patterns. Matches an `@` followed by
 # a standard email; restricts to same-firm via the User lookup downstream.

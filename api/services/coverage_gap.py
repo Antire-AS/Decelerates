@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 
 from api.db import Company, CompanyHistory, Policy, PolicyStatus
 from api.use_cases.insurance_needs import estimate_insurance_needs
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 # Maps each recommended type to keywords that match policy product_type values.

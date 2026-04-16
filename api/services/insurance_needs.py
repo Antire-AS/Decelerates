@@ -6,6 +6,10 @@ from api.use_cases.insurance_needs import (
     _mnok,
     _estimate_premium,
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 __all__ = [
     "estimate_insurance_needs",

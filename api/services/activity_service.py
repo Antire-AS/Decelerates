@@ -7,6 +7,10 @@ from sqlalchemy.orm import Session
 from api.db import Activity, ActivityType
 from api.domain.exceptions import NotFoundError
 from api.schemas import ActivityIn, ActivityUpdate
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class ActivityService:

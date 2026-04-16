@@ -6,6 +6,10 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from api.db import ClientToken
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 _TOKEN_TTL_DAYS = 30
 

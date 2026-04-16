@@ -7,6 +7,10 @@ from sqlalchemy.orm import Session
 from api.db import BrokerFirm, User, UserRole
 from api.domain.exceptions import ForbiddenError, NotFoundError
 from api.schemas import UserRoleUpdate
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class UserService:

@@ -12,6 +12,10 @@ from api.db import Company, CompanyHistory, CompanyPdfSource
 from api.risk import derive_simple_risk, build_risk_summary
 from api.services.external_apis import fetch_enhet_by_orgnr, fetch_regnskap_keyfigures, pep_screen_name
 from api.services.llm import _fmt_nok, _llm_answer_raw
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def _seed_pdf_sources(db: Session) -> None:
