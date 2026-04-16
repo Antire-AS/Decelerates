@@ -184,19 +184,30 @@ _HANDLERS = {
 }
 
 
+class CopilotToolsService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def execute_tool(
+        self, name: str, args_json: str, firm_id: int, orgnr: str,
+    ) -> str:
+        """Execute a tool by name. Returns the result string for the LLM."""
+        handler = _HANDLERS.get(name)
+        if not handler:
+            return f"Ukjent verktøy: {name}"
+        try:
+            args = json.loads(args_json) if args_json else {}
+        except json.JSONDecodeError:
+            args = {}
+        try:
+            return handler(args, self.db, firm_id, orgnr)
+        except Exception as exc:
+            _log.warning("Copilot tool %s failed: %s", name, exc)
+            return f"Verktøyet {name} feilet: {exc}"
+
+
+# Backward compat
 def execute_tool(
     name: str, args_json: str, db: Session, firm_id: int, orgnr: str,
 ) -> str:
-    """Execute a tool by name. Returns the result string for the LLM."""
-    handler = _HANDLERS.get(name)
-    if not handler:
-        return f"Ukjent verktøy: {name}"
-    try:
-        args = json.loads(args_json) if args_json else {}
-    except json.JSONDecodeError:
-        args = {}
-    try:
-        return handler(args, db, firm_id, orgnr)
-    except Exception as exc:
-        _log.warning("Copilot tool %s failed: %s", name, exc)
-        return f"Verktøyet {name} feilet: {exc}"
+    return CopilotToolsService(db).execute_tool(name, args_json, firm_id, orgnr)

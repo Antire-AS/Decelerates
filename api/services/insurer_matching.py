@@ -109,25 +109,37 @@ def _build_recommendations(
     ]
 
 
+class InsurerMatchingService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def recommend_insurers(
+        self, orgnr: str, firm_id: int, product_types: list[str] | None,
+        top_n: int = 3,
+    ) -> dict[str, Any]:
+        """Score and rank insurers for a company. Returns top N with reasoning."""
+        company = self.db.query(Company).filter(Company.orgnr == orgnr).first()
+        company_name = company.navn if company else orgnr
+        product_types = _resolve_product_types(orgnr, firm_id, product_types, self.db)
+
+        insurers = self.db.query(Insurer).filter(Insurer.firm_id == firm_id).all()
+        if not insurers:
+            return {"recommendations": [], "company": {"orgnr": orgnr, "navn": company_name}}
+
+        win_rates = _compute_win_rates(firm_id, self.db)
+        scored = sorted(
+            [(ins, _score_insurer(ins, product_types, win_rates)) for ins in insurers],
+            key=lambda x: x[1], reverse=True,
+        )
+        return {
+            "recommendations": _build_recommendations(scored[:top_n], win_rates, company_name, product_types),
+            "company": {"orgnr": orgnr, "navn": company_name},
+        }
+
+
+# Backward compat
 def recommend_insurers(
     orgnr: str, firm_id: int, product_types: list[str] | None,
     db: Session, top_n: int = 3,
 ) -> dict[str, Any]:
-    """Score and rank insurers for a company. Returns top N with reasoning."""
-    company = db.query(Company).filter(Company.orgnr == orgnr).first()
-    company_name = company.navn if company else orgnr
-    product_types = _resolve_product_types(orgnr, firm_id, product_types, db)
-
-    insurers = db.query(Insurer).filter(Insurer.firm_id == firm_id).all()
-    if not insurers:
-        return {"recommendations": [], "company": {"orgnr": orgnr, "navn": company_name}}
-
-    win_rates = _compute_win_rates(firm_id, db)
-    scored = sorted(
-        [(ins, _score_insurer(ins, product_types, win_rates)) for ins in insurers],
-        key=lambda x: x[1], reverse=True,
-    )
-    return {
-        "recommendations": _build_recommendations(scored[:top_n], win_rates, company_name, product_types),
-        "company": {"orgnr": orgnr, "navn": company_name},
-    }
+    return InsurerMatchingService(db).recommend_insurers(orgnr, firm_id, product_types, top_n)

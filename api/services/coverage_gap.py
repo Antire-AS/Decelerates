@@ -25,7 +25,7 @@ _MATCH_KEYWORDS: dict[str, list[str]] = {
     "motorvognforsikring":        ["motorvogn", "bil", "kjøretøy", "motor"],
     "reiseforsikring":            ["reise"],
     "personforsikring":           ["person", "liv", "ulykke"],
-    "avbruddsforsikring":         ["avbrudd", "driftsavbrudd", "business interruption"],
+    "avbruddsforsikring":        ["avbrudd", "driftsavbrudd", "business interruption"],
 }
 
 
@@ -116,65 +116,77 @@ def _build_gap_item(need: dict[str, Any], active_policies: list[Policy]) -> dict
     }
 
 
-def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any]:
-    """Compare active policies against insurance-need recommendations.
+class CoverageGapService:
+    def __init__(self, db: Session):
+        self.db = db
 
-    Returns a dict shaped like:
-        {orgnr, items: [{type, priority, reason, status, estimated_coverage_nok,
-        actual_coverage_nok, actual_insurer, actual_policy_number, coverage_note}],
-        covered_count, gap_count, total_count}
-    """
-    org, regn = _load_company_context(orgnr, db)
-    needs = estimate_insurance_needs(org, regn)
+    def analyze_coverage_gap(self, orgnr: str, firm_id: int) -> dict[str, Any]:
+        """Compare active policies against insurance-need recommendations.
 
-    active_policies = (
-        db.query(Policy)
-        .filter(
-            Policy.orgnr == orgnr,
-            Policy.firm_id == firm_id,
-            Policy.status == PolicyStatus.active,
+        Returns a dict shaped like:
+            {orgnr, items: [{type, priority, reason, status, estimated_coverage_nok,
+            actual_coverage_nok, actual_insurer, actual_policy_number, coverage_note}],
+            covered_count, gap_count, total_count}
+        """
+        org, regn = _load_company_context(orgnr, self.db)
+        needs = estimate_insurance_needs(org, regn)
+
+        active_policies = (
+            self.db.query(Policy)
+            .filter(
+                Policy.orgnr == orgnr,
+                Policy.firm_id == firm_id,
+                Policy.status == PolicyStatus.active,
+            )
+            .all()
         )
-        .all()
-    )
 
-    items = [_build_gap_item(need, active_policies) for need in needs]
-    covered = sum(1 for i in items if i["status"] == "covered")
+        items = [_build_gap_item(need, active_policies) for need in needs]
+        covered = sum(1 for i in items if i["status"] == "covered")
 
-    return {
-        "orgnr":         orgnr,
-        "items":         items,
-        "covered_count": covered,
-        "gap_count":     len(items) - covered,
-        "total_count":   len(items),
-    }
+        return {
+            "orgnr":         orgnr,
+            "items":         items,
+            "covered_count": covered,
+            "gap_count":     len(items) - covered,
+            "total_count":   len(items),
+        }
+
+    def get_companies_with_gaps(self, firm_id: int) -> list[dict]:
+        """Return all companies in the firm's book that have at least one coverage gap."""
+        orgnrs = [
+            r.orgnr
+            for r in self.db.query(Policy.orgnr)
+            .filter(Policy.firm_id == firm_id, Policy.status == PolicyStatus.active)
+            .distinct()
+            .all()
+        ]
+        results = []
+        for orgnr in orgnrs:
+            try:
+                analysis = analyze_coverage_gap(orgnr, firm_id, self.db)
+                if analysis["gap_count"] > 0:
+                    company = self.db.query(Company).filter(Company.orgnr == orgnr).first()
+                    results.append({
+                        "orgnr":       orgnr,
+                        "navn":        company.navn if company else orgnr,
+                        "gap_count":   analysis["gap_count"],
+                        "total_count": analysis["total_count"],
+                        "gaps": [
+                            {"type": i["type"], "priority": i["priority"]}
+                            for i in analysis["items"]
+                            if i["status"] == "gap"
+                        ],
+                    })
+            except Exception:
+                continue
+        return results
+
+
+# Backward compat
+def analyze_coverage_gap(orgnr: str, firm_id: int, db: Session) -> dict[str, Any]:
+    return CoverageGapService(db).analyze_coverage_gap(orgnr, firm_id)
 
 
 def get_companies_with_gaps(firm_id: int, db: Session) -> list[dict]:
-    """Return all companies in the firm's book that have at least one coverage gap."""
-    orgnrs = [
-        r.orgnr
-        for r in db.query(Policy.orgnr)
-        .filter(Policy.firm_id == firm_id, Policy.status == PolicyStatus.active)
-        .distinct()
-        .all()
-    ]
-    results = []
-    for orgnr in orgnrs:
-        try:
-            analysis = analyze_coverage_gap(orgnr, firm_id, db)
-            if analysis["gap_count"] > 0:
-                company = db.query(Company).filter(Company.orgnr == orgnr).first()
-                results.append({
-                    "orgnr":       orgnr,
-                    "navn":        company.navn if company else orgnr,
-                    "gap_count":   analysis["gap_count"],
-                    "total_count": analysis["total_count"],
-                    "gaps": [
-                        {"type": i["type"], "priority": i["priority"]}
-                        for i in analysis["items"]
-                        if i["status"] == "gap"
-                    ],
-                })
-        except Exception:
-            continue
-    return results
+    return CoverageGapService(db).get_companies_with_gaps(firm_id)

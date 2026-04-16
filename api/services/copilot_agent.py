@@ -6,8 +6,8 @@ analysis, recommend insurers, and search the knowledge base.
 
 The loop runs up to MAX_TOOL_ROUNDS turns. On each turn:
 1. Send messages + tool definitions to the LLM
-2. If the response contains tool_calls → execute them, append results
-3. If the response is a plain text → return it as the final answer
+2. If the response contains tool_calls -> execute them, append results
+3. If the response is a plain text -> return it as the final answer
 
 Safety: the system prompt tells the LLM to confirm before sending emails.
 All tool executions are logged. Max 5 rounds prevents runaway loops.
@@ -84,25 +84,37 @@ def _get_llm_client():
     return llm._get_chat_client(), llm._config.default_text_model  # type: ignore[attr-defined]
 
 
+class CopilotAgentService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def chat_with_tools(
+        self, question: str, orgnr: str, firm_id: int,
+        history: Optional[list[dict]] = None,
+    ) -> dict:
+        """Run the copilot agent loop. Returns {answer, tool_calls_made}."""
+        client, model = _get_llm_client()
+        if client is None:
+            return {"answer": "LLM er ikke konfigurert.", "tool_calls_made": []}
+        messages = _init_messages(question, orgnr, self.db, history)
+        tool_calls_made: list[dict] = []
+        for _ in range(MAX_TOOL_ROUNDS):
+            resp = client.chat.completions.create(
+                model=model, messages=messages, tools=TOOL_SCHEMAS, max_completion_tokens=1024,
+            )
+            choice = resp.choices[0]
+            if not choice.message.tool_calls:
+                return {"answer": choice.message.content or "", "tool_calls_made": tool_calls_made}
+            _execute_tool_calls(choice, messages, tool_calls_made, self.db, firm_id, orgnr)
+        # Exhausted rounds — ask for summary
+        messages.append({"role": "user", "content": "Oppsummer hva du har gjort så langt."})
+        resp = client.chat.completions.create(model=model, messages=messages, max_completion_tokens=512)
+        return {"answer": resp.choices[0].message.content or "", "tool_calls_made": tool_calls_made}
+
+
+# Backward compat
 def chat_with_tools(
     question: str, orgnr: str, firm_id: int, db: Session,
     history: Optional[list[dict]] = None,
 ) -> dict:
-    """Run the copilot agent loop. Returns {answer, tool_calls_made}."""
-    client, model = _get_llm_client()
-    if client is None:
-        return {"answer": "LLM er ikke konfigurert.", "tool_calls_made": []}
-    messages = _init_messages(question, orgnr, db, history)
-    tool_calls_made: list[dict] = []
-    for _ in range(MAX_TOOL_ROUNDS):
-        resp = client.chat.completions.create(
-            model=model, messages=messages, tools=TOOL_SCHEMAS, max_completion_tokens=1024,
-        )
-        choice = resp.choices[0]
-        if not choice.message.tool_calls:
-            return {"answer": choice.message.content or "", "tool_calls_made": tool_calls_made}
-        _execute_tool_calls(choice, messages, tool_calls_made, db, firm_id, orgnr)
-    # Exhausted rounds — ask for summary
-    messages.append({"role": "user", "content": "Oppsummer hva du har gjort så langt."})
-    resp = client.chat.completions.create(model=model, messages=messages, max_completion_tokens=512)
-    return {"answer": resp.choices[0].message.content or "", "tool_calls_made": tool_calls_made}
+    return CopilotAgentService(db).chat_with_tools(question, orgnr, firm_id, history)

@@ -28,77 +28,91 @@ def _upsert_history_row(existing: Any, parsed: Dict[str, Any], pdf_url: str) -> 
     existing.raw = parsed
 
 
+class PdfHistoryService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def fetch_history_from_pdf(
+        self, orgnr: str, pdf_url: str, year: int, label: str,
+    ) -> Dict[str, Any]:
+        """Parse financials from PDF and upsert into company_history."""
+        parsed = _parse_financials_from_pdf(pdf_url, orgnr, year)
+        if not parsed:
+            raise PdfExtractionError(f"Could not parse financials from PDF: {pdf_url}")
+
+        existing = (
+            self.db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr, CompanyHistory.year == year)
+            .first()
+        )
+        if not existing:
+            existing = CompanyHistory(orgnr=orgnr, year=year)
+            self.db.add(existing)
+
+        _upsert_history_row(existing, parsed, pdf_url)
+        self.db.commit()
+
+        return {
+            "year": year,
+            "source": "pdf",
+            "pdf_url": pdf_url,
+            "label": label,
+            "currency": existing.currency,
+            "revenue": existing.revenue,
+            "net_result": existing.net_result,
+            "equity": existing.equity,
+            "total_assets": existing.total_assets,
+            "equity_ratio": existing.equity_ratio,
+            "short_term_debt": existing.short_term_debt,
+            "long_term_debt": existing.long_term_debt,
+            "antall_ansatte": existing.antall_ansatte,
+        }
+
+    def get_full_history(self, orgnr: str) -> List[Dict[str, Any]]:
+        """Return merged history: DB rows (PDF/manual) + BRREG, deduped by year, sorted desc."""
+        db_rows = (
+            self.db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .all()
+        )
+        by_year: Dict[int, Dict[str, Any]] = {}
+        for row in db_rows:
+            base = dict(row.raw) if row.raw else {}
+            base.update({
+                "year": row.year,
+                "source": row.source,
+                "currency": row.currency or "NOK",
+                "revenue": row.revenue,
+                "net_result": row.net_result,
+                "equity": row.equity,
+                "total_assets": row.total_assets,
+                "equity_ratio": row.equity_ratio,
+                "short_term_debt": row.short_term_debt,
+                "long_term_debt": row.long_term_debt,
+                "antall_ansatte": row.antall_ansatte,
+            })
+            by_year[row.year] = base
+
+        try:
+            brreg_rows = fetch_regnskap_history(orgnr)
+        except Exception:
+            brreg_rows = []
+
+        for row in brreg_rows:
+            year = row.get("year")
+            if year and year not in by_year:
+                by_year[year] = {**row, "source": "brreg", "currency": "NOK"}
+
+        return sorted(by_year.values(), key=lambda r: r["year"], reverse=True)
+
+
+# Backward compat
 def fetch_history_from_pdf(
-    orgnr: str, pdf_url: str, year: int, label: str, db: Session
+    orgnr: str, pdf_url: str, year: int, label: str, db: Session,
 ) -> Dict[str, Any]:
-    """Parse financials from PDF and upsert into company_history."""
-    parsed = _parse_financials_from_pdf(pdf_url, orgnr, year)
-    if not parsed:
-        raise PdfExtractionError(f"Could not parse financials from PDF: {pdf_url}")
-
-    existing = (
-        db.query(CompanyHistory)
-        .filter(CompanyHistory.orgnr == orgnr, CompanyHistory.year == year)
-        .first()
-    )
-    if not existing:
-        existing = CompanyHistory(orgnr=orgnr, year=year)
-        db.add(existing)
-
-    _upsert_history_row(existing, parsed, pdf_url)
-    db.commit()
-
-    return {
-        "year": year,
-        "source": "pdf",
-        "pdf_url": pdf_url,
-        "label": label,
-        "currency": existing.currency,
-        "revenue": existing.revenue,
-        "net_result": existing.net_result,
-        "equity": existing.equity,
-        "total_assets": existing.total_assets,
-        "equity_ratio": existing.equity_ratio,
-        "short_term_debt": existing.short_term_debt,
-        "long_term_debt": existing.long_term_debt,
-        "antall_ansatte": existing.antall_ansatte,
-    }
+    return PdfHistoryService(db).fetch_history_from_pdf(orgnr, pdf_url, year, label)
 
 
 def _get_full_history(orgnr: str, db: Session) -> List[Dict[str, Any]]:
-    """Return merged history: DB rows (PDF/manual) + BRREG, deduped by year, sorted desc."""
-    db_rows = (
-        db.query(CompanyHistory)
-        .filter(CompanyHistory.orgnr == orgnr)
-        .order_by(CompanyHistory.year.desc())
-        .all()
-    )
-    by_year: Dict[int, Dict[str, Any]] = {}
-    for row in db_rows:
-        base = dict(row.raw) if row.raw else {}
-        base.update({
-            "year": row.year,
-            "source": row.source,
-            "currency": row.currency or "NOK",
-            "revenue": row.revenue,
-            "net_result": row.net_result,
-            "equity": row.equity,
-            "total_assets": row.total_assets,
-            "equity_ratio": row.equity_ratio,
-            "short_term_debt": row.short_term_debt,
-            "long_term_debt": row.long_term_debt,
-            "antall_ansatte": row.antall_ansatte,
-        })
-        by_year[row.year] = base
-
-    try:
-        brreg_rows = fetch_regnskap_history(orgnr)
-    except Exception:
-        brreg_rows = []
-
-    for row in brreg_rows:
-        year = row.get("year")
-        if year and year not in by_year:
-            by_year[year] = {**row, "source": "brreg", "currency": "NOK"}
-
-    return sorted(by_year.values(), key=lambda r: r["year"], reverse=True)
+    return PdfHistoryService(db).get_full_history(orgnr)

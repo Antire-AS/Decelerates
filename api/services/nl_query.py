@@ -1,4 +1,4 @@
-"""Natural-language → SQL query service.
+"""Natural-language -> SQL query service.
 
 Uses an LLM (via the LlmPort, currently backed by Antire Azure AI Foundry)
 to convert a plain-English/Norwegian question into a read-only SELECT query
@@ -64,7 +64,7 @@ _UNSAFE = re.compile(
 
 
 def _generate_sql(question: str) -> str | None:
-    """Ask the LLM to convert question → SQL. Returns the SQL string or None."""
+    """Ask the LLM to convert question -> SQL. Returns the SQL string or None."""
     try:
         llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
     except Exception as exc:
@@ -80,22 +80,31 @@ def _generate_sql(question: str) -> str | None:
     return raw.strip() if raw else None
 
 
+class NlQueryService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def run_nl_query(self, question: str) -> dict:
+        """Convert question to SQL, execute, return results + the generated SQL."""
+        sql = _generate_sql(question)
+        if not sql:
+            return {"error": "Kunne ikke generere SQL (ingen AI-nøkkel konfigurert)", "sql": None, "rows": []}
+
+        # Safety: only allow SELECT
+        if not _SAFE_SQL.match(sql) or _UNSAFE.search(sql):
+            log.warning("nl_query: unsafe SQL blocked: %s", sql[:200])
+            return {"error": "Generert SQL er ikke tillatt (kun SELECT).", "sql": sql, "rows": []}
+
+        try:
+            result = self.db.execute(text(sql))
+            columns = list(result.keys())
+            rows = [dict(zip(columns, row)) for row in result.fetchall()]
+            return {"sql": sql, "columns": columns, "rows": rows, "error": None}
+        except Exception as exc:
+            log.warning("nl_query: SQL execution failed — %s", exc)
+            return {"error": f"SQL-feil: {exc}", "sql": sql, "rows": []}
+
+
+# Backward compat
 def run_nl_query(question: str, db: Session) -> dict:
-    """Convert question to SQL, execute, return results + the generated SQL."""
-    sql = _generate_sql(question)
-    if not sql:
-        return {"error": "Kunne ikke generere SQL (ingen AI-nøkkel konfigurert)", "sql": None, "rows": []}
-
-    # Safety: only allow SELECT
-    if not _SAFE_SQL.match(sql) or _UNSAFE.search(sql):
-        log.warning("nl_query: unsafe SQL blocked: %s", sql[:200])
-        return {"error": "Generert SQL er ikke tillatt (kun SELECT).", "sql": sql, "rows": []}
-
-    try:
-        result = db.execute(text(sql))
-        columns = list(result.keys())
-        rows = [dict(zip(columns, row)) for row in result.fetchall()]
-        return {"sql": sql, "columns": columns, "rows": rows, "error": None}
-    except Exception as exc:
-        log.warning("nl_query: SQL execution failed — %s", exc)
-        return {"error": f"SQL-feil: {exc}", "sql": sql, "rows": []}
+    return NlQueryService(db).run_nl_query(question)

@@ -60,66 +60,81 @@ def _stream_ingest_company(pc, i: int, total: int, include_pdfs: bool, db: Sessi
         yield from _stream_pdf_phase(pc, navn, i, total, db)
 
 
+class PortfolioStreamingService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def stream_ingest(self, portfolio_id: int, include_pdfs: bool) -> Iterator[str]:
+        """Stream NDJSON progress events for portfolio ingest (BRREG + optional PDFs)."""
+        rows = self.db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+        total = len(rows)
+        yield json.dumps({"type": "start", "total": total, "include_pdfs": include_pdfs}) + "\n"
+        for i, pc in enumerate(rows):
+            yield from _stream_ingest_company(pc, i + 1, total, include_pdfs, self.db)
+        yield json.dumps({"type": "complete", "total": total}) + "\n"
+
+    def stream_seed_norway(self, portfolio_id: int) -> Iterator[str]:
+        """Stream NDJSON events while adding Norway Top 100 companies to the portfolio."""
+        from api.constants import TOP_100_NO_NAMES
+
+        existing = {pc.orgnr for pc in self.db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()}
+        total = len(TOP_100_NO_NAMES)
+        yield json.dumps({"type": "start", "total": total}) + "\n"
+        added, skipped, not_found = 0, 0, 0
+        for i, name in enumerate(TOP_100_NO_NAMES):
+            yield json.dumps({"type": "searching", "name": name, "index": i + 1, "total": total}) + "\n"
+            try:
+                results = fetch_enhetsregisteret(name, size=1)
+                if not results:
+                    yield json.dumps({"type": "not_found", "name": name, "index": i + 1, "total": total}) + "\n"
+                    not_found += 1
+                    continue
+                orgnr, found_name = results[0]["orgnr"], results[0]["navn"]
+                if orgnr in existing:
+                    yield json.dumps({"type": "skipped", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                    skipped += 1
+                    continue
+                self.db.add(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
+                self.db.commit()
+                existing.add(orgnr)
+                yield json.dumps({"type": "added", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+                added += 1
+            except Exception as exc:
+                yield json.dumps({"type": "error", "name": name, "error": str(exc)[:100], "index": i + 1, "total": total}) + "\n"
+                not_found += 1
+        yield json.dumps({"type": "complete", "added": added, "skipped": skipped, "not_found": not_found}) + "\n"
+
+    def stream_batch_import(self, portfolio_id: int | None, orgnrs: list[str], invalid_count: int) -> Iterator[str]:
+        """Stream NDJSON progress while importing companies from a list of orgnrs."""
+        from api.services import fetch_org_profile
+
+        total = len(orgnrs)
+        yield json.dumps({"type": "start", "total": total, "invalid": invalid_count}) + "\n"
+        added, failed = 0, 0
+        for i, orgnr in enumerate(orgnrs):
+            yield json.dumps({"type": "searching", "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
+            try:
+                result = fetch_org_profile(orgnr, self.db)
+                navn = (result or {}).get("org", {}).get("navn", orgnr) if result else orgnr
+                if portfolio_id:
+                    self.db.merge(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
+                    self.db.commit()
+                yield json.dumps({"type": "done", "orgnr": orgnr, "navn": navn, "index": i + 1, "total": total}) + "\n"
+                added += 1
+            except Exception as exc:
+                yield json.dumps({"type": "error", "orgnr": orgnr, "error": str(exc)[:120], "index": i + 1, "total": total}) + "\n"
+                failed += 1
+        yield json.dumps({"type": "complete", "added": added, "failed": failed, "invalid": invalid_count}) + "\n"
+
+
+# Backward compat
 def stream_ingest(portfolio_id: int, include_pdfs: bool, db: Session) -> Iterator[str]:
-    """Stream NDJSON progress events for portfolio ingest (BRREG + optional PDFs)."""
-    rows = db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
-    total = len(rows)
-    yield json.dumps({"type": "start", "total": total, "include_pdfs": include_pdfs}) + "\n"
-    for i, pc in enumerate(rows):
-        yield from _stream_ingest_company(pc, i + 1, total, include_pdfs, db)
-    yield json.dumps({"type": "complete", "total": total}) + "\n"
+    return PortfolioStreamingService(db).stream_ingest(portfolio_id, include_pdfs)
 
 
 def stream_seed_norway(portfolio_id: int, db: Session) -> Iterator[str]:
-    """Stream NDJSON events while adding Norway Top 100 companies to the portfolio."""
-    from api.constants import TOP_100_NO_NAMES
-
-    existing = {pc.orgnr for pc in db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()}
-    total = len(TOP_100_NO_NAMES)
-    yield json.dumps({"type": "start", "total": total}) + "\n"
-    added, skipped, not_found = 0, 0, 0
-    for i, name in enumerate(TOP_100_NO_NAMES):
-        yield json.dumps({"type": "searching", "name": name, "index": i + 1, "total": total}) + "\n"
-        try:
-            results = fetch_enhetsregisteret(name, size=1)
-            if not results:
-                yield json.dumps({"type": "not_found", "name": name, "index": i + 1, "total": total}) + "\n"
-                not_found += 1
-                continue
-            orgnr, found_name = results[0]["orgnr"], results[0]["navn"]
-            if orgnr in existing:
-                yield json.dumps({"type": "skipped", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-                skipped += 1
-                continue
-            db.add(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
-            db.commit()
-            existing.add(orgnr)
-            yield json.dumps({"type": "added", "name": found_name, "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-            added += 1
-        except Exception as exc:
-            yield json.dumps({"type": "error", "name": name, "error": str(exc)[:100], "index": i + 1, "total": total}) + "\n"
-            not_found += 1
-    yield json.dumps({"type": "complete", "added": added, "skipped": skipped, "not_found": not_found}) + "\n"
+    return PortfolioStreamingService(db).stream_seed_norway(portfolio_id)
 
 
 def stream_batch_import(portfolio_id: int | None, orgnrs: list[str], invalid_count: int, db: Session) -> Iterator[str]:
-    """Stream NDJSON progress while importing companies from a list of orgnrs."""
-    from api.services import fetch_org_profile
-
-    total = len(orgnrs)
-    yield json.dumps({"type": "start", "total": total, "invalid": invalid_count}) + "\n"
-    added, failed = 0, 0
-    for i, orgnr in enumerate(orgnrs):
-        yield json.dumps({"type": "searching", "orgnr": orgnr, "index": i + 1, "total": total}) + "\n"
-        try:
-            result = fetch_org_profile(orgnr, db)
-            navn = (result or {}).get("org", {}).get("navn", orgnr) if result else orgnr
-            if portfolio_id:
-                db.merge(PortfolioCompany(portfolio_id=portfolio_id, orgnr=orgnr, added_at=datetime.now(timezone.utc).isoformat()))
-                db.commit()
-            yield json.dumps({"type": "done", "orgnr": orgnr, "navn": navn, "index": i + 1, "total": total}) + "\n"
-            added += 1
-        except Exception as exc:
-            yield json.dumps({"type": "error", "orgnr": orgnr, "error": str(exc)[:120], "index": i + 1, "total": total}) + "\n"
-            failed += 1
-    yield json.dumps({"type": "complete", "added": added, "failed": failed, "invalid": invalid_count}) + "\n"
+    return PortfolioStreamingService(db).stream_batch_import(portfolio_id, orgnrs, invalid_count)

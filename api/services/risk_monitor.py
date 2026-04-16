@@ -81,21 +81,30 @@ def _notify_risk_changes(risk_changes: list[dict], firm_id: int, db: Session) ->
         )
 
 
+class RiskMonitorService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def refresh_all_portfolios(self, firm_id: int) -> dict[str, Any]:
+        """Refresh BRREG data for all portfolio companies. Returns summary."""
+        orgnrs = list({pc.orgnr for pc in self.db.query(PortfolioCompany.orgnr).distinct().all()})
+        refreshed = 0
+        risk_changes: list[dict] = []
+        for orgnr in orgnrs:
+            change = _refresh_company(orgnr, self.db)
+            refreshed += 1
+            if change:
+                risk_changes.append(change)
+            time.sleep(_BRREG_DELAY_S)
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        _notify_risk_changes(risk_changes, firm_id, self.db)
+        return {"companies_refreshed": refreshed, "risk_changes": risk_changes, "total_changes": len(risk_changes)}
+
+
+# Backward compat
 def refresh_all_portfolios(firm_id: int, db: Session) -> dict[str, Any]:
-    """Refresh BRREG data for all portfolio companies. Returns summary."""
-    orgnrs = list({pc.orgnr for pc in db.query(PortfolioCompany.orgnr).distinct().all()})
-    refreshed = 0
-    risk_changes: list[dict] = []
-    for orgnr in orgnrs:
-        change = _refresh_company(orgnr, db)
-        refreshed += 1
-        if change:
-            risk_changes.append(change)
-        time.sleep(_BRREG_DELAY_S)
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    _notify_risk_changes(risk_changes, firm_id, db)
-    return {"companies_refreshed": refreshed, "risk_changes": risk_changes, "total_changes": len(risk_changes)}
+    return RiskMonitorService(db).refresh_all_portfolios(firm_id)
