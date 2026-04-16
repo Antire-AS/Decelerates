@@ -41,6 +41,10 @@ def _source_contains(path: Path, pattern: str) -> list[int]:
 # Functions that are genuinely longer than 40 lines but justified.
 # See CLAUDE.md "Clean Code Principles Followed" for rationale.
 _JUSTIFIED = {
+    # Tender — multi-offer AI comparison pipeline; cohesive analysis flow
+    "analyse_offers",
+    # Tender detail builder — serializes recipients + offers into response dict
+    "_to_detail",
     # Agentic tool-use loops — multi-step state machine, can't be split
     "_agent_discover_pdfs_claude",
     "_agent_discover_pdfs_gemini",

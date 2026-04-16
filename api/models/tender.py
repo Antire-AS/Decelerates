@@ -1,0 +1,66 @@
+"""Tender domain models — invitation-to-quote, recipients, and offers."""
+import enum
+
+from sqlalchemy import (
+    Column, Date, DateTime, Enum as SAEnum, ForeignKey,
+    Integer, JSON, LargeBinary, String,
+)
+
+from api.models._base import Base
+
+
+class TenderStatus(enum.Enum):
+    draft    = "draft"
+    sent     = "sent"
+    closed   = "closed"
+    analysed = "analysed"
+
+
+class Tender(Base):
+    __tablename__ = "tenders"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    orgnr            = Column(String(9), nullable=False, index=True)
+    firm_id          = Column(Integer, ForeignKey("broker_firms.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_by_email = Column(String, nullable=True)
+    title            = Column(String, nullable=False)
+    product_types    = Column(JSON, nullable=False)
+    deadline         = Column(Date, nullable=True)
+    notes            = Column(String, nullable=True)
+    status           = Column(SAEnum(TenderStatus, name="tender_status", create_type=False), nullable=False, default=TenderStatus.draft)
+    analysis_result  = Column(JSON, nullable=True)
+    created_at       = Column(DateTime(timezone=True), nullable=False)
+
+
+class TenderRecipientStatus(enum.Enum):
+    pending  = "pending"
+    sent     = "sent"
+    received = "received"
+    declined = "declined"
+
+
+class TenderRecipient(Base):
+    __tablename__ = "tender_recipients"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    tender_id      = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False, index=True)
+    insurer_name   = Column(String, nullable=False)
+    insurer_email  = Column(String, nullable=True)
+    status         = Column(SAEnum(TenderRecipientStatus, name="tender_recipient_status", create_type=False), nullable=False, default=TenderRecipientStatus.pending)
+    sent_at        = Column(DateTime(timezone=True), nullable=True)
+    response_at    = Column(DateTime(timezone=True), nullable=True)
+    created_at     = Column(DateTime(timezone=True), nullable=False)
+
+
+class TenderOffer(Base):
+    __tablename__ = "tender_offers"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    tender_id        = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False, index=True)
+    recipient_id     = Column(Integer, ForeignKey("tender_recipients.id", ondelete="SET NULL"), nullable=True, index=True)
+    insurer_name     = Column(String, nullable=False)
+    filename         = Column(String, nullable=False)
+    pdf_content      = Column(LargeBinary, nullable=False)
+    extracted_text   = Column(String, nullable=True)
+    extracted_data   = Column(JSON, nullable=True)
+    uploaded_at      = Column(DateTime(timezone=True), nullable=False)
