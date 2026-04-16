@@ -304,6 +304,14 @@ def on_startup():
 
     register_handler("pdf_extract", _handle_pdf_extract)
 
+    def _handle_coverage_analysis(db, payload: dict):
+        from api.services.coverage_service import CoverageService
+        analysis_id = payload.get("analysis_id")
+        if analysis_id:
+            CoverageService(db).run_analysis(analysis_id)
+
+    register_handler("coverage_analysis", _handle_coverage_analysis)
+
     import asyncio
 
     _job_logger = logging.getLogger("api.job_worker")

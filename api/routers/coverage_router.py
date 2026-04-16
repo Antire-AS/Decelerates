@@ -53,8 +53,10 @@ async def analyse_coverage(
         product_type=product_type or None,
     )
 
-    # Run AI analysis synchronously (typically 5-15s)
-    analysis = svc.run_analysis(analysis.id)
+    # Run AI analysis in background job so the request doesn't block
+    from api.services.job_queue_service import JobQueueService
+    jq = JobQueueService(svc.db)
+    jq.enqueue("coverage_analysis", {"analysis_id": analysis.id})
 
     return _to_out(analysis)
 

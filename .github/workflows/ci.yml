@@ -105,10 +105,32 @@ jobs:
         # SQLAlchemy 2.0 Mapped[] types they're >90% false positives. Real
         # bugs in other categories still fail the build.
 
+  # Inlined duplication check — the Antire reusable workflow lives in a
+  # private repo and GitHub Actions can't resolve it without org-level
+  # "accessible to repositories" permission on antire-reusable-actions.
+  # This inline version does the same thing (jscpd) without the cross-repo
+  # dependency. See ruff/pyright jobs above for the same pattern.
   duplication:
-    uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.18.0
-    with:
-      ignore-patterns: "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install jscpd
+        run: npm install -g jscpd
+
+      - name: Run duplication check
+        run: |
+          jscpd . \
+            --min-lines 5 \
+            --min-tokens 50 \
+            --threshold 5 \
+            --reporters consoleFull \
+            --ignore "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**"
 
   frontend:
     runs-on: ubuntu-latest
