@@ -114,31 +114,31 @@ def test_migrations_release_lock_even_on_failure():
 
 
 def test_has_mp4_faststart_moov_before_mdat():
-    from api.routers.admin_router import _has_mp4_faststart
+    from api.routers.debug import _has_mp4_faststart
     data = (16).to_bytes(4, "big") + b"moov" + b"\x00" * 8
     assert _has_mp4_faststart(data) is True
 
 
 def test_has_mp4_faststart_mdat_before_moov():
-    from api.routers.admin_router import _has_mp4_faststart
+    from api.routers.debug import _has_mp4_faststart
     data = (16).to_bytes(4, "big") + b"mdat" + b"\x00" * 8
     assert _has_mp4_faststart(data) is False
 
 
 def test_has_mp4_faststart_inconclusive_on_short_data():
-    from api.routers.admin_router import _has_mp4_faststart
+    from api.routers.debug import _has_mp4_faststart
     assert _has_mp4_faststart(b"\x00\x00") is None
 
 
 def test_has_mp4_faststart_handles_ftyp_then_moov():
-    from api.routers.admin_router import _has_mp4_faststart
+    from api.routers.debug import _has_mp4_faststart
     ftyp = (16).to_bytes(4, "big") + b"ftyp" + b"\x00" * 8
     moov = (16).to_bytes(4, "big") + b"moov" + b"\x00" * 8
     assert _has_mp4_faststart(ftyp + moov) is True
 
 
 def test_debug_db_status_returns_version():
-    from api.routers.admin_router import _debug_db_status
+    from api.routers.debug import _debug_db_status
 
     mock_conn = MagicMock()
     mock_conn.execute.side_effect = [
@@ -158,7 +158,7 @@ def test_debug_db_status_returns_version():
 
 
 def test_debug_db_status_handles_exception():
-    from api.routers.admin_router import _debug_db_status
+    from api.routers.debug import _debug_db_status
 
     mock_engine = MagicMock()
     mock_engine.connect.side_effect = Exception("connection failed")
@@ -170,7 +170,7 @@ def test_debug_db_status_handles_exception():
 
 
 def test_build_coverage_gap_email_renders_html():
-    from api.routers.admin_router import _build_coverage_gap_email
+    from api.routers.cron import _build_coverage_gap_email
     gaps = [
         {"orgnr": "123", "navn": "TestCo", "gap_count": 2, "gaps": [{"type": "ansvar"}, {"type": "eiendom"}]},
     ]
@@ -181,7 +181,7 @@ def test_build_coverage_gap_email_renders_html():
 
 
 def test_build_coverage_gap_email_multiple_companies():
-    from api.routers.admin_router import _build_coverage_gap_email
+    from api.routers.cron import _build_coverage_gap_email
     gaps = [
         {"orgnr": "1", "navn": "A", "gap_count": 1, "gaps": [{"type": "x"}]},
         {"orgnr": "2", "navn": "B", "gap_count": 1, "gaps": [{"type": "y"}]},
@@ -191,7 +191,7 @@ def test_build_coverage_gap_email_multiple_companies():
 
 
 def test_activity_to_dict_serializes():
-    from api.routers.admin_router import _activity_to_dict
+    from api.routers.cron import _activity_to_dict
     from datetime import date
     a = MagicMock()
     a.orgnr = "999100101"

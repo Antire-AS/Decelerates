@@ -20,7 +20,8 @@ sys.modules.setdefault("api.services.pdf_background", MagicMock())
 from api.auth import CurrentUser, get_current_user
 from api.dependencies import get_db
 from api.limiter import limiter
-from api.routers.admin_router import router, _get_notification
+from api.routers.admin_router import router
+from api.routers.cron import _get_notification
 
 _app = FastAPI()
 _app.state.limiter = limiter
@@ -99,7 +100,7 @@ def _mock_firm(firm_id=1):
 # ── POST /admin/portfolio-digest ─────────────────────────────────────────────
 
     with patch("api.routers.admin_router.collect_alerts", return_value=[]), \
-         patch("api.routers.admin_router.create_notification_for_users_safe"):
+         patch("api.routers.cron.create_notification_for_users_safe"):
         resp = client.post("/admin/portfolio-digest")
     assert resp.status_code == 200
     body = resp.json()
@@ -115,7 +116,7 @@ def _mock_firm(firm_id=1):
 
     with patch("api.routers.admin_router.PolicyService", return_value=mock_policy_svc), \
          patch("api.routers.admin_router.RenewalAgentService") as mock_ras, \
-         patch("api.routers.admin_router.create_notification_for_users_safe"):
+         patch("api.routers.cron.create_notification_for_users_safe"):
         mock_ras.return_value.process_renewals_batch.return_value = None
         resp = client.post("/admin/renewal-threshold-emails")
     assert resp.status_code == 200
@@ -127,7 +128,7 @@ def _mock_firm(firm_id=1):
 
 # ── POST /admin/activity-reminders ───────────────────────────────────────────
 
-    with patch("api.routers.admin_router.create_notification_for_users_safe"):
+    with patch("api.routers.cron.create_notification_for_users_safe"):
         resp = client.post("/admin/activity-reminders")
     assert resp.status_code == 200
     body = resp.json()
@@ -144,7 +145,7 @@ def _mock_firm(firm_id=1):
     gaps = [{"orgnr": "123", "navn": "TestCo", "gap_count": 1, "gaps": [{"type": "ansvar"}]}]
     with patch("api.routers.admin_router.get_companies_with_gaps", return_value=gaps), \
          patch("api.routers.admin_router.log_audit"), \
-         patch("api.routers.admin_router.create_notification_for_users_safe"):
+         patch("api.routers.cron.create_notification_for_users_safe"):
         resp = client.post("/admin/trigger-coverage-gap-alerts")
     assert resp.status_code == 200
     body = resp.json()
@@ -169,7 +170,7 @@ def test_trigger_renewal_digest_sends(client, mock_db, mock_notification):
     q.all.return_value = [_mock_policy()]
     q.asc.return_value = q
 
-    with patch("api.routers.admin_router.create_notification_for_users_safe"):
+    with patch("api.routers.cron.create_notification_for_users_safe"):
         resp = client.post("/admin/trigger-renewal-digest")
     assert resp.status_code == 200
     assert resp.json()["sent"] is True

@@ -9,7 +9,9 @@ from fastapi.testclient import TestClient
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-from api.routers.admin_router import router, _admin_svc, _get_notification
+from api.routers.admin_router import router
+from api.routers.admin_seed import _admin_svc
+from api.routers.cron import _get_notification
 from api.dependencies import get_db
 from api.services.admin_service import AdminService
 
