@@ -67,24 +67,13 @@ jobs:
       - name: Complexity report (informational)
         run: uv run radon cc api/ -n C -s || true
 
-  # Inlined ruff check (was Antire-AS/antire-reusable-actions@v0.18.0 but its
-  # setup-deploy-key step fails on repos without a DEPLOY_KEY secret —
-  # ssh-add stdin is empty, libcrypto bombs, exit 1). This local version does
-  # what we actually need without the SSH indirection.
   ruff:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+    uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-ruff-formating.yml@v0.19.0
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Run ruff check
-        run: uvx ruff check api/ tests/ scripts/
-
-  # Inlined pyright type check — same reasoning as ruff above.
+  # Inlined pyright — reusable-pyright-type-checker.yml@v0.19.0 still runs
+  # setup-deploy-key unconditionally, which crashes on repos without a
+  # DEPLOY_KEY secret (ssh-add on empty stdin). Safe to switch once the
+  # action adds an `if: inputs.deploy-key != ''` guard.
   pyright:
     runs-on: ubuntu-latest
     steps:
@@ -105,32 +94,10 @@ jobs:
         # SQLAlchemy 2.0 Mapped[] types they're >90% false positives. Real
         # bugs in other categories still fail the build.
 
-  # Inlined duplication check — the Antire reusable workflow lives in a
-  # private repo and GitHub Actions can't resolve it without org-level
-  # "accessible to repositories" permission on antire-reusable-actions.
-  # This inline version does the same thing (jscpd) without the cross-repo
-  # dependency. See ruff/pyright jobs above for the same pattern.
   duplication:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-
-      - name: Install jscpd
-        run: npm install -g jscpd
-
-      - name: Run duplication check
-        run: |
-          jscpd . \
-            --min-lines 5 \
-            --min-tokens 50 \
-            --threshold 5 \
-            --reporters consoleFull \
-            --ignore "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**"
+    uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.19.0
+    with:
+      ignore-patterns: "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**"
 
   frontend:
     runs-on: ubuntu-latest
