@@ -77,20 +77,24 @@ function SidebarContent({
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavClick}
-            className={cn(
-              "nav-item",
-              pathname.startsWith(href) && "nav-item-active",
-            )}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            <span>{label}</span>
-          </Link>
-        ))}
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={onNavClick}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "nav-item",
+                isActive && "nav-item-active",
+              )}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Language toggle + user */}
@@ -155,6 +159,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <a href="#main-content" className="skip-to-content">
+        Hopp til hovedinnhold
+      </a>
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
       <aside className="hidden md:flex w-56 flex-shrink-0 bg-[#F5F0EB] border-r border-[#D4C9B8] flex-col">
         <SidebarContent {...sidebarProps} />
@@ -212,7 +219,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <NotificationBell />
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-[#F5F0EB]">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-[#F5F0EB] focus:outline-none">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
             {children}
           </div>
