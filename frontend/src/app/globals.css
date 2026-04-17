@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Brand palette (existing — keep) */
   --brand-dark:    #2C3E50;
   --brand-mid:     #4A6FA5;
   --brand-light:   #C5D8F0;
@@ -12,6 +13,30 @@
   --brand-success: #5A8A5A;
   --brand-warning: #C8A951;
   --brand-danger:  #C0392B;
+
+  /* shadcn/ui tokens — mapped to brand palette. Values are HSL triplets
+     (no comma/slash syntax) because shadcn templates use `hsl(var(--x))`
+     or `hsl(var(--x) / <alpha>)`. Converted exactly from the hex codes above. */
+  --background:      38 25% 94%;
+  --foreground:      210 29% 24%;
+  --card:            0 0% 100%;
+  --card-foreground: 210 29% 24%;
+  --popover:         0 0% 100%;
+  --popover-foreground: 210 29% 24%;
+  --primary:         215 34% 47%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:       36 18% 78%;
+  --secondary-foreground: 210 29% 24%;
+  --muted:           28 11% 58%;
+  --muted-foreground: 28 11% 42%;
+  --accent:          215 57% 85%;
+  --accent-foreground: 210 29% 24%;
+  --destructive:     5 64% 49%;
+  --destructive-foreground: 0 0% 100%;
+  --border:          36 18% 78%;
+  --input:           36 18% 78%;
+  --ring:            215 34% 47%;
+  --radius:          0.5rem;
 }
 
 @layer base {
