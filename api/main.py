@@ -47,6 +47,7 @@ from api.adapters.blob_storage_adapter import BlobStorageConfig
 from api.adapters.foundry_llm_adapter import FoundryConfig
 from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
+from api.adapters.secret_adapter import SecretConfig
 
 logging.basicConfig(
     level=logging.INFO,
@@ -145,7 +146,14 @@ if _ai_conn_str:
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 _cors_origins_env = os.getenv("CORS_ORIGINS", "")
-_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] or ["*"]
+_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+if not _cors_origins:
+    _env = os.getenv("ENVIRONMENT", "development")
+    if _env in ("production", "staging"):
+        _log.warning("CORS_ORIGINS not set in %s — defaulting to meglerai.no only", _env)
+        _cors_origins = ["https://meglerai.no", "https://www.meglerai.no"]
+    else:
+        _cors_origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
@@ -355,6 +363,9 @@ def on_startup():
             base_url=os.getenv("AZURE_FOUNDRY_BASE_URL"),
             api_key=os.getenv("AZURE_FOUNDRY_API_KEY"),
             default_text_model=os.getenv("AZURE_FOUNDRY_MODEL", "gpt-5.4-mini"),
+        ),
+        secret=SecretConfig(
+            vault_url=os.getenv("AZURE_KEYVAULT_URL"),
         ),
     ))
 

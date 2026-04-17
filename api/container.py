@@ -21,10 +21,12 @@ from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStora
 from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter
 from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
 from api.adapters.notification_adapter import AzureEmailNotificationAdapter, NotificationConfig
+from api.adapters.secret_adapter import KeyVaultSecretAdapter, SecretConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
 from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.ports.driven.llm_port import LlmPort
 from api.ports.driven.notification_port import NotificationPort
+from api.ports.driven.secret_port import SecretPort
 
 
 @dataclass(frozen=True)
@@ -33,6 +35,7 @@ class AppConfig:
     notification: NotificationConfig = field(default_factory=NotificationConfig)
     msgraph: MsGraphConfig = field(default_factory=MsGraphConfig)
     foundry: FoundryConfig = field(default_factory=FoundryConfig)
+    secret: SecretConfig = field(default_factory=SecretConfig)
 
 
 class ContainerFactory:
@@ -51,6 +54,9 @@ class ContainerFactory:
 
     def _make_foundry_llm_adapter(self) -> LlmPort:
         return FoundryLlmAdapter(self._config.foundry)
+
+    def _make_secret_adapter(self) -> SecretPort:
+        return KeyVaultSecretAdapter(self._config.secret)
 
     def build(self) -> punq.Container:
         self.container.register(
@@ -71,6 +77,11 @@ class ContainerFactory:
         self.container.register(
             LlmPort,
             factory=self._make_foundry_llm_adapter,
+            scope=punq.Scope.singleton,
+        )
+        self.container.register(
+            SecretPort,
+            factory=self._make_secret_adapter,
             scope=punq.Scope.singleton,
         )
         return self.container

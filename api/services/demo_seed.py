@@ -177,7 +177,7 @@ def _build_history_rows(c: dict) -> list[dict]:
 
 
 def _seed_insurers(db: Session, firm_id: int, now: datetime) -> dict[str, int]:
-    """Seed demo insurers and return name → id map."""
+    """Seed demo insurers and return name -> id map."""
     insurer_map: dict[str, int] = {}
     for ins in _DEMO_INSURERS:
         existing = db.query(Insurer).filter(
@@ -536,52 +536,61 @@ def _seed_demo_deals(db: Session, firm_id: int, now: datetime) -> int:
     return created
 
 
+class DemoSeedService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def seed_full_demo(self) -> dict:
+        """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
+        today = date.today()
+        now = datetime.now(timezone.utc)
+
+        firm_id = _resolve_default_firm(self.db, now)
+        insurer_map = _seed_insurers(self.db, firm_id, now)
+        contacts_created = _seed_contacts(self.db, now)
+
+        counts = {"companies": 0, "history": 0, "policies": 0, "claims": 0, "activities": 0}
+
+        for c in _COMPANIES:
+            if _seed_company_row(self.db, c):
+                counts["companies"] += 1
+            counts["history"] += _seed_history_rows(self.db, c)
+
+            policy_id, policy_created = _seed_primary_policy(self.db, c, firm_id, today, now)
+            if policy_created:
+                counts["policies"] += 1
+            if _seed_demo_claim(self.db, c, firm_id, policy_id, today, now):
+                counts["claims"] += 1
+            if _seed_demo_activity(self.db, c, firm_id, today, now):
+                counts["activities"] += 1
+
+        idd_created = _seed_idd(self.db, firm_id, now)
+        submissions_created = _seed_submissions(self.db, firm_id, insurer_map, now)
+        recommendations_created = _seed_recommendations(self.db, firm_id, now)
+        _seed_default_pipeline_stages(self.db, firm_id, now)
+        deals_created = _seed_demo_deals(self.db, firm_id, now)
+
+        self.db.commit()
+        return {
+            "companies_created": counts["companies"],
+            "history_rows_created": counts["history"],
+            "policies_created": counts["policies"],
+            "claims_created": counts["claims"],
+            "activities_created": counts["activities"],
+            "contacts_created": contacts_created,
+            "insurers_created": len(insurer_map),
+            "idd_created": idd_created,
+            "submissions_created": submissions_created,
+            "recommendations_created": recommendations_created,
+            "message": (
+                f"Demo-data seeded: {counts['companies']} selskaper, "
+                f"{counts['history']} historikkrader, {counts['policies']} poliser, "
+                f"{contacts_created} kontakter, {idd_created} IDD-analyser, "
+                f"{recommendations_created} anbefalingsbrev"
+            ),
+        }
+
+
+# Backward compat
 def seed_full_demo(db: Session) -> dict:
-    """Insert fictional demo companies + history + policies. Idempotent (skips existing orgnrs)."""
-    today = date.today()
-    now = datetime.now(timezone.utc)
-
-    firm_id = _resolve_default_firm(db, now)
-    insurer_map = _seed_insurers(db, firm_id, now)
-    contacts_created = _seed_contacts(db, now)
-
-    counts = {"companies": 0, "history": 0, "policies": 0, "claims": 0, "activities": 0}
-
-    for c in _COMPANIES:
-        if _seed_company_row(db, c):
-            counts["companies"] += 1
-        counts["history"] += _seed_history_rows(db, c)
-
-        policy_id, policy_created = _seed_primary_policy(db, c, firm_id, today, now)
-        if policy_created:
-            counts["policies"] += 1
-        if _seed_demo_claim(db, c, firm_id, policy_id, today, now):
-            counts["claims"] += 1
-        if _seed_demo_activity(db, c, firm_id, today, now):
-            counts["activities"] += 1
-
-    idd_created = _seed_idd(db, firm_id, now)
-    submissions_created = _seed_submissions(db, firm_id, insurer_map, now)
-    recommendations_created = _seed_recommendations(db, firm_id, now)
-    _seed_default_pipeline_stages(db, firm_id, now)
-    deals_created = _seed_demo_deals(db, firm_id, now)
-
-    db.commit()
-    return {
-        "companies_created": counts["companies"],
-        "history_rows_created": counts["history"],
-        "policies_created": counts["policies"],
-        "claims_created": counts["claims"],
-        "activities_created": counts["activities"],
-        "contacts_created": contacts_created,
-        "insurers_created": len(insurer_map),
-        "idd_created": idd_created,
-        "submissions_created": submissions_created,
-        "recommendations_created": recommendations_created,
-        "message": (
-            f"Demo-data seeded: {counts['companies']} selskaper, "
-            f"{counts['history']} historikkrader, {counts['policies']} poliser, "
-            f"{contacts_created} kontakter, {idd_created} IDD-analyser, "
-            f"{recommendations_created} anbefalingsbrev"
-        ),
-    }
+    return DemoSeedService(db).seed_full_demo()

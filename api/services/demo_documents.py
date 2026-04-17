@@ -95,67 +95,76 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
         return ""
 
 
+class DemoDocumentsService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def seed_demo_documents(self, max_source_docs: int = 5) -> dict:
+        """Read real InsuranceDocuments, anonymise them, save as demo copies.
+
+        Skips documents already tagged 'demo'. Returns counts.
+        """
+        existing_demo = {
+            d.title for d in
+            self.db.query(InsuranceDocument.title)
+            .filter(InsuranceDocument.tags.like("%demo%"))
+            .all()
+        }
+
+        sources = (
+            self.db.query(InsuranceDocument)
+            .filter(~InsuranceDocument.tags.like("%demo%"))
+            .limit(max_source_docs)
+            .all()
+        )
+
+        if not sources:
+            return {"created": 0, "skipped": 0, "reason": "No source documents found in DB"}
+
+        created, skipped = 0, 0
+        for i, src in enumerate(sources):
+            demo_title = f"[Demo] {src.title}"
+            if demo_title in existing_demo:
+                skipped += 1
+                continue
+
+            demo_name = _DEMO_NAMES[i % len(_DEMO_NAMES)]
+            demo_orgnr = _DEMO_ORGNRS[i % len(_DEMO_ORGNRS)]
+
+            text = _extract_pdf_text(src.pdf_content)
+            if not text.strip():
+                skipped += 1
+                _log.warning("demo_docs: no text extracted from doc id=%s", src.id)
+                continue
+
+            anonymised = _anonymise_text(text, src.orgnr or "", demo_name, demo_orgnr)
+            try:
+                pdf_bytes = _text_to_pdf(anonymised, demo_title)
+            except Exception as exc:
+                _log.warning("demo_docs: PDF generation failed for %s: %s", src.title, exc)
+                skipped += 1
+                continue
+
+            now = datetime.now(timezone.utc).isoformat()
+            self.db.add(InsuranceDocument(
+                title=demo_title,
+                category=src.category,
+                insurer=src.insurer,
+                year=src.year,
+                period=src.period,
+                orgnr=demo_orgnr,
+                filename=f"demo_{src.filename}",
+                pdf_content=pdf_bytes,
+                extracted_text=anonymised,
+                uploaded_at=now,
+                tags="demo",
+            ))
+            created += 1
+
+        self.db.commit()
+        return {"created": created, "skipped": skipped}
+
+
+# Backward compat
 def seed_demo_documents(db: Session, max_source_docs: int = 5) -> dict:
-    """Read real InsuranceDocuments, anonymise them, save as demo copies.
-
-    Skips documents already tagged 'demo'. Returns counts.
-    """
-    existing_demo = {
-        d.title for d in
-        db.query(InsuranceDocument.title)
-        .filter(InsuranceDocument.tags.like("%demo%"))
-        .all()
-    }
-
-    sources = (
-        db.query(InsuranceDocument)
-        .filter(~InsuranceDocument.tags.like("%demo%"))
-        .limit(max_source_docs)
-        .all()
-    )
-
-    if not sources:
-        return {"created": 0, "skipped": 0, "reason": "No source documents found in DB"}
-
-    created, skipped = 0, 0
-    for i, src in enumerate(sources):
-        demo_title = f"[Demo] {src.title}"
-        if demo_title in existing_demo:
-            skipped += 1
-            continue
-
-        demo_name = _DEMO_NAMES[i % len(_DEMO_NAMES)]
-        demo_orgnr = _DEMO_ORGNRS[i % len(_DEMO_ORGNRS)]
-
-        text = _extract_pdf_text(src.pdf_content)
-        if not text.strip():
-            skipped += 1
-            _log.warning("demo_docs: no text extracted from doc id=%s", src.id)
-            continue
-
-        anonymised = _anonymise_text(text, src.orgnr or "", demo_name, demo_orgnr)
-        try:
-            pdf_bytes = _text_to_pdf(anonymised, demo_title)
-        except Exception as exc:
-            _log.warning("demo_docs: PDF generation failed for %s: %s", src.title, exc)
-            skipped += 1
-            continue
-
-        now = datetime.now(timezone.utc).isoformat()
-        db.add(InsuranceDocument(
-            title=demo_title,
-            category=src.category,
-            insurer=src.insurer,
-            year=src.year,
-            period=src.period,
-            orgnr=demo_orgnr,
-            filename=f"demo_{src.filename}",
-            pdf_content=pdf_bytes,
-            extracted_text=anonymised,
-            uploaded_at=now,
-            tags="demo",
-        ))
-        created += 1
-
-    db.commit()
-    return {"created": created, "skipped": skipped}
+    return DemoDocumentsService(db).seed_demo_documents(max_source_docs)
