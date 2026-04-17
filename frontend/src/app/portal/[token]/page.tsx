@@ -4,6 +4,16 @@ import { use } from "react";
 import useSWR from "swr";
 import { Loader2, Shield, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 import { getClientPortalProfile, type ClientPortalProfile } from "@/lib/api";
+import { useRiskConfig } from "@/lib/useRiskConfig";
+
+const BAND_CLASS: Record<string, string> = {
+  "Lav":       "bg-green-100 text-green-700",
+  "Moderat":   "bg-amber-100 text-amber-700",
+  "Høy":       "bg-red-100 text-red-700",
+  "Svært høy": "bg-red-100 text-red-700",
+  "Ukjent":    "bg-gray-100 text-gray-700",
+};
+const riskBandClass = (label: string) => BAND_CLASS[label] ?? BAND_CLASS["Ukjent"];
 
 function fmt(n: number | undefined | null) {
   if (n == null) return "–";
@@ -36,6 +46,7 @@ export default function ClientPortalPage({
     `portal-${token}`,
     () => getClientPortalProfile(token),
   );
+  const { bandFor } = useRiskConfig();
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F1EC]">
@@ -54,7 +65,6 @@ export default function ClientPortalPage({
       </div>
     </div>
   );
-
   const expiresDate = new Date(data.expires_at).toLocaleDateString("nb-NO");
   const riskScore = data.risk_score;
 
@@ -85,9 +95,7 @@ export default function ClientPortalPage({
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-[#2C3E50]">Risikoscore</p>
               <span className={`text-sm font-bold px-3 py-1 rounded-full ${
-                riskScore <= 3 ? "bg-green-100 text-green-700"
-                : riskScore <= 7 ? "bg-amber-100 text-amber-700"
-                : "bg-red-100 text-red-700"
+                riskBandClass(bandFor(riskScore).label)
               }`}>
                 {riskScore} / 20
               </span>

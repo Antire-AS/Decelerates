@@ -8,8 +8,19 @@ import {
 import { Loader2 } from "lucide-react";
 import { getCompanies, type Company } from "@/lib/api";
 import { fmtMnok } from "./_shared";
+import { useRiskConfig } from "@/lib/useRiskConfig";
+
+const BAND_CLASS: Record<string, string> = {
+  "Lav":       "bg-green-100 text-green-700",
+  "Moderat":   "bg-amber-100 text-amber-700",
+  "Høy":       "bg-red-100 text-red-700",
+  "Svært høy": "bg-red-100 text-red-700",
+  "Ukjent":    "bg-gray-100 text-gray-700",
+};
+const riskBandClass = (label: string) => BAND_CLASS[label] ?? BAND_CLASS["Ukjent"];
 
 export default function CompareTab() {
+  const { bandFor } = useRiskConfig();
   const { data: companies, isLoading } = useSWR<Company[]>("companies-compare", () => getCompanies(500));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -85,9 +96,7 @@ export default function CompareTab() {
               {c.risk_score != null && (
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                   selected.has(c.orgnr) ? "bg-white/20 text-white"
-                  : c.risk_score <= 3 ? "bg-green-100 text-green-700"
-                  : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
-                  : "bg-red-100 text-red-700"
+                  : riskBandClass(bandFor(c.risk_score).label)
                 }`}>{c.risk_score}</span>
               )}
             </button>
@@ -137,9 +146,7 @@ export default function CompareTab() {
                     <td className="py-2 text-right">
                       {c.risk_score != null ? (
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          c.risk_score <= 3 ? "bg-green-100 text-green-700"
-                          : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
-                          : "bg-red-100 text-red-700"
+                          riskBandClass(bandFor(c.risk_score).label)
                         }`}>{c.risk_score}</span>
                       ) : "–"}
                     </td>

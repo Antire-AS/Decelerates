@@ -11,25 +11,16 @@ import {
   type Company,
   type PortfolioItem,
 } from "@/lib/api";
-
-// Risk score is 0–20 (api/risk.py derive_simple_risk).
-// Bands mirror Streamlit profile_core.py: 0–3 Lav · 4–7 Moderat · 8–12 Høy · 13+ Svært høy
-const RISK_BANDS = [
-  { label: "Lav (0–3)",       min: 0,  max: 3,  color: "#27AE60" },
-  { label: "Moderat (4–7)",   min: 4,  max: 7,  color: "#C8A951" },
-  { label: "Høy (8–12)",      min: 8,  max: 12, color: "#E67E22" },
-  { label: "Svært høy (13+)", min: 13, max: 20, color: "#C0392B" },
-] as const;
-
-function riskColor(score?: number | null) {
-  if (score == null) return "#C4BDB4";
-  if (score <= 3)  return "#27AE60";
-  if (score <= 7)  return "#C8A951";
-  if (score <= 12) return "#E67E22";
-  return "#C0392B";
-}
+import { useRiskConfig } from "@/lib/useRiskConfig";
 
 export default function ProspectingPage() {
+  const { bands, bandFor } = useRiskConfig();
+  const RISK_BANDS = useMemo(
+    () => bands.map(b => ({ ...b, label: `${b.label} (${b.min}–${b.max})` })),
+    [bands],
+  );
+  const riskColor = (score?: number | null) => bandFor(score).color;
+
   const [search, setSearch]         = useState("");
   const [industryFilter, setIndustry] = useState("");
   const [municipalityFilter, setMunicipality] = useState("");
@@ -73,6 +64,14 @@ export default function ProspectingPage() {
     return [...set].sort();
   }, [companies]);
 
+  // Map select-option keys to band indices via the live bands array
+  const BAND_KEY_TO_INDEX: Record<string, number> = useMemo(() => ({
+    low:      0,
+    mid:      1,
+    high:     2,
+    veryhigh: 3,
+  }), []);
+
   const filtered = useMemo(() => {
     if (!companies) return [];
     return companies
@@ -84,11 +83,12 @@ export default function ProspectingPage() {
         const matchRisk =
           riskFilter === "all" ? true
           : riskFilter === "unknown" ? c.risk_score == null
-          : riskFilter === "low"      ? (c.risk_score != null && c.risk_score <= 3)
-          : riskFilter === "mid"      ? (c.risk_score != null && c.risk_score >= 4  && c.risk_score <= 7)
-          : riskFilter === "high"     ? (c.risk_score != null && c.risk_score >= 8  && c.risk_score <= 12)
-          : riskFilter === "veryhigh" ? (c.risk_score != null && c.risk_score >= 13)
-          : true;
+          : (() => {
+              const targetIdx = BAND_KEY_TO_INDEX[riskFilter];
+              if (targetIdx === undefined || c.risk_score == null) return false;
+              const b = bands[targetIdx];
+              return b != null && c.risk_score >= b.min && c.risk_score <= b.max;
+            })();
         return matchSearch && matchIndustry && matchMun && matchRisk;
       })
       .sort((a, b) => {
@@ -96,7 +96,7 @@ export default function ProspectingPage() {
         if (sortBy === "revenue") return (b.omsetning ?? 0) - (a.omsetning ?? 0);
         return (a.navn ?? a.orgnr).localeCompare(b.navn ?? b.orgnr, "nb");
       });
-  }, [companies, search, industryFilter, municipalityFilter, riskFilter, sortBy]);
+  }, [companies, search, industryFilter, municipalityFilter, riskFilter, sortBy, bands, BAND_KEY_TO_INDEX]);
 
   async function handleAdd(portfolioId: number) {
     if (!selectedOrgnr) return;
@@ -166,10 +166,12 @@ export default function ProspectingPage() {
             className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
           >
             <option value="all">Alle risikonivåer</option>
-            <option value="low">Lav (0–3)</option>
-            <option value="mid">Moderat (4–7)</option>
-            <option value="high">Høy (8–12)</option>
-            <option value="veryhigh">Svært høy (13+)</option>
+            {(["low", "mid", "high", "veryhigh"] as const).map((key, i) => {
+              const b = bands[i];
+              return b ? (
+                <option key={key} value={key}>{b.label} ({b.min}–{b.max})</option>
+              ) : null;
+            })}
             <option value="unknown">Ukjent</option>
           </select>
         </div>
