@@ -9,6 +9,7 @@ import {
   type Submission, type Insurer,
 } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const STATUS_LABELS: Record<string, string> = {
   pending:   "Avventer",
@@ -41,6 +42,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
   const [open, setOpen]       = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving]   = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   // Form state
   const [insurerId, setInsurerId]     = useState<number | "">("");
@@ -74,8 +76,11 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
     mutate();
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Slett forespørsel?")) return;
+  function handleDelete(id: number) {
+    setDeleteId(id);
+  }
+
+  async function performDelete(id: number) {
     await deleteSubmission(id);
     mutate();
   }
@@ -222,6 +227,18 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        title="Slett forespørsel?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (deleteId !== null) performDelete(deleteId);
+        }}
+      />
     </div>
   );
 }

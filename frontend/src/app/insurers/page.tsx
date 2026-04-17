@@ -9,6 +9,7 @@ import {
   getInsurers, createInsurer, updateInsurer, deleteInsurer,
   type Insurer,
 } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const PRODUCT_TYPES = [
   "Motorvognforsikring",
@@ -187,9 +188,13 @@ function InsurerCard({
 }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  async function handleDelete() {
-    if (!confirm(`Slett ${insurer.name}?`)) return;
+  function handleDelete() {
+    setConfirmDelete(true);
+  }
+
+  async function performDelete() {
     await deleteInsurer(insurer.id);
     onDeleted();
   }
@@ -277,6 +282,16 @@ function InsurerCard({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={`Slett ${insurer.name}?`}
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={performDelete}
+      />
     </div>
   );
 }

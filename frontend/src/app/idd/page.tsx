@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle, ChevronRight } from "lucide-react";
 import { getOrgIdd, getAllIdd, createOrgIdd, deleteOrgIdd, type IddBehovsanalyse } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const PRODUCTS = [
   "Motorvognforsikring",
@@ -319,6 +320,7 @@ function IddContent() {
   const searchParams = useSearchParams();
   const orgnr = searchParams.get("orgnr") ?? "";
   const [showForm, setShowForm] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data: rows, isLoading, mutate } = useSWR<IddBehovsanalyse[]>(
     orgnr ? `idd-${orgnr}` : null,
@@ -331,8 +333,11 @@ function IddContent() {
     () => getAllIdd(100),
   );
 
-  async function handleDelete(id: number) {
-    if (!confirm("Slette behovsanalyse?")) return;
+  function handleDelete(id: number) {
+    setDeleteId(id);
+  }
+
+  async function performDelete(id: number) {
     await deleteOrgIdd(orgnr, id);
     mutate();
   }
@@ -432,6 +437,18 @@ function IddContent() {
           </details>
         </>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        title="Slette behovsanalyse?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (deleteId !== null) performDelete(deleteId);
+        }}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   getOrgIdd,
   type Recommendation, type Submission, type Insurer, type IddBehovsanalyse,
 } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 // ── New recommendation form ───────────────────────────────────────────────────
 
@@ -193,6 +194,7 @@ function RecommendationCard({
 }) {
   const [open, setOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   async function handleDownload() {
     setDownloading(true);
@@ -203,8 +205,11 @@ function RecommendationCard({
     }
   }
 
-  async function handleDelete() {
-    if (!confirm("Slett anbefaling?")) return;
+  function handleDelete() {
+    setConfirmDelete(true);
+  }
+
+  async function performDelete() {
     await deleteRecommendation(orgnr, rec.id);
     onDeleted();
   }
@@ -260,6 +265,16 @@ function RecommendationCard({
           </p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Slett anbefaling?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={performDelete}
+      />
     </div>
   );
 }

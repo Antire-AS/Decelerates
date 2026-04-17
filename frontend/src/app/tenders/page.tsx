@@ -19,6 +19,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   draft: { label: "Utkast", color: "bg-gray-100 text-gray-700" },
@@ -44,6 +46,7 @@ export default function TendersPage() {
   const { data: tenders, mutate } = useSWR<TenderListItem[]>("tenders", () => getTenders());
   const { data: insurers } = useSWR<Insurer[]>("insurers", getInsurers);
   const [showNew, setShowNew] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   return (
     <div>
@@ -106,11 +109,10 @@ export default function TendersPage() {
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      if (confirm("Slett dette anbudet?")) {
-                        deleteTender(t.id).then(() => mutate());
-                      }
+                      setDeleteId(t.id);
                     }}
                     className="p-1.5 hover:bg-red-50 rounded text-[#8A7F74] hover:text-red-500"
+                    aria-label="Slett anbud"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -132,6 +134,20 @@ export default function TendersPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        title="Slett dette anbudet?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (deleteId !== null) {
+            deleteTender(deleteId).then(() => mutate());
+          }
+        }}
+      />
     </div>
   );
 }
@@ -184,7 +200,7 @@ function NewTenderModal({
       });
       onCreated();
     } catch {
-      alert("Kunne ikke opprette anbud");
+      toast.error("Kunne ikke opprette anbud");
     } finally {
       setSaving(false);
     }
