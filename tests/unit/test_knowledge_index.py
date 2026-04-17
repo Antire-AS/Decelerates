@@ -2,6 +2,7 @@
 
 Pure static tests — BlobStorageService, _embed, and SearchService are all mocked.
 """
+
 from unittest.mock import MagicMock, patch
 
 
@@ -22,6 +23,7 @@ def _mock_db():
 
 
 # ── _fmt_time ─────────────────────────────────────────────────────────────────
+
 
 def test_fmt_time_zero():
     assert _fmt_time(0) == "0:00"
@@ -48,6 +50,7 @@ def test_fmt_time_59_minutes_59_seconds():
 
 
 # ── _split_text ───────────────────────────────────────────────────────────────
+
 
 def test_split_text_short_returns_single_chunk():
     text = "Short text."
@@ -85,6 +88,7 @@ def test_split_text_empty_string():
 
 # ── _source_exists ────────────────────────────────────────────────────────────
 
+
 def test_source_exists_returns_true_when_chunk_found():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = MagicMock()
@@ -98,6 +102,7 @@ def test_source_exists_returns_false_when_not_found():
 
 
 # ── clear_knowledge ───────────────────────────────────────────────────────────
+
 
 def test_clear_knowledge_deletes_each_row_and_commits():
     rows = [MagicMock(), MagicMock(), MagicMock()]
@@ -117,6 +122,7 @@ def test_clear_knowledge_returns_zero_when_empty():
 
 
 # ── index_insurance_documents ─────────────────────────────────────────────────
+
 
 def _mock_insurance_doc(**kwargs):
     doc = MagicMock()
@@ -196,24 +202,35 @@ def test_index_insurance_documents_indexes_multiple_docs():
 
 # ── index_video_transcripts ───────────────────────────────────────────────────
 
+
 def test_index_video_transcripts_returns_zero_when_blob_not_configured():
     db = _mock_db()
     mock_svc = MagicMock()
     mock_svc.is_configured.return_value = False
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         assert index_video_transcripts(db) == 0
 
 
 def test_index_video_transcripts_indexes_valid_section():
-    sections = [{"title": "Chapter 1", "start_seconds": 60,
-                 "description": "Overview of insurance", "entries": [{"text": "Key insight here"}]}]
+    sections = [
+        {
+            "title": "Chapter 1",
+            "start_seconds": 60,
+            "description": "Overview of insurance",
+            "entries": [{"text": "Key insight here"}],
+        }
+    ]
     mock_svc = MagicMock()
     mock_svc.is_configured.return_value = True
     mock_svc.list_blobs.return_value = ["ffsformidler_sections.json"]
     mock_svc.download_json.return_value = sections
     db = _mock_db()
 
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         with patch("api.services.knowledge_index._source_exists", return_value=False):
             with patch("api.services.knowledge_index._store_chunk") as mock_store:
                 count = index_video_transcripts(db)
@@ -223,14 +240,18 @@ def test_index_video_transcripts_indexes_valid_section():
 
 
 def test_index_video_transcripts_skips_untitled_sections():
-    sections = [{"title": "", "start_seconds": 0, "entries": [{"text": "ignored text"}]}]
+    sections = [
+        {"title": "", "start_seconds": 0, "entries": [{"text": "ignored text"}]}
+    ]
     mock_svc = MagicMock()
     mock_svc.is_configured.return_value = True
     mock_svc.list_blobs.return_value = ["ffsformidler_sections.json"]
     mock_svc.download_json.return_value = sections
     db = _mock_db()
 
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         with patch("api.services.knowledge_index._store_chunk"):
             count = index_video_transcripts(db)
 
@@ -245,7 +266,9 @@ def test_index_video_transcripts_skips_short_body():
     mock_svc.download_json.return_value = sections
     db = _mock_db()
 
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         with patch("api.services.knowledge_index._source_exists", return_value=False):
             with patch("api.services.knowledge_index._store_chunk"):
                 count = index_video_transcripts(db)
@@ -254,14 +277,23 @@ def test_index_video_transcripts_skips_short_body():
 
 
 def test_index_video_transcripts_skips_already_indexed_source():
-    sections = [{"title": "Chapter", "start_seconds": 0, "description": "Long enough description here", "entries": []}]
+    sections = [
+        {
+            "title": "Chapter",
+            "start_seconds": 0,
+            "description": "Long enough description here",
+            "entries": [],
+        }
+    ]
     mock_svc = MagicMock()
     mock_svc.is_configured.return_value = True
     mock_svc.list_blobs.return_value = ["ffskunde_sections.json"]
     mock_svc.download_json.return_value = sections
     db = _mock_db()
 
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         with patch("api.services.knowledge_index._source_exists", return_value=True):
             with patch("api.services.knowledge_index._store_chunk"):
                 count = index_video_transcripts(db)
@@ -275,7 +307,9 @@ def test_index_video_transcripts_handles_exception_gracefully():
     mock_svc.list_blobs.side_effect = Exception("Blob unavailable")
     db = _mock_db()
 
-    with patch("api.services.knowledge_index.BlobStorageService", return_value=mock_svc):
+    with patch(
+        "api.services.knowledge_index.BlobStorageService", return_value=mock_svc
+    ):
         count = index_video_transcripts(db)
 
     assert count == 0
@@ -283,6 +317,7 @@ def test_index_video_transcripts_handles_exception_gracefully():
 
 
 # ── get_stats ─────────────────────────────────────────────────────────────────
+
 
 def test_get_stats_counts_by_source_type():
     doc_chunk = MagicMock()
@@ -292,7 +327,11 @@ def test_get_stats_counts_by_source_type():
     other_chunk = MagicMock()
     other_chunk.source = "video::Other::0::Section"
     db = _mock_db()
-    db.query.return_value.filter.return_value.all.return_value = [doc_chunk, video_chunk, other_chunk]
+    db.query.return_value.filter.return_value.all.return_value = [
+        doc_chunk,
+        video_chunk,
+        other_chunk,
+    ]
 
     result = get_stats(db)
 
@@ -309,18 +348,27 @@ def test_get_stats_returns_zeros_when_empty():
 
 # ── index_all ─────────────────────────────────────────────────────────────────
 
+
 def test_index_all_returns_combined_counts():
     db = _mock_db()
-    with patch("api.services.knowledge_index.index_insurance_documents", return_value=3):
-        with patch("api.services.knowledge_index.index_video_transcripts", return_value=7):
+    with patch(
+        "api.services.knowledge_index.index_insurance_documents", return_value=3
+    ):
+        with patch(
+            "api.services.knowledge_index.index_video_transcripts", return_value=7
+        ):
             result = index_all(db)
     assert result == {"docs_chunks": 3, "video_chunks": 7}
 
 
 def test_index_all_calls_both_indexers():
     db = _mock_db()
-    with patch("api.services.knowledge_index.index_insurance_documents", return_value=0) as mock_docs:
-        with patch("api.services.knowledge_index.index_video_transcripts", return_value=0) as mock_vids:
+    with patch(
+        "api.services.knowledge_index.index_insurance_documents", return_value=0
+    ) as mock_docs:
+        with patch(
+            "api.services.knowledge_index.index_video_transcripts", return_value=0
+        ) as mock_vids:
             index_all(db)
     mock_docs.assert_called_once_with(db)
     mock_vids.assert_called_once_with(db)

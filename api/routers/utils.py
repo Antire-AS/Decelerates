@@ -2,6 +2,7 @@
 
 Admin, debug, and notification endpoints have been extracted to admin_router.py.
 """
+
 import requests
 from fastapi import APIRouter, HTTPException
 
@@ -113,9 +114,12 @@ def get_insurance_benchmarks(revenue: float = None, nace_section: str = None):
     company-specific estimates with NACE risk adjustments.
     """
     from api.constants_insurance import (
-        PREMIUM_BENCHMARKS, REVENUE_BRACKETS, NACE_RISK_MULTIPLIERS,
+        PREMIUM_BENCHMARKS,
+        REVENUE_BRACKETS,
+        NACE_RISK_MULTIPLIERS,
         estimate_premiums_for_company,
     )
+
     if revenue is not None:
         return {
             "mode": "company",

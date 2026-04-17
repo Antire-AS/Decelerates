@@ -16,7 +16,9 @@ def _get_broker_service(db: Session = Depends(get_db)) -> BrokerService:
 
 
 @router.get("/broker/settings")
-def get_broker_settings_endpoint(svc: BrokerService = Depends(_get_broker_service)) -> dict:
+def get_broker_settings_endpoint(
+    svc: BrokerService = Depends(_get_broker_service),
+) -> dict:
     row = svc.get_settings()
     if not row:
         return {}
@@ -32,14 +34,20 @@ def get_broker_settings_endpoint(svc: BrokerService = Depends(_get_broker_servic
 
 
 @router.post("/broker/settings")
-def save_broker_settings_endpoint(body: BrokerSettingsIn, svc: BrokerService = Depends(_get_broker_service), db: Session = Depends(get_db)):
+def save_broker_settings_endpoint(
+    body: BrokerSettingsIn,
+    svc: BrokerService = Depends(_get_broker_service),
+    db: Session = Depends(get_db),
+):
     result = svc.save_settings(body)
     log_audit(db, "broker.settings.update", detail={"firm_name": body.firm_name})
     return result
 
 
 @router.get("/org/{orgnr}/broker-notes")
-def list_broker_notes_endpoint(orgnr: str, svc: BrokerService = Depends(_get_broker_service)) -> list:
+def list_broker_notes_endpoint(
+    orgnr: str, svc: BrokerService = Depends(_get_broker_service)
+) -> list:
     rows = svc.list_notes(orgnr)
     return [{"id": r.id, "text": r.text, "created_at": r.created_at} for r in rows]
 
@@ -62,7 +70,12 @@ def create_broker_note_endpoint(
 
 
 @router.delete("/org/{orgnr}/broker-notes/{note_id}")
-def delete_broker_note_endpoint(orgnr: str, note_id: int, db: Session = Depends(get_db), svc: BrokerService = Depends(_get_broker_service)) -> dict:
+def delete_broker_note_endpoint(
+    orgnr: str,
+    note_id: int,
+    db: Session = Depends(get_db),
+    svc: BrokerService = Depends(_get_broker_service),
+) -> dict:
     try:
         svc.delete_note(note_id, orgnr)
     except NotFoundError:

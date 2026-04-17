@@ -1,4 +1,5 @@
 """Tender (anbud) endpoints — create, send, collect offers, and compare."""
+
 import logging
 from typing import List
 
@@ -10,8 +11,12 @@ from api.db import User
 from api.dependencies import get_db
 from api.limiter import limiter
 from api.schemas import (
-    TenderCreate, TenderUpdate, TenderOut, TenderListOut,
-    TenderAnalysisOut, TenderOfferOut,
+    TenderCreate,
+    TenderUpdate,
+    TenderOut,
+    TenderListOut,
+    TenderAnalysisOut,
+    TenderOfferOut,
 )
 from api.services.tender_service import TenderService
 
@@ -65,17 +70,19 @@ async def list_tenders(
     for t in tenders:
         recipients = svc.get_recipients(t.id)
         offers = svc.get_offers(t.id)
-        result.append({
-            "id": t.id,
-            "orgnr": t.orgnr,
-            "title": t.title,
-            "product_types": t.product_types or [],
-            "deadline": t.deadline,
-            "status": t.status.value if hasattr(t.status, "value") else t.status,
-            "recipient_count": len(recipients),
-            "offer_count": len(offers),
-            "created_at": t.created_at,
-        })
+        result.append(
+            {
+                "id": t.id,
+                "orgnr": t.orgnr,
+                "title": t.title,
+                "product_types": t.product_types or [],
+                "deadline": t.deadline,
+                "status": t.status.value if hasattr(t.status, "value") else t.status,
+                "recipient_count": len(recipients),
+                "offer_count": len(offers),
+                "created_at": t.created_at,
+            }
+        )
     return result
 
 
@@ -234,7 +241,9 @@ def _to_detail(tender, svc: TenderService) -> dict:
         "product_types": tender.product_types or [],
         "deadline": tender.deadline,
         "notes": tender.notes,
-        "status": tender.status.value if hasattr(tender.status, "value") else tender.status,
+        "status": tender.status.value
+        if hasattr(tender.status, "value")
+        else tender.status,
         "analysis_result": tender.analysis_result,
         "created_by_email": tender.created_by_email,
         "created_at": tender.created_at,

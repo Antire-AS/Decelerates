@@ -41,7 +41,8 @@ router = APIRouter()
 def _auto_ingest_company_data(orgnr: str, db: Session) -> None:
     """Ingest history rows and offer texts into CompanyChunk if not already done."""
     existing_sources = {
-        r.source for r in db.query(CompanyChunk).filter(CompanyChunk.orgnr == orgnr).all()
+        r.source
+        for r in db.query(CompanyChunk).filter(CompanyChunk.orgnr == orgnr).all()
     }
     for h in db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all():
         src = f"annual_report_{h.year}"
@@ -53,7 +54,9 @@ def _auto_ingest_company_data(orgnr: str, db: Session) -> None:
             _chunk_and_store(orgnr, src, str(offer.extracted_text), db)
 
 
-def _build_history_context(orgnr: str, db: Session, session_id: str | None = None, limit: int = 5) -> str:
+def _build_history_context(
+    orgnr: str, db: Session, session_id: str | None = None, limit: int = 5
+) -> str:
     """Return last N Q&A pairs as a formatted conversation history string."""
     q = db.query(CompanyNote).filter(CompanyNote.orgnr == orgnr)
     if session_id:
@@ -61,9 +64,7 @@ def _build_history_context(orgnr: str, db: Session, session_id: str | None = Non
     notes = q.order_by(CompanyNote.id.desc()).limit(limit).all()
     if not notes:
         return ""
-    pairs = "\n".join(
-        f"Q: {n.question}\nA: {n.answer}" for n in reversed(notes)
-    )
+    pairs = "\n".join(f"Q: {n.question}\nA: {n.answer}" for n in reversed(notes))
     return f"Previous conversation:\n{pairs}"
 
 
@@ -71,7 +72,9 @@ def _answer_with_rag_or_notes(
     orgnr: str, question: str, db_obj: Company, db: Session, history_ctx: str = ""
 ) -> str:
     """Try chunk-based RAG; fall back to CompanyNote cosine search."""
-    full_q = f"{history_ctx}\n\nCurrent question: {question}" if history_ctx else question
+    full_q = (
+        f"{history_ctx}\n\nCurrent question: {question}" if history_ctx else question
+    )
 
     chunk_texts = _retrieve_chunks(orgnr, question, db, limit=5)
     if chunk_texts:
@@ -105,9 +108,12 @@ def _answer_with_rag_or_notes(
     return _llm_answer(context, question)
 
 
-def _chat_agent_mode(orgnr: str, question: str, firm_id: int, db: Session, session_id: str) -> dict:
+def _chat_agent_mode(
+    orgnr: str, question: str, firm_id: int, db: Session, session_id: str
+) -> dict:
     """Copilot agent mode — tool-use chat that can take actions."""
     from api.services.copilot_agent import chat_with_tools
+
     try:
         result = chat_with_tools(question, orgnr, firm_id, db)
     except Exception as e:
@@ -115,7 +121,9 @@ def _chat_agent_mode(orgnr: str, question: str, firm_id: int, db: Session, sessi
     answer = result["answer"]
     save_qa_note(orgnr, question, answer, db, session_id=session_id)
     return {
-        "orgnr": orgnr, "question": question, "answer": answer,
+        "orgnr": orgnr,
+        "question": question,
+        "answer": answer,
         "session_id": session_id,
         "tool_calls": result.get("tool_calls_made", []),
     }
@@ -133,17 +141,22 @@ def chat_about_org(
     user: CurrentUser = Depends(get_current_user),
 ):
     from api.rag_chain import build_rag_chain  # noqa: F401 (imported for side-effects)
+
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
-        raise HTTPException(status_code=404,
-            detail="Company not in database — call /org/{orgnr} first to load it")
+        raise HTTPException(
+            status_code=404,
+            detail="Company not in database — call /org/{orgnr} first to load it",
+        )
     active_session = session_id.strip() or str(uuid.uuid4())
     if mode == "agent":
         return _chat_agent_mode(orgnr, body.question, user.firm_id, db, active_session)
     _auto_ingest_company_data(orgnr, db)
     history_ctx = _build_history_context(orgnr, db, session_id=active_session)
     try:
-        answer = _answer_with_rag_or_notes(orgnr, body.question, db_obj, db, history_ctx)
+        answer = _answer_with_rag_or_notes(
+            orgnr, body.question, db_obj, db, history_ctx
+        )
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
     except LlmUnavailableError as e:
@@ -151,16 +164,28 @@ def chat_about_org(
     note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
     _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
     log_audit(db, "chat.org", orgnr=orgnr, detail={"session_id": active_session})
-    return {"orgnr": orgnr, "question": body.question, "answer": answer, "session_id": active_session}
+    return {
+        "orgnr": orgnr,
+        "question": body.question,
+        "answer": answer,
+        "session_id": active_session,
+    }
 
 
 @router.post("/org/{orgnr}/ingest-knowledge", response_model=IngestKnowledgeOut)
-def ingest_knowledge(orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)) -> dict:
+def ingest_knowledge(
+    orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)
+) -> dict:
     """Manually chunk and embed text into the company's knowledge base."""
     if not body.text.strip():
         raise HTTPException(status_code=422, detail="text must not be empty")
     count = _chunk_and_store(orgnr, body.source, body.text, db)
-    log_audit(db, "knowledge.ingest", orgnr=orgnr, detail={"source": body.source, "chunks": count})
+    log_audit(
+        db,
+        "knowledge.ingest",
+        orgnr=orgnr,
+        detail={"source": body.source, "chunks": count},
+    )
     return {"orgnr": orgnr, "source": body.source, "chunks_stored": count}
 
 
@@ -182,10 +207,7 @@ def search_knowledge(
         )
     else:
         rows = (
-            db.query(CompanyChunk)
-            .order_by(CompanyChunk.id.desc())
-            .limit(limit)
-            .all()
+            db.query(CompanyChunk).order_by(CompanyChunk.id.desc()).limit(limit).all()
         )
     return [
         {
@@ -229,16 +251,34 @@ def delete_chat_session(
 ) -> dict:
     """Delete all Q&A notes for a specific chat session."""
     deleted = _clear_chat_session(orgnr, session_id, db)
-    log_audit(db, "chat.delete", orgnr=orgnr, detail={"session_id": session_id, "deleted": deleted})
+    log_audit(
+        db,
+        "chat.delete",
+        orgnr=orgnr,
+        detail={"session_id": session_id, "deleted": deleted},
+    )
     return {"deleted": deleted, "session_id": session_id}
 
 
 # ── Knowledge base chat (videos + insurance docs) ─────────────────────────────
 
+
 def _chunk_snippet(text: str, max_len: int = 140) -> str:
     """Return the first meaningful sentence from a chunk, skipping header lines."""
-    _HEADERS = ("Video:", "Kapittel:", "Tid:", "Dokument:", "Forsikringsselskap:", "År:", "Kategori:")
-    lines = [l.strip() for l in text.splitlines() if l.strip() and not any(l.startswith(h) for h in _HEADERS)]
+    _HEADERS = (
+        "Video:",
+        "Kapittel:",
+        "Tid:",
+        "Dokument:",
+        "Forsikringsselskap:",
+        "År:",
+        "Kategori:",
+    )
+    lines = [
+        l.strip()
+        for l in text.splitlines()
+        if l.strip() and not any(l.startswith(h) for h in _HEADERS)
+    ]
     snippet = " ".join(lines)[:max_len]
     return snippet + "…" if len(" ".join(lines)) > max_len else snippet
 
@@ -267,6 +307,7 @@ def _readable_source(source: str) -> str:
 def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> list:
     """Hybrid retrieval: vector similarity + source-key keyword match."""
     from api.services.knowledge_index import KNOWLEDGE_ORG
+
     q_emb = _embed(question)
     seen: set[int] = set()
     results = []
@@ -275,7 +316,9 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
     if q_emb:
         for r in (
             db.query(CompanyChunk)
-            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.embedding.isnot(None))
+            .filter(
+                CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.embedding.isnot(None)
+            )
             .order_by(CompanyChunk.embedding.cosine_distance(q_emb))
             .limit(limit)
             .all()
@@ -288,7 +331,10 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
     for kw in keywords[:4]:
         for r in (
             db.query(CompanyChunk)
-            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.source.ilike(f"%{kw}%"))
+            .filter(
+                CompanyChunk.orgnr == KNOWLEDGE_ORG,
+                CompanyChunk.source.ilike(f"%{kw}%"),
+            )
             .limit(4)
             .all()
         ):
@@ -296,7 +342,7 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
                 results.append(r)
                 seen.add(r.id)
 
-    return [{"text": r.chunk_text, "source": r.source} for r in results[:limit + 4]]
+    return [{"text": r.chunk_text, "source": r.source} for r in results[: limit + 4]]
 
 
 @router.post("/knowledge/chat", response_model=KnowledgeChatOut)
@@ -311,7 +357,9 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
             "sources": [],
             "source_snippets": {},
         }
-    context = "\n\n---\n\n".join(f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks)
+    context = "\n\n---\n\n".join(
+        f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks
+    )
     sources = list(dict.fromkeys(c["source"] for c in chunks))
     source_snippets = {c["source"]: _chunk_snippet(c["text"]) for c in chunks}
     # _llm_answer_raw takes a single pre-formatted prompt string
@@ -327,7 +375,12 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
     log_audit(db, "knowledge.chat", detail={"sources_count": len(sources)})
-    return {"question": body.question, "answer": answer, "sources": sources, "source_snippets": source_snippets}
+    return {
+        "question": body.question,
+        "answer": answer,
+        "sources": sources,
+        "source_snippets": source_snippets,
+    }
 
 
 @router.post("/knowledge/index", response_model=KnowledgeIndexOut)
@@ -335,6 +388,7 @@ def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) 
     """Trigger (re-)indexing of all video transcripts and insurance documents.
     Set force=true to wipe existing knowledge chunks before re-indexing."""
     from api.services.knowledge_index import index_all, get_stats, clear_knowledge
+
     if force:
         cleared = clear_knowledge(db)
     else:
@@ -354,6 +408,7 @@ def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) 
 def knowledge_index_stats(db: Session = Depends(get_db)) -> dict:
     """Return current knowledge index statistics."""
     from api.services.knowledge_index import get_stats
+
     return get_stats(db)
 
 
@@ -419,8 +474,8 @@ def seed_regulations(db: Session = Depends(get_db)) -> dict:
     from api.db import CompanyChunk
 
     existing_sources = {
-        r.source for r in
-        db.query(CompanyChunk.source)
+        r.source
+        for r in db.query(CompanyChunk.source)
         .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
         .filter(CompanyChunk.source.like("regulation::%"))
         .all()
@@ -430,7 +485,9 @@ def seed_regulations(db: Session = Depends(get_db)) -> dict:
     for reg in _REGULATION_SOURCES:
         source_key = f"regulation::{reg['name']}"
         if source_key in existing_sources:
-            results.append({"name": reg["name"], "chunks": 0, "status": "already_indexed"})
+            results.append(
+                {"name": reg["name"], "chunks": 0, "status": "already_indexed"}
+            )
             continue
 
         text = _fetch_regulation_text(reg["url"])
@@ -442,5 +499,7 @@ def seed_regulations(db: Session = Depends(get_db)) -> dict:
         results.append({"name": reg["name"], "chunks": chunks, "status": "indexed"})
         logger.info("seed_regulations: indexed %s — %d chunks", reg["name"], chunks)
 
-    log_audit(db, "knowledge.seed", detail={"total_chunks": sum(r["chunks"] for r in results)})
+    log_audit(
+        db, "knowledge.seed", detail={"total_chunks": sum(r["chunks"] for r in results)}
+    )
     return {"seeded": results, "total_chunks": sum(r["chunks"] for r in results)}

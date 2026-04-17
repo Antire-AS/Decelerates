@@ -46,7 +46,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class ExternalApiService:
     """Thin class wrapper around module-level external API helpers."""
 

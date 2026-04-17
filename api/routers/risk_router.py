@@ -18,6 +18,8 @@ from api.ports.driven.notification_port import NotificationPort
 
 def _get_notification() -> NotificationPort:
     return resolve(NotificationPort)  # type: ignore[return-value]
+
+
 from api.services.audit import log_audit
 from api.services.client_token_service import get_or_create_active_token
 from api.services.llm import _llm_answer_raw, _parse_json_from_llm_response
@@ -50,6 +52,7 @@ def get_risk_config() -> dict:
     redeploy.
     """
     from api.risk import RISK_BANDS
+
     return {"bands": RISK_BANDS, "max_score": 20}
 
 
@@ -69,12 +72,12 @@ def _org_dict_from_db(db_obj: Company) -> dict:
 
 
 def _fmt_mnok(v) -> str:
-    return "ukjent" if v is None else f"{v/1e6:.1f} MNOK"
+    return "ukjent" if v is None else f"{v / 1e6:.1f} MNOK"
 
 
 def _build_company_info_text(db_obj: Company, risk: dict, regn: dict) -> str:
     eq_ratio = risk.get("equity_ratio")
-    eq_str = f"{eq_ratio*100:.1f}%" if eq_ratio is not None else "ukjent"
+    eq_str = f"{eq_ratio * 100:.1f}%" if eq_ratio is not None else "ukjent"
     return (
         f"Navn: {db_obj.navn}\n"
         f"Orgnr: {db_obj.orgnr}\n"
@@ -91,18 +94,21 @@ def _build_company_info_text(db_obj: Company, risk: dict, regn: dict) -> str:
 
 
 def _build_factors_text(factors: list) -> str:
-    return "\n".join(
-        f"- {f['label']} (+{f['points']}p, {f['category']}): {f.get('detail', '')}"
-        for f in factors
-    ) or "Ingen spesifikke risikofaktorer identifisert"
+    return (
+        "\n".join(
+            f"- {f['label']} (+{f['points']}p, {f['category']}): {f.get('detail', '')}"
+            for f in factors
+        )
+        or "Ingen spesifikke risikofaktorer identifisert"
+    )
 
 
 def _build_benchmark_text(benchmark) -> str:
     if not benchmark:
         return "Ingen bransjebenchmark tilgjengelig"
     return (
-        f"Typisk egenkapitalandel for bransjen: {benchmark.get('equity_ratio_low', 0)*100:.0f}%–{benchmark.get('equity_ratio_high', 0)*100:.0f}%\n"
-        f"Typisk fortjenestemargin: {benchmark.get('profit_margin_low', 0)*100:.0f}%–{benchmark.get('profit_margin_high', 0)*100:.0f}%"
+        f"Typisk egenkapitalandel for bransjen: {benchmark.get('equity_ratio_low', 0) * 100:.0f}%–{benchmark.get('equity_ratio_high', 0) * 100:.0f}%\n"
+        f"Typisk fortjenestemargin: {benchmark.get('profit_margin_low', 0) * 100:.0f}%–{benchmark.get('profit_margin_high', 0) * 100:.0f}%"
     )
 
 
@@ -110,7 +116,7 @@ def _save_offer_recommendation_to_rag(orgnr: str, result: dict, db) -> None:
     rag_text = result.get("sammendrag", "")
     if result.get("anbefalinger"):
         recs = "\n".join(
-            f"- {a.get('type','')}: {a.get('anbefalt_sum','')} ({a.get('prioritet','')}) — {a.get('begrunnelse','')}"
+            f"- {a.get('type', '')}: {a.get('anbefalt_sum', '')} ({a.get('prioritet', '')}) — {a.get('begrunnelse', '')}"
             for a in result["anbefalinger"]
         )
         rag_text = (rag_text + "\n\nAnbefalinger:\n" + recs).strip()
@@ -119,11 +125,15 @@ def _save_offer_recommendation_to_rag(orgnr: str, result: dict, db) -> None:
 
 
 @router.post("/org/{orgnr}/risk-offer", response_model=RiskOfferOut)
-def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
+def generate_risk_offer(
+    orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)
+) -> dict:
     """Generate LLM-based insurance recommendations from the company's risk profile."""
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
-        raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
+        raise HTTPException(
+            status_code=404, detail="Company not in database — call /org/{orgnr} first"
+        )
 
     org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}
@@ -134,7 +144,9 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
         company_info=_build_company_info_text(db_obj, risk, regn),
         score=risk["score"],
         factors=_build_factors_text(risk["factors"]),
-        benchmark=_build_benchmark_text(fetch_ssb_benchmark(db_obj.naeringskode1 or "")),  # type: ignore[arg-type]
+        benchmark=_build_benchmark_text(
+            fetch_ssb_benchmark(db_obj.naeringskode1 or "")
+        ),  # type: ignore[arg-type]
     )
 
     try:
@@ -149,9 +161,19 @@ def generate_risk_offer(orgnr: str, lang: str = Query("no"), db: Session = Depen
             detail="Ingen LLM tilgjengelig — sett AZURE_FOUNDRY_BASE_URL og AZURE_FOUNDRY_API_KEY i .env",
         )
 
-    result = _parse_json_from_llm_response(raw) or {"sammendrag": raw, "anbefalinger": [], "total_premieanslag": "ukjent"}
+    result = _parse_json_from_llm_response(raw) or {
+        "sammendrag": raw,
+        "anbefalinger": [],
+        "total_premieanslag": "ukjent",
+    }
     _save_offer_recommendation_to_rag(orgnr, result, db)
-    return {"orgnr": orgnr, "navn": db_obj.navn, "risk_score": risk["score"], "risk_factors": risk["factors"], **result}
+    return {
+        "orgnr": orgnr,
+        "navn": db_obj.navn,
+        "risk_score": risk["score"],
+        "risk_factors": risk["factors"],
+        **result,
+    }
 
 
 def _build_offers_text(offers: list) -> str:
@@ -161,7 +183,9 @@ def _build_offers_text(offers: list) -> str:
     )
 
 
-def _build_gap_prompt(db_obj: Company, factors_text: str, offers_text: str, lang: str) -> str:
+def _build_gap_prompt(
+    db_obj: Company, factors_text: str, offers_text: str, lang: str
+) -> str:
     if lang == "en":
         return (
             f"You are an expert insurance broker. Analyze the match between the company's risk profile and the uploaded insurance offers to identify coverage gaps.\n\n"
@@ -182,10 +206,10 @@ def _build_gap_prompt(db_obj: Company, factors_text: str, offers_text: str, lang
 def _broker_info_from_db(db) -> tuple:
     """Return (broker_name, broker_contact, broker_email, broker_phone) from DB."""
     row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
-    name    = row.firm_name      if row and row.firm_name      else "Forsikringsmegler AS"
-    contact = row.contact_name   if row and row.contact_name   else ""
-    email   = row.contact_email  if row and row.contact_email  else ""
-    phone   = row.contact_phone  if row and row.contact_phone  else ""
+    name = row.firm_name if row and row.firm_name else "Forsikringsmegler AS"
+    contact = row.contact_name if row and row.contact_name else ""
+    email = row.contact_email if row and row.contact_email else ""
+    phone = row.contact_phone if row and row.contact_phone else ""
     return name, contact, email, phone
 
 
@@ -202,15 +226,22 @@ def _save_gap_to_rag(orgnr: str, result: dict, db) -> None:
 
 
 @router.post("/org/{orgnr}/coverage-gap")
-def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
+def coverage_gap_analysis(
+    orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)
+) -> dict:
     """Compare uploaded insurance offers against the company's risk profile to identify coverage gaps."""
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
-        raise HTTPException(status_code=404, detail="Company not in database — call /org/{orgnr} first")
+        raise HTTPException(
+            status_code=404, detail="Company not in database — call /org/{orgnr} first"
+        )
 
     offers = db.query(InsuranceOffer).filter(InsuranceOffer.orgnr == orgnr).all()
     if not offers:
-        return {"status": "no_offers", "message": "Ingen tilbud lastet opp for dette selskapet."}
+        return {
+            "status": "no_offers",
+            "message": "Ingen tilbud lastet opp for dette selskapet.",
+        }
 
     org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}
@@ -231,9 +262,18 @@ def coverage_gap_analysis(orgnr: str, lang: str = Query("no"), db: Session = Dep
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
     if not raw:
-        return {"status": "error", "dekket": [], "mangler": [], "anbefaling": "Ingen LLM tilgjengelig."}
+        return {
+            "status": "error",
+            "dekket": [],
+            "mangler": [],
+            "anbefaling": "Ingen LLM tilgjengelig.",
+        }
 
-    result = _parse_json_from_llm_response(raw) or {"dekket": [], "mangler": [], "anbefaling": raw}
+    result = _parse_json_from_llm_response(raw) or {
+        "dekket": [],
+        "mangler": [],
+        "anbefaling": raw,
+    }
     _save_gap_to_rag(orgnr, result, db)
     return {"status": "ok", **result}
 
@@ -272,9 +312,15 @@ def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
     )
 
 
-def _build_forsikringstilbud_pdf(db_obj: Company, body: ForsikringstilbudRequest,
-                                  offer_summaries: list, broker_name: str,
-                                  broker_contact: str, broker_email: str, broker_phone: str) -> bytes:
+def _build_forsikringstilbud_pdf(
+    db_obj: Company,
+    body: ForsikringstilbudRequest,
+    offer_summaries: list,
+    broker_name: str,
+    broker_contact: str,
+    broker_email: str,
+    broker_phone: str,
+) -> bytes:
     return generate_forsikringstilbud_pdf(
         orgnr=db_obj.orgnr,
         navn=db_obj.navn,
@@ -309,22 +355,33 @@ def download_forsikringstilbud(
     offer_summaries = []
     for row in stored_offers:
         if row.parsed_premie:
-            offer_summaries.append({
-                "selskap": row.insurer_name or row.filename,
-                "premie": row.parsed_premie,
-                "dekning": row.parsed_dekning or "–",
-                "egenandel": row.parsed_egenandel or "–",
-                "vilkaar": row.parsed_vilkaar or "–",
-                "styrker": row.parsed_styrker or "–",
-                "svakheter": row.parsed_svakheter or "–",
-            })
+            offer_summaries.append(
+                {
+                    "selskap": row.insurer_name or row.filename,
+                    "premie": row.parsed_premie,
+                    "dekning": row.parsed_dekning or "–",
+                    "egenandel": row.parsed_egenandel or "–",
+                    "vilkaar": row.parsed_vilkaar or "–",
+                    "styrker": row.parsed_styrker or "–",
+                    "svakheter": row.parsed_svakheter or "–",
+                }
+            )
         else:
             offer_summaries.append(
-                _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text or "")
+                _extract_offer_summary(
+                    row.insurer_name or row.filename, row.extracted_text or ""
+                )
             )
     broker_name, broker_contact, broker_email, broker_phone = _broker_info_from_db(db)
-    pdf_bytes = _build_forsikringstilbud_pdf(db_obj, body, offer_summaries,
-                                             broker_name, broker_contact, broker_email, broker_phone)
+    pdf_bytes = _build_forsikringstilbud_pdf(
+        db_obj,
+        body,
+        offer_summaries,
+        broker_name,
+        broker_contact,
+        broker_email,
+        broker_phone,
+    )
     filename = f"forsikringstilbud_{orgnr}_{date.today().isoformat()}.pdf"
     if save:
         save_insurance_document(orgnr, db_obj.navn, filename, pdf_bytes, db)
@@ -375,13 +432,20 @@ def email_forsikringstilbud(
         orgnr=orgnr,
         share_url=share_url,
     )
-    log_audit(db, "email_forsikringstilbud", orgnr=orgnr, actor_email=user.email,
-              detail={"recipient": recipient_email, "sent": sent})
+    log_audit(
+        db,
+        "email_forsikringstilbud",
+        orgnr=orgnr,
+        actor_email=user.email,
+        detail={"recipient": recipient_email, "sent": sent},
+    )
     return {"sent": sent, "recipient": recipient_email, "share_url": share_url}
 
 
 @router.post("/org/{orgnr}/narrative", response_model=NarrativeOut)
-def generate_narrative(orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)) -> dict:
+def generate_narrative(
+    orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)
+) -> dict:
     db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not db_obj:
         raise HTTPException(

@@ -1,4 +1,5 @@
 """Analytics endpoints — premium book aggregations."""
+
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends
@@ -34,8 +35,10 @@ def _aggregate(policies: list, key: str) -> list:
         buckets[val]["total_premium"] += p.annual_premium_nok or 0.0
     total = sum(b["total_premium"] for b in buckets.values()) or 1
     return sorted(
-        [{key: k, **v, "share_pct": round(v["total_premium"] / total * 100, 1)}
-         for k, v in buckets.items()],
+        [
+            {key: k, **v, "share_pct": round(v["total_premium"] / total * 100, 1)}
+            for k, v in buckets.items()
+        ],
         key=lambda x: x["total_premium"],
         reverse=True,
     )
@@ -69,14 +72,24 @@ def get_premium_analytics(
     }
 
 
-def _fmt_commission_bucket(bucket: dict, key_name: str, total_commission: float) -> list:
+def _fmt_commission_bucket(
+    bucket: dict, key_name: str, total_commission: float
+) -> list:
     total = total_commission or 1
     return sorted(
-        [{key_name: k, **v,
-          "avg_rate_pct": round(v["commission"] / v["premium"] * 100, 1) if v["premium"] else 0,
-          "share_pct": round(v["commission"] / total * 100, 1)}
-         for k, v in bucket.items()],
-        key=lambda x: x["commission"], reverse=True,
+        [
+            {
+                key_name: k,
+                **v,
+                "avg_rate_pct": round(v["commission"] / v["premium"] * 100, 1)
+                if v["premium"]
+                else 0,
+                "share_pct": round(v["commission"] / total * 100, 1),
+            }
+            for k, v in bucket.items()
+        ],
+        key=lambda x: x["commission"],
+        reverse=True,
     )
 
 
@@ -86,10 +99,14 @@ def get_commission_analytics(
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Aggregate commission income from the broker's policy book."""
-    policies = db.query(Policy).filter(
-        Policy.firm_id == user.firm_id,
-        Policy.status == PolicyStatus.active,
-    ).all()
+    policies = (
+        db.query(Policy)
+        .filter(
+            Policy.firm_id == user.firm_id,
+            Policy.status == PolicyStatus.active,
+        )
+        .all()
+    )
 
     total_commission = 0.0
     by_product: dict[str, dict] = {}
@@ -107,8 +124,7 @@ def get_commission_analytics(
         # Same canonicalisation rationale as _aggregate above (UI audit F06).
         canon_product = canonical_product_name(p.product_type) or "Ukjent"
         canon_insurer = canonical_insurer_name(p.insurer) or "Ukjent"
-        for bucket, key in [(by_product, canon_product),
-                            (by_insurer, canon_insurer)]:
+        for bucket, key in [(by_product, canon_product), (by_insurer, canon_insurer)]:
             if key not in bucket:
                 bucket[key] = {"count": 0, "commission": 0.0, "premium": 0.0}
             bucket[key]["count"] += 1
@@ -118,6 +134,8 @@ def get_commission_analytics(
     return {
         "total_commission_nok": round(total_commission),
         "policy_count": len(policies),
-        "by_product": _fmt_commission_bucket(by_product, "product_type", total_commission),
+        "by_product": _fmt_commission_bucket(
+            by_product, "product_type", total_commission
+        ),
         "by_insurer": _fmt_commission_bucket(by_insurer, "insurer", total_commission),
     }

@@ -12,6 +12,7 @@ Or against a deployed instance:
     SYSTEM_TEST_URL=https://ca-prod-api.<hash>.norwayeast.azurecontainerapps.io \\
     uv run python -m pytest tests/test_system.py -v -m system
 """
+
 import os
 
 import pytest
@@ -88,6 +89,11 @@ class TestSeedData:
 
     def test_broker_settings_crud(self):
         payload = {"firm_name": "Systemtest Megling AS", "contact_email": "sys@test.no"}
-        assert http.post(f"{_SYSTEM_URL}/broker/settings", json=payload, timeout=10).status_code == 200
+        assert (
+            http.post(
+                f"{_SYSTEM_URL}/broker/settings", json=payload, timeout=10
+            ).status_code
+            == 200
+        )
         data = http.get(f"{_SYSTEM_URL}/broker/settings", timeout=10).json()
         assert data["firm_name"] == "Systemtest Megling AS"

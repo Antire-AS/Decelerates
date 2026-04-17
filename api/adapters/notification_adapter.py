@@ -1,4 +1,5 @@
 """Azure Communication Services email adapter — implements NotificationPort."""
+
 import logging
 from dataclasses import dataclass
 from typing import Optional
@@ -13,7 +14,7 @@ _DEFAULT_SENDER = "donotreply@acs-broker-accelerator-prod.azurecomm.net"
 @dataclass(frozen=True)
 class NotificationConfig:
     conn_str: Optional[str] = None  # AZURE_COMMUNICATION_CONNECTION_STRING
-    sender: str = _DEFAULT_SENDER   # ACS_SENDER_ADDRESS
+    sender: str = _DEFAULT_SENDER  # ACS_SENDER_ADDRESS
 
 
 class AzureEmailNotificationAdapter(NotificationPort):
@@ -26,6 +27,7 @@ class AzureEmailNotificationAdapter(NotificationPort):
 
     def _email_client(self):
         from azure.communication.email import EmailClient
+
         return EmailClient.from_connection_string(self._config.conn_str)
 
     def send_email(self, to: str, subject: str, body_html: str) -> bool:
@@ -84,11 +86,11 @@ class AzureEmailNotificationAdapter(NotificationPort):
             rows_html += (
                 f"<tr>"
                 f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
-                f"<span style='color:{color};font-weight:bold'>{icon} {a.get('severity','')}</span></td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'><strong>{a.get('navn','')}</strong></td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('alert_type','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('detail','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('year_from','')}→{a.get('year_to','')}</td>"
+                f"<span style='color:{color};font-weight:bold'>{icon} {a.get('severity', '')}</span></td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'><strong>{a.get('navn', '')}</strong></td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('alert_type', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('detail', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{a.get('year_from', '')}→{a.get('year_to', '')}</td>"
                 f"</tr>"
             )
 
@@ -125,9 +127,9 @@ class AzureEmailNotificationAdapter(NotificationPort):
             f"<td style='padding:6px 12px;border-bottom:1px solid #eee;"
             f"color:{color};font-weight:bold'>{due}</td>"
             f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
-            f"{a.get('activity_type','').capitalize()}</td>"
+            f"{a.get('activity_type', '').capitalize()}</td>"
             f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
-            f"<strong>{a.get('subject','')}</strong></td>"
+            f"<strong>{a.get('subject', '')}</strong></td>"
             f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
             f"{a.get('orgnr') or '–'}</td>"
             f"</tr>"
@@ -185,18 +187,18 @@ class AzureEmailNotificationAdapter(NotificationPort):
         self, to: str, policy_number: str, insurer: str, product_type: str, stage: str
     ) -> bool:
         _STAGE_LABELS = {
-            "not_started":    "Ikke startet",
+            "not_started": "Ikke startet",
             "ready_to_quote": "Klar for tilbud",
-            "quoted":         "Tilbud sendt",
-            "accepted":       "Akseptert",
-            "declined":       "Avslått",
+            "quoted": "Tilbud sendt",
+            "accepted": "Akseptert",
+            "declined": "Avslått",
         }
         _STAGE_COLORS = {
-            "not_started":    "#888888",
+            "not_started": "#888888",
             "ready_to_quote": "#e67e22",
-            "quoted":         "#2980b9",
-            "accepted":       "#27ae60",
-            "declined":       "#c0392b",
+            "quoted": "#2980b9",
+            "accepted": "#27ae60",
+            "declined": "#c0392b",
         }
         label = _STAGE_LABELS.get(stage, stage)
         color = _STAGE_COLORS.get(stage, "#888")
@@ -230,7 +232,11 @@ class AzureEmailNotificationAdapter(NotificationPort):
         """Send targeted renewal reminder for a specific threshold (90/60/30 days)."""
         if not policies:
             return False
-        color = "#c0392b" if threshold_days <= 30 else ("#e67e22" if threshold_days <= 60 else "#f1c40f")
+        color = (
+            "#c0392b"
+            if threshold_days <= 30
+            else ("#e67e22" if threshold_days <= 60 else "#f1c40f")
+        )
         rows_html = ""
         for p in policies:
             days = p.get("days_to_renewal", threshold_days)
@@ -238,12 +244,12 @@ class AzureEmailNotificationAdapter(NotificationPort):
                 f"<tr>"
                 f"<td style='padding:6px 12px;border-bottom:1px solid #eee;color:{color};font-weight:bold'>"
                 f"{days} dager</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('orgnr','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('insurer','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('product_type','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('orgnr', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('insurer', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('product_type', '')}</td>"
                 f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
                 f"kr {p.get('annual_premium_nok') or '–'}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('renewal_date','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{p.get('renewal_date', '')}</td>"
                 f"</tr>"
             )
         subject = f"Fornyelsespåminnelse — {len(policies)} avtaler forfaller innen {threshold_days} dager"
@@ -285,12 +291,12 @@ class AzureEmailNotificationAdapter(NotificationPort):
                 f"<tr>"
                 f"<td style='padding:6px 12px;border-bottom:1px solid #eee;"
                 f"color:{_color(days)};font-weight:bold'>{days} dager</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('orgnr','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('insurer','')}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('product_type','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('orgnr', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('insurer', '')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('product_type', '')}</td>"
                 f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>"
                 f"kr {r.get('annual_premium_nok') or '–'}</td>"
-                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('renewal_date','')}</td>"
+                f"<td style='padding:6px 12px;border-bottom:1px solid #eee'>{r.get('renewal_date', '')}</td>"
                 f"</tr>"
             )
 

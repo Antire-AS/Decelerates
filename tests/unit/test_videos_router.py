@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; BlobStorageService is
 patched — no real Azure Blob Storage or network required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -33,19 +34,24 @@ def client():
 
 # -- POST /videos/upload -------------------------------------------------------
 
+
 @patch("api.routers.videos.BlobStorageService")
 def test_upload_video_success(mock_cls, client):
     svc = mock_cls.return_value
     svc.is_configured.return_value = True
     svc.upload.return_value = "https://blob/video.mp4"
-    resp = client.post("/videos/upload", files={"file": ("test.mp4", b"\x00" * 10, "video/mp4")})
+    resp = client.post(
+        "/videos/upload", files={"file": ("test.mp4", b"\x00" * 10, "video/mp4")}
+    )
     assert resp.status_code == 200
     assert resp.json()["filename"] == "test.mp4"
 
 
 @patch("api.routers.videos.BlobStorageService")
 def test_upload_rejects_unsupported_type(mock_cls, client):
-    resp = client.post("/videos/upload", files={"file": ("test.txt", b"hello", "text/plain")})
+    resp = client.post(
+        "/videos/upload", files={"file": ("test.txt", b"hello", "text/plain")}
+    )
     assert resp.status_code == 400
 
 
@@ -53,7 +59,9 @@ def test_upload_rejects_unsupported_type(mock_cls, client):
 def test_upload_rejects_when_blob_not_configured(mock_cls, client):
     svc = mock_cls.return_value
     svc.is_configured.return_value = False
-    resp = client.post("/videos/upload", files={"file": ("v.mp4", b"\x00", "video/mp4")})
+    resp = client.post(
+        "/videos/upload", files={"file": ("v.mp4", b"\x00", "video/mp4")}
+    )
     assert resp.status_code == 503
 
 
@@ -62,11 +70,14 @@ def test_upload_returns_502_when_upload_fails(mock_cls, client):
     svc = mock_cls.return_value
     svc.is_configured.return_value = True
     svc.upload.return_value = None
-    resp = client.post("/videos/upload", files={"file": ("v.mp4", b"\x00", "video/mp4")})
+    resp = client.post(
+        "/videos/upload", files={"file": ("v.mp4", b"\x00", "video/mp4")}
+    )
     assert resp.status_code == 502
 
 
 # -- GET /videos ---------------------------------------------------------------
+
 
 @patch("api.routers.videos.BlobStorageService")
 def test_list_videos_returns_empty_when_not_configured(mock_cls, client):
@@ -104,6 +115,7 @@ def test_list_videos_prefers_fast_over_subs(mock_cls, client):
 
 # -- GET /videos/stream --------------------------------------------------------
 
+
 @patch("api.routers.videos.BlobStorageService")
 def test_stream_video_returns_404_when_blob_missing(mock_cls, client):
     svc = mock_cls.return_value
@@ -138,6 +150,8 @@ def test_stream_video_range_request(mock_cls, client):
     svc.is_configured.return_value = True
     svc.get_blob_size.return_value = 5000
     svc.stream_range.return_value = iter([b"\x00" * 500])
-    resp = client.get("/videos/stream", params={"blob": "v.mp4"}, headers={"range": "bytes=0-499"})
+    resp = client.get(
+        "/videos/stream", params={"blob": "v.mp4"}, headers={"range": "bytes=0-499"}
+    )
     assert resp.status_code == 206
     assert "Content-Range" in resp.headers

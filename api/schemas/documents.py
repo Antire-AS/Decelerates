@@ -1,4 +1,5 @@
 """Document schemas — chat, compare, keypoints, coverage analysis."""
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field

@@ -2,18 +2,31 @@
 
 All tests use a MagicMock DB session; no infrastructure required.
 """
+
 from datetime import date, datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.db import ClaimStatus, Policy, PolicyStatus, Claim, Activity, User, UserRole, BrokerFirm
+from api.db import (
+    ClaimStatus,
+    Policy,
+    PolicyStatus,
+    Claim,
+    Activity,
+    User,
+    UserRole,
+    BrokerFirm,
+)
 import pydantic
 from api.domain.exceptions import ForbiddenError, NotFoundError, ValidationError
 from api.schemas import (
-    ActivityIn, ActivityUpdate,
-    ClaimIn, ClaimUpdate,
-    PolicyIn, PolicyUpdate,
+    ActivityIn,
+    ActivityUpdate,
+    ClaimIn,
+    ClaimUpdate,
+    PolicyIn,
+    PolicyUpdate,
     UserRoleUpdate,
 )
 from api.services.activity_service import ActivityService
@@ -23,6 +36,7 @@ from api.services.user_service import UserService
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+
 
 def _mock_db():
     return MagicMock()
@@ -54,6 +68,7 @@ def _policy(overrides=None):
 
 # ── PolicyService ─────────────────────────────────────────────────────────────
 
+
 class TestPolicyServiceCreate:
     def test_create_returns_policy(self):
         db = _mock_db()
@@ -62,7 +77,11 @@ class TestPolicyServiceCreate:
         db.refresh = MagicMock(side_effect=lambda p: None)
 
         svc = PolicyService(db)
-        body = PolicyIn(insurer="Gjensidige", product_type="Ansvarsforsikring", annual_premium_nok=30_000)
+        body = PolicyIn(
+            insurer="Gjensidige",
+            product_type="Ansvarsforsikring",
+            annual_premium_nok=30_000,
+        )
 
         with patch.object(Policy, "__init__", return_value=None):
             svc.create("987654321", firm_id=1, body=body)
@@ -109,7 +128,9 @@ class TestPolicyServiceAdvanceRenewalStage:
         mock_q.filter.return_value = mock_q
         mock_q.first.return_value = existing
 
-        PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="ready_to_quote")
+        PolicyService(db).advance_renewal_stage(
+            policy_id=1, firm_id=1, new_stage="ready_to_quote"
+        )
 
         db.commit.assert_called_once()
 
@@ -121,7 +142,9 @@ class TestPolicyServiceAdvanceRenewalStage:
         mock_q.first.return_value = existing
 
         with pytest.raises(ValidationError):
-            PolicyService(db).advance_renewal_stage(policy_id=1, firm_id=1, new_stage="bogus_stage")
+            PolicyService(db).advance_renewal_stage(
+                policy_id=1, firm_id=1, new_stage="bogus_stage"
+            )
 
     def test_advance_not_found_raises(self):
         db = _mock_db()
@@ -130,7 +153,9 @@ class TestPolicyServiceAdvanceRenewalStage:
         mock_q.first.return_value = None
 
         with pytest.raises(NotFoundError):
-            PolicyService(db).advance_renewal_stage(policy_id=99, firm_id=1, new_stage="contacted")
+            PolicyService(db).advance_renewal_stage(
+                policy_id=99, firm_id=1, new_stage="contacted"
+            )
 
 
 class TestPolicyServiceRenewals:
@@ -210,6 +235,7 @@ class TestPolicyServiceDelete:
 
 # ── ClaimsService ─────────────────────────────────────────────────────────────
 
+
 class TestClaimsService:
     def _claim(self):
         c = MagicMock(spec=Claim)
@@ -272,6 +298,7 @@ class TestClaimsService:
 
 
 # ── ActivityService ───────────────────────────────────────────────────────────
+
 
 class TestActivityService:
     def test_create_unknown_type_raises(self):
@@ -337,6 +364,7 @@ class TestActivityService:
 
 # ── UserService ───────────────────────────────────────────────────────────────
 
+
 class TestUserService:
     def _firm(self):
         f = MagicMock(spec=BrokerFirm)
@@ -367,7 +395,10 @@ class TestUserService:
 
     def test_get_or_create_provisions_new_user(self):
         db = _mock_db()
-        calls = [None, self._firm()]  # first call (User lookup) → None, second (BrokerFirm) → firm
+        calls = [
+            None,
+            self._firm(),
+        ]  # first call (User lookup) → None, second (BrokerFirm) → firm
         mock_q = db.query.return_value
         mock_q.filter.return_value = mock_q
         mock_q.first.side_effect = calls
@@ -395,6 +426,8 @@ class TestUserService:
         mock_q.filter.return_value = mock_q
         mock_q.first.return_value = existing
 
-        UserService(db).update_role(1, UserRoleUpdate(role="admin"), requester_role="admin")
+        UserService(db).update_role(
+            1, UserRoleUpdate(role="admin"), requester_role="admin"
+        )
         assert existing.role == UserRole.admin
         db.commit.assert_called_once()

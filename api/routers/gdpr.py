@@ -1,4 +1,5 @@
 """GDPR endpoints — right to erasure (Art. 17), data portability (Art. 20), retention purge, consent."""
+
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,8 +26,8 @@ def _consent_svc(db: Session = Depends(get_db)) -> ConsentService:
 
 
 class ConsentIn(BaseModel):
-    lawful_basis: str   # consent | legitimate_interest | contract | legal_obligation
-    purpose: str        # "insurance_advice" | "credit_check" | "marketing"
+    lawful_basis: str  # consent | legitimate_interest | contract | legal_obligation
+    purpose: str  # "insurance_advice" | "credit_check" | "marketing"
 
 
 class ConsentWithdrawIn(BaseModel):
@@ -35,14 +36,14 @@ class ConsentWithdrawIn(BaseModel):
 
 def _serialize_consent(row) -> dict:
     return {
-        "id":                row.id,
-        "orgnr":             row.orgnr,
-        "firm_id":           row.firm_id,
-        "created_at":        row.created_at.isoformat() if row.created_at else None,
-        "lawful_basis":      row.lawful_basis.value,
-        "purpose":           row.purpose,
+        "id": row.id,
+        "orgnr": row.orgnr,
+        "firm_id": row.firm_id,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "lawful_basis": row.lawful_basis.value,
+        "purpose": row.purpose,
         "captured_by_email": row.captured_by_email,
-        "withdrawn_at":      row.withdrawn_at.isoformat() if row.withdrawn_at else None,
+        "withdrawn_at": row.withdrawn_at.isoformat() if row.withdrawn_at else None,
         "withdrawal_reason": row.withdrawal_reason,
     }
 
@@ -91,6 +92,7 @@ def purge_old_deletions(
 
 # ── Consent management (GDPR Art. 6 / 7) ─────────────────────────────────────
 
+
 @router.post("/gdpr/company/{orgnr}/consent", status_code=201)
 def record_consent(
     orgnr: str,
@@ -100,8 +102,15 @@ def record_consent(
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Record a GDPR lawful-basis consent for a client company."""
-    row = svc.record_consent(orgnr, user.firm_id, user.email, body.lawful_basis, body.purpose)
-    log_audit(db, "gdpr.consent.create", orgnr=orgnr, detail={"consent_id": row.id, "purpose": body.purpose})
+    row = svc.record_consent(
+        orgnr, user.firm_id, user.email, body.lawful_basis, body.purpose
+    )
+    log_audit(
+        db,
+        "gdpr.consent.create",
+        orgnr=orgnr,
+        detail={"consent_id": row.id, "purpose": body.purpose},
+    )
     return _serialize_consent(row)
 
 

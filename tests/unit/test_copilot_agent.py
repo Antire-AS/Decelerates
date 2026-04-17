@@ -1,4 +1,5 @@
 """Unit tests for api/services/copilot_agent.py — multi-turn tool-use loop."""
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -14,10 +15,12 @@ from api.services.copilot_agent import (
 
 # ── _build_context_message ────────────────────────────────────────────────────
 
+
 def test_build_context_with_company():
     db = MagicMock()
     company = SimpleNamespace(
-        navn="DNB BANK ASA", risk_score=9,
+        navn="DNB BANK ASA",
+        risk_score=9,
         sum_driftsinntekter=86_000_000_000,
         naeringskode1_beskrivelse="Banker",
     )
@@ -39,8 +42,10 @@ def test_build_context_no_company():
 def test_build_context_minimal_company():
     db = MagicMock()
     company = SimpleNamespace(
-        navn="Minimal AS", risk_score=None,
-        sum_driftsinntekter=None, naeringskode1_beskrivelse=None,
+        navn="Minimal AS",
+        risk_score=None,
+        sum_driftsinntekter=None,
+        naeringskode1_beskrivelse=None,
     )
     db.query.return_value.filter.return_value.first.return_value = company
     msg = _build_context_message("123", db)
@@ -49,6 +54,7 @@ def test_build_context_minimal_company():
 
 
 # ── _init_messages ────────────────────────────────────────────────────────────
+
 
 def test_init_messages_basic():
     db = MagicMock()
@@ -63,12 +69,16 @@ def test_init_messages_basic():
 def test_init_messages_with_history():
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = None
-    history = [{"role": "user", "content": "Hei"}, {"role": "assistant", "content": "Hei!"}]
+    history = [
+        {"role": "user", "content": "Hei"},
+        {"role": "assistant", "content": "Hei!"},
+    ]
     msgs = _init_messages("Neste spørsmål", "123", db, history)
     assert len(msgs) == 4  # system + 2 history + user
 
 
 # ── _get_llm_client ───────────────────────────────────────────────────────────
+
 
 @patch("api.container.resolve")
 def test_get_llm_client_unconfigured(mock_resolve):
@@ -93,6 +103,7 @@ def test_get_llm_client_configured(mock_resolve):
 
 
 # ── chat_with_tools ───────────────────────────────────────────────────────────
+
 
 @patch("api.services.copilot_agent._get_llm_client", return_value=(None, None))
 def test_chat_unconfigured_returns_error(mock_client):
@@ -129,7 +140,10 @@ def test_chat_with_one_tool_call(mock_client, mock_exec):
     tc.id = "call-1"
     tool_choice = MagicMock()
     tool_choice.message.tool_calls = [tc]
-    tool_choice.message.model_dump.return_value = {"role": "assistant", "tool_calls": []}
+    tool_choice.message.model_dump.return_value = {
+        "role": "assistant",
+        "tool_calls": [],
+    }
     # Second call: final text
     final_choice = MagicMock()
     final_choice.message.tool_calls = None

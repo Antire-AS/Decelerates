@@ -1,4 +1,5 @@
 """Unit tests for api/routers/portfolio_router.py — portfolio CRUD + agents."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -52,6 +53,7 @@ def client(mock_svc, mock_db):
 
 # ── GET /portfolio ────────────────────────────────────────────────────────────
 
+
 def test_list_portfolios(client, mock_svc):
     mock_svc.list_portfolios.return_value = [_portfolio_mock()]
     resp = client.get("/portfolio")
@@ -60,6 +62,7 @@ def test_list_portfolios(client, mock_svc):
 
 # ── POST /portfolio ───────────────────────────────────────────────────────────
 
+
 def test_create_portfolio(client, mock_svc):
     mock_svc.create.return_value = _portfolio_mock()
     resp = client.post("/portfolio", json={"name": "New", "description": "Desc"})
@@ -67,6 +70,7 @@ def test_create_portfolio(client, mock_svc):
 
 
 # ── GET /portfolio/{id} ──────────────────────────────────────────────────────
+
 
 def test_get_portfolio(client, mock_svc):
     mock_svc.get.return_value = _portfolio_mock()
@@ -82,6 +86,7 @@ def test_get_portfolio_not_found(client, mock_svc):
 
 # ── DELETE /portfolio/{id} ────────────────────────────────────────────────────
 
+
 def test_delete_portfolio(client, mock_svc):
     mock_svc.delete.return_value = None
     resp = client.delete("/portfolio/1")
@@ -89,6 +94,7 @@ def test_delete_portfolio(client, mock_svc):
 
 
 # ── POST /portfolio/{id}/companies ────────────────────────────────────────────
+
 
 def test_add_company(client, mock_svc):
     mock_svc.add_company.return_value = None
@@ -105,6 +111,7 @@ def test_add_company_not_found(client, mock_svc):
 
 # ── POST /portfolio/{id}/companies/bulk ───────────────────────────────────────
 
+
 def test_bulk_add_companies(client, mock_svc):
     mock_svc.get.return_value = _portfolio_mock()
     mock_svc.add_company.return_value = None
@@ -115,9 +122,8 @@ def test_bulk_add_companies(client, mock_svc):
 
 # ── DELETE /portfolio/{id}/companies/{orgnr} ──────────────────────────────────
 
+
 def test_remove_company(client, mock_svc):
     mock_svc.remove_company.return_value = None
     resp = client.delete("/portfolio/1/companies/123456789")
     assert resp.status_code == 200
-
-

@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
+
 import sys
 from unittest.mock import MagicMock
 
@@ -27,12 +28,15 @@ def _mock_db():
 
 # ── PdfSourcesService.upsert_pdf_source ───────────────────────────────────────
 
+
 def test_upsert_pdf_source_creates_new_row_when_not_found():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
     _pdf_bg_stub._upload_pdf_to_blob.return_value = None
 
-    PdfSourcesService(db).upsert_pdf_source("123456789", 2024, "http://example.com/r.pdf", "Årsrapport 2024")
+    PdfSourcesService(db).upsert_pdf_source(
+        "123456789", 2024, "http://example.com/r.pdf", "Årsrapport 2024"
+    )
 
     db.add.assert_called_once()
     db.commit.assert_called_once()
@@ -43,7 +47,9 @@ def test_upsert_pdf_source_new_row_sets_orgnr_and_year():
     db.query.return_value.filter.return_value.first.return_value = None
     _pdf_bg_stub._upload_pdf_to_blob.return_value = None
 
-    PdfSourcesService(db).upsert_pdf_source("111222333", 2022, "http://t.com/a.pdf", "Label")
+    PdfSourcesService(db).upsert_pdf_source(
+        "111222333", 2022, "http://t.com/a.pdf", "Label"
+    )
 
     added = db.add.call_args[0][0]
     assert added.orgnr == "111222333"
@@ -56,7 +62,9 @@ def test_upsert_pdf_source_updates_existing_row():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = existing
 
-    PdfSourcesService(db).upsert_pdf_source("123456789", 2023, "http://new.com/r.pdf", "Updated")
+    PdfSourcesService(db).upsert_pdf_source(
+        "123456789", 2023, "http://new.com/r.pdf", "Updated"
+    )
 
     assert existing.pdf_url == "http://new.com/r.pdf"
     assert existing.label == "Updated"
@@ -82,7 +90,9 @@ def test_upsert_pdf_source_skips_blob_upload_when_blob_url_already_set():
     db.query.return_value.filter.return_value.first.return_value = existing
 
     _pdf_bg_stub._upload_pdf_to_blob.reset_mock()
-    PdfSourcesService(db).upsert_pdf_source("123", 2022, "http://new.com/r.pdf", "label")
+    PdfSourcesService(db).upsert_pdf_source(
+        "123", 2022, "http://new.com/r.pdf", "label"
+    )
 
     _pdf_bg_stub._upload_pdf_to_blob.assert_not_called()
 
@@ -99,23 +109,30 @@ def test_upsert_pdf_source_commits():
 
 # ── PdfSourcesService.save_insurance_document ─────────────────────────────────
 
+
 def test_save_insurance_document_adds_to_db():
     db = _mock_db()
-    PdfSourcesService(db).save_insurance_document("123456789", "Test AS", "offer.pdf", b"pdf bytes")
+    PdfSourcesService(db).save_insurance_document(
+        "123456789", "Test AS", "offer.pdf", b"pdf bytes"
+    )
     db.add.assert_called_once()
     db.commit.assert_called_once()
 
 
 def test_save_insurance_document_title_contains_company_name():
     db = _mock_db()
-    PdfSourcesService(db).save_insurance_document("123456789", "Firma AS", "f.pdf", b"bytes")
+    PdfSourcesService(db).save_insurance_document(
+        "123456789", "Firma AS", "f.pdf", b"bytes"
+    )
     added = db.add.call_args[0][0]
     assert "Firma AS" in added.title
 
 
 def test_save_insurance_document_sets_orgnr():
     db = _mock_db()
-    PdfSourcesService(db).save_insurance_document("987654321", "Navn", "f.pdf", b"bytes")
+    PdfSourcesService(db).save_insurance_document(
+        "987654321", "Navn", "f.pdf", b"bytes"
+    )
     added = db.add.call_args[0][0]
     assert added.orgnr == "987654321"
 
@@ -144,7 +161,9 @@ def test_save_insurance_document_stores_pdf_bytes():
 
 def test_save_insurance_document_sets_filename():
     db = _mock_db()
-    PdfSourcesService(db).save_insurance_document("123", "Navn", "tilbud_2024.pdf", b"b")
+    PdfSourcesService(db).save_insurance_document(
+        "123", "Navn", "tilbud_2024.pdf", b"b"
+    )
     added = db.add.call_args[0][0]
     assert added.filename == "tilbud_2024.pdf"
 
@@ -157,6 +176,7 @@ def test_save_insurance_document_sets_period_aktiv():
 
 
 # ── PdfSourcesService.delete_history_year ─────────────────────────────────────
+
 
 def test_delete_history_year_returns_deleted_count():
     db = _mock_db()
@@ -180,6 +200,7 @@ def test_delete_history_year_returns_zero_when_no_rows():
 
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────
+
 
 def test_module_upsert_pdf_source_delegates_to_service():
     db = _mock_db()

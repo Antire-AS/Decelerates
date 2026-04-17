@@ -1,4 +1,5 @@
 """Claims tracking endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -18,21 +19,21 @@ def _svc(db: Session = Depends(get_db)) -> ClaimsService:
 
 def _serialize(c) -> dict:
     return {
-        "id":                   c.id,
-        "policy_id":            c.policy_id,
-        "orgnr":                c.orgnr,
-        "firm_id":              c.firm_id,
-        "claim_number":         c.claim_number,
-        "incident_date":        c.incident_date.isoformat() if c.incident_date else None,
-        "reported_date":        c.reported_date.isoformat() if c.reported_date else None,
-        "status":               c.status.value,
-        "description":          c.description,
+        "id": c.id,
+        "policy_id": c.policy_id,
+        "orgnr": c.orgnr,
+        "firm_id": c.firm_id,
+        "claim_number": c.claim_number,
+        "incident_date": c.incident_date.isoformat() if c.incident_date else None,
+        "reported_date": c.reported_date.isoformat() if c.reported_date else None,
+        "status": c.status.value,
+        "description": c.description,
         "estimated_amount_nok": c.estimated_amount_nok,
-        "settled_amount_nok":   c.settled_amount_nok,
-        "insurer_contact":      c.insurer_contact,
-        "notes":                c.notes,
-        "created_at":           c.created_at.isoformat() if c.created_at else None,
-        "updated_at":           c.updated_at.isoformat() if c.updated_at else None,
+        "settled_amount_nok": c.settled_amount_nok,
+        "insurer_contact": c.insurer_contact,
+        "notes": c.notes,
+        "created_at": c.created_at.isoformat() if c.created_at else None,
+        "updated_at": c.updated_at.isoformat() if c.updated_at else None,
     }
 
 
@@ -57,8 +58,13 @@ def create_claim(
         c = svc.create(orgnr, user.firm_id, body)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    log_audit(db, "claim.create", orgnr=orgnr, actor_email=user.email,
-              detail={"claim_number": c.claim_number})
+    log_audit(
+        db,
+        "claim.create",
+        orgnr=orgnr,
+        actor_email=user.email,
+        detail={"claim_number": c.claim_number},
+    )
     return _serialize(c)
 
 
@@ -75,8 +81,13 @@ def update_claim(
         c = svc.update(claim_id, user.firm_id, body)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    log_audit(db, "claim.update", orgnr=orgnr, actor_email=user.email,
-              detail={"claim_id": claim_id})
+    log_audit(
+        db,
+        "claim.update",
+        orgnr=orgnr,
+        actor_email=user.email,
+        detail={"claim_id": claim_id},
+    )
     return _serialize(c)
 
 
@@ -92,8 +103,13 @@ def delete_claim(
         svc.delete(claim_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    log_audit(db, "claim.delete", orgnr=orgnr, actor_email=user.email,
-              detail={"claim_id": claim_id})
+    log_audit(
+        db,
+        "claim.delete",
+        orgnr=orgnr,
+        actor_email=user.email,
+        detail={"claim_id": claim_id},
+    )
 
 
 @router.get("/policies/{policy_id}/claims")

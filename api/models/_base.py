@@ -2,6 +2,7 @@
 
 All model files import Base from here so they share a single MetaData instance.
 """
+
 import os
 
 from sqlalchemy import create_engine, text

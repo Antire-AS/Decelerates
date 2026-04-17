@@ -1,4 +1,5 @@
 """Unit tests for api/routers/knowledge.py — RAG chat, knowledge index, chat history."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -59,10 +60,13 @@ def client(mock_db):
 
 # ── POST /org/{orgnr}/ingest-knowledge ───────────────────────────────────────
 
+
 def test_ingest_knowledge_returns_200(client):
     with patch("api.routers.knowledge._chunk_and_store", return_value=3):
-        resp = client.post("/org/123456789/ingest-knowledge",
-                           json={"text": "Some insurance text", "source": "custom"})
+        resp = client.post(
+            "/org/123456789/ingest-knowledge",
+            json={"text": "Some insurance text", "source": "custom"},
+        )
     assert resp.status_code == 200
     body = resp.json()
     assert body["chunks_stored"] == 3
@@ -70,8 +74,9 @@ def test_ingest_knowledge_returns_200(client):
 
 
 def test_ingest_knowledge_returns_422_when_empty_text(client):
-    resp = client.post("/org/123456789/ingest-knowledge",
-                       json={"text": "   ", "source": "custom"})
+    resp = client.post(
+        "/org/123456789/ingest-knowledge", json={"text": "   ", "source": "custom"}
+    )
     assert resp.status_code == 422
 
 
@@ -82,6 +87,7 @@ def test_ingest_knowledge_returns_422_when_missing_text(client):
 
 # ── GET /knowledge ────────────────────────────────────────────────────────────
 
+
 def test_search_knowledge_returns_200(client, mock_db):
     mock_db.query.return_value.order_by.return_value.limit.return_value.all.return_value = []
     with patch("api.routers.knowledge._embed", return_value=None):
@@ -90,9 +96,14 @@ def test_search_knowledge_returns_200(client, mock_db):
 
 
 def test_search_knowledge_returns_chunks(client, mock_db):
-    chunk = _mock_chunk(orgnr="123", source="annual_report_2023",
-                        chunk_text="Long text about risk " * 10)
-    mock_db.query.return_value.order_by.return_value.limit.return_value.all.return_value = [chunk]
+    chunk = _mock_chunk(
+        orgnr="123",
+        source="annual_report_2023",
+        chunk_text="Long text about risk " * 10,
+    )
+    mock_db.query.return_value.order_by.return_value.limit.return_value.all.return_value = [
+        chunk
+    ]
     with patch("api.routers.knowledge._embed", return_value=None):
         resp = client.get("/knowledge?query=risiko")
     items = resp.json()
@@ -111,6 +122,7 @@ def test_search_knowledge_returns_empty_list_when_no_results(client, mock_db):
 
 
 # ── GET /org/{orgnr}/chat ─────────────────────────────────────────────────────
+
 
 def test_get_chat_history_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
@@ -140,6 +152,7 @@ def test_get_chat_history_returns_empty_when_no_notes(client, mock_db):
 
 # ── DELETE /org/{orgnr}/chat ─────────────────────────────────────────────────
 
+
 def test_delete_chat_session_returns_200(client):
     with patch("api.routers.knowledge._clear_chat_session", return_value=5):
         resp = client.delete("/org/123456789/chat?session_id=sess-abc")
@@ -156,11 +169,14 @@ def test_delete_chat_session_returns_422_when_no_session_id(client):
 
 # ── POST /knowledge/index ─────────────────────────────────────────────────────
 
+
 def test_trigger_knowledge_index_returns_200(client):
     index_result = {"docs_chunks": 10, "video_chunks": 5}
     stats = {"total_chunks": 15, "docs": 3}
-    with patch("api.services.knowledge_index.index_all", return_value=index_result), \
-         patch("api.services.knowledge_index.get_stats", return_value=stats):
+    with (
+        patch("api.services.knowledge_index.index_all", return_value=index_result),
+        patch("api.services.knowledge_index.get_stats", return_value=stats),
+    ):
         resp = client.post("/knowledge/index")
     assert resp.status_code == 200
 
@@ -168,8 +184,10 @@ def test_trigger_knowledge_index_returns_200(client):
 def test_trigger_knowledge_index_returns_total_chunks(client):
     index_result = {"docs_chunks": 12, "video_chunks": 8}
     stats = {"total_chunks": 20}
-    with patch("api.services.knowledge_index.index_all", return_value=index_result), \
-         patch("api.services.knowledge_index.get_stats", return_value=stats):
+    with (
+        patch("api.services.knowledge_index.index_all", return_value=index_result),
+        patch("api.services.knowledge_index.get_stats", return_value=stats),
+    ):
         resp = client.post("/knowledge/index")
     assert resp.json()["total_new_chunks"] == 20
 
@@ -177,9 +195,13 @@ def test_trigger_knowledge_index_returns_total_chunks(client):
 def test_trigger_knowledge_index_clears_when_force(client):
     index_result = {"docs_chunks": 0, "video_chunks": 0}
     stats = {"total_chunks": 0}
-    with patch("api.services.knowledge_index.clear_knowledge", return_value=50) as mock_clear, \
-         patch("api.services.knowledge_index.index_all", return_value=index_result), \
-         patch("api.services.knowledge_index.get_stats", return_value=stats):
+    with (
+        patch(
+            "api.services.knowledge_index.clear_knowledge", return_value=50
+        ) as mock_clear,
+        patch("api.services.knowledge_index.index_all", return_value=index_result),
+        patch("api.services.knowledge_index.get_stats", return_value=stats),
+    ):
         resp = client.post("/knowledge/index?force=true")
     assert resp.status_code == 200
     mock_clear.assert_called_once()
@@ -187,6 +209,7 @@ def test_trigger_knowledge_index_clears_when_force(client):
 
 
 # ── GET /knowledge/index/stats ────────────────────────────────────────────────
+
 
 def test_knowledge_index_stats_returns_200(client):
     # Real get_stats returns total_chunks/doc_chunks/video_chunks
@@ -202,6 +225,7 @@ def test_knowledge_index_stats_returns_200(client):
 
 # ── POST /knowledge/chat ──────────────────────────────────────────────────────
 
+
 def test_knowledge_chat_returns_no_knowledge_message_when_no_chunks(client):
     with patch("api.routers.knowledge._retrieve_knowledge_chunks", return_value=[]):
         resp = client.post("/knowledge/chat", json={"question": "What is covered?"})
@@ -212,10 +236,18 @@ def test_knowledge_chat_returns_no_knowledge_message_when_no_chunks(client):
 
 
 def test_knowledge_chat_returns_answer_with_chunks(client):
-    chunks = [{"text": "Ansvarsforsikring dekker skader på tredjepart.",
-               "source": "doc::category::Policy Title"}]
-    with patch("api.routers.knowledge._retrieve_knowledge_chunks", return_value=chunks), \
-         patch("api.routers.knowledge._llm_answer_raw", return_value="Ja, ansvar dekkes."):
+    chunks = [
+        {
+            "text": "Ansvarsforsikring dekker skader på tredjepart.",
+            "source": "doc::category::Policy Title",
+        }
+    ]
+    with (
+        patch("api.routers.knowledge._retrieve_knowledge_chunks", return_value=chunks),
+        patch(
+            "api.routers.knowledge._llm_answer_raw", return_value="Ja, ansvar dekkes."
+        ),
+    ):
         resp = client.post("/knowledge/chat", json={"question": "Hva dekkes?"})
     assert resp.status_code == 200
     body = resp.json()
@@ -225,8 +257,12 @@ def test_knowledge_chat_returns_answer_with_chunks(client):
 
 def test_knowledge_chat_returns_503_when_llm_unavailable(client):
     chunks = [{"text": "some text", "source": "doc::x::y"}]
-    with patch("api.routers.knowledge._retrieve_knowledge_chunks", return_value=chunks), \
-         patch("api.routers.knowledge._llm_answer_raw",
-               side_effect=LlmUnavailableError("no key")):
+    with (
+        patch("api.routers.knowledge._retrieve_knowledge_chunks", return_value=chunks),
+        patch(
+            "api.routers.knowledge._llm_answer_raw",
+            side_effect=LlmUnavailableError("no key"),
+        ),
+    ):
         resp = client.post("/knowledge/chat", json={"question": "?"})
     assert resp.status_code == 503

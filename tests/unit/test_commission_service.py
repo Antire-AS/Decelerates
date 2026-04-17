@@ -1,4 +1,5 @@
 """Unit tests for CommissionService."""
+
 from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock
 
@@ -32,7 +33,11 @@ def _make_db(policies):
 
 class TestGetCommissionSummary:
     def test_sums_commission_from_rate(self):
-        p = _make_policy(annual_premium_nok=100_000.0, commission_rate_pct=10.0, commission_amount_nok=None)
+        p = _make_policy(
+            annual_premium_nok=100_000.0,
+            commission_rate_pct=10.0,
+            commission_amount_nok=None,
+        )
         db = _make_db([p])
         svc = CommissionService(db)
         result = svc.get_commission_summary(firm_id=1)
@@ -40,7 +45,11 @@ class TestGetCommissionSummary:
         assert result["revenue_by_insurer"]["Gjensidige"] == 10_000.0
 
     def test_uses_commission_amount_when_set(self):
-        p = _make_policy(annual_premium_nok=100_000.0, commission_rate_pct=None, commission_amount_nok=8_000.0)
+        p = _make_policy(
+            annual_premium_nok=100_000.0,
+            commission_rate_pct=None,
+            commission_amount_nok=8_000.0,
+        )
         db = _make_db([p])
         result = CommissionService(db).get_commission_summary(firm_id=1)
         assert result["revenue_by_insurer"]["Gjensidige"] == 8_000.0
@@ -55,7 +64,9 @@ class TestGetCommissionSummary:
     def test_renewal_vs_new_split(self):
         now = datetime.now(timezone.utc)
         new_p = _make_policy(created_at=now, commission_amount_nok=5_000.0)
-        old_p = _make_policy(created_at=now - timedelta(days=400), commission_amount_nok=3_000.0)
+        old_p = _make_policy(
+            created_at=now - timedelta(days=400), commission_amount_nok=3_000.0
+        )
         db = _make_db([new_p, old_p])
         result = CommissionService(db).get_commission_summary(firm_id=1)
         assert result["renewal_commission_vs_new"]["new"] == 5_000.0
@@ -74,7 +85,9 @@ class TestGetCommissionByClient:
     def test_sums_per_client(self):
         p = _make_policy(orgnr="987654321", commission_amount_nok=12_000.0)
         db = _make_db([p])
-        result = CommissionService(db).get_commission_by_client(firm_id=1, orgnr="987654321")
+        result = CommissionService(db).get_commission_by_client(
+            firm_id=1, orgnr="987654321"
+        )
         assert result["total_commission_lifetime"] == 12_000.0
         assert result["orgnr"] == "987654321"
         assert len(result["policies"]) == 1
@@ -82,8 +95,14 @@ class TestGetCommissionByClient:
 
 class TestListPoliciesMissingCommission:
     def test_returns_policies_without_commission(self):
-        p = _make_policy(commission_rate_pct=None, commission_amount_nok=None, status=PolicyStatus.active)
+        p = _make_policy(
+            commission_rate_pct=None,
+            commission_amount_nok=None,
+            status=PolicyStatus.active,
+        )
         db = MagicMock()
-        db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [p]
+        db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+            p
+        ]
         result = CommissionService(db).list_policies_missing_commission(firm_id=1)
         assert result is not None  # service returns the query result

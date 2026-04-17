@@ -1,4 +1,5 @@
 """Company service — seeding, upsert, org profile, narratives, synthetic financials."""
+
 import json
 import re
 from datetime import datetime, timezone
@@ -10,12 +11,15 @@ from sqlalchemy.orm import Session
 from api.constants import PDF_SEED_DATA
 from api.db import Company, CompanyHistory, CompanyPdfSource
 from api.risk import derive_simple_risk, build_risk_summary
-from api.services.external_apis import fetch_enhet_by_orgnr, fetch_regnskap_keyfigures, pep_screen_name
+from api.services.external_apis import (
+    fetch_enhet_by_orgnr,
+    fetch_regnskap_keyfigures,
+    pep_screen_name,
+)
 from api.services.llm import _fmt_nok, _llm_answer_raw
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _seed_pdf_sources(db: Session) -> None:
@@ -24,7 +28,10 @@ def _seed_pdf_sources(db: Session) -> None:
         for entry in entries:
             existing = (
                 db.query(CompanyPdfSource)
-                .filter(CompanyPdfSource.orgnr == orgnr, CompanyPdfSource.year == entry["year"])
+                .filter(
+                    CompanyPdfSource.orgnr == orgnr,
+                    CompanyPdfSource.year == entry["year"],
+                )
                 .first()
             )
             if not existing:
@@ -144,33 +151,38 @@ def _build_narrative_prompt(
 ) -> str:
     """Build the LLM prompt for a risk narrative."""
     eq_pct = (
-        f"{risk['equity_ratio']*100:.1f}%"
+        f"{risk['equity_ratio'] * 100:.1f}%"
         if risk and risk.get("equity_ratio") is not None
         else "unknown"
     )
-    board_str = ", ".join(
-        f"{m['name']} ({m['role']})" for m in members[:6] if m.get("name")
-    ) or "Not available"
+    board_str = (
+        ", ".join(f"{m['name']} ({m['role']})" for m in members[:6] if m.get("name"))
+        or "Not available"
+    )
     flags_str = ", ".join(risk.get("reasons") or []) if risk else "none"
-    synthetic_note = " (NOTE: financials are AI-estimated, no public data available)" if regn.get("synthetic") else ""
+    synthetic_note = (
+        " (NOTE: financials are AI-estimated, no public data available)"
+        if regn.get("synthetic")
+        else ""
+    )
     lang_instruction = "Write in English." if lang == "en" else "Svar på norsk."
     return f"""Write a concise 3-paragraph risk assessment for an insurance underwriter considering this Norwegian company as a client.{synthetic_note} {lang_instruction}
 
-Company: {org.get('navn')} ({org.get('organisasjonsform')}, {org.get('organisasjonsform_kode')})
-Industry: {org.get('naeringskode1')} – {org.get('naeringskode1_beskrivelse')}
-Location: {org.get('kommune')}, Norway
+Company: {org.get("navn")} ({org.get("organisasjonsform")}, {org.get("organisasjonsform_kode")})
+Industry: {org.get("naeringskode1")} – {org.get("naeringskode1_beskrivelse")}
+Location: {org.get("kommune")}, Norway
 Board / key roles: {board_str}
 
-Financials ({regn.get('regnskapsår', 'estimated')}):
-- Revenue: {_fmt_nok(regn.get('sum_driftsinntekter'))}
-- Net result: {_fmt_nok(regn.get('aarsresultat'))}
-- Total equity: {_fmt_nok(regn.get('sum_egenkapital'))}
-- Total assets: {_fmt_nok(regn.get('sum_eiendeler'))}
+Financials ({regn.get("regnskapsår", "estimated")}):
+- Revenue: {_fmt_nok(regn.get("sum_driftsinntekter"))}
+- Net result: {_fmt_nok(regn.get("aarsresultat"))}
+- Total equity: {_fmt_nok(regn.get("sum_egenkapital"))}
+- Total assets: {_fmt_nok(regn.get("sum_eiendeler"))}
 - Equity ratio: {eq_pct}
-- Employees: {regn.get('antall_ansatte', 'N/A')}
+- Employees: {regn.get("antall_ansatte", "N/A")}
 
-Risk score: {risk.get('score', 'N/A') if risk else 'N/A'} | Flags: {flags_str}
-PEP/sanctions hits: {pep.get('hit_count', 0) if pep else 0}
+Risk score: {risk.get("score", "N/A") if risk else "N/A"} | Flags: {flags_str}
+PEP/sanctions hits: {pep.get("hit_count", 0) if pep else 0}
 
 Paragraph 1 – Business profile: Summarise what this company does, its scale, and financial position.
 Paragraph 2 – Underwriting concerns: Identify the main risk factors (financial stability, governance quality, PEP exposure, industry risk).
@@ -204,14 +216,23 @@ def list_companies(
     sort_by: str = "revenue",
 ) -> List[Dict[str, Any]]:
     from api.constants import _NACE_SECTION_MAP
+
     q = db.query(Company).filter(Company.deleted_at.is_(None))
     if kommune:
         q = q.filter(Company.kommune == kommune)
     if nace_section:
         # Collect all NACE codes for the section
-        codes = [str(c) for rng, s in _NACE_SECTION_MAP if s == nace_section.upper() for c in rng]
+        codes = [
+            str(c)
+            for rng, s in _NACE_SECTION_MAP
+            if s == nace_section.upper()
+            for c in rng
+        ]
         if codes:
-            q = q.filter(Company.naeringskode1.in_(codes) | Company.naeringskode1.like(f"{nace_section.upper()}%"))
+            q = q.filter(
+                Company.naeringskode1.in_(codes)
+                | Company.naeringskode1.like(f"{nace_section.upper()}%")
+            )
     if min_revenue is not None:
         q = q.filter(Company.sum_driftsinntekter >= min_revenue)
     if max_revenue is not None:
@@ -229,7 +250,9 @@ def list_companies(
         "navn": Company.navn.asc(),
         "regnskapsår": Company.regnskapsår.desc().nulls_last(),
     }
-    q = q.order_by(_SORT_MAP.get(sort_by, Company.sum_driftsinntekter.desc().nulls_last()))
+    q = q.order_by(
+        _SORT_MAP.get(sort_by, Company.sum_driftsinntekter.desc().nulls_last())
+    )
     rows = q.limit(limit).all()
     return [
         {
@@ -258,9 +281,9 @@ def _generate_synthetic_financials(org: Dict[str, Any]) -> Dict[str, Any]:
     prompt = f"""Estimate realistic financial figures for a Norwegian company. Return ONLY a valid JSON object, no explanation.
 
 Company:
-- Legal form: {org.get('organisasjonsform')} ({org.get('organisasjonsform_kode')})
-- Industry: {org.get('naeringskode1')} – {org.get('naeringskode1_beskrivelse')}
-- Municipality: {org.get('kommune')}
+- Legal form: {org.get("organisasjonsform")} ({org.get("organisasjonsform_kode")})
+- Industry: {org.get("naeringskode1")} – {org.get("naeringskode1_beskrivelse")}
+- Municipality: {org.get("kommune")}
 
 Use typical median values for this type of Norwegian company. All values in NOK as integers.
 Return exactly this JSON structure:
@@ -295,6 +318,7 @@ Return exactly this JSON structure:
 
 
 # ── Service class wrapper ──────────────────────────────────────────────────────
+
 
 class CompanyService:
     """Thin class wrapper around module-level company helpers."""

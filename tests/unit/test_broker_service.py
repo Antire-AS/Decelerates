@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -14,40 +15,41 @@ from api.services.broker import BrokerService
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_settings(**kwargs):
     s = MagicMock(spec=BrokerSettings)
-    s.id            = 1
-    s.firm_name     = kwargs.get("firm_name", "Broker AS")
-    s.orgnr         = kwargs.get("orgnr", "987654321")
-    s.address       = kwargs.get("address", "Brokerveien 1")
-    s.contact_name  = kwargs.get("contact_name", "Ola Nordmann")
+    s.id = 1
+    s.firm_name = kwargs.get("firm_name", "Broker AS")
+    s.orgnr = kwargs.get("orgnr", "987654321")
+    s.address = kwargs.get("address", "Brokerveien 1")
+    s.contact_name = kwargs.get("contact_name", "Ola Nordmann")
     s.contact_email = kwargs.get("contact_email", "ola@broker.no")
     s.contact_phone = kwargs.get("contact_phone", "12345678")
-    s.updated_at    = kwargs.get("updated_at", None)
+    s.updated_at = kwargs.get("updated_at", None)
     return s
 
 
 def _mock_note(**kwargs):
     n = MagicMock(spec=BrokerNote)
-    n.id         = kwargs.get("id", 1)
-    n.orgnr      = kwargs.get("orgnr", "123456789")
-    n.text       = kwargs.get("text", "Test note")
+    n.id = kwargs.get("id", 1)
+    n.orgnr = kwargs.get("orgnr", "123456789")
+    n.text = kwargs.get("text", "Test note")
     n.created_at = kwargs.get("created_at", "2026-01-01T00:00:00+00:00")
     return n
 
 
 def _settings_in(**kwargs):
     return SimpleNamespace(
-        firm_name     = kwargs.get("firm_name", "Broker AS"),
-        orgnr         = kwargs.get("orgnr", "987654321"),
-        address       = kwargs.get("address", "Brokerveien 1"),
-        contact_name  = kwargs.get("contact_name", "Ola Nordmann"),
-        contact_email = kwargs.get("contact_email", "ola@broker.no"),
-        contact_phone = kwargs.get("contact_phone", "12345678"),
+        firm_name=kwargs.get("firm_name", "Broker AS"),
+        orgnr=kwargs.get("orgnr", "987654321"),
+        address=kwargs.get("address", "Brokerveien 1"),
+        contact_name=kwargs.get("contact_name", "Ola Nordmann"),
+        contact_email=kwargs.get("contact_email", "ola@broker.no"),
+        contact_phone=kwargs.get("contact_phone", "12345678"),
     )
 
 
@@ -56,6 +58,7 @@ def _note_body(text="Test note"):
 
 
 # ── get_settings ──────────────────────────────────────────────────────────────
+
 
 def test_get_settings_returns_row_when_exists():
     settings = _mock_settings()
@@ -80,6 +83,7 @@ def test_get_settings_queries_id_1():
 
 
 # ── save_settings — update path ───────────────────────────────────────────────
+
 
 def test_save_settings_updates_existing_row():
     existing = _mock_settings()
@@ -118,9 +122,9 @@ def test_save_settings_update_sets_all_fields():
         contact_phone="99999999",
     )
     BrokerService(db).save_settings(body)
-    assert existing.orgnr         == "111111111"
-    assert existing.address       == "Ny gate 2"
-    assert existing.contact_name  == "Kari"
+    assert existing.orgnr == "111111111"
+    assert existing.address == "Ny gate 2"
+    assert existing.contact_name == "Kari"
     assert existing.contact_email == "kari@updated.no"
     assert existing.contact_phone == "99999999"
 
@@ -143,6 +147,7 @@ def test_save_settings_update_returns_ok_status():
 
 
 # ── save_settings — insert path ───────────────────────────────────────────────
+
 
 def test_save_settings_creates_row_when_none_exists():
     db = _mock_db()
@@ -177,10 +182,13 @@ def test_save_settings_insert_returns_ok_status():
 
 # ── list_notes ────────────────────────────────────────────────────────────────
 
+
 def test_list_notes_returns_notes_for_orgnr():
     notes = [_mock_note(), _mock_note(id=2)]
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = notes
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        notes
+    )
     result = BrokerService(db).list_notes("123456789")
     assert result == notes
 
@@ -200,6 +208,7 @@ def test_list_notes_queries_broker_note():
 
 
 # ── create_note ───────────────────────────────────────────────────────────────
+
 
 def test_create_note_adds_to_db_and_commits():
     db = _mock_db()
@@ -243,6 +252,7 @@ def test_create_note_refreshes():
 
 
 # ── delete_note ───────────────────────────────────────────────────────────────
+
 
 def test_delete_note_calls_db_delete_and_commits():
     note = _mock_note()
@@ -318,7 +328,10 @@ def test_create_note_persists_mentions_and_fans_out_targeted_notifications():
     ) as MockSvc:
         instance = MockSvc.return_value
         BrokerService(db).create_note(
-            "123456789", body, firm_id=10, author_email="b@x.no",
+            "123456789",
+            body,
+            firm_id=10,
+            author_email="b@x.no",
         )
     # Targeted user_ids — must NOT be a broad fan-out.
     instance.create_for_users.assert_called_once()
@@ -338,7 +351,10 @@ def test_create_note_skips_notifications_when_no_matching_users():
         "api.services.notification_inbox_service.NotificationInboxService"
     ) as MockSvc:
         BrokerService(db).create_note(
-            "123456789", body, firm_id=10, author_email="b@x.no",
+            "123456789",
+            body,
+            firm_id=10,
+            author_email="b@x.no",
         )
     MockSvc.assert_not_called()  # no fan-out at all
 

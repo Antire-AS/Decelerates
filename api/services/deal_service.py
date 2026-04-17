@@ -3,6 +3,7 @@
 Plan §🟢 #9. Every state-changing call writes an audit log entry so we have
 a Finanstilsynet-grade trail of who moved which deal where, and when.
 """
+
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -20,7 +21,6 @@ from api.services.audit import log_audit
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class DealService:

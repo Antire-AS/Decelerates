@@ -14,6 +14,7 @@ Usage in routers:
     def my_endpoint(user: CurrentUser = Depends(get_current_user)):
         ...
 """
+
 import logging
 import os
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ from api.dependencies import get_db
 _log = logging.getLogger(__name__)
 _bearer = HTTPBearer(auto_error=False)
 
+
 # ── Auth toggle ───────────────────────────────────────────────────────────────
 # Auth is ON by default everywhere. To bypass JWT validation in dev/staging:
 #     ENVIRONMENT=development AUTH_DISABLED=1 uv run uvicorn api.main:app
@@ -40,6 +42,8 @@ def _is_auth_disabled() -> bool:
     if os.getenv("ENVIRONMENT", "development").lower() == "production":
         return False
     return os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 # JWKS cache — populated lazily on first token validation, one entry per worker
@@ -48,11 +52,11 @@ _jwks_cache: Optional[dict] = None
 
 @dataclass
 class CurrentUser:
-    email:   str
-    name:    str
-    oid:     str
+    email: str
+    name: str
+    oid: str
     firm_id: int = 1
-    role:    str = "broker"
+    role: str = "broker"
 
 
 def require_role(*allowed_roles: str):
@@ -61,6 +65,7 @@ def require_role(*allowed_roles: str):
     Usage: `user: CurrentUser = Depends(require_role("admin"))`
     or:    `user: CurrentUser = Depends(require_role("admin", "broker"))`
     """
+
     def _check(user: CurrentUser = Depends(get_current_user)):
         if user.role not in allowed_roles:
             raise HTTPException(
@@ -68,6 +73,7 @@ def require_role(*allowed_roles: str):
                 detail=f"Krever rolle: {', '.join(allowed_roles)}. Din rolle: {user.role}",
             )
         return user
+
     return _check
 
 
@@ -131,7 +137,8 @@ def _validate_google_token(token: str) -> dict:
     key = jwt.algorithms.RSAAlgorithm.from_jwk(matching)
 
     return jwt.decode(
-        token, key,
+        token,
+        key,
         algorithms=["RS256"],
         audience=google_client_id,
         issuer=["https://accounts.google.com", "accounts.google.com"],
@@ -143,7 +150,9 @@ def _validate_azure_token(token: str) -> dict:
     tenant_id = os.getenv("AZURE_TENANT_ID", "")
     audience = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
     if not tenant_id or not audience:
-        raise ValueError("AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation")
+        raise ValueError(
+            "AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation"
+        )
 
     multi_tenant = tenant_id.lower() == "common"
     jwks_tenant = "common" if multi_tenant else tenant_id
@@ -169,9 +178,9 @@ def _validate_azure_token(token: str) -> dict:
 # database satisfies both code paths. Without provisioning this row, every
 # router that does `db.query(User).filter(User.azure_oid == user.oid).first()`
 # returns 404 in dev mode (notifications, saved_searches, etc).
-_DEV_USER_OID   = "dev-oid"
+_DEV_USER_OID = "dev-oid"
 _DEV_USER_EMAIL = "dev@local"
-_DEV_USER_NAME  = "Dev User"
+_DEV_USER_NAME = "Dev User"
 
 
 def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
@@ -184,9 +193,12 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
     already exists.
     """
     from api.services.user_service import UserService
+
     svc = UserService(db)
     user = svc.get_or_create(
-        oid=_DEV_USER_OID, email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
+        oid=_DEV_USER_OID,
+        email=_DEV_USER_EMAIL,
+        name=_DEV_USER_NAME,
     )
     # Reconcile firm_id: if the dev user row predates the demo seed (or the
     # DB was partially reset), it may point at a non-existent firm. Force it
@@ -199,8 +211,11 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
         db.refresh(user)
     # Dev user always gets admin role so all endpoints are accessible in dev mode
     return CurrentUser(
-        email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
-        oid=_DEV_USER_OID, firm_id=user.firm_id, role="admin",
+        email=_DEV_USER_EMAIL,
+        name=_DEV_USER_NAME,
+        oid=_DEV_USER_OID,
+        firm_id=user.firm_id,
+        role="admin",
     )
 
 
@@ -217,33 +232,48 @@ def get_optional_user(
         claims = _validate_token(creds.credentials)
     except Exception:
         return None
-    oid   = claims.get("oid", "")
+    oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
-    name  = claims.get("name", "")
+    name = claims.get("name", "")
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
-                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
+
+    user = UserService(db).get_or_create(
+        oid=oid, email=email, name=name, firm_id=firm_id
+    )
+    return CurrentUser(
+        email=email,
+        name=name,
+        oid=oid,
+        firm_id=user.firm_id,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+    )
 
 
 def _validate_and_extract_claims(creds: Optional[HTTPAuthorizationCredentials]) -> dict:
     """Validate JWT token and return claims, or raise 401."""
     if not creds:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Missing Authorization header", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         return _validate_token(creds.credentials)
     except Exception as exc:
         _log.debug("Token validation failed: %s", exc)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid or expired token", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def _resolve_sso_firm(claims: dict, db: Session) -> int | None:
     """Try to map Azure AD tenant to a BrokerFirm. Returns firm_id or None."""
     try:
         from api.services.sso_service import SsoService
+
         return SsoService().resolve_firm_from_token(claims, db).id
     except Exception as exc:
         _log.debug("SSO firm resolution failed (non-fatal): %s", exc)
@@ -258,11 +288,19 @@ def get_current_user(
     if _is_auth_disabled():
         return _ensure_dev_user_provisioned(db)
     claims = _validate_and_extract_claims(creds)
-    oid   = claims.get("oid", "")
+    oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
-    name  = claims.get("name", "")
+    name = claims.get("name", "")
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
-                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
+
+    user = UserService(db).get_or_create(
+        oid=oid, email=email, name=name, firm_id=firm_id
+    )
+    return CurrentUser(
+        email=email,
+        name=name,
+        oid=oid,
+        firm_id=user.firm_id,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+    )

@@ -3,6 +3,7 @@
 Covers POST /org/{orgnr}/chat (RAG + agent modes), POST /knowledge/seed-regulations,
 helper functions _readable_source, _chunk_snippet, and _auto_ingest_company_data.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -51,58 +52,74 @@ def _mock_company(orgnr="123456789", navn="Test AS"):
     c.navn = navn
     return c
 
+    # ── POST /org/{orgnr}/chat (RAG mode) ───────────────────────────────────────
 
-# ── POST /org/{orgnr}/chat (RAG mode) ───────────────────────────────────────
-
-    with patch("api.routers.knowledge._auto_ingest_company_data"), \
-         patch("api.routers.knowledge._build_history_context", return_value=""), \
-         patch("api.routers.knowledge._answer_with_rag_or_notes", return_value="AI answer"), \
-         patch("api.routers.knowledge.save_qa_note", return_value=1), \
-         patch("api.routers.knowledge._chunk_and_store"):
+    with (
+        patch("api.routers.knowledge._auto_ingest_company_data"),
+        patch("api.routers.knowledge._build_history_context", return_value=""),
+        patch(
+            "api.routers.knowledge._answer_with_rag_or_notes", return_value="AI answer"
+        ),
+        patch("api.routers.knowledge.save_qa_note", return_value=1),
+        patch("api.routers.knowledge._chunk_and_store"),
+    ):
         resp = client.post("/org/123456789/chat", json={"question": "Hva er risikoen?"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["answer"] == "AI answer"
     assert body["orgnr"] == "123456789"
 
-
-
-    with patch("api.routers.knowledge._auto_ingest_company_data"), \
-         patch("api.routers.knowledge._build_history_context", return_value=""), \
-         patch("api.routers.knowledge._answer_with_rag_or_notes", side_effect=QuotaError("quota")):
+    with (
+        patch("api.routers.knowledge._auto_ingest_company_data"),
+        patch("api.routers.knowledge._build_history_context", return_value=""),
+        patch(
+            "api.routers.knowledge._answer_with_rag_or_notes",
+            side_effect=QuotaError("quota"),
+        ),
+    ):
         resp = client.post("/org/123456789/chat", json={"question": "?"})
     assert resp.status_code == 429
 
-
-    with patch("api.routers.knowledge._auto_ingest_company_data"), \
-         patch("api.routers.knowledge._build_history_context", return_value=""), \
-         patch("api.routers.knowledge._answer_with_rag_or_notes", side_effect=LlmUnavailableError("no key")):
+    with (
+        patch("api.routers.knowledge._auto_ingest_company_data"),
+        patch("api.routers.knowledge._build_history_context", return_value=""),
+        patch(
+            "api.routers.knowledge._answer_with_rag_or_notes",
+            side_effect=LlmUnavailableError("no key"),
+        ),
+    ):
         resp = client.post("/org/123456789/chat", json={"question": "?"})
     assert resp.status_code == 503
 
-
-# ── POST /org/{orgnr}/chat (agent mode) ─────────────────────────────────────
+    # ── POST /org/{orgnr}/chat (agent mode) ─────────────────────────────────────
 
     agent_result = {"answer": "Agent says hello", "tool_calls_made": ["search"]}
-    with patch("api.routers.knowledge.chat_with_tools", return_value=agent_result), \
-         patch("api.routers.knowledge.save_qa_note", return_value=1):
-        resp = client.post("/org/123456789/chat?mode=agent", json={"question": "Finn info"})
+    with (
+        patch("api.routers.knowledge.chat_with_tools", return_value=agent_result),
+        patch("api.routers.knowledge.save_qa_note", return_value=1),
+    ):
+        resp = client.post(
+            "/org/123456789/chat?mode=agent", json={"question": "Finn info"}
+        )
     assert resp.status_code == 200
     body = resp.json()
     assert body["answer"] == "Agent says hello"
     assert "tool_calls" in body
 
+    # ── POST /knowledge/seed-regulations ─────────────────────────────────────────
 
-# ── POST /knowledge/seed-regulations ─────────────────────────────────────────
-
-    with patch("api.routers.knowledge._fetch_regulation_text", return_value="Lov om forsikring " * 50), \
-         patch("api.routers.knowledge._chunk_and_store", return_value=10):
+    with (
+        patch(
+            "api.routers.knowledge._fetch_regulation_text",
+            return_value="Lov om forsikring " * 50,
+        ),
+        patch("api.routers.knowledge._chunk_and_store", return_value=10),
+    ):
         resp = client.post("/knowledge/seed-regulations")
     assert resp.status_code == 200
     body = resp.json()
     assert body["total_chunks"] > 0
     assert len(body["seeded"]) == 3
-
 
     resp = client.post("/knowledge/seed-regulations")
     assert resp.status_code == 200
@@ -112,6 +129,7 @@ def _mock_company(orgnr="123456789", navn="Test AS"):
 
 
 # ── _readable_source helper ──────────────────────────────────────────────────
+
 
 def test_readable_source_video():
     result = _readable_source("video::MyVideo::120::Kapittel 2")
@@ -129,6 +147,7 @@ def test_readable_source_plain():
 
 
 # ── _chunk_snippet helper ────────────────────────────────────────────────────
+
 
 def test_chunk_snippet_truncates():
     long_text = "Relevant insurance text. " * 20

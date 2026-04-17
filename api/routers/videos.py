@@ -1,4 +1,5 @@
 """Video management endpoints — upload, list, and stream video blobs."""
+
 import base64
 import os
 import posixpath
@@ -26,10 +27,10 @@ _VIDEOS_CONTAINER = os.getenv("AZURE_VIDEO_CONTAINER", "transksrt")
 #   ffs220824forsikringsmeglerrollen-hvakanvilære_fast.mp4
 #   ffs290824_fast.mp4
 _VIDEO_SECTIONS_MAP = {
-    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis",              None),
-    "ffs100624": ("ffskunde",     "Møte med kunden, behovsanalyse og rådgivning", None),
-    "ffs220824": ("ffslære",      "Forsikringsmeglerrollen – hva kan vi lære?",   None),
-    "ffs290824": ("ffspraktisk",  "Praktisk forsikringsrådgivning",               None),
+    "ffs080524": ("ffsformidler", "Forsikringsformidling i praksis", None),
+    "ffs100624": ("ffskunde", "Møte med kunden, behovsanalyse og rådgivning", None),
+    "ffs220824": ("ffslære", "Forsikringsmeglerrollen – hva kan vi lære?", None),
+    "ffs290824": ("ffspraktisk", "Praktisk forsikringsrådgivning", None),
 }
 
 router = APIRouter()
@@ -65,29 +66,42 @@ def _build_vtt_data_uri(sections: list) -> str | None:
 
 
 @router.post("/videos/upload")
-async def upload_video(file: UploadFile = File(...), db: Session = Depends(get_db)) -> dict:
+async def upload_video(
+    file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> dict:
     """Upload a video file to Azure Blob Storage."""
     content_type = file.content_type or ""
     if content_type not in _ALLOWED_VIDEO_TYPES:
-        raise HTTPException(status_code=400, detail="Filtype ikke støttet. Bruk .mp4, .mov eller .avi")
+        raise HTTPException(
+            status_code=400, detail="Filtype ikke støttet. Bruk .mp4, .mov eller .avi"
+        )
     video_bytes = await file.read()
     if len(video_bytes) > _MAX_VIDEO_BYTES:
         raise HTTPException(status_code=413, detail="Filen er for stor. Maks 500 MB.")
     blob_name = f"{uuid.uuid4()}_{file.filename}"
     svc = BlobStorageService()
     if not svc.is_configured():
-        raise HTTPException(status_code=503, detail="Blob Storage ikke konfigurert (AZURE_BLOB_ENDPOINT mangler)")
+        raise HTTPException(
+            status_code=503,
+            detail="Blob Storage ikke konfigurert (AZURE_BLOB_ENDPOINT mangler)",
+        )
     url = svc.upload(_VIDEOS_CONTAINER, blob_name, video_bytes)
     if not url:
-        raise HTTPException(status_code=502, detail="Opplasting til Blob Storage feilet")
-    log_audit(db, "video.upload", detail={"filename": file.filename, "blob_name": blob_name})
+        raise HTTPException(
+            status_code=502, detail="Opplasting til Blob Storage feilet"
+        )
+    log_audit(
+        db, "video.upload", detail={"filename": file.filename, "blob_name": blob_name}
+    )
     return {"blob_name": blob_name, "url": url, "filename": file.filename}
 
 
 def _sections_key(fname: str) -> str:
     """Map a filename stem to a _VIDEO_SECTIONS_MAP key by prefix match."""
     clean = fname.removesuffix("_subs").removesuffix("_fast")
-    return next((k for k in _VIDEO_SECTIONS_MAP if clean == k or clean.startswith(k)), clean)
+    return next(
+        (k for k in _VIDEO_SECTIONS_MAP if clean == k or clean.startswith(k)), clean
+    )
 
 
 @router.get("/videos")
@@ -127,32 +141,48 @@ def list_videos() -> list:
         for cand in [
             f"{directory}/{sections_prefix}_sections.json",
             f"{directory}/{sections_prefix}_timeline.json",
-            f"{base}.json", f"{base}_sections.json",
+            f"{base}.json",
+            f"{base}_sections.json",
         ]:
             if cand in all_blobs:
                 sections = svc.download_json(_VIDEOS_CONTAINER, cand)
                 if max_seconds is not None and isinstance(sections, list):
-                    sections = [ch for ch in sections if ch.get("start_seconds", 0) <= max_seconds]
+                    sections = [
+                        ch
+                        for ch in sections
+                        if ch.get("start_seconds", 0) <= max_seconds
+                    ]
                 break
 
-        thumb_blob = next((
-            c for c in [
-                f"{directory}/thumbnails/{fname}_sprite.jpg",
-                f"{directory}/thumbnails/{fname}.jpg",
-                f"{base}.jpg",
-            ] if c in all_blobs
-        ), None)
-        thumbnail_url = svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
+        thumb_blob = next(
+            (
+                c
+                for c in [
+                    f"{directory}/thumbnails/{fname}_sprite.jpg",
+                    f"{directory}/thumbnails/{fname}.jpg",
+                    f"{base}.jpg",
+                ]
+                if c in all_blobs
+            ),
+            None,
+        )
+        thumbnail_url = (
+            svc.generate_sas_url(_VIDEOS_CONTAINER, thumb_blob) if thumb_blob else None
+        )
         video_url = svc.generate_sas_url(_VIDEOS_CONTAINER, mp4, hours=4)
-        subtitle_url = _build_vtt_data_uri(sections) if isinstance(sections, list) else None
-        results.append({
-            "blob_name": mp4,
-            "filename": display_name,
-            "sections": sections,
-            "thumbnail_url": thumbnail_url,
-            "video_url": video_url,
-            "subtitle_url": subtitle_url,
-        })
+        subtitle_url = (
+            _build_vtt_data_uri(sections) if isinstance(sections, list) else None
+        )
+        results.append(
+            {
+                "blob_name": mp4,
+                "filename": display_name,
+                "sections": sections,
+                "thumbnail_url": thumbnail_url,
+                "video_url": video_url,
+                "subtitle_url": subtitle_url,
+            }
+        )
     return results
 
 
@@ -175,7 +205,9 @@ async def stream_video(blob: str, request: Request):
         if chunks is None:
             raise HTTPException(status_code=502)
         return StreamingResponse(
-            chunks, status_code=206, media_type="video/mp4",
+            chunks,
+            status_code=206,
+            media_type="video/mp4",
             headers={
                 "Content-Range": f"bytes {start}-{end}/{file_size}",
                 "Accept-Ranges": "bytes",
@@ -186,6 +218,7 @@ async def stream_video(blob: str, request: Request):
     if chunks is None:
         raise HTTPException(status_code=502)
     return StreamingResponse(
-        chunks, media_type="video/mp4",
+        chunks,
+        media_type="video/mp4",
         headers={"Accept-Ranges": "bytes", "Content-Length": str(file_size)},
     )

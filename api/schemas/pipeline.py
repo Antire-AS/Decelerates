@@ -1,9 +1,12 @@
 """Pipeline schemas — stages and deals."""
+
 from datetime import date, datetime
 from typing import Literal, Optional
 from pydantic import BaseModel
 
-PipelineStageKindLiteral = Literal["lead", "qualified", "quoted", "bound", "won", "lost"]
+PipelineStageKindLiteral = Literal[
+    "lead", "qualified", "quoted", "bound", "won", "lost"
+]
 
 
 class PipelineStageOut(BaseModel):

@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -15,20 +16,21 @@ from api.services.policy_service import PolicyService
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_policy(**kwargs):
     p = MagicMock(spec=Policy)
-    p.id             = kwargs.get("id", 1)
-    p.orgnr          = kwargs.get("orgnr", "123456789")
-    p.firm_id        = kwargs.get("firm_id", 10)
-    p.status         = kwargs.get("status", PolicyStatus.active)
-    p.renewal_stage  = kwargs.get("renewal_stage", RenewalStage.not_started)
-    p.renewal_date   = kwargs.get("renewal_date", date(2027, 1, 1))
-    p.insurer        = kwargs.get("insurer", "Gjensidige")
-    p.product_type   = kwargs.get("product_type", "Ting")
+    p.id = kwargs.get("id", 1)
+    p.orgnr = kwargs.get("orgnr", "123456789")
+    p.firm_id = kwargs.get("firm_id", 10)
+    p.status = kwargs.get("status", PolicyStatus.active)
+    p.renewal_stage = kwargs.get("renewal_stage", RenewalStage.not_started)
+    p.renewal_date = kwargs.get("renewal_date", date(2027, 1, 1))
+    p.insurer = kwargs.get("insurer", "Gjensidige")
+    p.product_type = kwargs.get("product_type", "Ting")
     p.annual_premium_nok = kwargs.get("annual_premium_nok", 25_000.0)
     p.last_renewal_notified_days = kwargs.get("last_renewal_notified_days", None)
     return p
@@ -36,42 +38,43 @@ def _mock_policy(**kwargs):
 
 def _policy_in(**kwargs):
     return SimpleNamespace(
-        contact_person_id  = kwargs.get("contact_person_id", None),
-        policy_number      = kwargs.get("policy_number", "POL-001"),
-        insurer            = kwargs.get("insurer", "Gjensidige"),
-        product_type       = kwargs.get("product_type", "Ting"),
-        coverage_amount_nok= kwargs.get("coverage_amount_nok", 1_000_000.0),
-        annual_premium_nok = kwargs.get("annual_premium_nok", 25_000.0),
-        start_date         = kwargs.get("start_date", date(2026, 1, 1)),
-        renewal_date       = kwargs.get("renewal_date", date(2027, 1, 1)),
-        status             = kwargs.get("status", "active"),
-        renewal_stage      = kwargs.get("renewal_stage", None),
-        notes              = kwargs.get("notes", None),
-        commission_rate_pct= kwargs.get("commission_rate_pct", None),
-        commission_amount_nok = kwargs.get("commission_amount_nok", None),
+        contact_person_id=kwargs.get("contact_person_id", None),
+        policy_number=kwargs.get("policy_number", "POL-001"),
+        insurer=kwargs.get("insurer", "Gjensidige"),
+        product_type=kwargs.get("product_type", "Ting"),
+        coverage_amount_nok=kwargs.get("coverage_amount_nok", 1_000_000.0),
+        annual_premium_nok=kwargs.get("annual_premium_nok", 25_000.0),
+        start_date=kwargs.get("start_date", date(2026, 1, 1)),
+        renewal_date=kwargs.get("renewal_date", date(2027, 1, 1)),
+        status=kwargs.get("status", "active"),
+        renewal_stage=kwargs.get("renewal_stage", None),
+        notes=kwargs.get("notes", None),
+        commission_rate_pct=kwargs.get("commission_rate_pct", None),
+        commission_amount_nok=kwargs.get("commission_amount_nok", None),
     )
 
 
 def _policy_update(**kwargs):
-    return SimpleNamespace(**{k: v for k, v in kwargs.items()},
-                           model_dump=lambda exclude_none=False: kwargs)
+    return SimpleNamespace(
+        **{k: v for k, v in kwargs.items()},
+        model_dump=lambda exclude_none=False: kwargs,
+    )
 
 
 # ── list_by_orgnr ─────────────────────────────────────────────────────────────
 
+
 def test_list_by_orgnr_returns_query_results():
     db = _mock_db()
     policies = [_mock_policy(), _mock_policy(id=2)]
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .offset.return_value.limit.return_value.all.return_value = policies
+    db.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = policies
     result = PolicyService(db).list_by_orgnr("123456789", 10)
     assert result == policies
 
 
 def test_list_by_orgnr_default_pagination():
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .offset.return_value.limit.return_value.all.return_value = []
+    db.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
     PolicyService(db).list_by_orgnr("123456789", 10)
     chain = db.query.return_value.filter.return_value.order_by.return_value
     chain.offset.assert_called_once_with(0)
@@ -80,16 +83,17 @@ def test_list_by_orgnr_default_pagination():
 
 # ── list_by_firm ──────────────────────────────────────────────────────────────
 
+
 def test_list_by_firm_returns_query_results():
     db = _mock_db()
     policies = [_mock_policy()]
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .offset.return_value.limit.return_value.all.return_value = policies
+    db.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = policies
     result = PolicyService(db).list_by_firm(10)
     assert result == policies
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+
 
 def test_create_calls_add_and_commit():
     db = _mock_db()
@@ -151,13 +155,12 @@ def test_create_sets_timestamps():
 
 # ── update ────────────────────────────────────────────────────────────────────
 
+
 def test_update_sets_field_on_policy():
     policy = _mock_policy()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = policy
-    body = SimpleNamespace(
-        model_dump=lambda exclude_none: {"insurer": "Codan"}
-    )
+    body = SimpleNamespace(model_dump=lambda exclude_none: {"insurer": "Codan"})
     PolicyService(db).update(1, 10, body)
     # PolicyService.update routes insurer through canonical_insurer_name
     # since UI audit F06 (2026-04-09); "Codan" → "Codan Forsikring".
@@ -194,7 +197,9 @@ def test_update_parses_renewal_stage_string():
     policy = _mock_policy()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = policy
-    body = SimpleNamespace(model_dump=lambda exclude_none: {"renewal_stage": "accepted"})
+    body = SimpleNamespace(
+        model_dump=lambda exclude_none: {"renewal_stage": "accepted"}
+    )
     PolicyService(db).update(1, 10, body)
     assert policy.renewal_stage == RenewalStage.accepted
 
@@ -210,6 +215,7 @@ def test_update_stamps_updated_at():
 
 
 # ── advance_renewal_stage ─────────────────────────────────────────────────────
+
 
 def test_advance_renewal_stage_updates_stage():
     policy = _mock_policy()
@@ -244,6 +250,7 @@ def test_advance_renewal_stage_invalid_stage_raises():
 
 # ── delete ────────────────────────────────────────────────────────────────────
 
+
 def test_delete_calls_db_delete():
     policy = _mock_policy()
     db = _mock_db()
@@ -269,6 +276,7 @@ def test_delete_raises_not_found_when_missing():
 
 # ── mark_renewal_notified ─────────────────────────────────────────────────────
 
+
 def test_mark_renewal_notified_updates_and_commits():
     db = _mock_db()
     PolicyService(db).mark_renewal_notified(1, 30)
@@ -279,6 +287,7 @@ def test_mark_renewal_notified_updates_and_commits():
 
 
 # ── _parse_status ─────────────────────────────────────────────────────────────
+
 
 def test_parse_status_active():
     assert PolicyService._parse_status("active") == PolicyStatus.active
@@ -298,6 +307,7 @@ def test_parse_status_invalid_raises_validation_error():
 
 
 # ── _parse_renewal_stage ──────────────────────────────────────────────────────
+
 
 def test_parse_renewal_stage_not_started():
     assert PolicyService._parse_renewal_stage("not_started") == RenewalStage.not_started

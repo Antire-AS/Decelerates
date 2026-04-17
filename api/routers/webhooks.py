@@ -5,6 +5,7 @@ external services that don't carry our Azure AD tokens. Security comes from
 HMAC signature verification on the raw request body. NEVER trust an unsigned
 webhook payload.
 """
+
 import json
 import logging
 
@@ -48,5 +49,9 @@ async def signicat_webhook(
             parsed["session_id"],
             signed_pdf_blob_url=parsed.get("signed_pdf_url"),
         )
-    log_audit(db, "webhook.signicat", detail={"session_id": parsed.get("session_id"), "status": parsed.get("status")})
+    log_audit(
+        db,
+        "webhook.signicat",
+        detail={"session_id": parsed.get("session_id"), "status": parsed.get("status")},
+    )
     return {"received": True}

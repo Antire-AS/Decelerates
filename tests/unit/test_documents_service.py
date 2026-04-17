@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -43,6 +44,7 @@ def _valid_pdf_bytes():
 
 # ── _cosine_similarity ─────────────────────────────────────────────────────────
 
+
 def test_cosine_similarity_identical_vectors():
     v = [1.0, 0.0, 0.0]
     assert _cosine_similarity(v, v) == pytest.approx(1.0)
@@ -66,12 +68,20 @@ def test_cosine_similarity_opposite_vectors():
 
 # ── DocumentService.store_document ────────────────────────────────────────────
 
+
 @patch("api.services.documents._validate_pdf", return_value=True)
 @patch("api.services.documents._pdf_bytes_to_text", return_value="extracted text")
 def test_store_document_adds_to_db(mock_extract, mock_validate):
     db = _mock_db()
     DocumentService(db).store_document(
-        _valid_pdf_bytes(), "test.pdf", "Test", "anbefaling", "Insurer AS", 2024, "aktiv", "123456789"
+        _valid_pdf_bytes(),
+        "test.pdf",
+        "Test",
+        "anbefaling",
+        "Insurer AS",
+        2024,
+        "aktiv",
+        "123456789",
     )
     db.add.assert_called_once()
     db.commit.assert_called_once()
@@ -83,7 +93,15 @@ def test_store_document_adds_to_db(mock_extract, mock_validate):
 def test_store_document_sets_all_fields(mock_extract, mock_validate):
     db = _mock_db()
     DocumentService(db).store_document(
-        _valid_pdf_bytes(), "doc.pdf", "My Title", "kategori", "Forsikrer AS", 2023, "2023", "987654321", tags="tag1"
+        _valid_pdf_bytes(),
+        "doc.pdf",
+        "My Title",
+        "kategori",
+        "Forsikrer AS",
+        2023,
+        "2023",
+        "987654321",
+        tags="tag1",
     )
     added = db.add.call_args[0][0]
     assert added.title == "My Title"
@@ -99,7 +117,9 @@ def test_store_document_sets_all_fields(mock_extract, mock_validate):
 def test_store_document_raises_on_invalid_pdf(mock_validate):
     db = _mock_db()
     with pytest.raises(ValueError, match="Ugyldig"):
-        DocumentService(db).store_document(b"not a pdf", "x.pdf", "T", "k", "I", None, "", None)
+        DocumentService(db).store_document(
+            b"not a pdf", "x.pdf", "T", "k", "I", None, "", None
+        )
 
 
 @patch("api.services.documents._validate_pdf", return_value=True)
@@ -126,6 +146,7 @@ def test_store_document_null_orgnr_when_empty_string(mock_extract, mock_validate
 
 # ── DocumentService.remove_document ───────────────────────────────────────────
 
+
 def test_remove_document_returns_false_when_not_found():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
@@ -147,11 +168,20 @@ def test_remove_document_returns_true_and_deletes():
 
 # ── DocumentService.save_offers ───────────────────────────────────────────────
 
+
 def test_save_offers_creates_rows_for_each_item():
     db = _mock_db()
     offer_data = [
-        {"filename": "offer_one.pdf", "raw_bytes": b"bytes1", "extracted_text": "text1"},
-        {"filename": "offer_two.pdf", "raw_bytes": b"bytes2", "extracted_text": "text2"},
+        {
+            "filename": "offer_one.pdf",
+            "raw_bytes": b"bytes1",
+            "extracted_text": "text1",
+        },
+        {
+            "filename": "offer_two.pdf",
+            "raw_bytes": b"bytes2",
+            "extracted_text": "text2",
+        },
     ]
     DocumentService(db).save_offers("123456789", offer_data)
     assert db.add.call_count == 2
@@ -160,7 +190,9 @@ def test_save_offers_creates_rows_for_each_item():
 
 def test_save_offers_guesses_insurer_from_filename():
     db = _mock_db()
-    offer_data = [{"filename": "storebrand_ansvar.pdf", "raw_bytes": b"b", "extracted_text": "t"}]
+    offer_data = [
+        {"filename": "storebrand_ansvar.pdf", "raw_bytes": b"b", "extracted_text": "t"}
+    ]
     DocumentService(db).save_offers("123", offer_data)
     added = db.add.call_args[0][0]
     assert added.insurer_name == "Storebrand Ansvar"
@@ -168,7 +200,9 @@ def test_save_offers_guesses_insurer_from_filename():
 
 def test_save_offers_returns_list_with_correct_structure():
     db = _mock_db()
-    offer_data = [{"filename": "storebrand.pdf", "raw_bytes": b"b", "extracted_text": "t"}]
+    offer_data = [
+        {"filename": "storebrand.pdf", "raw_bytes": b"b", "extracted_text": "t"}
+    ]
     result = DocumentService(db).save_offers("123", offer_data)
     assert len(result) == 1
     assert result[0]["filename"] == "storebrand.pdf"
@@ -184,6 +218,7 @@ def test_save_offers_empty_list_returns_empty():
 
 
 # ── DocumentService.remove_offer ──────────────────────────────────────────────
+
 
 def test_remove_offer_returns_false_when_not_found():
     db = _mock_db()
@@ -204,6 +239,7 @@ def test_remove_offer_deletes_and_returns_true():
 
 
 # ── DocumentService.find_similar ──────────────────────────────────────────────
+
 
 @patch("api.services.documents._embed", return_value=None)
 def test_find_similar_returns_empty_when_embed_fails(mock_embed):
@@ -241,6 +277,7 @@ def test_find_similar_returns_sorted_by_similarity(mock_embed):
 
 # ── DocumentAnalysisService.get_document_keypoints ────────────────────────────
 
+
 @patch("api.services.documents._analyze_document_with_gemini", return_value=None)
 @patch("api.services.documents._llm_answer_raw", return_value=None)
 def test_get_keypoints_returns_fallback_dict_when_all_fail(mock_llm, mock_gemini):
@@ -251,7 +288,10 @@ def test_get_keypoints_returns_fallback_dict_when_all_fail(mock_llm, mock_gemini
     assert "unntak" in result
 
 
-@patch("api.services.documents._parse_json_from_llm_response", return_value={"hva_dekkes": ["A"]})
+@patch(
+    "api.services.documents._parse_json_from_llm_response",
+    return_value={"hva_dekkes": ["A"]},
+)
 @patch("api.services.documents._llm_answer_raw", return_value='{"hva_dekkes": ["A"]}')
 def test_get_keypoints_uses_extracted_text_path(mock_llm, mock_parse):
     doc = _mock_doc(extracted_text="A" * 600)
@@ -260,8 +300,14 @@ def test_get_keypoints_uses_extracted_text_path(mock_llm, mock_parse):
     mock_llm.assert_called_once()
 
 
-@patch("api.services.documents._parse_json_from_llm_response", return_value={"hva_dekkes": ["B"]})
-@patch("api.services.documents._analyze_document_with_gemini", return_value='{"hva_dekkes": ["B"]}')
+@patch(
+    "api.services.documents._parse_json_from_llm_response",
+    return_value={"hva_dekkes": ["B"]},
+)
+@patch(
+    "api.services.documents._analyze_document_with_gemini",
+    return_value='{"hva_dekkes": ["B"]}',
+)
 @patch("api.services.documents._llm_answer_raw", return_value=None)
 def test_get_keypoints_falls_back_to_gemini(mock_llm, mock_gemini, mock_parse):
     doc = _mock_doc(extracted_text="short")
@@ -272,7 +318,10 @@ def test_get_keypoints_falls_back_to_gemini(mock_llm, mock_gemini, mock_parse):
 
 # ── DocumentAnalysisService.answer_document_question ──────────────────────────
 
-@patch("api.services.documents._analyze_document_with_gemini", return_value="Svaret er 42")
+
+@patch(
+    "api.services.documents._analyze_document_with_gemini", return_value="Svaret er 42"
+)
 def test_answer_question_returns_gemini_answer(mock_gemini):
     doc = _mock_doc()
     result = DocumentAnalysisService().answer_document_question(doc, "Hva er svaret?")
@@ -305,9 +354,15 @@ def test_answer_question_raises_when_no_text_and_gemini_fails(mock_gemini):
 
 # ── DocumentAnalysisService.compare_two_documents ─────────────────────────────
 
-@patch("api.services.documents._parse_json_from_llm_response", return_value={"comparison": []})
+
+@patch(
+    "api.services.documents._parse_json_from_llm_response",
+    return_value={"comparison": []},
+)
 @patch("api.services.documents._llm_answer_raw", return_value='{"comparison": []}')
-def test_compare_documents_uses_text_when_both_have_extracted_text(mock_llm, mock_parse):
+def test_compare_documents_uses_text_when_both_have_extracted_text(
+    mock_llm, mock_parse
+):
     a = _mock_doc(id=1, title="Doc A", extracted_text="text a " * 50)
     b = _mock_doc(id=2, title="Doc B", extracted_text="text b " * 50)
     result = DocumentAnalysisService().compare_two_documents(a, b)
@@ -315,10 +370,18 @@ def test_compare_documents_uses_text_when_both_have_extracted_text(mock_llm, moc
     mock_llm.assert_called_once()
 
 
-@patch("api.services.documents._parse_json_from_llm_response", return_value={"comparison": []})
-@patch("api.services.documents._compare_documents_with_gemini", return_value='{"comparison": []}')
+@patch(
+    "api.services.documents._parse_json_from_llm_response",
+    return_value={"comparison": []},
+)
+@patch(
+    "api.services.documents._compare_documents_with_gemini",
+    return_value='{"comparison": []}',
+)
 @patch("api.services.documents._llm_answer_raw", return_value=None)
-def test_compare_documents_falls_back_to_gemini_when_no_text(mock_llm, mock_gemini, mock_parse):
+def test_compare_documents_falls_back_to_gemini_when_no_text(
+    mock_llm, mock_gemini, mock_parse
+):
     a = _mock_doc(id=1, extracted_text=None)
     b = _mock_doc(id=2, extracted_text=None)
     DocumentAnalysisService().compare_two_documents(a, b)
@@ -344,7 +407,9 @@ def test_compare_documents_returns_raw_text_when_json_parse_fails(mock_llm, mock
 
 
 @patch("api.services.documents._parse_json_from_llm_response", return_value=None)
-@patch("api.services.documents._compare_documents_with_gemini", return_value="gemini raw")
+@patch(
+    "api.services.documents._compare_documents_with_gemini", return_value="gemini raw"
+)
 @patch("api.services.documents._llm_answer_raw", return_value=None)
 def test_compare_documents_gemini_raw_text_fallback(mock_llm, mock_gemini, mock_parse):
     a = _mock_doc(id=1, extracted_text=None)
@@ -354,6 +419,7 @@ def test_compare_documents_gemini_raw_text_fallback(mock_llm, mock_gemini, mock_
 
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────
+
 
 @patch("api.services.documents._validate_pdf", return_value=True)
 @patch("api.services.documents._pdf_bytes_to_text", return_value="text")
@@ -392,6 +458,7 @@ def test_find_similar_documents_wrapper_delegates(mock_embed):
 
 
 # ── update_offer_status ───────────────────────────────────────────────────────
+
 
 def test_update_offer_status_returns_false_when_not_found():
     db = _mock_db()

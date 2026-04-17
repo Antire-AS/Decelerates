@@ -7,6 +7,7 @@ Single LLM provider (Azure Foundry gpt-5.4-mini) with two tools:
 Replaces the fragile 4-provider fallback chain (Claude → Azure OpenAI →
 Gemini → DuckDuckGo) with a single reliable implementation.
 """
+
 import json
 import logging
 from typing import Any, Dict, List
@@ -30,7 +31,9 @@ IR_TOOLS = [
             "description": "Search the web for information. Returns a list of results with title, url, and snippet.",
             "parameters": {
                 "type": "object",
-                "properties": {"query": {"type": "string", "description": "Search query"}},
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"}
+                },
                 "required": ["query"],
             },
         },
@@ -42,7 +45,9 @@ IR_TOOLS = [
             "description": "Fetch the content of a URL. Returns text content and lists of PDF links and page links found on the page.",
             "parameters": {
                 "type": "object",
-                "properties": {"url": {"type": "string", "description": "URL to fetch"}},
+                "properties": {
+                    "url": {"type": "string", "description": "URL to fetch"}
+                },
                 "required": ["url"],
             },
         },
@@ -65,7 +70,9 @@ def _execute_ir_tool(name: str, args_json: str) -> str:
     return f"Unknown tool: {name}"
 
 
-def _build_ir_system_prompt(orgnr: str, navn: str, hjemmeside: str, target_years: List[int]) -> str:
+def _build_ir_system_prompt(
+    orgnr: str, navn: str, hjemmeside: str, target_years: List[int]
+) -> str:
     years_str = ", ".join(str(y) for y in target_years)
     return (
         f"You are a research assistant finding annual report PDFs for a Norwegian company.\n\n"
@@ -77,16 +84,21 @@ def _build_ir_system_prompt(orgnr: str, navn: str, hjemmeside: str, target_years
         f"1. Search for '{navn} årsrapport {target_years[0] if target_years else 2024} filetype:pdf'\n"
         f"2. If the company has a website, try fetching their investor relations / annual reports page\n"
         f"3. Look for direct .pdf links in the page content\n"
-        f"4. Return results as JSON: {{\"pdfs\": [{{\"year\": 2024, \"url\": \"https://...pdf\", \"label\": \"annual\"}}]}}\n\n"
+        f'4. Return results as JSON: {{"pdfs": [{{"year": 2024, "url": "https://...pdf", "label": "annual"}}]}}\n\n'
         f"Always return valid JSON with the pdfs array, even if empty."
     )
 
 
-def _run_ir_agent_loop(client, model: str, messages: list[dict]) -> List[Dict[str, Any]]:
+def _run_ir_agent_loop(
+    client, model: str, messages: list[dict]
+) -> List[Dict[str, Any]]:
     """Run the tool-use loop and return parsed PDF list."""
     for _ in range(MAX_AGENT_ROUNDS):
         resp = client.chat.completions.create(
-            model=model, messages=messages, tools=IR_TOOLS, max_completion_tokens=2048,
+            model=model,
+            messages=messages,
+            tools=IR_TOOLS,
+            max_completion_tokens=2048,
         )
         choice = resp.choices[0]
         if not choice.message.tool_calls:
@@ -99,11 +111,15 @@ def _run_ir_agent_loop(client, model: str, messages: list[dict]) -> List[Dict[st
 
 
 def agent_discover_pdfs(
-    orgnr: str, navn: str, hjemmeside: str, target_years: List[int],
+    orgnr: str,
+    navn: str,
+    hjemmeside: str,
+    target_years: List[int],
 ) -> List[Dict[str, Any]]:
     """Run Foundry tool-use agent for IR PDF discovery. Falls back to DDG."""
     from api.container import resolve
     from api.ports.driven.llm_port import LlmPort
+
     llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
     if not llm.is_configured():
         return _fallback_ddg_search(navn, target_years)
@@ -116,10 +132,15 @@ def agent_discover_pdfs(
     system = _build_ir_system_prompt(orgnr, navn, hjemmeside, target_years)
     messages: list[dict] = [
         {"role": "system", "content": system},
-        {"role": "user", "content": f"Find annual report PDFs for {navn}. Return JSON."},
+        {
+            "role": "user",
+            "content": f"Find annual report PDFs for {navn}. Return JSON.",
+        },
     ]
     try:
-        return _run_ir_agent_loop(client, model, messages) or _fallback_ddg_search(navn, target_years)
+        return _run_ir_agent_loop(client, model, messages) or _fallback_ddg_search(
+            navn, target_years
+        )
     except Exception as exc:
         logger.warning("IR discovery: agent loop failed: %s", exc)
         return _fallback_ddg_search(navn, target_years)
@@ -137,6 +158,7 @@ def _parse_agent_response(text: str) -> List[Dict[str, Any]]:
         pass
     # Try to extract JSON from markdown code block
     import re
+
     match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if match:
         try:

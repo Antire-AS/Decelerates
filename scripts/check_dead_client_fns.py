@@ -10,6 +10,7 @@ Run from repo root:
 
 Exits non-zero if any dead URL is found — wire into CI to prevent regressions.
 """
+
 from __future__ import annotations
 
 import re
@@ -21,6 +22,7 @@ def _load_backend_paths() -> set[str]:
     repo_root = Path(__file__).resolve().parent.parent
     sys.path.insert(0, str(repo_root))
     from api.main import app  # noqa: E402  (delayed to keep CLI startup snappy)
+
     return set(app.openapi().get("paths", {}).keys())
 
 

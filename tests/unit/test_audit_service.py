@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -14,6 +15,7 @@ def _mock_db():
 
 
 # ── Happy path ────────────────────────────────────────────────────────────────
+
 
 def test_log_audit_calls_add_and_commit():
     db = _mock_db()
@@ -78,6 +80,7 @@ def test_log_audit_timestamp_is_recent():
 
 # ── Error handling ────────────────────────────────────────────────────────────
 
+
 def test_log_audit_swallows_db_add_exception():
     db = _mock_db()
     db.add.side_effect = Exception("DB unavailable")
@@ -100,6 +103,7 @@ def test_log_audit_rollback_on_exception():
 
 
 # ── Optional args ─────────────────────────────────────────────────────────────
+
 
 def test_log_audit_minimal_call():
     """Only action is required; all other args are optional."""
@@ -124,6 +128,7 @@ def test_log_audit_nested_detail():
 
 # ── purge_old_audit_logs ──────────────────────────────────────────────────────
 
+
 def test_purge_old_audit_logs_calls_delete_and_commit():
     db = _mock_db()
     db.query.return_value.filter.return_value.delete.return_value = 5
@@ -142,6 +147,7 @@ def test_purge_old_audit_logs_returns_zero_when_nothing_old():
 
 # ── get_audit_summary ─────────────────────────────────────────────────────────
 
+
 def test_get_audit_summary_returns_by_action_dict():
     db = _mock_db()
     row1 = MagicMock()
@@ -150,7 +156,10 @@ def test_get_audit_summary_returns_by_action_dict():
     row2 = MagicMock()
     row2.action = "policy.delete"
     row2.count = 2
-    db.query.return_value.group_by.return_value.order_by.return_value.all.return_value = [row1, row2]
+    db.query.return_value.group_by.return_value.order_by.return_value.all.return_value = [
+        row1,
+        row2,
+    ]
     # For the orgnr subquery when firm_id is None
     result = get_audit_summary(db, firm_id=None)
     assert "by_action" in result

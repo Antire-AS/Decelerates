@@ -2,7 +2,16 @@ import io
 import os
 import re
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, File, Request, UploadFile, Form
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    HTTPException,
+    Depends,
+    File,
+    Request,
+    UploadFile,
+    Form,
+)
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -18,6 +27,7 @@ def _safe_filename(name: str) -> str:
     name = os.path.basename(name)
     name = re.sub(r"[^\w.\-]", "_", name)
     return name or "document.pdf"
+
 
 from api.db import InsuranceDocument
 from api.domain.exceptions import LlmUnavailableError
@@ -46,12 +56,16 @@ router = APIRouter()
 def _auto_analyze_background(doc_id: int) -> None:
     """Background task wrapper — own DB session, never raises."""
     import logging
+
     db = SessionLocal()
     try:
         from api.services.documents import auto_analyze_document
+
         auto_analyze_document(doc_id, db)
     except Exception as exc:
-        logging.getLogger(__name__).warning("Doc intel background failed for %d: %s", doc_id, exc)
+        logging.getLogger(__name__).warning(
+            "Doc intel background failed for %d: %s", doc_id, exc
+        )
     finally:
         db.close()
 
@@ -93,8 +107,9 @@ async def upload_insurance_document(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    log_audit(db, "document.upload", orgnr=orgnr,
-              detail={"title": title, "doc_id": doc.id})
+    log_audit(
+        db, "document.upload", orgnr=orgnr, detail={"title": title, "doc_id": doc.id}
+    )
     # Auto-analyze in the background: extract keypoints, parse structured
     # tilbud data, and auto-compare if 2+ documents exist for the same orgnr.
     background_tasks.add_task(_auto_analyze_background, doc.id)
@@ -190,7 +205,9 @@ def delete_insurance_document(doc_id: int, db: Session = Depends(get_db)) -> dic
     "/insurance-documents/{doc_id}/chat",
     response_model=DocumentChatOut,
 )
-def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(get_db)):
+def chat_with_document(
+    doc_id: int, body: DocChatRequest, db: Session = Depends(get_db)
+):
     """Ask a question about an insurance document using Gemini native PDF understanding."""
     doc = db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
     if not doc:
@@ -206,13 +223,19 @@ def chat_with_document(doc_id: int, body: DocChatRequest, db: Session = Depends(
     "/insurance-documents/compare",
     response_model=DocumentCompareOut,
 )
-def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(get_db)) -> dict:
+def compare_insurance_documents(
+    body: DocCompareRequest, db: Session = Depends(get_db)
+) -> dict:
     """Compare two insurance documents using Gemini native PDF understanding."""
     if len(body.doc_ids) != 2:
         raise HTTPException(status_code=400, detail="Oppgi nøyaktig 2 dokument-IDer")
-    docs = db.query(InsuranceDocument).filter(InsuranceDocument.id.in_(body.doc_ids)).all()
+    docs = (
+        db.query(InsuranceDocument).filter(InsuranceDocument.id.in_(body.doc_ids)).all()
+    )
     if len(docs) != 2:
-        raise HTTPException(status_code=404, detail="Ett eller begge dokumenter ikke funnet")
+        raise HTTPException(
+            status_code=404, detail="Ett eller begge dokumenter ikke funnet"
+        )
 
     id_order = {v: i for i, v in enumerate(body.doc_ids)}
     a, b = sorted(docs, key=lambda d: id_order.get(d.id, 0))
@@ -226,4 +249,3 @@ def compare_insurance_documents(body: DocCompareRequest, db: Session = Depends(g
         "doc_b": {"id": b.id, "title": b.title},
         "structured": structured,
     }
-

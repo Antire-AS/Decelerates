@@ -1,4 +1,5 @@
 """Coverage analysis endpoints — upload policy PDFs and get structured coverage breakdown."""
+
 import logging
 from typing import List
 
@@ -55,6 +56,7 @@ async def analyse_coverage(
 
     # Run AI analysis in background job so the request doesn't block
     from api.services.job_queue_service import JobQueueService
+
     jq = JobQueueService(svc.db)
     jq.enqueue("coverage_analysis", {"analysis_id": analysis.id})
 

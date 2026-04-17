@@ -4,6 +4,7 @@ Requires TEST_DATABASE_URL. Auth is bypassed via dependency override.
 Run:
     TEST_DATABASE_URL=postgresql://... uv run python -m pytest tests/integration/test_policies_router.py -v
 """
+
 import os
 from datetime import date, timedelta
 
@@ -15,20 +16,21 @@ pytestmark = pytest.mark.skipif(
 )
 
 _FIRM_ID = 1
-_ORGNR   = "123456789"
+_ORGNR = "123456789"
 
 _POLICY_PAYLOAD = {
-    "insurer":             "If Skadeforsikring",
-    "product_type":        "Ansvarsforsikring",
-    "policy_number":       "POL-001",
-    "annual_premium_nok":  50_000,
-    "start_date":          "2025-01-01",
-    "renewal_date":        (date.today() + timedelta(days=45)).isoformat(),
-    "status":              "active",
+    "insurer": "If Skadeforsikring",
+    "product_type": "Ansvarsforsikring",
+    "policy_number": "POL-001",
+    "annual_premium_nok": 50_000,
+    "start_date": "2025-01-01",
+    "renewal_date": (date.today() + timedelta(days=45)).isoformat(),
+    "status": "active",
 }
 
 
 # ── Auth override + BrokerFirm seed ──────────────────────────────────────────
+
 
 @pytest.fixture
 def auth_client(test_db):
@@ -39,7 +41,9 @@ def auth_client(test_db):
     from api.dependencies import get_db
 
     def _fake_user():
-        return CurrentUser(email="test@broker.no", name="Test Broker", oid="test-oid", firm_id=_FIRM_ID)
+        return CurrentUser(
+            email="test@broker.no", name="Test Broker", oid="test-oid", firm_id=_FIRM_ID
+        )
 
     app.dependency_overrides[get_db] = lambda: test_db
     app.dependency_overrides[get_current_user] = _fake_user
@@ -55,16 +59,19 @@ def seed_broker_firm(test_db):
 
     existing = test_db.query(BrokerFirm).filter(BrokerFirm.id == _FIRM_ID).first()
     if not existing:
-        test_db.add(BrokerFirm(
-            id=_FIRM_ID,
-            name="Test Megling AS",
-            orgnr="999888777",
-            created_at=datetime.now(timezone.utc),
-        ))
+        test_db.add(
+            BrokerFirm(
+                id=_FIRM_ID,
+                name="Test Megling AS",
+                orgnr="999888777",
+                created_at=datetime.now(timezone.utc),
+            )
+        )
         test_db.commit()
 
 
 # ── Policy CRUD ────────────────────────────────────────────────────────────────
+
 
 class TestPolicyCRUD:
     def test_create_returns_201_with_id(self, auth_client):
@@ -101,7 +108,9 @@ class TestPolicyCRUD:
             f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
         ).json()["id"]
 
-        assert auth_client.delete(f"/org/{_ORGNR}/policies/{policy_id}").status_code == 204
+        assert (
+            auth_client.delete(f"/org/{_ORGNR}/policies/{policy_id}").status_code == 204
+        )
         remaining = auth_client.get(f"/org/{_ORGNR}/policies").json()
         assert not any(p["id"] == policy_id for p in remaining)
 
@@ -123,15 +132,23 @@ class TestPolicyCRUD:
 
         # Create firm 2
         if not test_db.query(BrokerFirm).filter(BrokerFirm.id == 2).first():
-            test_db.add(BrokerFirm(id=2, name="Annet Megling AS", created_at=datetime.now(timezone.utc)))
+            test_db.add(
+                BrokerFirm(
+                    id=2, name="Annet Megling AS", created_at=datetime.now(timezone.utc)
+                )
+            )
             test_db.commit()
 
         # Create policy as firm 1
-        policy_id = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()["id"]
+        policy_id = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()["id"]
 
         # Query as firm 2
         def _firm2():
-            return CurrentUser(email="other@broker.no", name="Other", oid="other-oid", firm_id=2)
+            return CurrentUser(
+                email="other@broker.no", name="Other", oid="other-oid", firm_id=2
+            )
 
         app.dependency_overrides[get_db] = lambda: test_db
         app.dependency_overrides[get_current_user] = _firm2
@@ -154,7 +171,9 @@ _RENEWALS_FOLLOWUP = (
 class TestRenewals:
     @pytest.mark.xfail(reason=_RENEWALS_FOLLOWUP, strict=False)
     def test_renewals_includes_policy_renewing_within_window(self, auth_client):
-        auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD)  # renewal in 45d
+        auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        )  # renewal in 45d
         resp = auth_client.get("/renewals", params={"days": 90})
         assert resp.status_code == 200
         items = resp.json()
@@ -165,7 +184,10 @@ class TestRenewals:
 
     def test_renewals_excludes_policy_outside_window(self, auth_client):
         far_future = (date.today() + timedelta(days=200)).isoformat()
-        auth_client.post(f"/org/{_ORGNR}/policies", json={**_POLICY_PAYLOAD, "renewal_date": far_future})
+        auth_client.post(
+            f"/org/{_ORGNR}/policies",
+            json={**_POLICY_PAYLOAD, "renewal_date": far_future},
+        )
         resp = auth_client.get("/renewals", params={"days": 30})
         items = resp.json()
         assert not any(p.get("renewal_date") == far_future for p in items)
@@ -179,13 +201,18 @@ class TestRenewals:
 
 # ── Renewal stage machine ──────────────────────────────────────────────────────
 
+
 class TestRenewalStage:
     def test_default_stage_is_not_started(self, auth_client):
-        policy = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()
+        policy = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()
         assert policy["renewal_stage"] == "not_started"
 
     def test_advance_stage_updates_renewal_stage(self, auth_client):
-        policy_id = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()["id"]
+        policy_id = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()["id"]
         resp = auth_client.post(
             f"/policies/{policy_id}/renewal/advance",
             json={"stage": "ready_to_quote"},
@@ -194,7 +221,9 @@ class TestRenewalStage:
         assert resp.json()["renewal_stage"] == "ready_to_quote"
 
     def test_advance_to_accepted(self, auth_client):
-        policy_id = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()["id"]
+        policy_id = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()["id"]
         for stage in ("ready_to_quote", "quoted", "accepted"):
             resp = auth_client.post(
                 f"/policies/{policy_id}/renewal/advance", json={"stage": stage}
@@ -203,7 +232,9 @@ class TestRenewalStage:
             assert resp.json()["renewal_stage"] == stage
 
     def test_invalid_stage_returns_422(self, auth_client):
-        policy_id = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()["id"]
+        policy_id = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()["id"]
         resp = auth_client.post(
             f"/policies/{policy_id}/renewal/advance",
             json={"stage": "bogus_stage"},
@@ -219,7 +250,9 @@ class TestRenewalStage:
 
     def test_advance_with_email_notification_sends_email(self, auth_client):
         """Email send is attempted (notification adapter is mocked in test env)."""
-        policy_id = auth_client.post(f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD).json()["id"]
+        policy_id = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_POLICY_PAYLOAD
+        ).json()["id"]
         resp = auth_client.post(
             f"/policies/{policy_id}/renewal/advance",
             json={"stage": "quoted", "notify_email": "contact@client.no"},
@@ -230,6 +263,7 @@ class TestRenewalStage:
 
 
 # ── Analytics ─────────────────────────────────────────────────────────────────
+
 
 class TestAnalytics:
     # Auth-required behaviour is covered by tests/unit/test_auth_safety.py.

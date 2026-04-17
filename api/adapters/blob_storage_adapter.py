@@ -1,4 +1,5 @@
 """Azure Blob Storage adapter — implements BlobStoragePort."""
+
 import json
 import logging
 from dataclasses import dataclass
@@ -23,6 +24,7 @@ class AzureBlobStorageAdapter(BlobStoragePort):
             try:
                 from azure.identity import DefaultAzureCredential
                 from azure.storage.blob import BlobServiceClient
+
                 self._client = BlobServiceClient(
                     account_url=config.endpoint,
                     credential=DefaultAzureCredential(),
@@ -56,7 +58,9 @@ class AzureBlobStorageAdapter(BlobStoragePort):
         if not self.is_configured() or self._client is None:
             return False
         try:
-            self._client.get_blob_client(container=container, blob=blob_name).delete_blob()
+            self._client.get_blob_client(
+                container=container, blob=blob_name
+            ).delete_blob()
             return True
         except Exception:
             return False
@@ -65,7 +69,10 @@ class AzureBlobStorageAdapter(BlobStoragePort):
         if not self.is_configured() or self._client is None:
             return []
         try:
-            return [b.name for b in self._client.get_container_client(container).list_blobs()]
+            return [
+                b.name
+                for b in self._client.get_container_client(container).list_blobs()
+            ]
         except Exception:
             return []
 
@@ -76,6 +83,7 @@ class AzureBlobStorageAdapter(BlobStoragePort):
             return None
         try:
             from azure.storage.blob import BlobSasPermissions, generate_blob_sas
+
             now = datetime.now(timezone.utc)
             expiry = now + timedelta(hours=hours)
             udk = self._client.get_user_delegation_key(

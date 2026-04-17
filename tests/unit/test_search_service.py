@@ -2,6 +2,7 @@
 
 All Azure SDK calls are mocked; conftest.py already stubs azure.search.documents.
 """
+
 import os
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,7 @@ from api.services.search_service import (
 
 
 # ── _is_configured ────────────────────────────────────────────────────────────
+
 
 def test_is_configured_returns_true_when_both_set():
     env = {
@@ -31,7 +33,10 @@ def test_is_configured_returns_false_when_endpoint_missing():
 
 
 def test_is_configured_returns_false_when_key_missing():
-    env = {"AZURE_SEARCH_ENDPOINT": "https://real.search.windows.net", "AZURE_SEARCH_API_KEY": ""}
+    env = {
+        "AZURE_SEARCH_ENDPOINT": "https://real.search.windows.net",
+        "AZURE_SEARCH_API_KEY": "",
+    }
     with patch.dict(os.environ, env, clear=False):
         assert _is_configured() is False
 
@@ -43,25 +48,34 @@ def test_is_configured_returns_false_when_endpoint_is_placeholder():
 
 
 def test_is_configured_returns_false_when_key_is_placeholder():
-    env = {"AZURE_SEARCH_ENDPOINT": "https://real.search.windows.net", "AZURE_SEARCH_API_KEY": "your_key_here"}
+    env = {
+        "AZURE_SEARCH_ENDPOINT": "https://real.search.windows.net",
+        "AZURE_SEARCH_API_KEY": "your_key_here",
+    }
     with patch.dict(os.environ, env, clear=False):
         assert _is_configured() is False
 
 
 # ── _get_index_name ───────────────────────────────────────────────────────────
 
+
 def test_get_index_name_returns_env_value_when_set():
-    with patch.dict(os.environ, {"AZURE_SEARCH_INDEX_NAME": "my-custom-index"}, clear=False):
+    with patch.dict(
+        os.environ, {"AZURE_SEARCH_INDEX_NAME": "my-custom-index"}, clear=False
+    ):
         assert _get_index_name() == "my-custom-index"
 
 
 def test_get_index_name_returns_default_when_not_set():
-    env_without_key = {k: v for k, v in os.environ.items() if k != "AZURE_SEARCH_INDEX_NAME"}
+    env_without_key = {
+        k: v for k, v in os.environ.items() if k != "AZURE_SEARCH_INDEX_NAME"
+    }
     with patch.dict(os.environ, env_without_key, clear=True):
         assert _get_index_name() == "company-chunks"
 
 
 # ── SearchService.is_configured ───────────────────────────────────────────────
+
 
 def test_search_service_is_configured_delegates_to_module_function():
     with patch("api.services.search_service._is_configured", return_value=True):
@@ -71,6 +85,7 @@ def test_search_service_is_configured_delegates_to_module_function():
 
 
 # ── SearchService.index_chunk ─────────────────────────────────────────────────
+
 
 def test_index_chunk_returns_empty_string_when_not_configured():
     with patch("api.services.search_service._is_configured", return_value=False):
@@ -82,7 +97,9 @@ def test_index_chunk_uploads_document_and_returns_uuid():
     mock_client = MagicMock()
     with patch("api.services.search_service._is_configured", return_value=True):
         with patch.object(SearchService, "_search_client", return_value=mock_client):
-            result = SearchService().index_chunk("123", "doc::1", "chunk text", [0.1, 0.2])
+            result = SearchService().index_chunk(
+                "123", "doc::1", "chunk text", [0.1, 0.2]
+            )
     assert result != ""
     mock_client.upload_documents.assert_called_once()
     uploaded = mock_client.upload_documents.call_args[1]["documents"][0]
@@ -110,6 +127,7 @@ def test_index_chunk_uses_empty_list_when_embedding_is_none():
 
 
 # ── SearchService.search_chunks ───────────────────────────────────────────────
+
 
 def test_search_chunks_returns_empty_list_when_not_configured():
     with patch("api.services.search_service._is_configured", return_value=False):
@@ -153,6 +171,7 @@ def test_search_chunks_returns_empty_list_on_exception():
 
 # ── SearchService.delete_chunks ───────────────────────────────────────────────
 
+
 def test_delete_chunks_returns_zero_when_not_configured():
     with patch("api.services.search_service._is_configured", return_value=False):
         assert SearchService().delete_chunks("123") == 0
@@ -175,7 +194,9 @@ def test_delete_chunks_deletes_found_documents_and_returns_count():
         with patch.object(SearchService, "_search_client", return_value=mock_client):
             result = SearchService().delete_chunks("123")
     assert result == 3
-    mock_client.delete_documents.assert_called_once_with(documents=[{"id": "a"}, {"id": "b"}, {"id": "c"}])
+    mock_client.delete_documents.assert_called_once_with(
+        documents=[{"id": "a"}, {"id": "b"}, {"id": "c"}]
+    )
 
 
 def test_delete_chunks_returns_zero_on_exception():
@@ -189,6 +210,7 @@ def test_delete_chunks_returns_zero_on_exception():
 
 # ── SearchService.ensure_index ────────────────────────────────────────────────
 
+
 def test_ensure_index_does_nothing_when_not_configured():
     with patch("api.services.search_service._is_configured", return_value=False):
         with patch.object(SearchService, "_index_client") as mock_index_client:
@@ -198,7 +220,9 @@ def test_ensure_index_does_nothing_when_not_configured():
 
 def test_ensure_index_does_not_raise_when_exception_occurs():
     with patch("api.services.search_service._is_configured", return_value=True):
-        with patch.object(SearchService, "_index_client", side_effect=Exception("Azure down")):
+        with patch.object(
+            SearchService, "_index_client", side_effect=Exception("Azure down")
+        ):
             # Should log warning but not propagate the exception
             SearchService().ensure_index()
 

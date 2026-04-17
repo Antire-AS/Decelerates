@@ -4,6 +4,7 @@ Requires TEST_DATABASE_URL. Auth is bypassed via dependency override.
 Run:
     TEST_DATABASE_URL=postgresql://... uv run python -m pytest tests/integration/test_policies.py -v
 """
+
 import os
 from datetime import date, timedelta
 
@@ -14,9 +15,9 @@ pytestmark = pytest.mark.skipif(
     reason="set TEST_DATABASE_URL=postgresql://... to run integration tests",
 )
 
-_FIRM_ID  = 10
+_FIRM_ID = 10
 _FIRM2_ID = 11
-_ORGNR    = "444555666"
+_ORGNR = "444555666"
 
 # TODO(plan §🟡 followup): several integration tests below are xfail-marked
 # because they surface pre-existing product bugs or schema drift that existed
@@ -42,7 +43,9 @@ def auth_client(test_db):
     from api.dependencies import get_db
 
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = resolve_user_factory("broker@firm.no", "oid-10", _FIRM_ID)
+    app.dependency_overrides[get_current_user] = resolve_user_factory(
+        "broker@firm.no", "oid-10", _FIRM_ID
+    )
     yield AuthClient(TestClient(app), make_user("broker@firm.no", "oid-10", _FIRM_ID))
     app.dependency_overrides.clear()
 
@@ -55,7 +58,9 @@ def auth_client_firm2(test_db):
     from api.dependencies import get_db
 
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = resolve_user_factory("other@firm2.no", "oid-11", _FIRM2_ID)
+    app.dependency_overrides[get_current_user] = resolve_user_factory(
+        "other@firm2.no", "oid-11", _FIRM2_ID
+    )
     yield AuthClient(TestClient(app), make_user("other@firm2.no", "oid-11", _FIRM2_ID))
     app.dependency_overrides.clear()
 
@@ -67,7 +72,9 @@ def seed_broker_firms(test_db):
 
     for fid, name in [(_FIRM_ID, "Test Firma AS"), (_FIRM2_ID, "Annet Firma AS")]:
         if not test_db.query(BrokerFirm).filter(BrokerFirm.id == fid).first():
-            test_db.add(BrokerFirm(id=fid, name=name, created_at=datetime.now(timezone.utc)))
+            test_db.add(
+                BrokerFirm(id=fid, name=name, created_at=datetime.now(timezone.utc))
+            )
             test_db.commit()
 
 
@@ -81,6 +88,7 @@ def _policy_payload(**overrides) -> dict:
 
 
 # ── Policy CRUD ─────────────────────────────────────────────────────────────────
+
 
 class TestPolicyCRUD:
     def test_create_returns_201_with_id(self, auth_client):
@@ -96,7 +104,9 @@ class TestPolicyCRUD:
         assert resp.json()["firm_id"] == _FIRM_ID
 
     def test_list_policies_includes_created(self, auth_client):
-        auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload(insurer="Gjensidige"))
+        auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload(insurer="Gjensidige")
+        )
         resp = auth_client.get(f"/org/{_ORGNR}/policies")
         assert resp.status_code == 200
         insurers = [p["insurer"] for p in resp.json()]
@@ -105,14 +115,18 @@ class TestPolicyCRUD:
 
     @pytest.mark.xfail(reason=_KNOWN_FIRM_ISOLATION_BUG, strict=False)
     def test_list_policies_scoped_to_firm(self, auth_client, auth_client_firm2):
-        auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload(insurer="OnlyFirm1"))
+        auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload(insurer="OnlyFirm1")
+        )
         resp = auth_client_firm2.get(f"/org/{_ORGNR}/policies")
         assert resp.status_code == 200
         insurers = [p["insurer"] for p in resp.json()]
         assert "OnlyFirm1" not in insurers
 
     def test_update_policy_fields(self, auth_client):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
         resp = auth_client.put(
             f"/org/{_ORGNR}/policies/{pid}",
             json={"insurer": "Fremtind", "annual_premium_nok": 75_000},
@@ -128,13 +142,21 @@ class TestPolicyCRUD:
         assert resp.status_code == 404
 
     @pytest.mark.xfail(reason=_KNOWN_FIRM_ISOLATION_BUG, strict=False)
-    def test_update_other_firms_policy_returns_404(self, auth_client, auth_client_firm2):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
-        resp = auth_client_firm2.put(f"/org/{_ORGNR}/policies/{pid}", json={"insurer": "Hack"})
+    def test_update_other_firms_policy_returns_404(
+        self, auth_client, auth_client_firm2
+    ):
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
+        resp = auth_client_firm2.put(
+            f"/org/{_ORGNR}/policies/{pid}", json={"insurer": "Hack"}
+        )
         assert resp.status_code == 404
 
     def test_delete_policy(self, auth_client):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
         assert auth_client.delete(f"/org/{_ORGNR}/policies/{pid}").status_code == 204
         remaining = [p["id"] for p in auth_client.get(f"/org/{_ORGNR}/policies").json()]
         assert pid not in remaining
@@ -151,6 +173,7 @@ class TestPolicyCRUD:
 
 
 # ── Renewals ────────────────────────────────────────────────────────────────────
+
 
 class TestRenewals:
     def _create_policy_with_renewal(self, auth_client, days: int) -> dict:
@@ -173,8 +196,7 @@ class TestRenewals:
         # 60-day policy should not appear in 30-day window
         all_resp = auth_client.get("/renewals", params={"days": 90})
         far_ids = [
-            p["id"] for p in all_resp.json()
-            if (p.get("days_until_renewal") or 0) > 30
+            p["id"] for p in all_resp.json() if (p.get("days_until_renewal") or 0) > 30
         ]
         for fid in far_ids:
             assert fid not in ids
@@ -196,9 +218,12 @@ class TestRenewals:
 
 # ── Renewal stage workflow ───────────────────────────────────────────────────────
 
+
 class TestRenewalStageWorkflow:
     def test_advance_stage_valid_transition(self, auth_client):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
         resp = auth_client.post(
             f"/policies/{pid}/renewal/advance",
             json={"stage": "ready_to_quote"},
@@ -207,7 +232,9 @@ class TestRenewalStageWorkflow:
         assert resp.json()["renewal_stage"] == "ready_to_quote"
 
     def test_advance_stage_invalid_raises_422(self, auth_client):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
         resp = auth_client.post(
             f"/policies/{pid}/renewal/advance",
             json={"stage": "invalid_stage"},
@@ -223,7 +250,9 @@ class TestRenewalStageWorkflow:
 
     @pytest.mark.xfail(reason=_KNOWN_FIRM_ISOLATION_BUG, strict=False)
     def test_advance_stage_other_firm_returns_404(self, auth_client, auth_client_firm2):
-        pid = auth_client.post(f"/org/{_ORGNR}/policies", json=_policy_payload()).json()["id"]
+        pid = auth_client.post(
+            f"/org/{_ORGNR}/policies", json=_policy_payload()
+        ).json()["id"]
         resp = auth_client_firm2.post(
             f"/policies/{pid}/renewal/advance",
             json={"stage": "ready_to_quote"},

@@ -11,6 +11,7 @@ native PDF input), and that path uses GOOGLE_APPLICATION_CREDENTIALS, not
 GEMINI_API_KEY. The agentic IR PDF discovery in api/services/pdf_agents.py
 still depends on Anthropic + Gemini API keys; that's a separate follow-up.
 """
+
 import json
 import logging
 import os
@@ -80,6 +81,7 @@ def _try_foundry_embed(text: str) -> Optional[List[float]]:
     try:
         from api.container import resolve
         from api.ports.driven.llm_port import LlmPort
+
         llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
         if not llm.embeddings_configured():
             return None
@@ -156,7 +158,9 @@ def _build_gemini_clients(timeout: int = 120) -> list:
     try:
         return [
             google_genai.Client(
-                vertexai=True, project=project, location=location,
+                vertexai=True,
+                project=project,
+                location=location,
                 http_options={"timeout": timeout},
             )
         ]
@@ -176,11 +180,17 @@ def _gemini_generate_with_fallback(
     clients = _build_gemini_clients(timeout=timeout)
     if not clients:
         return None
-    config = genai_types.GenerateContentConfig(system_instruction=system_instruction) if system_instruction else None
+    config = (
+        genai_types.GenerateContentConfig(system_instruction=system_instruction)
+        if system_instruction
+        else None
+    )
     for client in clients:
         for model in ["gemini-2.5-flash", "gemini-1.5-flash", GEMINI_MODEL]:
             try:
-                resp = client.models.generate_content(model=model, contents=parts, config=config)
+                resp = client.models.generate_content(
+                    model=model, contents=parts, config=config
+                )
                 return resp.text
             except Exception as exc:
                 logger.warning("Gemini model %s failed: %s", model, exc)
@@ -210,6 +220,7 @@ def _try_foundry_chat(
     try:
         from api.container import resolve
         from api.ports.driven.llm_port import LlmPort
+
         llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
         if not llm.is_configured():
             return None
@@ -237,6 +248,7 @@ def _llm_answer(context: str, question: str) -> str:
 
 
 # ── Service class wrapper ──────────────────────────────────────────────────────
+
 
 class LlmService:
     """Thin class wrapper around module-level LLM helpers for DI-friendly access."""

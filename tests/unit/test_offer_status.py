@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from unittest.mock import MagicMock
 
 
@@ -24,6 +25,7 @@ def _mock_db(offer=None):
 
 
 # ── Happy path ────────────────────────────────────────────────────────────────
+
 
 def test_update_to_accepted():
     offer = _mock_offer()
@@ -63,6 +65,7 @@ def test_all_valid_statuses_return_true():
 
 # ── Not found / invalid ───────────────────────────────────────────────────────
 
+
 def test_returns_false_when_offer_not_found():
     db = _mock_db(offer=None)
     assert update_offer_status(999, "123456789", "accepted", db) is False
@@ -90,6 +93,7 @@ def test_returns_false_for_uppercase_status():
 
 
 # ── DB commit behaviour ───────────────────────────────────────────────────────
+
 
 def test_commit_called_exactly_once_on_success():
     offer = _mock_offer()

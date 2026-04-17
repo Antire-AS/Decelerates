@@ -5,6 +5,7 @@ Requires TEST_DATABASE_URL. Auth is bypassed via dependency override.
 Run:
     TEST_DATABASE_URL=postgresql://... uv run python -m pytest tests/integration/test_agents.py -v
 """
+
 import os
 from datetime import datetime, timezone
 from unittest.mock import patch
@@ -33,7 +34,9 @@ def auth_client(test_db):
 
     app.dependency_overrides[get_db] = lambda: test_db
     app.dependency_overrides[get_current_user] = resolve_user_factory(
-        "agent@firm.no", "oid-30", _FIRM_ID,
+        "agent@firm.no",
+        "oid-30",
+        _FIRM_ID,
     )
     yield AuthClient(TestClient(app), make_user("agent@firm.no", "oid-30", _FIRM_ID))
     app.dependency_overrides.clear()
@@ -45,39 +48,53 @@ def seed_data(test_db):
     from api.db import BrokerFirm, Company, Insurer
 
     if not test_db.query(BrokerFirm).filter(BrokerFirm.id == _FIRM_ID).first():
-        test_db.add(BrokerFirm(
-            id=_FIRM_ID, name="Agent Test Firma AS",
-            created_at=datetime.now(timezone.utc),
-        ))
+        test_db.add(
+            BrokerFirm(
+                id=_FIRM_ID,
+                name="Agent Test Firma AS",
+                created_at=datetime.now(timezone.utc),
+            )
+        )
 
     if not test_db.query(Company).filter(Company.orgnr == _ORGNR).first():
-        test_db.add(Company(
-            orgnr=_ORGNR,
-            navn="Testselskap AS",
-            organisasjonsform_kode="AS",
-            naeringskode1="62.010",
-            naeringskode1_beskrivelse="Programvareutvikling",
-            kommune="Oslo",
-            antall_ansatte=25,
-            sum_driftsinntekter=15_000_000,
-            sum_eiendeler=8_000_000,
-        ))
+        test_db.add(
+            Company(
+                orgnr=_ORGNR,
+                navn="Testselskap AS",
+                organisasjonsform_kode="AS",
+                naeringskode1="62.010",
+                naeringskode1_beskrivelse="Programvareutvikling",
+                kommune="Oslo",
+                antall_ansatte=25,
+                sum_driftsinntekter=15_000_000,
+                sum_eiendeler=8_000_000,
+            )
+        )
 
-    if not test_db.query(Insurer).filter(
-        Insurer.firm_id == _FIRM_ID, Insurer.name == "Gjensidige",
-    ).first():
-        test_db.add(Insurer(
-            firm_id=_FIRM_ID,
-            name="Gjensidige",
-            appetite=["Ansvarsforsikring", "Cyberforsikring", "Eiendomsforsikring"],
-            created_at=datetime.now(timezone.utc),
-        ))
-        test_db.add(Insurer(
-            firm_id=_FIRM_ID,
-            name="If Skadeforsikring",
-            appetite=["Yrkesskadeforsikring", "Transportforsikring"],
-            created_at=datetime.now(timezone.utc),
-        ))
+    if (
+        not test_db.query(Insurer)
+        .filter(
+            Insurer.firm_id == _FIRM_ID,
+            Insurer.name == "Gjensidige",
+        )
+        .first()
+    ):
+        test_db.add(
+            Insurer(
+                firm_id=_FIRM_ID,
+                name="Gjensidige",
+                appetite=["Ansvarsforsikring", "Cyberforsikring", "Eiendomsforsikring"],
+                created_at=datetime.now(timezone.utc),
+            )
+        )
+        test_db.add(
+            Insurer(
+                firm_id=_FIRM_ID,
+                name="If Skadeforsikring",
+                appetite=["Yrkesskadeforsikring", "Transportforsikring"],
+                created_at=datetime.now(timezone.utc),
+            )
+        )
 
     test_db.commit()
 
@@ -86,7 +103,6 @@ def seed_data(test_db):
 
 
 class TestRecommendInsurers:
-
     def test_recommend_returns_recommendations(self, auth_client):
         with patch(
             "api.services.insurer_matching._generate_reasoning",
@@ -137,7 +153,6 @@ class TestRecommendInsurers:
 
 
 class TestCoverageGap:
-
     def test_coverage_gap_returns_analysis(self, auth_client):
         resp = auth_client.get(f"/org/{_ORGNR}/coverage-gap")
         assert resp.status_code == 200
@@ -164,12 +179,13 @@ class TestCoverageGap:
 
 
 class TestCopilotChat:
-
     def test_chat_rag_mode_returns_answer(self, auth_client):
         with (
             patch("api.routers.knowledge._llm_answer", return_value="Mocked RAG svar."),
             patch("api.routers.knowledge._embed", return_value=None),
-            patch("api.routers.knowledge._llm_answer_raw", return_value="Mocked raw svar."),
+            patch(
+                "api.routers.knowledge._llm_answer_raw", return_value="Mocked raw svar."
+            ),
         ):
             resp = auth_client.post(
                 f"/org/{_ORGNR}/chat",
@@ -214,7 +230,6 @@ class TestCopilotChat:
 
 
 class TestRiskConfig:
-
     def test_risk_config_returns_bands(self, auth_client):
         resp = auth_client.get("/risk/config")
         assert resp.status_code == 200

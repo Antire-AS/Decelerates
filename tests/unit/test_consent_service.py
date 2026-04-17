@@ -1,4 +1,5 @@
 """Unit tests for ConsentService."""
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -31,7 +32,9 @@ class TestRecordConsent:
     def test_creates_consent_record(self):
         db = _make_db()
         svc = ConsentService(db)
-        svc.record_consent("123456789", 1, "broker@firm.no", "contract", "insurance_advice")
+        svc.record_consent(
+            "123456789", 1, "broker@firm.no", "contract", "insurance_advice"
+        )
         db.add.assert_called_once()
         db.commit.assert_called_once()
 
@@ -39,7 +42,9 @@ class TestRecordConsent:
         db = _make_db()
         svc = ConsentService(db)
         # Should not raise — unknown basis falls back gracefully
-        svc.record_consent("123456789", 1, "broker@firm.no", "not_a_real_basis", "insurance_advice")
+        svc.record_consent(
+            "123456789", 1, "broker@firm.no", "not_a_real_basis", "insurance_advice"
+        )
         db.add.assert_called_once()
 
 
@@ -67,12 +72,18 @@ class TestHasValidConsent:
         consent = _mock_consent()
         db = _make_db()
         db.query.return_value.filter.return_value.first.return_value = consent
-        assert ConsentService(db).has_valid_consent("123456789", 1, "insurance_advice") is True
+        assert (
+            ConsentService(db).has_valid_consent("123456789", 1, "insurance_advice")
+            is True
+        )
 
     def test_returns_false_when_no_consent(self):
         db = _make_db()
         db.query.return_value.filter.return_value.first.return_value = None
-        assert ConsentService(db).has_valid_consent("123456789", 1, "insurance_advice") is False
+        assert (
+            ConsentService(db).has_valid_consent("123456789", 1, "insurance_advice")
+            is False
+        )
 
 
 class TestGetActiveConsents:

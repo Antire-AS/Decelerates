@@ -1,9 +1,7 @@
 """Unit tests for api/constants_insurance.py — premium benchmark data."""
-import pytest
 
 from api.constants_insurance import (
     PREMIUM_BENCHMARKS,
-    REVENUE_BRACKETS,
     NACE_RISK_MULTIPLIERS,
     get_bracket_for_revenue,
     estimate_premiums_for_company,
@@ -78,8 +76,9 @@ class TestDataIntegrity:
                 assert "low" in bracket, f"{product_key}/{bracket_key} missing low"
                 assert "mid" in bracket, f"{product_key}/{bracket_key} missing mid"
                 assert "high" in bracket, f"{product_key}/{bracket_key} missing high"
-                assert bracket["low"] <= bracket["mid"] <= bracket["high"], \
+                assert bracket["low"] <= bracket["mid"] <= bracket["high"], (
                     f"{product_key}/{bracket_key}: low <= mid <= high violated"
+                )
 
     def test_premiums_increase_with_bracket(self):
         bracket_order = ["XS", "S", "M", "L", "XL"]
@@ -87,8 +86,9 @@ class TestDataIntegrity:
             for i in range(1, len(bracket_order)):
                 prev = product["premiums"][bracket_order[i - 1]]["mid"]
                 curr = product["premiums"][bracket_order[i]]["mid"]
-                assert curr >= prev, \
-                    f"{product_key}: {bracket_order[i]} mid ({curr}) < {bracket_order[i-1]} mid ({prev})"
+                assert curr >= prev, (
+                    f"{product_key}: {bracket_order[i]} mid ({curr}) < {bracket_order[i - 1]} mid ({prev})"
+                )
 
     def test_all_nace_sections_present(self):
         expected = set("ABCDEFGHIJKLMNOPQRS")

@@ -1,4 +1,5 @@
 """Agentic IR discovery — Claude, Gemini, and Azure OpenAI tool-use agent loops."""
+
 import json
 import logging
 import os
@@ -24,23 +25,27 @@ logger = logging.getLogger(__name__)
 
 # ── Shared tool dispatch ───────────────────────────────────────────────────────
 
-_GEMINI_FETCH_URL_TOOL = genai_types.Tool(function_declarations=[
-    genai_types.FunctionDeclaration(
-        name="fetch_url",
-        description=(
-            "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
-            "pdf_links are direct .pdf URLs found on the page. "
-            "Use this to navigate to investor relations pages and find PDF download links."
+_GEMINI_FETCH_URL_TOOL = genai_types.Tool(
+    function_declarations=[
+        genai_types.FunctionDeclaration(
+            name="fetch_url",
+            description=(
+                "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
+                "pdf_links are direct .pdf URLs found on the page. "
+                "Use this to navigate to investor relations pages and find PDF download links."
+            ),
+            parameters=genai_types.Schema(
+                type=genai_types.Type.OBJECT,
+                properties={
+                    "url": genai_types.Schema(
+                        type=genai_types.Type.STRING, description="The URL to fetch"
+                    )
+                },
+                required=["url"],
+            ),
         ),
-        parameters=genai_types.Schema(
-            type=genai_types.Type.OBJECT,
-            properties={"url": genai_types.Schema(
-                type=genai_types.Type.STRING, description="The URL to fetch"
-            )},
-            required=["url"],
-        ),
-    ),
-])
+    ]
+)
 
 
 def _run_tool(name: str, args: Dict[str, Any]) -> Any:
@@ -75,9 +80,13 @@ def _agent_system_prompt(
 
 # ── Claude agent loop ──────────────────────────────────────────────────────────
 
+
 def _agent_discover_pdfs_claude(
-    orgnr: str, navn: str, hjemmeside: Optional[str],
-    target_years: List[int], api_key: str,
+    orgnr: str,
+    navn: str,
+    hjemmeside: Optional[str],
+    target_years: List[int],
+    api_key: str,
 ) -> List[Dict[str, Any]]:
     """Claude tool-use agent loop for annual report PDF discovery.
 
@@ -100,14 +109,19 @@ def _agent_discover_pdfs_claude(
             ),
             "input_schema": {
                 "type": "object",
-                "properties": {"url": {"type": "string", "description": "The URL to fetch"}},
+                "properties": {
+                    "url": {"type": "string", "description": "The URL to fetch"}
+                },
                 "required": ["url"],
             },
         },
     ]
 
     messages: List[Dict[str, Any]] = [
-        {"role": "user", "content": f"Find annual report PDFs for {navn} (orgnr {orgnr})."}
+        {
+            "role": "user",
+            "content": f"Find annual report PDFs for {navn} (orgnr {orgnr}).",
+        }
     ]
 
     last_text = ""
@@ -133,11 +147,13 @@ def _agent_discover_pdfs_claude(
                 continue
             if block.name == "fetch_url":
                 output = _fetch_url_content(block.input.get("url", ""))
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": json.dumps(output),
-                })
+                tool_results.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(output),
+                    }
+                )
         if tool_results:
             messages.append({"role": "user", "content": tool_results})
 
@@ -145,6 +161,7 @@ def _agent_discover_pdfs_claude(
 
 
 # ── Gemini agent loop ──────────────────────────────────────────────────────────
+
 
 def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
     """Use Gemini's native Google Search grounding to return [{title, url, snippet}] results."""
@@ -160,7 +177,9 @@ def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
                     model=model_name,
                     contents=query,
                     config=genai_types.GenerateContentConfig(
-                        tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
+                        tools=[
+                            genai_types.Tool(google_search=genai_types.GoogleSearch())
+                        ],
                     ),
                 )
                 results: List[Dict[str, Any]] = []
@@ -173,15 +192,32 @@ def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
                             url = getattr(web, "uri", "") or ""
                             title = getattr(web, "title", "") or ""
                             if url:
-                                results.append({"title": title, "url": url, "snippet": ""})
+                                results.append(
+                                    {"title": title, "url": url, "snippet": ""}
+                                )
                 if results:
                     return results[:8]
             except Exception as exc:
                 msg = str(exc)
-                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg or "limit: 0" in msg:
-                    logger.warning("[web_search] Quota on %s key ...%s for %r", model_name, api_key[-4:], query)
+                if (
+                    "quota" in msg.lower()
+                    or "429" in msg
+                    or "RESOURCE_EXHAUSTED" in msg
+                    or "limit: 0" in msg
+                ):
+                    logger.warning(
+                        "[web_search] Quota on %s key ...%s for %r",
+                        model_name,
+                        api_key[-4:],
+                        query,
+                    )
                     continue
-                logger.warning("[web_search] Gemini search failed (%s) for %r: %s", model_name, query, exc)
+                logger.warning(
+                    "[web_search] Gemini search failed (%s) for %r: %s",
+                    model_name,
+                    query,
+                    exc,
+                )
                 break
     return []
 
@@ -220,8 +256,11 @@ def _run_gemini_phase2(chat: Any, navn: str, phase1_text: str) -> str:
 
 
 def _agent_discover_pdfs_gemini(
-    orgnr: str, navn: str, hjemmeside: Optional[str],
-    target_years: List[int], api_key: str,
+    orgnr: str,
+    navn: str,
+    hjemmeside: Optional[str],
+    target_years: List[int],
+    api_key: str,
 ) -> List[Dict[str, Any]]:
     """Gemini agent for annual report PDF discovery using native Google Search + fetch_url.
 
@@ -256,7 +295,9 @@ def _agent_discover_pdfs_gemini(
                     f"Homepage: {hjemmeside or 'unknown'}. "
                     f"Try fetching {hjemmeside}/investors/annual-reports or similar IR pages."
                 )
-            logger.info("[gemini] Phase 1 IR page response for %s: %s", orgnr, phase1_text[:300])
+            logger.info(
+                "[gemini] Phase 1 IR page response for %s: %s", orgnr, phase1_text[:300]
+            )
 
             chat = client.chats.create(
                 model=_model,
@@ -270,7 +311,11 @@ def _agent_discover_pdfs_gemini(
 
         except Exception as _exc:
             if _is_quota_err(_exc):
-                logger.warning("[gemini] Quota error on %s for %s, trying next model", _model, orgnr)
+                logger.warning(
+                    "[gemini] Quota error on %s for %s, trying next model",
+                    _model,
+                    orgnr,
+                )
                 continue
             logger.error("[gemini] Unexpected error for %s: %s", orgnr, _exc)
             raise
@@ -279,6 +324,7 @@ def _agent_discover_pdfs_gemini(
 
 
 # ── Per-year Google Search (fast path) ────────────────────────────────────────
+
 
 def _search_pdf_url_for_year(
     client: Any, navn: str, hjemmeside: Optional[str], year: int
@@ -300,30 +346,45 @@ def _search_pdf_url_for_year(
                 ),
             )
             text = (response.text or "").strip()
-            pdf_urls = re.findall(r'https?://\S+\.pdf(?:\?\S*)?', text)
+            pdf_urls = re.findall(r"https?://\S+\.pdf(?:\?\S*)?", text)
             if pdf_urls:
                 return pdf_urls[0]
             if response.candidates:
                 meta = getattr(response.candidates[0], "grounding_metadata", None)
-                for chunk in (getattr(meta, "grounding_chunks", None) or []):
+                for chunk in getattr(meta, "grounding_chunks", None) or []:
                     uri = getattr(getattr(chunk, "web", None), "uri", "") or ""
                     if ".pdf" in uri.lower():
                         return uri
         except Exception as exc:
-            if any(x in str(exc) for x in ["429", "RESOURCE_EXHAUSTED", "quota", "limit: 0"]):
-                logger.debug("[discovery] Gemini Google Search quota for %s year %d, trying DDG", navn, year)
+            if any(
+                x in str(exc)
+                for x in ["429", "RESOURCE_EXHAUSTED", "quota", "limit: 0"]
+            ):
+                logger.debug(
+                    "[discovery] Gemini Google Search quota for %s year %d, trying DDG",
+                    navn,
+                    year,
+                )
                 continue
             break
-    ddg_urls = _ddg_query(f'{navn} annual report {year} filetype:pdf')
+    ddg_urls = _ddg_query(f"{navn} annual report {year} filetype:pdf")
     if ddg_urls:
-        logger.info("[discovery] DDG fallback found %d candidates for %s year %d", len(ddg_urls), navn, year)
+        logger.info(
+            "[discovery] DDG fallback found %d candidates for %s year %d",
+            len(ddg_urls),
+            navn,
+            year,
+        )
         return ddg_urls[0]
     return None
 
 
 def _discover_pdfs_per_year_search(
-    orgnr: str, navn: str, hjemmeside: Optional[str],
-    target_years: List[int], api_key: str,
+    orgnr: str,
+    navn: str,
+    hjemmeside: Optional[str],
+    target_years: List[int],
+    api_key: str,
 ) -> List[Dict[str, Any]]:
     """Fast path: one Google Search per year to find the direct PDF URL."""
     client = google_genai.Client(api_key=api_key)
@@ -332,14 +393,19 @@ def _discover_pdfs_per_year_search(
         url = _search_pdf_url_for_year(client, navn, hjemmeside, year)
         if url:
             logger.info("[discovery] Per-year search found %d: %s", year, url[:80])
-            results.append({"year": year, "pdf_url": url, "label": f"{navn} Annual Report {year}"})
+            results.append(
+                {"year": year, "pdf_url": url, "label": f"{navn} Annual Report {year}"}
+            )
     return results
 
 
 # ── Azure OpenAI agent loop ────────────────────────────────────────────────────
 
+
 def _agent_discover_pdfs_azure_openai(
-    orgnr: str, navn: str, hjemmeside: Optional[str],
+    orgnr: str,
+    navn: str,
+    hjemmeside: Optional[str],
     target_years: List[int],
 ) -> List[Dict[str, Any]]:
     """Azure OpenAI (gpt-4o) tool-use agent for annual report PDF discovery."""
@@ -348,30 +414,51 @@ def _agent_discover_pdfs_azure_openai(
     if not endpoint or not api_key:
         return []
     from openai import AzureOpenAI
+
     deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
-    client = AzureOpenAI(api_key=api_key, azure_endpoint=endpoint, api_version="2024-02-01")
+    client = AzureOpenAI(
+        api_key=api_key, azure_endpoint=endpoint, api_version="2024-02-01"
+    )
     tools = [
-        {"type": "function", "function": {
-            "name": "web_search",
-            "description": "Search the web. Returns [{title, url, snippet}].",
-            "parameters": {"type": "object", "properties": {
-                "query": {"type": "string"}}, "required": ["query"]},
-        }},
-        {"type": "function", "function": {
-            "name": "fetch_url",
-            "description": "Fetch a URL. Returns {text, pdf_links, page_links}.",
-            "parameters": {"type": "object", "properties": {
-                "url": {"type": "string"}}, "required": ["url"]},
-        }},
+        {
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "description": "Search the web. Returns [{title, url, snippet}].",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}},
+                    "required": ["query"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "fetch_url",
+                "description": "Fetch a URL. Returns {text, pdf_links, page_links}.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"url": {"type": "string"}},
+                    "required": ["url"],
+                },
+            },
+        },
     ]
     system_prompt = _agent_system_prompt(navn, orgnr, hjemmeside, target_years)
     messages: List[Dict[str, Any]] = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Find annual report PDFs for {navn} (orgnr {orgnr})."},
+        {
+            "role": "user",
+            "content": f"Find annual report PDFs for {navn} (orgnr {orgnr}).",
+        },
     ]
     for _ in range(8):
         response = client.chat.completions.create(
-            model=deployment, messages=messages, tools=tools, tool_choice="auto",
+            model=deployment,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
         )
         msg = response.choices[0].message
         messages.append(msg.model_dump(exclude_unset=True))
@@ -391,17 +478,25 @@ def _agent_discover_pdfs_azure_openai(
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
             result = _run_tool(tc.function.name, args)
-            tool_results.append({
-                "role": "tool", "tool_call_id": tc.id, "content": json.dumps(result),
-            })
+            tool_results.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result),
+                }
+            )
         messages.extend(tool_results)
     return []
 
 
 # ── Top-level orchestration ────────────────────────────────────────────────────
 
+
 def _agent_discover_pdfs(
-    orgnr: str, navn: str, hjemmeside: Optional[str], target_years: List[int],
+    orgnr: str,
+    navn: str,
+    hjemmeside: Optional[str],
+    target_years: List[int],
 ) -> List[Dict[str, Any]]:
     """Run an LLM tool-use agent to find official annual report PDFs.
 
@@ -410,31 +505,52 @@ def _agent_discover_pdfs(
     environments where Foundry is not configured).
     Returns [] if no agent succeeds — caller falls back to _discover_ir_pdfs.
     """
-    logger.info("[discovery] Starting agent PDF discovery for %s (%s), years=%s", navn, orgnr, target_years)
+    logger.info(
+        "[discovery] Starting agent PDF discovery for %s (%s), years=%s",
+        navn,
+        orgnr,
+        target_years,
+    )
 
     # Primary: Foundry tool-use agent (Phase 5 migration — single provider)
     try:
         from api.services.pdf_agents_v2 import agent_discover_pdfs as foundry_discover
+
         result = foundry_discover(orgnr, navn, hjemmeside or "", target_years)
         if result:
-            logger.info("[discovery] Foundry agent returned %d results for %s", len(result), orgnr)
+            logger.info(
+                "[discovery] Foundry agent returned %d results for %s",
+                len(result),
+                orgnr,
+            )
             return result
-        logger.info("[discovery] Foundry agent returned empty for %s, trying legacy chain", orgnr)
+        logger.info(
+            "[discovery] Foundry agent returned empty for %s, trying legacy chain",
+            orgnr,
+        )
     except Exception as exc:
-        logger.warning("[discovery] Foundry agent failed for %s: %s — trying legacy chain", orgnr, exc)
+        logger.warning(
+            "[discovery] Foundry agent failed for %s: %s — trying legacy chain",
+            orgnr,
+            exc,
+        )
 
     # Legacy fallback: Claude → Azure OpenAI → Gemini (kept until Foundry is proven stable)
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if anthropic_key and anthropic_key != "your_key_here":
         try:
-            result = _agent_discover_pdfs_claude(orgnr, navn, hjemmeside, target_years, anthropic_key)
+            result = _agent_discover_pdfs_claude(
+                orgnr, navn, hjemmeside, target_years, anthropic_key
+            )
             if result:
                 return result
         except Exception as exc:
             logger.warning("[discovery] Claude agent failed for %s: %s", orgnr, exc)
 
     try:
-        result = _agent_discover_pdfs_azure_openai(orgnr, navn, hjemmeside, target_years)
+        result = _agent_discover_pdfs_azure_openai(
+            orgnr, navn, hjemmeside, target_years
+        )
         if result:
             return result
     except Exception as exc:
@@ -442,10 +558,14 @@ def _agent_discover_pdfs(
 
     for gemini_key in _gemini_api_keys():
         try:
-            result = _discover_pdfs_per_year_search(orgnr, navn, hjemmeside, target_years, gemini_key)
+            result = _discover_pdfs_per_year_search(
+                orgnr, navn, hjemmeside, target_years, gemini_key
+            )
             if result:
                 return result
-            result = _agent_discover_pdfs_gemini(orgnr, navn, hjemmeside, target_years, gemini_key)
+            result = _agent_discover_pdfs_gemini(
+                orgnr, navn, hjemmeside, target_years, gemini_key
+            )
             if result:
                 return result
         except Exception as exc:

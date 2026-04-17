@@ -11,6 +11,7 @@ Run:
 
 In CI: TEST_DATABASE_URL is set automatically by the workflow.
 """
+
 import os
 from datetime import datetime, timezone
 from unittest.mock import patch
@@ -55,14 +56,20 @@ _MOCK_REGNSKAP = {
 }
 
 _PROFILE_PATCHES = (
-    patch("api.services.external_apis.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
-    patch("api.services.external_apis.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
+    patch(
+        "api.services.external_apis.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG
+    ),
+    patch(
+        "api.services.external_apis.fetch_regnskap_keyfigures",
+        return_value=_MOCK_REGNSKAP,
+    ),
     patch("api.services.external_apis.pep_screen_name", return_value=[]),
     patch("api.services.pdf_extract._auto_extract_pdf_sources"),
 )
 
 
 # ── Healthcheck ───────────────────────────────────────────────────────────────
+
 
 class TestHealthcheck:
     def test_ping_returns_ok(self, client):
@@ -71,6 +78,7 @@ class TestHealthcheck:
 
 
 # ── Broker settings ────────────────────────────────────────────────────────────
+
 
 class TestBrokerSettings:
     def test_get_returns_dict(self, client):
@@ -92,6 +100,7 @@ class TestBrokerSettings:
 
 
 # ── Broker notes ───────────────────────────────────────────────────────────────
+
 
 class TestBrokerNotes:
     ORGNR = "111222333"
@@ -115,7 +124,10 @@ class TestBrokerNotes:
             f"/org/{self.ORGNR}/broker-notes", json={"text": "Slett meg"}
         ).json()["id"]
 
-        assert client.delete(f"/org/{self.ORGNR}/broker-notes/{note_id}").status_code == 200
+        assert (
+            client.delete(f"/org/{self.ORGNR}/broker-notes/{note_id}").status_code
+            == 200
+        )
         ids = [n["id"] for n in client.get(f"/org/{self.ORGNR}/broker-notes").json()]
         assert note_id not in ids
 
@@ -126,6 +138,7 @@ class TestBrokerNotes:
 
 # ── Companies ─────────────────────────────────────────────────────────────────
 
+
 class TestCompanies:
     def test_list_companies_returns_list(self, client):
         resp = client.get("/companies")
@@ -134,6 +147,7 @@ class TestCompanies:
 
 
 # ── Search ────────────────────────────────────────────────────────────────────
+
 
 class TestSearch:
     def test_search_returns_list(self, client):
@@ -164,6 +178,7 @@ class TestSearch:
 
 # ── Org profile ────────────────────────────────────────────────────────────────
 
+
 class TestOrgProfile:
     ORGNR = "987654321"
 
@@ -174,8 +189,14 @@ class TestOrgProfile:
         # resolved its own local references at import time. Classic Python mock
         # pitfall — the target must be "where the name is looked up".
         with (
-            patch("api.services.company.fetch_enhet_by_orgnr", return_value=_MOCK_ORG_BRREG),
-            patch("api.services.company.fetch_regnskap_keyfigures", return_value=_MOCK_REGNSKAP),
+            patch(
+                "api.services.company.fetch_enhet_by_orgnr",
+                return_value=_MOCK_ORG_BRREG,
+            ),
+            patch(
+                "api.services.company.fetch_regnskap_keyfigures",
+                return_value=_MOCK_REGNSKAP,
+            ),
             patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
         ):
@@ -200,6 +221,7 @@ class TestOrgProfile:
 
 # ── Financial history ──────────────────────────────────────────────────────────
 
+
 class TestHistory:
     ORGNR = "444555666"
 
@@ -213,12 +235,15 @@ class TestHistory:
 
 # ── Helpers for CRM test data ──────────────────────────────────────────────────
 
+
 def _ensure_firm(db, firm_id: int = 1):
     from api.db import BrokerFirm
+
     firm = db.query(BrokerFirm).filter(BrokerFirm.id == firm_id).first()
     if not firm:
-        firm = BrokerFirm(id=firm_id, name="Test Megling AS",
-                          created_at=datetime.now(timezone.utc))
+        firm = BrokerFirm(
+            id=firm_id, name="Test Megling AS", created_at=datetime.now(timezone.utc)
+        )
         db.add(firm)
         db.flush()
     return firm
@@ -226,6 +251,7 @@ def _ensure_firm(db, firm_id: int = 1):
 
 def _make_policy(db, orgnr: str, **kwargs):
     from api.db import Policy, PolicyStatus
+
     _ensure_firm(db)
     # Policy has both created_at and updated_at NOT NULL columns — set both.
     now = datetime.now(timezone.utc)
@@ -248,6 +274,7 @@ def _make_policy(db, orgnr: str, **kwargs):
 
 # ── Commission endpoints ────────────────────────────────────────────────────────
 
+
 class TestCommission:
     ORGNR = "555666777"
 
@@ -264,13 +291,17 @@ class TestCommission:
         assert "renewal_commission_vs_new" in data
 
     def test_summary_counts_active_policy(self, client, test_db):
-        _make_policy(test_db, self.ORGNR, annual_premium_nok=200_000.0, commission_rate_pct=5.0)
+        _make_policy(
+            test_db, self.ORGNR, annual_premium_nok=200_000.0, commission_rate_pct=5.0
+        )
         resp = client.get("/commission/summary")
         assert resp.json()["active_policy_count"] >= 1
         assert resp.json()["total_premium_managed"] >= 200_000.0
 
     def test_by_client_returns_policy_list(self, client, test_db):
-        _make_policy(test_db, self.ORGNR, commission_amount_nok=8_000.0, commission_rate_pct=None)
+        _make_policy(
+            test_db, self.ORGNR, commission_amount_nok=8_000.0, commission_rate_pct=None
+        )
         resp = client.get(f"/commission/by-client/{self.ORGNR}")
         assert resp.status_code == 200
         data = resp.json()
@@ -280,9 +311,14 @@ class TestCommission:
 
     def test_missing_returns_policy_without_commission(self, client, test_db):
         from api.db import PolicyStatus
-        _make_policy(test_db, self.ORGNR,
-                     commission_rate_pct=None, commission_amount_nok=None,
-                     status=PolicyStatus.active)
+
+        _make_policy(
+            test_db,
+            self.ORGNR,
+            commission_rate_pct=None,
+            commission_amount_nok=None,
+            status=PolicyStatus.active,
+        )
         resp = client.get("/commission/missing")
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
@@ -290,6 +326,7 @@ class TestCommission:
 
 
 # ── Consent endpoints ───────────────────────────────────────────────────────────
+
 
 class TestConsent:
     ORGNR = "666777888"
@@ -356,27 +393,39 @@ class TestConsent:
 
 # ── Win/loss endpoints ──────────────────────────────────────────────────────────
 
-class TestWinLoss:
 
+class TestWinLoss:
     def _seed(self, db):
         from api.db import Insurer, Submission, SubmissionStatus
+
         _ensure_firm(db)
         insurer = Insurer(
-            firm_id=1, name="Tryg Forsikring",
+            firm_id=1,
+            name="Tryg Forsikring",
             created_at=datetime.now(timezone.utc),
         )
         db.add(insurer)
         db.flush()
-        db.add(Submission(
-            orgnr="777888999", firm_id=1, insurer_id=insurer.id,
-            product_type="Eiendom", status=SubmissionStatus.quoted,
-            created_at=datetime.now(timezone.utc),
-        ))
-        db.add(Submission(
-            orgnr="777888999", firm_id=1, insurer_id=insurer.id,
-            product_type="Eiendom", status=SubmissionStatus.declined,
-            created_at=datetime.now(timezone.utc),
-        ))
+        db.add(
+            Submission(
+                orgnr="777888999",
+                firm_id=1,
+                insurer_id=insurer.id,
+                product_type="Eiendom",
+                status=SubmissionStatus.quoted,
+                created_at=datetime.now(timezone.utc),
+            )
+        )
+        db.add(
+            Submission(
+                orgnr="777888999",
+                firm_id=1,
+                insurer_id=insurer.id,
+                product_type="Eiendom",
+                status=SubmissionStatus.declined,
+                created_at=datetime.now(timezone.utc),
+            )
+        )
         db.flush()
         return insurer
 

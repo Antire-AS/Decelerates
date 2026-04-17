@@ -7,13 +7,18 @@ Output: sample_offers/tilbud_if.pdf, tilbud_gjensidige.pdf, tilbud_tryg.pdf
 from fpdf import FPDF
 from datetime import date
 
+
 def _s(t: str) -> str:
     """Sanitize for fpdf2 latin-1 Helvetica."""
     return (
-        t.replace("\u2013", "-").replace("\u2014", "-")
-         .replace("\u2018", "'").replace("\u2019", "'")
-         .replace("\u201c", '"').replace("\u201d", '"')
-         .encode("latin-1", errors="replace").decode("latin-1")
+        t.replace("\u2013", "-")
+        .replace("\u2014", "-")
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .encode("latin-1", errors="replace")
+        .decode("latin-1")
     )
 
 
@@ -26,6 +31,7 @@ GYLDIG_TIL = "30.04.2026"
 
 class SafePDF(FPDF):
     """FPDF subclass that auto-sanitizes strings through latin-1 safe filter."""
+
     def cell(self, *args, **kwargs):
         if args:
             args = list(args)
@@ -55,7 +61,11 @@ def page_header(pdf: FPDF, insurer: str, quote_no: str, color: tuple):
     pdf.cell(0, 10, insurer, new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 10)
     pdf.set_xy(10, 18)
-    pdf.cell(0, 6, f"Forsikringstilbud  |  Tilbudsnr.: {quote_no}  |  Dato: {TODAY}  |  Gyldig til: {GYLDIG_TIL}")
+    pdf.cell(
+        0,
+        6,
+        f"Forsikringstilbud  |  Tilbudsnr.: {quote_no}  |  Dato: {TODAY}  |  Gyldig til: {GYLDIG_TIL}",
+    )
     pdf.set_text_color(0, 0, 0)
     pdf.set_xy(10, 32)
 
@@ -121,11 +131,13 @@ def build_if():
 
     section(pdf, "Tilbudssammendrag", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "If Skadeforsikring tilbyr herved et skreddersydd forsikringsprogram for Bergmann "
         "Industri AS. Tilbudet dekker selskapets kjernerisiko innen eiendom, ansvar og "
         "yrkesskade. If er Nordens ledende skadeforsikringsselskap og tilbyr avtaleperiode "
-        "pa 12 maneder med start 01.05.2026."
+        "pa 12 maneder med start 01.05.2026.",
     )
     pdf.ln(3)
 
@@ -140,18 +152,29 @@ def build_if():
     page_header(pdf, "If Skadeforsikring", "IF-2026-44821", COLOR)
 
     section(pdf, "Vedlegg A - Dekningsoversikt", COLOR)
-    coverage_table(pdf, [
-        ["Tingskade / Bygning",       "NOK 85 000 000", "NOK 50 000",  "NOK 112 000"],
-        ["Tingskade / Losore",        "NOK 40 000 000", "NOK 30 000",  "NOK  68 500"],
-        ["Driftsavbrudd (12 mnd)",    "NOK 25 000 000", "5 dager",     "NOK  89 000"],
-        ["Produktansvar",             "NOK 50 000 000", "NOK 100 000", "NOK  54 000"],
-        ["Allmenn ansvarsforsikring", "NOK 20 000 000", "NOK  50 000", "NOK  32 000"],
-        ["Yrkesskade (lovpliktig)",   "Ubegrenset",     "Lovpliktig",  "NOK  32 000"],
-    ], COLOR)
+    coverage_table(
+        pdf,
+        [
+            ["Tingskade / Bygning", "NOK 85 000 000", "NOK 50 000", "NOK 112 000"],
+            ["Tingskade / Losore", "NOK 40 000 000", "NOK 30 000", "NOK  68 500"],
+            ["Driftsavbrudd (12 mnd)", "NOK 25 000 000", "5 dager", "NOK  89 000"],
+            ["Produktansvar", "NOK 50 000 000", "NOK 100 000", "NOK  54 000"],
+            [
+                "Allmenn ansvarsforsikring",
+                "NOK 20 000 000",
+                "NOK  50 000",
+                "NOK  32 000",
+            ],
+            ["Yrkesskade (lovpliktig)", "Ubegrenset", "Lovpliktig", "NOK  32 000"],
+        ],
+        COLOR,
+    )
 
     section(pdf, "Vasentlige vilkar og klausuler", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Tingskade er basert pa If's bedriftsvilkar 2025, klausul BED-TG-01.\n"
         "- Driftsavbruddsforsikringen dekker tapt bruttofortjeneste i inntil 12 maneder "
         "etter en erstatningsberettiget skade pa forsikret eiendom.\n"
@@ -160,27 +183,31 @@ def build_if():
         "- Egenandeler indeksreguleres arlig med KPI.\n"
         "- Sikkerhetsforskrifter iht. If's standard bedriftsvilkar ma overholdes. "
         "Ved brudd reduseres erstatningen med inntil 30 %.\n"
-        "- Forsikringen er underlagt norsk rett og Oslo tingrett er verneting."
+        "- Forsikringen er underlagt norsk rett og Oslo tingrett er verneting.",
     )
     pdf.ln(4)
 
     section(pdf, "Rabatter og betingelser", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Skadefri bonus: 5 % rabatt etter 2 ar uten skader over egenandel.\n"
         "- Volum: 3 % samlerabatt ved tegning av alle linjer.\n"
         "- Skadefri bonus bortfaller ved skadeutbetalinger over NOK 500 000.\n"
-        "- Premien er fast i 12 maneder og justeres kun ved vesentlig risikoendring."
+        "- Premien er fast i 12 maneder og justeres kun ved vesentlig risikoendring.",
     )
     pdf.ln(4)
 
     section(pdf, "Skadebehandling", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "If tilbyr 24/7 skademelding via If Naeringsliv-portalen eller tlf. 02400. "
         "Saksbehandlingstid for tingskader: normalt 5-10 virkedager. "
         "Erstatningsoppgjor utbetales innen 30 dager etter endelig dokumentasjon. "
-        "Dedikert skaderradgiver tildeles ved skader over NOK 1 000 000."
+        "Dedikert skaderradgiver tildeles ved skader over NOK 1 000 000.",
     )
 
     return bytes(pdf.output())
@@ -208,11 +235,13 @@ def build_gjensidige():
 
     section(pdf, "Tilbudssammendrag", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "Gjensidige Forsikring tilbyr et komplett forsikringsprogram for Bergmann Industri AS. "
         "Gjensidige har over 200 ars erfaring og er Norges stoerste skadeforsikringsselskap malt "
         "i antall kunder. Tilbudet inkluderer utvidet produktansvar med eksportdekning og "
-        "en styrket cyberforsikring. Gjensidige tilbyr 3-ars fastprisavtale."
+        "en styrket cyberforsikring. Gjensidige tilbyr 3-ars fastprisavtale.",
     )
     pdf.ln(3)
 
@@ -226,47 +255,62 @@ def build_gjensidige():
     page_header(pdf, "Gjensidige Forsikring", "GJ-NB-2026-9921", COLOR)
 
     section(pdf, "Vedlegg A - Dekningsoversikt", COLOR)
-    coverage_table(pdf, [
-        ["Tingskade / Bygning",       "NOK 90 000 000", "NOK 75 000",  "NOK 118 000"],
-        ["Tingskade / Losore",        "NOK 45 000 000", "NOK 50 000",  "NOK  72 000"],
-        ["Driftsavbrudd (18 mnd)",    "NOK 30 000 000", "3 dager",     "NOK  98 000"],
-        ["Produktansvar (global)",    "NOK 75 000 000", "NOK 100 000", "NOK  62 000"],
-        ["Allmenn ansvarsforsikring", "NOK 20 000 000", "NOK  50 000", "NOK  30 000"],
-        ["Yrkesskade (lovpliktig)",   "Ubegrenset",     "Lovpliktig",  "NOK  32 000"],
-    ], COLOR)
+    coverage_table(
+        pdf,
+        [
+            ["Tingskade / Bygning", "NOK 90 000 000", "NOK 75 000", "NOK 118 000"],
+            ["Tingskade / Losore", "NOK 45 000 000", "NOK 50 000", "NOK  72 000"],
+            ["Driftsavbrudd (18 mnd)", "NOK 30 000 000", "3 dager", "NOK  98 000"],
+            ["Produktansvar (global)", "NOK 75 000 000", "NOK 100 000", "NOK  62 000"],
+            [
+                "Allmenn ansvarsforsikring",
+                "NOK 20 000 000",
+                "NOK  50 000",
+                "NOK  30 000",
+            ],
+            ["Yrkesskade (lovpliktig)", "Ubegrenset", "Lovpliktig", "NOK  32 000"],
+        ],
+        COLOR,
+    )
 
     section(pdf, "Tilleggsdekning inkludert i tilbudet", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Cyberforsikring (basispakke): NOK 5 000 000 dekning, egenandel NOK 50 000, "
         "arspremie NOK 28 000. Dekker datatap, gjenoppretting og ansvarskrav fra tredjeparter.\n"
         "- Transportforsikring: NOK 2 000 000 per sending, egenandel NOK 10 000, "
         "arspremie NOK 12 000.\n"
-        "- Total tilbudspremie inkl. tilleggsdekning: NOK 452 000 eks. mva."
+        "- Total tilbudspremie inkl. tilleggsdekning: NOK 452 000 eks. mva.",
     )
     pdf.ln(4)
 
     section(pdf, "Vasentlige vilkar og klausuler", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Tingskade regulert av Gjensidiges bedriftsvilkar GB-2024, basert pa CICG-vilkar.\n"
         "- Driftsavbrudd: 18 maneders maksimal erstatningsperiode — 6 maneder mer enn "
         "markedsstandard. Karenstid 3 dager.\n"
         "- Produktansvar: Global dekning inkludert USA/Canada med sublimit USD 10 000 000.\n"
         "- Egenandeler er faste i avtaleperioden (3 ar) og indeksreguleres ikke.\n"
         "- Sikkerhetsforskrifter: Brudd gir 20 % reduksjon (lavere enn bransjesnitt pa 30 %).\n"
-        "- Gjensidige tilbyr arlig risikokartlegging hos kunden uten tilleggskostnad."
+        "- Gjensidige tilbyr arlig risikokartlegging hos kunden uten tilleggskostnad.",
     )
     pdf.ln(4)
 
     section(pdf, "Skadebehandling og tilleggsfordeler", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Skademelding via Gjensidige Bedrift-appen, nett eller tlf. 03100 (24/7).\n"
         "- Garantert tilbakemelding innen 24 timer pa alle skademeldinger.\n"
         "- Erstatningsoppgjor innen 21 dager etter fullstendig dokumentasjon.\n"
         "- Fast naeringskunderadgiver og arlig avtalemote inkludert.\n"
-        "- Gratis HMS-kurs via Gjensidige Akademiet (inntil 3 ansatte/ar)."
+        "- Gratis HMS-kurs via Gjensidige Akademiet (inntil 3 ansatte/ar).",
     )
 
     return bytes(pdf.output())
@@ -294,12 +338,14 @@ def build_tryg():
 
     section(pdf, "Tilbudssammendrag", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "Tryg Forsikring presenterer et konkurransedyktig tilbud med fokus pa laveste "
         "totalkostnad. Tryg er det nest stoerste skadeforsikringsselskapet i Norden. "
         "Tilbudet baseres pa et forenklende konsept der samletegning av alle linjer gir "
         "en rabatt pa 8 %. Betalbar premie er den laveste av de tre innhentede tilbudene, "
-        "men med noe hoeyere egenandeler."
+        "men med noe hoeyere egenandeler.",
     )
     pdf.ln(3)
 
@@ -313,18 +359,29 @@ def build_tryg():
     page_header(pdf, "Tryg Forsikring", "TRYG-NO-2026-5530", COLOR)
 
     section(pdf, "Vedlegg A - Dekningsoversikt", COLOR)
-    coverage_table(pdf, [
-        ["Tingskade / Bygning",       "NOK 80 000 000", "NOK 100 000", "NOK  98 000"],
-        ["Tingskade / Losore",        "NOK 35 000 000", "NOK  75 000", "NOK  61 000"],
-        ["Driftsavbrudd (12 mnd)",    "NOK 20 000 000", "7 dager",     "NOK  82 000"],
-        ["Produktansvar",             "NOK 40 000 000", "NOK 150 000", "NOK  48 000"],
-        ["Allmenn ansvarsforsikring", "NOK 15 000 000", "NOK  75 000", "NOK  30 000"],
-        ["Yrkesskade (lovpliktig)",   "Ubegrenset",     "Lovpliktig",  "NOK  32 000"],
-    ], COLOR)
+    coverage_table(
+        pdf,
+        [
+            ["Tingskade / Bygning", "NOK 80 000 000", "NOK 100 000", "NOK  98 000"],
+            ["Tingskade / Losore", "NOK 35 000 000", "NOK  75 000", "NOK  61 000"],
+            ["Driftsavbrudd (12 mnd)", "NOK 20 000 000", "7 dager", "NOK  82 000"],
+            ["Produktansvar", "NOK 40 000 000", "NOK 150 000", "NOK  48 000"],
+            [
+                "Allmenn ansvarsforsikring",
+                "NOK 15 000 000",
+                "NOK  75 000",
+                "NOK  30 000",
+            ],
+            ["Yrkesskade (lovpliktig)", "Ubegrenset", "Lovpliktig", "NOK  32 000"],
+        ],
+        COLOR,
+    )
 
     section(pdf, "Vasentlige vilkar og klausuler", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Tingskade regulert av Tryg's Standard Bedriftsvilkar TB-2023.\n"
         "- Driftsavbrudd: 12 maneders erstatningsperiode, karenstid 7 dager "
         "(lengre enn konkurrentene pa 3-5 dager).\n"
@@ -333,30 +390,34 @@ def build_tryg():
         "- Egenandeler er vesentlig hoeyere enn konkurrentene, men premien er tilsvarende "
         "lavere. Anbefales for selskaper med god likviditet og lavt skadehistorikk.\n"
         "- Sikkerhetsforskrifter: Brudd gir 25 % erstatningsreduksjon.\n"
-        "- Premie indeksreguleres med KPI + 2 % ved fornyelse."
+        "- Premie indeksreguleres med KPI + 2 % ved fornyelse.",
     )
     pdf.ln(4)
 
     section(pdf, "Klausuler som avviker fra standard", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- VIKTIG: Tingskade-dekningen inkluderer IKKE maskinhavari. Dette ma tegnes "
         "separat (estimert tilleggspremie NOK 22 000/ar).\n"
         "- Naturskadedekning er inkludert via Norsk Naturskadepool (lovpliktig).\n"
         "- Terrordekning inntil NOK 20 000 000 inkludert via POL-ordningen.\n"
         "- Erstatning beregnes pa grunnlag av gjenanskaffelsesverdi for bygning og "
-        "dagsverdibasis for losore eldre enn 5 ar."
+        "dagsverdibasis for losore eldre enn 5 ar.",
     )
     pdf.ln(4)
 
     section(pdf, "Skadebehandling", COLOR)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6,
+    pdf.multi_cell(
+        0,
+        6,
         "- Skademelding: tryg.no/skade, e-post eller tlf. 04040 (hverdager 08-20).\n"
         "- Saksbehandlingstid: 7-14 virkedager for tingskader.\n"
         "- Erstatningsoppgjor innen 45 dager etter fullstendig dokumentasjon.\n"
         "- Ingen dedikert skaderradgiver — saksbehandling via generell pool.\n"
-        "- Merk: Tryg har ikke 24/7 naeringslivs-skadetelefon."
+        "- Merk: Tryg har ikke 24/7 naeringslivs-skadetelefon.",
     )
 
     return bytes(pdf.output())
@@ -367,6 +428,7 @@ def build_tryg():
 # ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import os
+
     os.makedirs("sample_offers", exist_ok=True)
 
     specs = [
@@ -379,4 +441,6 @@ if __name__ == "__main__":
             fh.write(builder())
         print(f"Wrote {path}")
 
-    print("\nFerdig! Last opp filene fra sample_offers/ i UI-et for a teste tilbudsanalysen.")
+    print(
+        "\nFerdig! Last opp filene fra sample_offers/ i UI-et for a teste tilbudsanalysen."
+    )

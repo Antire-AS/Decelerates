@@ -1,4 +1,5 @@
 """Portfolio service — named company lists with cross-portfolio risk analysis and chat."""
+
 import logging
 from datetime import datetime, timezone
 from typing import Iterator, Optional
@@ -66,15 +67,20 @@ class PortfolioService:
         self.get(portfolio_id)  # raises if missing
         existing = (
             self.db.query(PortfolioCompany)
-            .filter(PortfolioCompany.portfolio_id == portfolio_id, PortfolioCompany.orgnr == orgnr)
+            .filter(
+                PortfolioCompany.portfolio_id == portfolio_id,
+                PortfolioCompany.orgnr == orgnr,
+            )
             .first()
         )
         if not existing:
-            self.db.add(PortfolioCompany(
-                portfolio_id=portfolio_id,
-                orgnr=orgnr,
-                added_at=datetime.now(timezone.utc).isoformat(),
-            ))
+            self.db.add(
+                PortfolioCompany(
+                    portfolio_id=portfolio_id,
+                    orgnr=orgnr,
+                    added_at=datetime.now(timezone.utc).isoformat(),
+                )
+            )
             try:
                 self.db.commit()
             except Exception:
@@ -84,7 +90,10 @@ class PortfolioService:
     def remove_company(self, portfolio_id: int, orgnr: str) -> None:
         row = (
             self.db.query(PortfolioCompany)
-            .filter(PortfolioCompany.portfolio_id == portfolio_id, PortfolioCompany.orgnr == orgnr)
+            .filter(
+                PortfolioCompany.portfolio_id == portfolio_id,
+                PortfolioCompany.orgnr == orgnr,
+            )
             .first()
         )
         if row:
@@ -100,6 +109,7 @@ class PortfolioService:
     def _fetch_latest_hist_map(self, orgnrs: list) -> dict:
         """Batch-load the most recent CompanyHistory row for each orgnr. Returns {orgnr: hist}."""
         from sqlalchemy import func
+
         sq = (
             self.db.query(
                 CompanyHistory.orgnr,
@@ -111,10 +121,13 @@ class PortfolioService:
         )
         return {
             h.orgnr: h
-            for h in self.db.query(CompanyHistory).join(
+            for h in self.db.query(CompanyHistory)
+            .join(
                 sq,
-                (CompanyHistory.orgnr == sq.c.orgnr) & (CompanyHistory.year == sq.c.max_year),
-            ).all()
+                (CompanyHistory.orgnr == sq.c.orgnr)
+                & (CompanyHistory.year == sq.c.max_year),
+            )
+            .all()
         }
 
     def get_risk_summary(self, portfolio_id: int) -> list[dict]:
@@ -137,21 +150,33 @@ class PortfolioService:
             company = company_map.get(pc.orgnr)
             hist = hist_map.get(pc.orgnr)
             if company:
-                result.append({
-                    "orgnr": pc.orgnr,
-                    "navn": company.navn or pc.orgnr,
-                    "kommune": company.kommune,
-                    "naeringskode": company.naeringskode1_beskrivelse,
-                    "regnskapsår": hist.year if hist else company.regnskapsår,
-                    "revenue": (hist.revenue if hist else None) or company.sum_driftsinntekter,
-                    "equity": (hist.equity if hist else None) or company.sum_egenkapital,
-                    "equity_ratio": (hist.equity_ratio if hist else None) or company.equity_ratio,
-                    "risk_score": company.risk_score,
-                    "added_at": pc.added_at,
-                })
+                result.append(
+                    {
+                        "orgnr": pc.orgnr,
+                        "navn": company.navn or pc.orgnr,
+                        "kommune": company.kommune,
+                        "naeringskode": company.naeringskode1_beskrivelse,
+                        "regnskapsår": hist.year if hist else company.regnskapsår,
+                        "revenue": (hist.revenue if hist else None)
+                        or company.sum_driftsinntekter,
+                        "equity": (hist.equity if hist else None)
+                        or company.sum_egenkapital,
+                        "equity_ratio": (hist.equity_ratio if hist else None)
+                        or company.equity_ratio,
+                        "risk_score": company.risk_score,
+                        "added_at": pc.added_at,
+                    }
+                )
             else:
-                result.append({"orgnr": pc.orgnr, "navn": pc.orgnr, "risk_score": None, "added_at": pc.added_at})
-        return sorted(result, key=lambda x: (x.get("risk_score") or 0), reverse=True)
+                result.append(
+                    {
+                        "orgnr": pc.orgnr,
+                        "navn": pc.orgnr,
+                        "risk_score": None,
+                        "added_at": pc.added_at,
+                    }
+                )
+        return sorted(result, key=lambda x: x.get("risk_score") or 0, reverse=True)
 
     # ── Batch ingest ──────────────────────────────────────────────────────────
 
@@ -206,11 +231,17 @@ class PortfolioService:
         """Phase 2: discover PDFs for one company and yield NDJSON events."""
         yield from _streaming._stream_pdf_phase(pc, navn, i, total, self.db)
 
-    def _stream_ingest_company(self, pc, i: int, total: int, include_pdfs: bool) -> Iterator[str]:
+    def _stream_ingest_company(
+        self, pc, i: int, total: int, include_pdfs: bool
+    ) -> Iterator[str]:
         """Stream BRREG + optional PDF events for one portfolio company."""
-        yield from _streaming._stream_ingest_company(pc, i, total, include_pdfs, self.db)
+        yield from _streaming._stream_ingest_company(
+            pc, i, total, include_pdfs, self.db
+        )
 
-    def stream_ingest(self, portfolio_id: int, include_pdfs: bool = False) -> Iterator[str]:
+    def stream_ingest(
+        self, portfolio_id: int, include_pdfs: bool = False
+    ) -> Iterator[str]:
         """Stream NDJSON progress events for portfolio ingest (BRREG + optional PDFs)."""
         yield from _streaming.stream_ingest(portfolio_id, include_pdfs, self.db)
 
@@ -218,9 +249,13 @@ class PortfolioService:
         """Stream NDJSON events while adding Norway Top 100 companies to the portfolio."""
         yield from _streaming.stream_seed_norway(portfolio_id, self.db)
 
-    def stream_batch_import(self, portfolio_id: int | None, orgnrs: list[str], invalid_count: int = 0) -> Iterator[str]:
+    def stream_batch_import(
+        self, portfolio_id: int | None, orgnrs: list[str], invalid_count: int = 0
+    ) -> Iterator[str]:
         """Stream NDJSON progress while importing companies from a list of orgnrs."""
-        yield from _streaming.stream_batch_import(portfolio_id, orgnrs, invalid_count, self.db)
+        yield from _streaming.stream_batch_import(
+            portfolio_id, orgnrs, invalid_count, self.db
+        )
 
     # ── Portfolio chat ─────────────────────────────────────────────────────────
 
@@ -233,14 +268,22 @@ class PortfolioService:
             return {"answer": "Ingen selskaper i denne porteføljen.", "sources": []}
 
         # Build rich context: risk table + retrieved chunks per company
-        table_lines = ["| Selskap | Orgnr | Risk | Omsetning (MNOK) | EK-andel % | År |",
-                       "|---------|-------|------|-----------------|------------|-----|"]
+        table_lines = [
+            "| Selskap | Orgnr | Risk | Omsetning (MNOK) | EK-andel % | År |",
+            "|---------|-------|------|-----------------|------------|-----|",
+        ]
         for r in rows:
             rev = f"{round(r['revenue'] / 1_000_000, 1)}" if r.get("revenue") else "–"
-            eq = f"{round((r['equity_ratio'] or 0) * 100, 1)}" if r.get("equity_ratio") else "–"
+            eq = (
+                f"{round((r['equity_ratio'] or 0) * 100, 1)}"
+                if r.get("equity_ratio")
+                else "–"
+            )
             score = r.get("risk_score") or "–"
             year = r.get("regnskapsår") or "–"
-            table_lines.append(f"| {r['navn']} | {r['orgnr']} | {score} | {rev} | {eq} | {year} |")
+            table_lines.append(
+                f"| {r['navn']} | {r['orgnr']} | {score} | {rev} | {eq} | {year} |"
+            )
         portfolio_context = "\n".join(table_lines)
 
         # Retrieve relevant chunks across all portfolio companies
@@ -250,7 +293,9 @@ class PortfolioService:
         if q_emb:
             chunks = (
                 self.db.query(CompanyChunk)
-                .filter(CompanyChunk.orgnr.in_(orgnrs), CompanyChunk.embedding.isnot(None))
+                .filter(
+                    CompanyChunk.orgnr.in_(orgnrs), CompanyChunk.embedding.isnot(None)
+                )
                 .order_by(CompanyChunk.embedding.cosine_distance(q_emb))
                 .limit(10)
                 .all()
@@ -274,12 +319,24 @@ class PortfolioService:
 
 # ── Shared alert logic (used by both portfolio_router and utils) ───────────────
 
-def _alert(orgnr: str, navn: str, alert_type: str, severity: str, detail: str,
-           prev_year: int, curr_year: int) -> dict:
+
+def _alert(
+    orgnr: str,
+    navn: str,
+    alert_type: str,
+    severity: str,
+    detail: str,
+    prev_year: int,
+    curr_year: int,
+) -> dict:
     return {
-        "orgnr": orgnr, "navn": navn, "alert_type": alert_type,
-        "severity": severity, "detail": detail,
-        "year_from": prev_year, "year_to": curr_year,
+        "orgnr": orgnr,
+        "navn": navn,
+        "alert_type": alert_type,
+        "severity": severity,
+        "detail": detail,
+        "year_from": prev_year,
+        "year_to": curr_year,
     }
 
 
@@ -288,11 +345,29 @@ def _check_revenue_yoy(curr, prev, orgnr: str, navn: str) -> list[dict]:
         return []
     yoy = (curr.revenue - prev.revenue) / prev.revenue
     if yoy > 0.25:
-        return [_alert(orgnr, navn, "Sterk vekst", "Moderat",
-            f"Omsetning +{yoy*100:.0f}% YoY — gjennomgå dekning", prev.year, curr.year)]
+        return [
+            _alert(
+                orgnr,
+                navn,
+                "Sterk vekst",
+                "Moderat",
+                f"Omsetning +{yoy * 100:.0f}% YoY — gjennomgå dekning",
+                prev.year,
+                curr.year,
+            )
+        ]
     if yoy < -0.20:
-        return [_alert(orgnr, navn, "Omsetningsfall", "Høy",
-            f"Omsetning {yoy*100:.0f}% YoY — kan ha betalingsproblemer", prev.year, curr.year)]
+        return [
+            _alert(
+                orgnr,
+                navn,
+                "Omsetningsfall",
+                "Høy",
+                f"Omsetning {yoy * 100:.0f}% YoY — kan ha betalingsproblemer",
+                prev.year,
+                curr.year,
+            )
+        ]
     return []
 
 
@@ -300,12 +375,30 @@ def _check_equity(curr, prev, orgnr: str, navn: str) -> list[dict]:
     if curr.equity_ratio is None or prev.equity_ratio is None:
         return []
     if curr.equity_ratio < 0 and prev.equity_ratio >= 0:
-        return [_alert(orgnr, navn, "Negativ EK", "Kritisk",
-            "Negativ egenkapital dette år — vurder kansellering", prev.year, curr.year)]
+        return [
+            _alert(
+                orgnr,
+                navn,
+                "Negativ EK",
+                "Kritisk",
+                "Negativ egenkapital dette år — vurder kansellering",
+                prev.year,
+                curr.year,
+            )
+        ]
     eq_drop = prev.equity_ratio - curr.equity_ratio
     if eq_drop > 0.08:
-        return [_alert(orgnr, navn, "Egenkapital svekket", "Høy",
-            f"Egenkapitalandel falt {eq_drop*100:.1f}pp — øk risikopåslag", prev.year, curr.year)]
+        return [
+            _alert(
+                orgnr,
+                navn,
+                "Egenkapital svekket",
+                "Høy",
+                f"Egenkapitalandel falt {eq_drop * 100:.1f}pp — øk risikopåslag",
+                prev.year,
+                curr.year,
+            )
+        ]
     return []
 
 
@@ -314,8 +407,17 @@ def _check_employees(curr, prev, orgnr: str, navn: str) -> list[dict]:
         return []
     emp_growth = (curr.antall_ansatte - prev.antall_ansatte) / prev.antall_ansatte
     if emp_growth > 0.5:
-        return [_alert(orgnr, navn, "Ny ansattvekst", "Moderat",
-            f"+{emp_growth*100:.0f}% ansatte — oppdater yrkesskadeforsikring", prev.year, curr.year)]
+        return [
+            _alert(
+                orgnr,
+                navn,
+                "Ny ansattvekst",
+                "Moderat",
+                f"+{emp_growth * 100:.0f}% ansatte — oppdater yrkesskadeforsikring",
+                prev.year,
+                curr.year,
+            )
+        ]
     return []
 
 
@@ -325,8 +427,17 @@ def _check_revenue_thresholds(curr, prev, orgnr: str, navn: str) -> list[dict]:
     out = []
     for threshold in (100_000_000, 1_000_000_000):
         if prev.revenue < threshold <= curr.revenue:
-            out.append(_alert(orgnr, navn, "Krysset terskel", "Moderat",
-                f"Omsetning krysset {threshold/1e6:.0f} MNOK — ny premiesone", prev.year, curr.year))
+            out.append(
+                _alert(
+                    orgnr,
+                    navn,
+                    "Krysset terskel",
+                    "Moderat",
+                    f"Omsetning krysset {threshold / 1e6:.0f} MNOK — ny premiesone",
+                    prev.year,
+                    curr.year,
+                )
+            )
     return out
 
 
@@ -352,8 +463,10 @@ def collect_alerts(portfolio_id: int, db: Session) -> list[dict]:
     Returns alerts sorted by severity: Kritisk → Høy → Moderat.
     """
     orgnrs = [
-        r.orgnr for r in
-        db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()
+        r.orgnr
+        for r in db.query(PortfolioCompany)
+        .filter(PortfolioCompany.portfolio_id == portfolio_id)
+        .all()
     ]
     company_names = {
         c.orgnr: c.navn

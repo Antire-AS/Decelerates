@@ -114,6 +114,7 @@ jobs:
             "SIGNICAT_CLIENT_SECRET=${{ secrets.SIGNICAT_CLIENT_SECRET }}"
             "SIGNICAT_WEBHOOK_URL=${{ secrets.SIGNICAT_WEBHOOK_URL }}"
             "ACS_SENDER_ADDRESS=anbud@meglerai.no"
+            "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
             "AUTH_DISABLED=1"
           )
 
@@ -252,6 +253,8 @@ jobs:
             "AZURE_AD_CLIENT_ID=${{ secrets.FRONTEND_AZURE_AD_CLIENT_ID }}"
             "AZURE_AD_CLIENT_SECRET=${{ secrets.FRONTEND_AZURE_AD_CLIENT_SECRET }}"
             "AZURE_AD_TENANT_ID=common"
+            "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
+            "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
             "NODE_ENV=production"
           )
 

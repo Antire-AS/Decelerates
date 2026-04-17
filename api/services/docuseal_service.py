@@ -37,6 +37,7 @@ REQUIRES external setup before activation:
 
 Until env vars are set, `is_configured()` returns False and the route returns 503.
 """
+
 import base64
 import hashlib
 import hmac
@@ -50,16 +51,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 @dataclass(frozen=True)
 class DocuSealConfig:
     """Frozen config — read once in api/main.py per the Antire convention.
     Empty strings are intentional sentinels (vs Optional[str]) so the
     is_configured() check is a simple `all(...)`."""
-    api_base:        str = ""
-    api_key:         str = ""
-    webhook_secret:  str = ""
-    webhook_url:     str = ""
+
+    api_base: str = ""
+    api_key: str = ""
+    webhook_secret: str = ""
+    webhook_url: str = ""
 
 
 class DocuSealService:
@@ -96,9 +97,14 @@ class DocuSealService:
         push the client straight into the signing iframe in our UI.
         """
         if not self.is_configured():
-            raise RuntimeError("DocuSeal is not configured (missing DOCUSEAL_* env vars)")
+            raise RuntimeError(
+                "DocuSeal is not configured (missing DOCUSEAL_* env vars)"
+            )
         payload = self._build_submission_payload(
-            pdf_bytes, signer_email, signer_name, document_title,
+            pdf_bytes,
+            signer_email,
+            signer_name,
+            document_title,
         )
         url = f"{self.config.api_base.rstrip('/')}/submissions"
         with httpx.Client(timeout=20.0) as client:
@@ -131,8 +137,8 @@ class DocuSealService:
             "submitters": [
                 {
                     "email": signer_email,
-                    "name":  signer_name,
-                    "role":  "Signer",
+                    "name": signer_name,
+                    "role": "Signer",
                 }
             ],
             "documents": [
@@ -156,7 +162,9 @@ class DocuSealService:
             submitters = body.get("submitters") or []
             submitter = submitters[0] if submitters else body
         return {
-            "session_id":  str(submitter.get("submission_id") or submitter.get("id", "")),
+            "session_id": str(
+                submitter.get("submission_id") or submitter.get("id", "")
+            ),
             "signing_url": submitter.get("embed_src") or submitter.get("url", ""),
         }
 
@@ -186,18 +194,18 @@ class DocuSealService:
           - form.viewed:    submitter opened the link (not a state change)
         """
         event = payload.get("event_type", "")
-        data  = payload.get("data") or {}
+        data = payload.get("data") or {}
         status_map = {
             "form.completed": "signed",
-            "form.declined":  "rejected",
-            "form.viewed":    "viewed",
+            "form.declined": "rejected",
+            "form.viewed": "viewed",
         }
         first_doc = (data.get("documents") or [{}])[0]
         return {
-            "session_id":     str(data.get("submission_id") or data.get("id", "")),
-            "status":         status_map.get(event, event or "unknown"),
+            "session_id": str(data.get("submission_id") or data.get("id", "")),
+            "status": status_map.get(event, event or "unknown"),
             "signed_pdf_url": first_doc.get("url"),
-            "signed_at":      data.get("completed_at") or data.get("submitted_at"),
+            "signed_at": data.get("completed_at") or data.get("submitted_at"),
         }
 
 
@@ -223,6 +231,7 @@ def _config_from_env() -> DocuSealConfig:
 # create_signing_session, verify_webhook, parse_webhook) so the router code
 # is identical regardless of choice.
 
+
 def get_signing_service():
     """Return the configured e-sign provider instance.
 
@@ -234,4 +243,5 @@ def get_signing_service():
         return DocuSealService()
     # Lazy import so DocuSeal-only deployments don't pull Signicat config.
     from api.services.signicat_service import SignicatService
+
     return SignicatService()

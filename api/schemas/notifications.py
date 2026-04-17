@@ -1,11 +1,17 @@
 """Notification schemas."""
+
 from datetime import datetime
 from typing import List, Literal, Optional
 from pydantic import BaseModel
 
 NotificationKindLiteral = Literal[
-    "renewal", "activity_overdue", "mention", "claim_new",
-    "deal_won", "coverage_gap", "digest",
+    "renewal",
+    "activity_overdue",
+    "mention",
+    "claim_new",
+    "deal_won",
+    "coverage_gap",
+    "digest",
 ]
 
 

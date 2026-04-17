@@ -1,4 +1,5 @@
 """Abstract port for external API calls — BRREG, OpenSanctions, Kartverket, etc."""
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

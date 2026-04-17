@@ -3,6 +3,7 @@
 In production: reads from Azure Key Vault using DefaultAzureCredential.
 In development: falls back to os.getenv() when AZURE_KEYVAULT_URL is not set.
 """
+
 import logging
 import os
 from dataclasses import dataclass
@@ -28,13 +29,16 @@ class KeyVaultSecretAdapter(SecretPort):
             try:
                 from azure.identity import DefaultAzureCredential
                 from azure.keyvault.secrets import SecretClient
+
                 self._client = SecretClient(
                     vault_url=config.vault_url,
                     credential=DefaultAzureCredential(),
                 )
                 logger.info("Key Vault connected: %s", config.vault_url)
             except Exception as exc:
-                logger.warning("Key Vault init failed — falling back to env vars: %s", exc)
+                logger.warning(
+                    "Key Vault init failed — falling back to env vars: %s", exc
+                )
 
     def is_configured(self) -> bool:
         return self._client is not None

@@ -1,4 +1,5 @@
 """GDPR consent and lawful-basis management service."""
+
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -9,7 +10,6 @@ from api.domain.exceptions import NotFoundError
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class ConsentService:
@@ -46,7 +46,9 @@ class ConsentService:
             raise
         return row
 
-    def withdraw_consent(self, firm_id: int, consent_id: int, reason: Optional[str] = None) -> ConsentRecord:
+    def withdraw_consent(
+        self, firm_id: int, consent_id: int, reason: Optional[str] = None
+    ) -> ConsentRecord:
         row = self._get_or_raise(firm_id, consent_id)
         row.withdrawn_at = datetime.now(timezone.utc)
         row.withdrawal_reason = reason

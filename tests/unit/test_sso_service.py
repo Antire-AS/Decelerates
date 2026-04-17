@@ -1,6 +1,7 @@
 """Unit tests for api/services/sso_service.py — SsoService."""
+
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
@@ -20,7 +21,9 @@ class TestExtractTenantId:
         assert result == "abc-123-def"
 
     def test_extracts_from_issuer_url(self):
-        claims = {"iss": "https://login.microsoftonline.com/11112222-3333-4444-5555-666677778888/v2.0"}
+        claims = {
+            "iss": "https://login.microsoftonline.com/11112222-3333-4444-5555-666677778888/v2.0"
+        }
         result = SsoService._extract_tenant_id(claims)
         assert result == "11112222-3333-4444-5555-666677778888"
 
@@ -64,7 +67,7 @@ class TestResolveFirmFromToken:
 
         svc = SsoService()
         claims = {"tid": "tenant-bbb", "tid_name": "New Corp AS"}
-        result = svc.resolve_firm_from_token(claims, db)
+        svc.resolve_firm_from_token(claims, db)
 
         db.add.assert_called_once()
         db.commit.assert_called_once()

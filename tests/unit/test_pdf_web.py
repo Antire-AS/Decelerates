@@ -2,6 +2,7 @@
 
 All HTTP requests and Playwright calls are mocked. No network, no browser.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -23,6 +24,7 @@ from api.services.pdf_web import (
 
 
 # ── _extract_pdfs_from_html ──────────────────────────────────────────────────
+
 
 def test_extract_pdfs_finds_direct_pdf_urls():
     html = '<a href="https://example.com/report.pdf">Download</a>'
@@ -53,6 +55,7 @@ def test_extract_pdfs_ignores_non_pdf_uddg():
 
 # ── _ddg_query ───────────────────────────────────────────────────────────────
 
+
 def test_ddg_query_returns_pdf_urls():
     html = '<a href="https://corp.no/annual2023.pdf">report</a>'
     mock_resp = MagicMock()
@@ -65,6 +68,7 @@ def test_ddg_query_returns_pdf_urls():
 
 def test_ddg_query_returns_empty_on_timeout():
     import requests as _req
+
     with patch("api.services.pdf_web.requests.get", side_effect=_req.Timeout):
         result = _ddg_query("timeout query")
     assert result == []
@@ -72,6 +76,7 @@ def test_ddg_query_returns_empty_on_timeout():
 
 def test_ddg_query_returns_empty_on_http_error():
     import requests as _req
+
     with patch("api.services.pdf_web.requests.get", side_effect=_req.HTTPError):
         result = _ddg_query("fail query")
     assert result == []
@@ -79,11 +84,14 @@ def test_ddg_query_returns_empty_on_http_error():
 
 # ── _search_for_pdfs ─────────────────────────────────────────────────────────
 
+
 def test_search_for_pdfs_uses_site_query_when_hjemmeside_provided():
     calls = []
+
     def fake_ddg(query):
         calls.append(query)
         return ["https://example.com/ar.pdf"]
+
     with patch("api.services.pdf_web._ddg_query", side_effect=fake_ddg):
         result = _search_for_pdfs("DNB ASA", "https://www.dnb.no", 2023)
     assert any("site:www.dnb.no" in q for q in calls)
@@ -98,6 +106,7 @@ def test_search_for_pdfs_works_without_hjemmeside():
 
 # ── _search_all_annual_pdfs ──────────────────────────────────────────────────
 
+
 def test_search_all_annual_pdfs_caps_at_20():
     urls = [f"https://example.com/{i}.pdf" for i in range(30)]
     with patch("api.services.pdf_web._ddg_query", return_value=urls):
@@ -106,6 +115,7 @@ def test_search_all_annual_pdfs_caps_at_20():
 
 
 # ── _ddg_search_results ──────────────────────────────────────────────────────
+
 
 def test_ddg_search_results_parses_html():
     html = (
@@ -124,11 +134,13 @@ def test_ddg_search_results_parses_html():
 
 def test_ddg_search_results_returns_empty_on_timeout():
     import requests as _req
+
     with patch("api.services.pdf_web.requests.get", side_effect=_req.Timeout):
         assert _ddg_search_results("q") == []
 
 
 # ── _fetch_html_requests ─────────────────────────────────────────────────────
+
 
 def test_fetch_html_requests_returns_text():
     mock_resp = MagicMock()
@@ -140,6 +152,7 @@ def test_fetch_html_requests_returns_text():
 
 def test_fetch_html_requests_returns_none_on_timeout():
     import requests as _req
+
     with patch("api.services.pdf_web.requests.get", side_effect=_req.Timeout):
         assert _fetch_html_requests("https://example.com") is None
 
@@ -148,6 +161,7 @@ def test_fetch_html_requests_returns_none_on_timeout():
 
 
 # ── _parse_html_for_agent ────────────────────────────────────────────────────
+
 
 def test_parse_html_for_agent_extracts_pdf_links():
     html = '<a href="https://cdn.example.com/report.pdf">report</a>'
@@ -171,6 +185,7 @@ def test_parse_html_for_agent_truncates_text():
 
 # ── _fetch_url_content ───────────────────────────────────────────────────────
 
+
 def test_fetch_url_content_returns_error_on_fetch_failure():
     with patch("api.services.pdf_web._fetch_html", return_value=None):
         result = _fetch_url_content("https://example.com")
@@ -180,15 +195,20 @@ def test_fetch_url_content_returns_error_on_fetch_failure():
 
 # ── _parse_agent_pdf_list ────────────────────────────────────────────────────
 
+
 def test_parse_agent_pdf_list_extracts_valid_entries():
-    raw = '[{"year": 2023, "pdf_url": "https://example.com/ar.pdf", "label": "AR 2023"}]'
+    raw = (
+        '[{"year": 2023, "pdf_url": "https://example.com/ar.pdf", "label": "AR 2023"}]'
+    )
     result = _parse_agent_pdf_list(raw)
     assert len(result) == 1
     assert result[0]["year"] == 2023
 
 
 def test_parse_agent_pdf_list_strips_markdown_fences():
-    raw = '```json\n[{"year": 2024, "pdf_url": "https://x.com/r.pdf", "label": "R"}]\n```'
+    raw = (
+        '```json\n[{"year": 2024, "pdf_url": "https://x.com/r.pdf", "label": "R"}]\n```'
+    )
     result = _parse_agent_pdf_list(raw)
     assert len(result) == 1
 

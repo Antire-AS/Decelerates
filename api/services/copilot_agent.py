@@ -12,6 +12,7 @@ The loop runs up to MAX_TOOL_ROUNDS turns. On each turn:
 Safety: the system prompt tells the LLM to confirm before sending emails.
 All tool executions are logged. Max 5 rounds prevents runaway loops.
 """
+
 import logging
 from typing import Optional
 
@@ -39,6 +40,7 @@ Bekreft alltid med brukeren før du sender e-poster."""
 def _build_context_message(orgnr: str, db: Session) -> str:
     """Build a compact company context string for the system prompt."""
     from api.db import Company
+
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
     if not company:
         return f"Selskap: {orgnr} (ikke funnet i databasen)"
@@ -52,7 +54,9 @@ def _build_context_message(orgnr: str, db: Session) -> str:
     return " · ".join(parts)
 
 
-def _init_messages(question: str, orgnr: str, db: Session, history: Optional[list[dict]]) -> list[dict]:
+def _init_messages(
+    question: str, orgnr: str, db: Session, history: Optional[list[dict]]
+) -> list[dict]:
     """Build the initial message list with system prompt + context + history."""
     context = _build_context_message(orgnr, db)
     system = f"{COPILOT_SYSTEM_PROMPT}\n\nKontekst: {context}"
@@ -67,10 +71,16 @@ def _execute_tool_calls(choice, messages, tool_calls_made, db, firm_id, orgnr):
     """Process tool_calls from an LLM response, execute them, append results."""
     messages.append(choice.message.model_dump())
     for tc in choice.message.tool_calls:
-        result = execute_tool(tc.function.name, tc.function.arguments, db, firm_id, orgnr)
-        tool_calls_made.append({
-            "tool": tc.function.name, "args": tc.function.arguments, "result": result[:500],
-        })
+        result = execute_tool(
+            tc.function.name, tc.function.arguments, db, firm_id, orgnr
+        )
+        tool_calls_made.append(
+            {
+                "tool": tc.function.name,
+                "args": tc.function.arguments,
+                "result": result[:500],
+            }
+        )
         messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
 
@@ -78,6 +88,7 @@ def _get_llm_client():
     """Resolve the Foundry LLM and return (client, model) or (None, None)."""
     from api.container import resolve
     from api.ports.driven.llm_port import LlmPort
+
     llm: LlmPort = resolve(LlmPort)  # type: ignore[assignment]
     if not llm.is_configured():
         return None, None
@@ -89,7 +100,10 @@ class CopilotAgentService:
         self.db = db
 
     def chat_with_tools(
-        self, question: str, orgnr: str, firm_id: int,
+        self,
+        question: str,
+        orgnr: str,
+        firm_id: int,
         history: Optional[list[dict]] = None,
     ) -> dict:
         """Run the copilot agent loop. Returns {answer, tool_calls_made}."""
@@ -100,21 +114,39 @@ class CopilotAgentService:
         tool_calls_made: list[dict] = []
         for _ in range(MAX_TOOL_ROUNDS):
             resp = client.chat.completions.create(
-                model=model, messages=messages, tools=TOOL_SCHEMAS, max_completion_tokens=1024,
+                model=model,
+                messages=messages,
+                tools=TOOL_SCHEMAS,
+                max_completion_tokens=1024,
             )
             choice = resp.choices[0]
             if not choice.message.tool_calls:
-                return {"answer": choice.message.content or "", "tool_calls_made": tool_calls_made}
-            _execute_tool_calls(choice, messages, tool_calls_made, self.db, firm_id, orgnr)
+                return {
+                    "answer": choice.message.content or "",
+                    "tool_calls_made": tool_calls_made,
+                }
+            _execute_tool_calls(
+                choice, messages, tool_calls_made, self.db, firm_id, orgnr
+            )
         # Exhausted rounds — ask for summary
-        messages.append({"role": "user", "content": "Oppsummer hva du har gjort så langt."})
-        resp = client.chat.completions.create(model=model, messages=messages, max_completion_tokens=512)
-        return {"answer": resp.choices[0].message.content or "", "tool_calls_made": tool_calls_made}
+        messages.append(
+            {"role": "user", "content": "Oppsummer hva du har gjort så langt."}
+        )
+        resp = client.chat.completions.create(
+            model=model, messages=messages, max_completion_tokens=512
+        )
+        return {
+            "answer": resp.choices[0].message.content or "",
+            "tool_calls_made": tool_calls_made,
+        }
 
 
 # Backward compat
 def chat_with_tools(
-    question: str, orgnr: str, firm_id: int, db: Session,
+    question: str,
+    orgnr: str,
+    firm_id: int,
+    db: Session,
     history: Optional[list[dict]] = None,
 ) -> dict:
     return CopilotAgentService(db).chat_with_tools(question, orgnr, firm_id, history)

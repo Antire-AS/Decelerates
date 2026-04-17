@@ -1,4 +1,5 @@
 """Contact person endpoints for a client company."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -18,14 +19,14 @@ def _svc(db: Session = Depends(get_db)) -> ContactsService:
 
 def _serialize(c) -> dict:
     return {
-        "id":         c.id,
-        "orgnr":      c.orgnr,
-        "name":       c.name,
-        "title":      c.title,
-        "email":      c.email,
-        "phone":      c.phone,
+        "id": c.id,
+        "orgnr": c.orgnr,
+        "name": c.name,
+        "title": c.title,
+        "email": c.email,
+        "phone": c.phone,
         "is_primary": c.is_primary,
-        "notes":      c.notes,
+        "notes": c.notes,
         "created_at": c.created_at.isoformat() if c.created_at else None,
     }
 
@@ -48,7 +49,12 @@ def create_contact(
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     c = svc.create_contact(orgnr, body)
-    log_audit(db, "contact.create", orgnr=orgnr, detail={"contact_id": c.id, "name": body.name})
+    log_audit(
+        db,
+        "contact.create",
+        orgnr=orgnr,
+        detail={"contact_id": c.id, "name": body.name},
+    )
     return _serialize(c)
 
 

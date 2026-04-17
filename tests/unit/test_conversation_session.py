@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from unittest.mock import MagicMock, patch
 
 from api.services.rag import save_qa_note, clear_chat_session
@@ -15,6 +16,7 @@ def _mock_db():
 
 
 # ── save_qa_note session_id propagation ──────────────────────────────────────
+
 
 def test_save_qa_note_stores_session_id():
     db = _mock_db()
@@ -57,6 +59,7 @@ def test_save_qa_note_backward_compat_no_session_id():
 
 
 # ── clear_chat_session ────────────────────────────────────────────────────────
+
 
 def test_clear_chat_session_filters_by_orgnr_and_session():
     db = MagicMock()

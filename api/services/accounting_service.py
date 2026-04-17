@@ -11,6 +11,7 @@ Usage:
   Set TRIPLETEX_API_KEY + TRIPLETEX_COMPANY_ID for Tripletex
   Set FIKEN_ACCESS_TOKEN + FIKEN_COMPANY_SLUG for Fiken
 """
+
 import logging
 import os
 from dataclasses import dataclass
@@ -24,16 +25,16 @@ _log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class TripletexConfig:
-    api_key:    str = ""
+    api_key: str = ""
     company_id: str = ""
-    base_url:   str = "https://tripletex.no/v2"
+    base_url: str = "https://tripletex.no/v2"
 
 
 @dataclass(frozen=True)
 class FikenConfig:
     access_token: str = ""
     company_slug: str = ""
-    base_url:     str = "https://api.fiken.no/api/v2"
+    base_url: str = "https://api.fiken.no/api/v2"
 
 
 class AccountingService:
@@ -128,7 +129,11 @@ def _create_tripletex_invoice(config: TripletexConfig, policy: Policy) -> None:
       - invoiceDate: today
       - lines: [{description: product_type, unitPrice: commission_amount_nok}]
     """
-    _log.info("Tripletex invoice stub: policy %d, %.2f NOK", policy.id, policy.commission_amount_nok or 0)
+    _log.info(
+        "Tripletex invoice stub: policy %d, %.2f NOK",
+        policy.id,
+        policy.commission_amount_nok or 0,
+    )
     # When sandbox is ready:
     # import httpx
     # resp = httpx.post(f"{config.base_url}/invoice", ...)
@@ -142,7 +147,11 @@ def _create_fiken_receipt(config: FikenConfig, policy: Policy) -> None:
       - date: today
       - lines: [{description: f"Provisjon: {policy.insurer} {policy.product_type}", net: commission_amount_nok}]
     """
-    _log.info("Fiken receipt stub: policy %d, %.2f NOK", policy.id, policy.commission_amount_nok or 0)
+    _log.info(
+        "Fiken receipt stub: policy %d, %.2f NOK",
+        policy.id,
+        policy.commission_amount_nok or 0,
+    )
 
 
 def _tripletex_config() -> TripletexConfig:

@@ -1,4 +1,5 @@
 """Unit tests for IDD enforcement gate and suitability reasoning."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -21,9 +22,15 @@ def _make_mock_svc():
     svc = MagicMock(spec=RecommendationService)
     svc.list.return_value = []
     svc.create.return_value = MagicMock(
-        id=1, orgnr="123456789", created_by_email="broker@firm.no",
-        created_at=None, idd_id=1, submission_ids=[], recommended_insurer="Gjensidige",
-        rationale_text="Good coverage", pdf_content=None,
+        id=1,
+        orgnr="123456789",
+        created_by_email="broker@firm.no",
+        created_at=None,
+        idd_id=1,
+        submission_ids=[],
+        recommended_insurer="Gjensidige",
+        rationale_text="Good coverage",
+        pdf_content=None,
     )
     return svc
 
@@ -52,9 +59,11 @@ class TestIddGate:
 
         def _query_side(model):
             from api.db import IddBehovsanalyse
+
             if model is IddBehovsanalyse:
                 return idd_query
             return company_query
+
         mock_db.query.side_effect = _query_side
 
         from api.auth import get_current_user
@@ -108,7 +117,10 @@ class TestSuitabilityReasoning:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = mock_idd
 
-        with patch("api.services.llm._llm_answer_raw", return_value="Kunden har cyber-risiko fordi..."):
+        with patch(
+            "api.services.llm._llm_answer_raw",
+            return_value="Kunden har cyber-risiko fordi...",
+        ):
             svc = IddService(db)
             result = svc.generate_suitability_reasoning("123456789", 1, 1)
 

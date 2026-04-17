@@ -8,6 +8,7 @@ repeatedly; existing rows are skipped.
 Usage:
     uv run --env-file .env python scripts/seed_demo.py
 """
+
 from __future__ import annotations
 
 import sys

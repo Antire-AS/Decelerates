@@ -1,4 +1,5 @@
 """Tests for api/services/pdf_recommendation.py — recommendation letter PDF generation."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -12,6 +13,7 @@ from api.services.pdf_recommendation import (
 
 
 # ── Pure function tests ──────────────────────────────────────────────────────
+
 
 def test_fmt_nok_none():
     assert _fmt_nok(None) == "–"
@@ -48,6 +50,7 @@ def test_fmt_nok_numeric_string():
 
 # ── Orchestrator tests (real FPDF) ───────────────────────────────────────────
 
+
 def test_generate_recommendation_pdf_basic():
     result = generate_recommendation_pdf(
         orgnr="123456789",
@@ -55,8 +58,12 @@ def test_generate_recommendation_pdf_basic():
         recommended_insurer="Gjensidige",
         rationale_text="Beste pris og dekning.\n\nGod service.",
         submissions=[],
-        broker={"firm_name": "Megler AS", "contact_name": "Ola",
-                "contact_email": "ola@m.no", "contact_phone": "123"},
+        broker={
+            "firm_name": "Megler AS",
+            "contact_name": "Ola",
+            "contact_email": "ola@m.no",
+            "contact_phone": "123",
+        },
     )
     assert isinstance(result, bytes)
     assert len(result) > 0
@@ -64,12 +71,27 @@ def test_generate_recommendation_pdf_basic():
 
 def test_generate_recommendation_pdf_with_submissions():
     submissions = [
-        {"insurer_name": "Gjensidige", "product_type": "Eiendom",
-         "premium_offered_nok": 45000, "status": "quoted", "requested_at": "2026-01-10"},
-        {"insurer_name": "If", "product_type": "Eiendom",
-         "premium_offered_nok": 52000, "status": "quoted", "requested_at": "2026-01-11"},
-        {"insurer_name": "Tryg", "product_type": "Eiendom",
-         "premium_offered_nok": None, "status": "declined", "requested_at": "2026-01-09"},
+        {
+            "insurer_name": "Gjensidige",
+            "product_type": "Eiendom",
+            "premium_offered_nok": 45000,
+            "status": "quoted",
+            "requested_at": "2026-01-10",
+        },
+        {
+            "insurer_name": "If",
+            "product_type": "Eiendom",
+            "premium_offered_nok": 52000,
+            "status": "quoted",
+            "requested_at": "2026-01-11",
+        },
+        {
+            "insurer_name": "Tryg",
+            "product_type": "Eiendom",
+            "premium_offered_nok": None,
+            "status": "declined",
+            "requested_at": "2026-01-09",
+        },
     ]
     result = generate_recommendation_pdf(
         orgnr="987654321",
@@ -123,12 +145,34 @@ def test_generate_recommendation_pdf_empty_broker():
 def test_generate_recommendation_pdf_submission_statuses():
     """Cover all status_no mappings."""
     submissions = [
-        {"insurer_name": "A", "product_type": "P", "premium_offered_nok": 1000, "status": "pending", "requested_at": ""},
-        {"insurer_name": "B", "product_type": "P", "premium_offered_nok": 2000, "status": "withdrawn", "requested_at": None},
-        {"insurer_name": "C", "product_type": "P", "premium_offered_nok": None, "status": "unknown_status", "requested_at": "2026-01-01"},
+        {
+            "insurer_name": "A",
+            "product_type": "P",
+            "premium_offered_nok": 1000,
+            "status": "pending",
+            "requested_at": "",
+        },
+        {
+            "insurer_name": "B",
+            "product_type": "P",
+            "premium_offered_nok": 2000,
+            "status": "withdrawn",
+            "requested_at": None,
+        },
+        {
+            "insurer_name": "C",
+            "product_type": "P",
+            "premium_offered_nok": None,
+            "status": "unknown_status",
+            "requested_at": "2026-01-01",
+        },
     ]
     result = generate_recommendation_pdf(
-        orgnr="444", company_name="Z AS", recommended_insurer="A",
-        rationale_text="Test.", submissions=submissions, broker={"firm_name": "M"},
+        orgnr="444",
+        company_name="Z AS",
+        recommended_insurer="A",
+        rationale_text="Test.",
+        submissions=submissions,
+        broker={"firm_name": "M"},
     )
     assert isinstance(result, bytes)

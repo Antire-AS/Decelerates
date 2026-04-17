@@ -7,6 +7,7 @@ requires a real account and webhook endpoint.
 Updated 2026-04-12 for the OAuth2 client_credentials flow (client_id +
 client_secret instead of api_key).
 """
+
 import hashlib
 import hmac
 from unittest.mock import MagicMock, patch
@@ -46,7 +47,10 @@ def test_is_configured_webhook_not_required():
 def test_create_signing_session_raises_when_not_configured():
     with pytest.raises(RuntimeError, match="not configured"):
         SignicatService(SignicatConfig()).create_signing_session(
-            b"pdf", "client@x.no", "Client", "title",
+            b"pdf",
+            "client@x.no",
+            "Client",
+            "title",
         )
 
 
@@ -80,7 +84,9 @@ def test_verify_webhook_rejects_tampered_body():
 
 
 def test_verify_webhook_rejects_when_no_secret_configured():
-    svc = SignicatService(SignicatConfig(api_base="https://x", client_id="id", client_secret="s"))
+    svc = SignicatService(
+        SignicatConfig(api_base="https://x", client_id="id", client_secret="s")
+    )
     assert svc.verify_webhook(b"anything", "anything") is False
 
 
@@ -133,7 +139,10 @@ def test_create_signing_session_posts_pdf_and_returns_session():
         mock_client = MockClient.return_value.__enter__.return_value
         mock_client.post.side_effect = [token_resp, session_resp]
         result = svc.create_signing_session(
-            b"%PDF-1.4 fake", "client@x.no", "Ola Nordmann", "Forsikringstilbud",
+            b"%PDF-1.4 fake",
+            "client@x.no",
+            "Ola Nordmann",
+            "Forsikringstilbud",
         )
     assert result["session_id"] == "sess-1"
     assert result["signing_url"].endswith("sess-1")

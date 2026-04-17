@@ -1,4 +1,5 @@
 """Unit tests for api/routers/coverage.py — coverage gap endpoint."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -30,7 +31,11 @@ def client():
 @patch("api.routers.coverage.analyze_coverage_gap")
 def test_coverage_gap_returns_result(mock_gap, client):
     mock_gap.return_value = {
-        "orgnr": "123", "items": [], "covered_count": 3, "gap_count": 0, "total_count": 3,
+        "orgnr": "123",
+        "items": [],
+        "covered_count": 3,
+        "gap_count": 0,
+        "total_count": 3,
     }
     resp = client.get("/org/123/coverage-gap")
     assert resp.status_code == 200
@@ -42,7 +47,9 @@ def test_coverage_gap_with_gaps(mock_gap, client):
     mock_gap.return_value = {
         "orgnr": "123",
         "items": [{"type": "Cyber", "status": "gap", "priority": "Høy"}],
-        "covered_count": 2, "gap_count": 1, "total_count": 3,
+        "covered_count": 2,
+        "gap_count": 1,
+        "total_count": 3,
     }
     resp = client.get("/org/123/coverage-gap")
     assert resp.status_code == 200

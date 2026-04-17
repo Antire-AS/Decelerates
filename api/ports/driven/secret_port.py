@@ -1,4 +1,5 @@
 """Abstract port for secret retrieval — decouples business logic from secret store."""
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

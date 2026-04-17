@@ -1,4 +1,5 @@
 """Unit tests for api/routers/webhooks.py — Signicat webhook endpoint."""
+
 import hashlib
 import hmac
 import json
@@ -33,7 +34,9 @@ def _sign(body: bytes, secret: str) -> str:
 @patch("api.routers.webhooks.SignicatService")
 def test_webhook_not_configured(MockService, client):
     MockService.return_value.is_configured.return_value = False
-    resp = client.post("/webhooks/signicat", content=b"{}", headers={"x-signicat-signature": "x"})
+    resp = client.post(
+        "/webhooks/signicat", content=b"{}", headers={"x-signicat-signature": "x"}
+    )
     assert resp.status_code == 503
 
 
@@ -42,7 +45,9 @@ def test_webhook_invalid_signature(MockService, client):
     svc = MockService.return_value
     svc.is_configured.return_value = True
     svc.verify_webhook.return_value = False
-    resp = client.post("/webhooks/signicat", content=b"{}", headers={"x-signicat-signature": "bad"})
+    resp = client.post(
+        "/webhooks/signicat", content=b"{}", headers={"x-signicat-signature": "bad"}
+    )
     assert resp.status_code == 401
 
 
@@ -52,10 +57,14 @@ def test_webhook_valid_signature(MockService, client):
     svc.is_configured.return_value = True
     svc.verify_webhook.return_value = True
     svc.parse_webhook.return_value = {
-        "session_id": "sess-1", "status": "signed",
-        "signed_pdf_url": "https://x", "signed_at": "2026-04-12",
+        "session_id": "sess-1",
+        "status": "signed",
+        "signed_pdf_url": "https://x",
+        "signed_at": "2026-04-12",
     }
     body = json.dumps({"sessionId": "sess-1", "sessionStatus": "signed"}).encode()
-    resp = client.post("/webhooks/signicat", content=body, headers={"x-signicat-signature": "valid"})
+    resp = client.post(
+        "/webhooks/signicat", content=body, headers={"x-signicat-signature": "valid"}
+    )
     assert resp.status_code == 200
     assert resp.json()["received"] is True

@@ -13,6 +13,7 @@ Env vars:
   SIGNICAT_WEBHOOK_SECRET   (optional — for webhook HMAC verification)
   SIGNICAT_WEBHOOK_URL      (optional — public URL of POST /webhooks/signicat)
 """
+
 import hashlib
 import hmac
 import logging
@@ -27,11 +28,11 @@ _log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class SignicatConfig:
-    api_base:        str = ""
-    client_id:       str = ""
-    client_secret:   str = ""
-    webhook_secret:  str = ""
-    webhook_url:     str = ""
+    api_base: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    webhook_secret: str = ""
+    webhook_url: str = ""
 
 
 class SignicatService:
@@ -49,12 +50,15 @@ class SignicatService:
             return self._access_token
         url = f"{self.config.api_base.rstrip('/')}/oauth/connect/token"
         with httpx.Client(timeout=15.0) as client:
-            resp = client.post(url, data={
-                "grant_type": "client_credentials",
-                "client_id": self.config.client_id,
-                "client_secret": self.config.client_secret,
-                "scope": "signicat-api",
-            })
+            resp = client.post(
+                url,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": self.config.client_id,
+                    "client_secret": self.config.client_secret,
+                    "scope": "signicat-api",
+                },
+            )
         resp.raise_for_status()
         self._access_token = resp.json()["access_token"]
         return self._access_token
@@ -66,14 +70,20 @@ class SignicatService:
         }
 
     def create_signing_session(
-        self, pdf_bytes: bytes, signer_email: str,
-        signer_name: str, document_title: str,
+        self,
+        pdf_bytes: bytes,
+        signer_email: str,
+        signer_name: str,
+        document_title: str,
     ) -> dict:
         """Create a Signicat signing session. Returns {session_id, signing_url}."""
         if not self.is_configured():
             raise RuntimeError("Signicat not configured (missing SIGNICAT_* env vars)")
         payload = self._build_session_payload(
-            pdf_bytes, signer_email, signer_name, document_title,
+            pdf_bytes,
+            signer_email,
+            signer_name,
+            document_title,
         )
         url = f"{self.config.api_base.rstrip('/')}/signing/v2/sessions"
         with httpx.Client(timeout=20.0) as client:
@@ -81,26 +91,33 @@ class SignicatService:
         resp.raise_for_status()
         body = resp.json()
         return {
-            "session_id":  body.get("sessionId") or body.get("id", ""),
+            "session_id": body.get("sessionId") or body.get("id", ""),
             "signing_url": body.get("signingUrl") or body.get("url", ""),
         }
 
     def _build_session_payload(
-        self, pdf_bytes: bytes, signer_email: str,
-        signer_name: str, document_title: str,
+        self,
+        pdf_bytes: bytes,
+        signer_email: str,
+        signer_name: str,
+        document_title: str,
     ) -> dict:
         """Build the Signicat Sign API v2 session body."""
         payload: dict = {
             "title": document_title,
-            "signers": [{
-                "externalSignerId": signer_email,
-                "signerInfo": {
-                    "firstName": signer_name.split()[0] if signer_name else "",
-                    "lastName": " ".join(signer_name.split()[1:]) if signer_name else "",
-                    "email": signer_email,
-                },
-                "signatureType": {"mechanism": "pkisignature"},
-            }],
+            "signers": [
+                {
+                    "externalSignerId": signer_email,
+                    "signerInfo": {
+                        "firstName": signer_name.split()[0] if signer_name else "",
+                        "lastName": " ".join(signer_name.split()[1:])
+                        if signer_name
+                        else "",
+                        "email": signer_email,
+                    },
+                    "signatureType": {"mechanism": "pkisignature"},
+                }
+            ],
             "dataToSign": {
                 "title": document_title,
                 "base64Content": _b64(pdf_bytes),
@@ -119,17 +136,18 @@ class SignicatService:
             return False
         expected = hmac.new(
             self.config.webhook_secret.encode("utf-8"),
-            raw_body, hashlib.sha256,
+            raw_body,
+            hashlib.sha256,
         ).hexdigest()
         return hmac.compare_digest(expected, signature_header.strip())
 
     def parse_webhook(self, payload: dict) -> dict:
         """Extract signing status from a Signicat webhook body."""
         return {
-            "session_id":     payload.get("sessionId") or payload.get("id", ""),
-            "status":         payload.get("sessionStatus", ""),
+            "session_id": payload.get("sessionId") or payload.get("id", ""),
+            "status": payload.get("sessionStatus", ""),
             "signed_pdf_url": payload.get("documentUrl"),
-            "signed_at":      payload.get("completedTime"),
+            "signed_at": payload.get("completedTime"),
         }
 
 
@@ -145,4 +163,5 @@ def _config_from_env() -> SignicatConfig:
 
 def _b64(data: bytes) -> str:
     import base64
+
     return base64.b64encode(data).decode("ascii")

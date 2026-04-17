@@ -1,4 +1,5 @@
 """Portfolio ingest — batch BRREG fetch and Norway Top-100 seed."""
+
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -46,8 +47,8 @@ class PortfolioIngestService:
         from api.constants import TOP_100_NO_NAMES
 
         existing = {
-            pc.orgnr for pc in
-            self.db.query(PortfolioCompany)
+            pc.orgnr
+            for pc in self.db.query(PortfolioCompany)
             .filter(PortfolioCompany.portfolio_id == portfolio_id)
             .all()
         }
@@ -63,18 +64,24 @@ class PortfolioIngestService:
                 if orgnr in existing:
                     already_present += 1
                     continue
-                self.db.add(PortfolioCompany(
-                    portfolio_id=portfolio_id,
-                    orgnr=orgnr,
-                    added_at=datetime.now(timezone.utc).isoformat(),
-                ))
+                self.db.add(
+                    PortfolioCompany(
+                        portfolio_id=portfolio_id,
+                        orgnr=orgnr,
+                        added_at=datetime.now(timezone.utc).isoformat(),
+                    )
+                )
                 existing.add(orgnr)
                 added += 1
             except Exception as exc:
                 logger.warning("Top100 seed: error for '%s' — %s", name, exc)
                 not_found += 1
         self.db.commit()
-        return {"added": added, "already_present": already_present, "not_found": not_found}
+        return {
+            "added": added,
+            "already_present": already_present,
+            "not_found": not_found,
+        }
 
     def enrich_pdfs_background(self, portfolio_id: int) -> dict:
         """Trigger background PDF discovery + extraction for all companies in the portfolio.

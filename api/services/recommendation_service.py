@@ -1,4 +1,5 @@
 """Recommendation letter service — creates, stores, and generates LLM rationale."""
+
 # PEP 563 deferred annotation evaluation. Required because the RecommendationService
 # class has a `list` method that shadows the builtin mid-class-body, which would
 # otherwise break later `list[int]` annotations at class-definition time on
@@ -16,7 +17,6 @@ from api.services.llm import _llm_answer_raw
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _build_rationale_prompt(
@@ -40,16 +40,31 @@ def _build_rationale_prompt(
 
     if idd:
         lines.append(f"Klientens risikoappetitt: {idd.risk_appetite or 'ikke oppgitt'}")
-        lines.append(f"Anbefalte produkter fra behovsanalyse: {', '.join(idd.recommended_products or [])}")
+        lines.append(
+            f"Anbefalte produkter fra behovsanalyse: {', '.join(idd.recommended_products or [])}"
+        )
         lines.append("")
 
     if submissions:
         lines.append("Innhentede tilbud:")
         for s in submissions:
-            status_map = {"quoted": "Tilbud mottatt", "declined": "Avslått", "pending": "Avventer", "withdrawn": "Trukket"}
-            status_no = status_map.get(s.status.value if hasattr(s.status, "value") else s.status, s.status)
-            premium = f"{s.premium_offered_nok:,.0f} kr" if s.premium_offered_nok else "ikke oppgitt"
-            lines.append(f"- Produkt: {s.product_type} | Status: {status_no} | Premie: {premium} | Notater: {s.notes or '–'}")
+            status_map = {
+                "quoted": "Tilbud mottatt",
+                "declined": "Avslått",
+                "pending": "Avventer",
+                "withdrawn": "Trukket",
+            }
+            status_no = status_map.get(
+                s.status.value if hasattr(s.status, "value") else s.status, s.status
+            )
+            premium = (
+                f"{s.premium_offered_nok:,.0f} kr"
+                if s.premium_offered_nok
+                else "ikke oppgitt"
+            )
+            lines.append(
+                f"- Produkt: {s.product_type} | Status: {status_no} | Premie: {premium} | Notater: {s.notes or '–'}"
+            )
         lines.append("")
 
     lines.append(f"Anbefalt selskap: {recommended_insurer}")
@@ -84,7 +99,9 @@ class RecommendationService:
         if submission_ids:
             submissions = (
                 self.db.query(Submission)
-                .filter(Submission.id.in_(submission_ids), Submission.firm_id == firm_id)
+                .filter(
+                    Submission.id.in_(submission_ids), Submission.firm_id == firm_id
+                )
                 .all()
             )
 
@@ -92,14 +109,18 @@ class RecommendationService:
         if idd_id:
             idd = (
                 self.db.query(IddBehovsanalyse)
-                .filter(IddBehovsanalyse.id == idd_id, IddBehovsanalyse.firm_id == firm_id)
+                .filter(
+                    IddBehovsanalyse.id == idd_id, IddBehovsanalyse.firm_id == firm_id
+                )
                 .first()
             )
 
         if rationale_override:
             rationale = rationale_override
         else:
-            prompt = _build_rationale_prompt(company_name, orgnr, recommended_insurer, submissions, idd)
+            prompt = _build_rationale_prompt(
+                company_name, orgnr, recommended_insurer, submissions, idd
+            )
             rationale = _llm_answer_raw(prompt) or (
                 f"{recommended_insurer} anbefales basert på innhentede tilbud og klientens forsikringsbehov."
             )
@@ -155,6 +176,7 @@ class RecommendationService:
         """Plan §🟢 #11 — webhook handler. Updates by session_id (not rec_id)
         because Signicat only knows the session, never our internal id."""
         from datetime import datetime, timezone
+
         row = (
             self.db.query(Recommendation)
             .filter(Recommendation.signing_session_id == session_id)

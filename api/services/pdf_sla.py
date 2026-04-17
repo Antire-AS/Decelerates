@@ -1,4 +1,5 @@
 """SLA agreement PDF generation."""
+
 from typing import Any, List
 
 from fpdf import FPDF
@@ -11,34 +12,83 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 # ── Page-builder helpers ──────────────────────────────────────────────────────
 
-def _add_cover_page(pdf: Any, agreement: SlaAgreement, broker: dict, firm_label: str) -> None:
+
+def _add_cover_page(
+    pdf: Any, agreement: SlaAgreement, broker: dict, firm_label: str
+) -> None:
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 28)
     pdf.ln(20)
-    pdf.cell(0, 12, _safe(broker.get("firm_name", "Forsikringsmegler")), align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        12,
+        _safe(broker.get("firm_name", "Forsikringsmegler")),
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.ln(6)
     pdf.set_font("Helvetica", "", 16)
-    pdf.cell(0, 10, "Tjenesteavtale - Forsikringsmegling", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        10,
+        "Tjenesteavtale - Forsikringsmegling",
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.ln(16)
     pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, _safe(f"Klient: {agreement.client_navn or ''}"), align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        8,
+        _safe(f"Klient: {agreement.client_navn or ''}"),
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.set_font("Helvetica", "", 12)
-    pdf.cell(0, 8, f"Org.nr: {agreement.client_orgnr or ''}", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        8,
+        f"Org.nr: {agreement.client_orgnr or ''}",
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.ln(6)
-    pdf.cell(0, 8, f"Avtaledato: {agreement.created_at[:10] if agreement.created_at else ''}", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        8,
+        f"Avtaledato: {agreement.created_at[:10] if agreement.created_at else ''}",
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
 
 
-def _add_section_oppdrag(pdf: Any, agreement: SlaAgreement, broker: dict, firm_name: str) -> None:
+def _add_section_oppdrag(
+    pdf: Any, agreement: SlaAgreement, broker: dict, firm_name: str
+) -> None:
     pdf.add_page()
     _section_title(pdf, "Oppdragsavtale")
     rows = [
         ("Megler", f"{firm_name}  |  Org.nr: {_safe(broker.get('orgnr', ''))}"),
         ("Meglers adresse", _safe(broker.get("address", ""))),
-        ("Kundeansvarlig", _safe(f"{agreement.account_manager or ''}  |  {broker.get('contact_email', '')}  |  {broker.get('contact_phone', '')}")),
-        ("Klient", _safe(f"{agreement.client_navn or ''}  |  Org.nr: {agreement.client_orgnr or ''}")),
+        (
+            "Kundeansvarlig",
+            _safe(
+                f"{agreement.account_manager or ''}  |  {broker.get('contact_email', '')}  |  {broker.get('contact_phone', '')}"
+            ),
+        ),
+        (
+            "Klient",
+            _safe(
+                f"{agreement.client_navn or ''}  |  Org.nr: {agreement.client_orgnr or ''}"
+            ),
+        ),
         ("Klientens adresse", _safe(agreement.client_adresse or "")),
         ("Kontaktperson klient", _safe(agreement.client_kontakt or "")),
         ("Avtalens startdato", _safe(agreement.start_date or "")),
@@ -51,7 +101,9 @@ def _add_section_oppdrag(pdf: Any, agreement: SlaAgreement, broker: dict, firm_n
         pdf.ln(1)
 
 
-def _add_vedlegg_a(pdf: Any, agreement: SlaAgreement, form: dict, lines: List[str]) -> None:
+def _add_vedlegg_a(
+    pdf: Any, agreement: SlaAgreement, form: dict, lines: List[str]
+) -> None:
     pdf.add_page()
     _section_title(pdf, "Vedlegg A - Forsikringslinjer som megles")
     pdf.set_font("Helvetica", "B", 11)
@@ -61,7 +113,13 @@ def _add_vedlegg_a(pdf: Any, agreement: SlaAgreement, form: dict, lines: List[st
     for line in lines:
         pdf.cell(0, 7, f"  {_safe(line)}", new_x="LMARGIN", new_y="NEXT")
     if form.get("other_lines"):
-        pdf.cell(0, 7, f"  Annet: {_safe(form['other_lines'])}", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(
+            0,
+            7,
+            f"  Annet: {_safe(form['other_lines'])}",
+            new_x="LMARGIN",
+            new_y="NEXT",
+        )
 
     pdf.ln(6)
     _section_title(pdf, "Vedlegg A Del 2 - Meglers oppgaver")
@@ -92,7 +150,11 @@ def _add_vedlegg_b(pdf: Any, fees: List[dict]) -> None:
             rate_str = f"NOK {int(rate):,}".replace(",", " ")
         else:
             rate_str = "Ikke avklart"
-        type_label = {"provisjon": "Provisjon", "fast": "Fast honorar (NOK/ar)", "ikke_avklart": "Ikke avklart"}.get(fee_type, fee_type)
+        type_label = {
+            "provisjon": "Provisjon",
+            "fast": "Fast honorar (NOK/ar)",
+            "ikke_avklart": "Ikke avklart",
+        }.get(fee_type, fee_type)
         pdf.cell(col_w[0], 7, _safe(fee.get("line", "")), border=1)
         pdf.cell(col_w[1], 7, _safe(type_label), border=1)
         pdf.cell(col_w[2], 7, _safe(rate_str), border=1)
@@ -115,9 +177,10 @@ def _add_vedlegg_e(pdf: Any, form: dict) -> None:
     _section_title(pdf, "Vedlegg E - Kundekontroll (KYC/AML)")
     pdf.set_font("Helvetica", "", 11)
     pdf.multi_cell(
-        0, 6,
+        0,
+        6,
         "I henhold til hvitvaskingsloven er megler forpliktet til a gjennomfore kundekontroll "
-        "for etablering av kundeforhold. Folgende kontroll er gjennomfort:"
+        "for etablering av kundeforhold. Folgende kontroll er gjennomfort:",
     )
     pdf.ln(4)
     kyc_rows = [
@@ -135,9 +198,10 @@ def _add_vedlegg_e(pdf: Any, form: dict) -> None:
     pdf.ln(4)
     pdf.set_font("Helvetica", "I", 10)
     pdf.multi_cell(
-        0, 6,
+        0,
+        6,
         "Megler bekrefter at kundekontroll er gjennomfort i samsvar med hvitvaskingsloven "
-        "og at kopi av legitimasjon og firmaattest er arkivert."
+        "og at kopi av legitimasjon og firmaattest er arkivert.",
     )
 
 
@@ -146,14 +210,18 @@ def _add_signature_page(pdf: Any, agreement: SlaAgreement, firm_name: str) -> No
     _section_title(pdf, "Meglerfullmakt og signatur")
     pdf.set_font("Helvetica", "", 11)
     pdf.multi_cell(
-        0, 6,
+        0,
+        6,
         _safe(
             f"Klienten gir herved {firm_name} fullmakt til a opptre som forsikringsmegler "
             "for de avtalte forsikringsdekninger overfor forsikringsgivere."
         ),
     )
     pdf.ln(16)
-    for party in [("For megler", firm_name), ("For klient", _safe(agreement.client_navn or ""))]:
+    for party in [
+        ("For megler", firm_name),
+        ("For klient", _safe(agreement.client_navn or "")),
+    ]:
         pdf.set_font("Helvetica", "B", 11)
         pdf.cell(0, 7, _safe(party[0]) + ":", new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", "", 11)
@@ -168,6 +236,7 @@ def _add_signature_page(pdf: Any, agreement: SlaAgreement, firm_name: str) -> No
 
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
+
 
 def generate_sla_pdf(agreement: SlaAgreement) -> bytes:
     """Generate a PDF for the given SLA agreement using fpdf2."""

@@ -5,11 +5,13 @@ Tests focus on the token TTL constant and the _parse_csv_orgnrs independence
 (CSV tests are in test_batch_import.py).  Here we test the router helper logic
 that can be exercised without a live DB.
 """
+
 import secrets
 from datetime import datetime, timezone, timedelta
 
 
 # ── Token format ──────────────────────────────────────────────────────────────
+
 
 def test_token_urlsafe_length():
     """secrets.token_urlsafe(32) produces a token of at least 32 base64-url chars."""
@@ -28,13 +30,16 @@ def test_tokens_are_unique():
 
 # ── TTL constant ──────────────────────────────────────────────────────────────
 
+
 def test_token_ttl_is_30_days():
     from api.routers.client_token import _TOKEN_TTL_DAYS
+
     assert _TOKEN_TTL_DAYS == 30
 
 
 def test_expiry_calculation():
     from api.routers.client_token import _TOKEN_TTL_DAYS
+
     now = datetime.now(timezone.utc)
     expires = now + timedelta(days=_TOKEN_TTL_DAYS)
     delta = expires - now
@@ -43,9 +48,11 @@ def test_expiry_calculation():
 
 # ── Expiry detection ──────────────────────────────────────────────────────────
 
+
 def _make_token_row(days_until_expiry: int):
     """Simulate a ClientToken-like object with an expires_at attribute."""
     from types import SimpleNamespace
+
     return SimpleNamespace(
         expires_at=datetime.now(timezone.utc) + timedelta(days=days_until_expiry)
     )

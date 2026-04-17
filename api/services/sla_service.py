@@ -1,4 +1,5 @@
 """SLA agreement creation service."""
+
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
@@ -11,12 +12,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class SlaService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def mark_signed(self, sla_id: int, signed_by: Optional[str] = None) -> Optional[SlaAgreement]:
+    def mark_signed(
+        self, sla_id: int, signed_by: Optional[str] = None
+    ) -> Optional[SlaAgreement]:
         """Mark an SLA agreement as signed. Returns None if not found."""
         row = self.db.query(SlaAgreement).filter(SlaAgreement.id == sla_id).first()
         if not row:
@@ -35,7 +37,9 @@ class SlaService:
     def create_agreement(self, body: SlaIn) -> SlaAgreement:
         """Create and persist a new SLA agreement, embedding a broker snapshot."""
         fd = body.form_data
-        broker_row = self.db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+        broker_row = (
+            self.db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
+        )
         broker_snap: Dict[str, Any] = {}
         if broker_row:
             broker_snap = {

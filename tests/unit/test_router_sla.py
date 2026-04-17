@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app; SlaService is mocked via dependency override,
 and endpoints that query db directly get a MagicMock db session.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -65,6 +66,7 @@ def client(mock_db, mock_svc):
 
 # ── POST /sla ─────────────────────────────────────────────────────────────────
 
+
 def test_create_sla_returns_200(client, mock_svc, mock_db):
     agreement = _mock_sla(id=5, created_at="2026-03-01T09:00:00")
     mock_svc.create_agreement.return_value = agreement
@@ -120,6 +122,7 @@ def test_create_sla_returns_422_when_missing_form_data(client, mock_svc, mock_db
 
 # ── GET /sla ──────────────────────────────────────────────────────────────────
 
+
 def test_list_slas_returns_200(client, mock_db):
     mock_db.query.return_value.order_by.return_value.all.return_value = []
     resp = client.get("/sla")
@@ -145,6 +148,7 @@ def test_list_slas_returns_sla_fields(client, mock_db):
 
 def test_list_slas_signed_at_isoformat(client, mock_db):
     from datetime import datetime, timezone
+
     signed = datetime(2026, 3, 1, 12, 0, 0, tzinfo=timezone.utc)
     row = _mock_sla(signed_at=signed)
     mock_db.query.return_value.order_by.return_value.all.return_value = [row]
@@ -162,8 +166,10 @@ def test_list_slas_signed_at_none_when_not_signed(client, mock_db):
 
 # ── PATCH /sla/{sla_id}/sign ──────────────────────────────────────────────────
 
+
 def test_sign_sla_returns_200(client, mock_svc):
     from datetime import datetime, timezone
+
     row = _mock_sla(id=1, status="active")
     row.signed_at = datetime(2026, 4, 1, 9, 0, tzinfo=timezone.utc)
     row.signed_by = "Kari Nordmann"
@@ -174,6 +180,7 @@ def test_sign_sla_returns_200(client, mock_svc):
 
 def test_sign_sla_returns_sla_fields(client, mock_svc):
     from datetime import datetime, timezone
+
     row = _mock_sla(id=2, status="active")
     row.signed_at = datetime(2026, 4, 2, 9, 0, tzinfo=timezone.utc)
     row.signed_by = "John Doe"
@@ -193,6 +200,7 @@ def test_sign_sla_returns_404_when_not_found(client, mock_svc):
 
 def test_sign_sla_passes_signed_by(client, mock_svc):
     from datetime import datetime, timezone
+
     row = _mock_sla()
     row.signed_at = datetime.now(timezone.utc)
     row.signed_by = "Person"
@@ -203,6 +211,7 @@ def test_sign_sla_passes_signed_by(client, mock_svc):
 
 def test_sign_sla_strips_whitespace_from_signed_by(client, mock_svc):
     from datetime import datetime, timezone
+
     row = _mock_sla()
     row.signed_at = datetime.now(timezone.utc)
     row.signed_by = None
@@ -213,6 +222,7 @@ def test_sign_sla_strips_whitespace_from_signed_by(client, mock_svc):
 
 
 # ── GET /sla/{sla_id} ─────────────────────────────────────────────────────────
+
 
 def test_get_sla_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_sla(id=4)
@@ -240,6 +250,7 @@ def test_get_sla_returns_404_when_not_found(client, mock_db):
 
 
 # ── GET /sla/{sla_id}/pdf ─────────────────────────────────────────────────────
+
 
 def test_download_sla_pdf_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_sla(

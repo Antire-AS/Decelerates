@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -15,24 +16,25 @@ from api.services.user_service import UserService
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_user(**kwargs):
     u = MagicMock(spec=User)
-    u.id        = kwargs.get("id", 1)
+    u.id = kwargs.get("id", 1)
     u.azure_oid = kwargs.get("azure_oid", "oid-abc-123")
-    u.email     = kwargs.get("email", "broker@firma.no")
-    u.name      = kwargs.get("name", "Ola Nordmann")
-    u.firm_id   = kwargs.get("firm_id", 1)
-    u.role      = kwargs.get("role", UserRole.broker)
+    u.email = kwargs.get("email", "broker@firma.no")
+    u.name = kwargs.get("name", "Ola Nordmann")
+    u.firm_id = kwargs.get("firm_id", 1)
+    u.role = kwargs.get("role", UserRole.broker)
     return u
 
 
 def _mock_firm(**kwargs):
     f = MagicMock(spec=BrokerFirm)
-    f.id   = kwargs.get("id", 1)
+    f.id = kwargs.get("id", 1)
     f.name = kwargs.get("name", "Default Firm")
     return f
 
@@ -42,6 +44,7 @@ def _role_update(role: str):
 
 
 # ── get_or_create — existing user ─────────────────────────────────────────────
+
 
 def test_get_or_create_returns_existing_user():
     user = _mock_user()
@@ -59,6 +62,7 @@ def test_get_or_create_does_not_add_when_user_exists():
 
 
 # ── get_or_create — new user ──────────────────────────────────────────────────
+
 
 def _db_for_new_user(firm=None):
     """Mock DB that returns None for user lookup, then a firm."""
@@ -127,6 +131,7 @@ def test_get_or_create_assigns_firm_id():
 
 # ── get_by_oid ────────────────────────────────────────────────────────────────
 
+
 def test_get_by_oid_returns_user_when_found():
     user = _mock_user()
     db = _mock_db()
@@ -143,6 +148,7 @@ def test_get_by_oid_returns_none_when_not_found():
 
 
 # ── list_users ────────────────────────────────────────────────────────────────
+
 
 def test_list_users_returns_users_for_firm():
     users = [_mock_user(), _mock_user(id=2)]
@@ -161,6 +167,7 @@ def test_list_users_returns_empty_list_when_none():
 
 # ── update_role ───────────────────────────────────────────────────────────────
 
+
 def test_update_role_raises_forbidden_when_not_admin():
     db = _mock_db()
     with pytest.raises(ForbiddenError, match="Only admins"):
@@ -171,7 +178,9 @@ def test_update_role_raises_not_found_for_unknown_role():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = _mock_user()
     with pytest.raises(NotFoundError, match="Unknown role"):
-        UserService(db).update_role(1, _role_update("superuser"), requester_role="admin")
+        UserService(db).update_role(
+            1, _role_update("superuser"), requester_role="admin"
+        )
 
 
 def test_update_role_raises_not_found_for_missing_user():
@@ -201,7 +210,9 @@ def test_update_role_returns_updated_user():
     user = _mock_user()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = user
-    result = UserService(db).update_role(1, _role_update("admin"), requester_role="admin")
+    result = UserService(db).update_role(
+        1, _role_update("admin"), requester_role="admin"
+    )
     assert result is user
 
 
@@ -215,6 +226,7 @@ def test_update_role_accepts_all_valid_roles(role):
 
 
 # ── _ensure_default_firm ──────────────────────────────────────────────────────
+
 
 def test_ensure_default_firm_returns_existing_firm():
     firm = _mock_firm()

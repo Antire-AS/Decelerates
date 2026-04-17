@@ -1,4 +1,5 @@
 """Unit tests for api/services/insurer_matching.py — insurer scoring + ranking."""
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -17,6 +18,7 @@ def _insurer(id: int, name: str, appetite: list[str]) -> SimpleNamespace:
 
 
 # ── _score_insurer ────────────────────────────────────────────────────────────
+
 
 def test_score_full_appetite_match():
     ins = _insurer(1, "If", ["Eiendom", "Ansvar"])
@@ -69,6 +71,7 @@ def test_score_substring_match():
 
 # ── _compute_win_rates ────────────────────────────────────────────────────────
 
+
 def test_compute_win_rates_basic():
     db = MagicMock()
     s1 = SimpleNamespace(insurer_id=1, status=SimpleNamespace(value="quoted"))
@@ -87,6 +90,7 @@ def test_compute_win_rates_empty():
 
 
 # ── _resolve_product_types ────────────────────────────────────────────────────
+
 
 def test_resolve_returns_explicit_types():
     db = MagicMock()
@@ -116,6 +120,7 @@ def test_resolve_returns_empty_on_gap_failure(mock_gap):
 
 # ── recommend_insurers ────────────────────────────────────────────────────────
 
+
 @patch("api.services.insurer_matching._generate_reasoning", return_value="Good choice.")
 def test_recommend_returns_top_n(mock_reason):
     db = MagicMock()
@@ -133,7 +138,9 @@ def test_recommend_returns_top_n(mock_reason):
 @patch("api.services.insurer_matching._generate_reasoning", return_value="OK")
 def test_recommend_empty_when_no_insurers(mock_reason):
     db = MagicMock()
-    db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(orgnr="123", navn="X")
+    db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(
+        orgnr="123", navn="X"
+    )
     db.query.return_value.filter.return_value.all.return_value = []
     result = recommend_insurers("123", 1, ["Eiendom"], db)
     assert result["recommendations"] == []

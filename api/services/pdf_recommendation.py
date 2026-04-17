@@ -1,4 +1,5 @@
 """Recommendation letter PDF generation."""
+
 from datetime import date
 from typing import Any, List, Optional
 
@@ -8,7 +9,6 @@ from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _fmt_nok(v: Any) -> str:
@@ -38,9 +38,25 @@ def generate_recommendation_pdf(
     pdf.set_fill_color(*_DARK_BLUE)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 13, _safe(broker.get("firm_name", "Forsikringsmegler")), fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        13,
+        _safe(broker.get("firm_name", "Forsikringsmegler")),
+        fill=True,
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 7, "Forsikringsanbefaling", fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        7,
+        "Forsikringsanbefaling",
+        fill=True,
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.set_text_color(0, 0, 0)
     pdf.ln(8)
 
@@ -48,10 +64,10 @@ def generate_recommendation_pdf(
     pdf.set_fill_color(*_LIGHT_BLUE)
     pdf.set_font("Helvetica", "", 10)
     meta_rows = [
-        ("Klient",        f"{_safe(company_name)}  (org.nr {orgnr})"),
-        ("Dato",          date.today().isoformat()),
+        ("Klient", f"{_safe(company_name)}  (org.nr {orgnr})"),
+        ("Dato", date.today().isoformat()),
         ("Utarbeidet av", _safe(created_by_email or broker.get("contact_name", ""))),
-        ("Megler",        _safe(broker.get("firm_name", ""))),
+        ("Megler", _safe(broker.get("firm_name", ""))),
     ]
     for label, value in meta_rows:
         pdf.set_font("Helvetica", "B", 9)
@@ -68,7 +84,15 @@ def generate_recommendation_pdf(
     pdf.cell(0, 8, "Anbefalt forsikringsselskap", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "B", 16)
     pdf.set_text_color(20, 100, 20)
-    pdf.cell(0, 10, _safe(recommended_insurer), fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        10,
+        _safe(recommended_insurer),
+        fill=True,
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.set_text_color(0, 0, 0)
     pdf.ln(8)
 
@@ -89,9 +113,9 @@ def generate_recommendation_pdf(
         col_w = [48, 38, 32, 22, 30]
         headers = ["Forsikringsselskap", "Produkt", "Premie/år", "Status", "Dato"]
         status_no = {
-            "quoted":    "Tilbud mottatt",
-            "declined":  "Avslått",
-            "pending":   "Avventer",
+            "quoted": "Tilbud mottatt",
+            "declined": "Avslått",
+            "pending": "Avventer",
             "withdrawn": "Trukket",
         }
 
@@ -108,7 +132,9 @@ def generate_recommendation_pdf(
             if is_rec:
                 pdf.set_fill_color(230, 245, 230)
             else:
-                pdf.set_fill_color(248, 248, 248) if fill else pdf.set_fill_color(255, 255, 255)
+                pdf.set_fill_color(248, 248, 248) if fill else pdf.set_fill_color(
+                    255, 255, 255
+                )
 
             row_vals = [
                 _safe(s.get("insurer_name", "–")),
@@ -128,10 +154,10 @@ def generate_recommendation_pdf(
     _section_title(pdf, "Signatur")
     pdf.set_font("Helvetica", "", 10)
     sig_rows = [
-        ("Megler",    _safe(broker.get("firm_name", ""))),
-        ("Kontakt",   _safe(broker.get("contact_name", ""))),
-        ("E-post",    _safe(broker.get("contact_email", ""))),
-        ("Telefon",   _safe(broker.get("contact_phone", ""))),
+        ("Megler", _safe(broker.get("firm_name", ""))),
+        ("Kontakt", _safe(broker.get("contact_name", ""))),
+        ("E-post", _safe(broker.get("contact_email", ""))),
+        ("Telefon", _safe(broker.get("contact_phone", ""))),
     ]
     for label, value in sig_rows:
         if value:

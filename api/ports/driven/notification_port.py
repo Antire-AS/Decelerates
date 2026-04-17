@@ -1,4 +1,5 @@
 """Port (driven) — abstract interface for email notifications."""
+
 from abc import ABC, abstractmethod
 
 

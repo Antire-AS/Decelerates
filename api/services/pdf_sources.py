@@ -1,4 +1,5 @@
 """CompanyPdfSource, CompanyHistory, and InsuranceDocument persistence helpers."""
+
 from datetime import date, datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -9,14 +10,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class PdfSourcesService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def upsert_pdf_source(self, orgnr: str, year: int, url: str, label: str) -> CompanyPdfSource:
+    def upsert_pdf_source(
+        self, orgnr: str, year: int, url: str, label: str
+    ) -> CompanyPdfSource:
         """Insert or update a CompanyPdfSource row, uploading PDF to Azure Blob if configured."""
         from api.services.pdf_background import _upload_pdf_to_blob
+
         existing = (
             self.db.query(CompanyPdfSource)
             .filter(CompanyPdfSource.orgnr == orgnr, CompanyPdfSource.year == year)
@@ -65,9 +68,7 @@ class PdfSourcesService:
     def delete_history_year(self, orgnr: str) -> int:
         """Delete all CompanyHistory rows for *orgnr*. Returns deleted row count."""
         deleted = (
-            self.db.query(CompanyHistory)
-            .filter(CompanyHistory.orgnr == orgnr)
-            .delete()
+            self.db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).delete()
         )
         try:
             self.db.commit()
@@ -79,14 +80,19 @@ class PdfSourcesService:
 
 # ── Module-level helpers (backward-compatible, used by company.py and risk_router.py) ──
 
-def upsert_pdf_source(orgnr: str, year: int, url: str, label: str, db: Session) -> CompanyPdfSource:
+
+def upsert_pdf_source(
+    orgnr: str, year: int, url: str, label: str, db: Session
+) -> CompanyPdfSource:
     return PdfSourcesService(db).upsert_pdf_source(orgnr, year, url, label)
 
 
 def save_insurance_document(
     orgnr: str, navn: str, filename: str, pdf_bytes: bytes, db: Session
 ) -> InsuranceDocument:
-    return PdfSourcesService(db).save_insurance_document(orgnr, navn, filename, pdf_bytes)
+    return PdfSourcesService(db).save_insurance_document(
+        orgnr, navn, filename, pdf_bytes
+    )
 
 
 def delete_history_year(orgnr: str, db: Session) -> int:

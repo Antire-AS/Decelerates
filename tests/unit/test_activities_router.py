@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; ActivityService is injected
 as a MagicMock — no real DB required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -24,7 +25,9 @@ from api.routers.activities import router, _svc
 _app = FastAPI()
 _app.include_router(router)
 
-_FAKE_USER = CurrentUser(email="test@local", name="Test User", oid="test-oid", firm_id=1)
+_FAKE_USER = CurrentUser(
+    email="test@local", name="Test User", oid="test-oid", firm_id=1
+)
 
 
 def _mock_activity(**kw):
@@ -66,6 +69,7 @@ def client(mock_db, mock_activity_svc):
 
 # ── GET /org/{orgnr}/activities ──────────────────────────────────────────────
 
+
 def test_list_activities_returns_200(client, mock_activity_svc):
     mock_activity_svc.list_by_orgnr.return_value = []
     resp = client.get("/org/123456789/activities")
@@ -74,7 +78,9 @@ def test_list_activities_returns_200(client, mock_activity_svc):
 
 
 def test_list_activities_returns_items(client, mock_activity_svc):
-    mock_activity_svc.list_by_orgnr.return_value = [_mock_activity(id=5, subject="Follow-up")]
+    mock_activity_svc.list_by_orgnr.return_value = [
+        _mock_activity(id=5, subject="Follow-up")
+    ]
     resp = client.get("/org/123456789/activities")
     items = resp.json()
     assert len(items) == 1
@@ -83,6 +89,7 @@ def test_list_activities_returns_items(client, mock_activity_svc):
 
 
 # ── POST /org/{orgnr}/activities ─────────────────────────────────────────────
+
 
 @patch("api.routers.activities.log_audit")
 def test_create_activity_returns_201(mock_audit, client, mock_activity_svc):
@@ -96,7 +103,9 @@ def test_create_activity_returns_201(mock_audit, client, mock_activity_svc):
 
 
 @patch("api.routers.activities.log_audit")
-def test_create_activity_returns_404_when_not_found(mock_audit, client, mock_activity_svc):
+def test_create_activity_returns_404_when_not_found(
+    mock_audit, client, mock_activity_svc
+):
     mock_activity_svc.create.side_effect = NotFoundError("Policy not found")
     resp = client.post(
         "/org/123456789/activities",
@@ -106,6 +115,7 @@ def test_create_activity_returns_404_when_not_found(mock_audit, client, mock_act
 
 
 # ── PUT /org/{orgnr}/activities/{activity_id} ────────────────────────────────
+
 
 @patch("api.routers.activities.log_audit")
 def test_update_activity_returns_200(mock_audit, client, mock_activity_svc):
@@ -130,6 +140,7 @@ def test_update_activity_returns_404(mock_audit, client, mock_activity_svc):
 
 # ── DELETE /org/{orgnr}/activities/{activity_id} ─────────────────────────────
 
+
 @patch("api.routers.activities.log_audit")
 def test_delete_activity_returns_204(mock_audit, client, mock_activity_svc):
     mock_activity_svc.delete.return_value = None
@@ -145,6 +156,7 @@ def test_delete_activity_returns_404(mock_audit, client, mock_activity_svc):
 
 
 # ── POST /activities/bulk-complete ───────────────────────────────────────────
+
 
 @patch("api.routers.activities.log_audit")
 def test_bulk_complete_returns_200(mock_audit, client, mock_activity_svc):

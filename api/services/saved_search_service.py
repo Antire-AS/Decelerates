@@ -1,4 +1,5 @@
 """Saved searches service — plan §🟢 #19. Per-user filter persistence."""
+
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
@@ -9,7 +10,6 @@ from api.domain.exceptions import NotFoundError
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class SavedSearchService:

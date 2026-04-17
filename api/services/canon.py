@@ -40,25 +40,20 @@ logger = logging.getLogger(__name__)
 # demo_seed.py uses, so seed data and broker input converge on the same
 # strings.
 _INSURER_SYNONYMS: dict[str, str] = {
-    "tryg":                  "Tryg Forsikring",
-    "tryg forsikring":       "Tryg Forsikring",
-    "tryg forsikring as":    "Tryg Forsikring",
-
-    "gjensidige":            "Gjensidige Forsikring",
+    "tryg": "Tryg Forsikring",
+    "tryg forsikring": "Tryg Forsikring",
+    "tryg forsikring as": "Tryg Forsikring",
+    "gjensidige": "Gjensidige Forsikring",
     "gjensidige forsikring": "Gjensidige Forsikring",
-
-    "if":                    "If Skadeforsikring",
-    "if skadeforsikring":    "If Skadeforsikring",
-    "if skade":              "If Skadeforsikring",
-
-    "fremtind":              "Fremtind Forsikring",
-    "fremtind forsikring":   "Fremtind Forsikring",
-
-    "storebrand":            "Storebrand Forsikring",
+    "if": "If Skadeforsikring",
+    "if skadeforsikring": "If Skadeforsikring",
+    "if skade": "If Skadeforsikring",
+    "fremtind": "Fremtind Forsikring",
+    "fremtind forsikring": "Fremtind Forsikring",
+    "storebrand": "Storebrand Forsikring",
     "storebrand forsikring": "Storebrand Forsikring",
-
-    "codan":                 "Codan Forsikring",
-    "codan forsikring":      "Codan Forsikring",
+    "codan": "Codan Forsikring",
+    "codan forsikring": "Codan Forsikring",
 }
 
 
@@ -81,18 +76,16 @@ def canonical_insurer_name(name: str | None) -> str | None:
 
 _PRODUCT_SYNONYMS: dict[str, str] = {
     # Avbrudd / driftsavbrudd — both refer to business interruption cover
-    "avbruddsforsikring":         "Driftsavbruddsforsikring",
-    "driftsavbruddsforsikring":   "Driftsavbruddsforsikring",
-
+    "avbruddsforsikring": "Driftsavbruddsforsikring",
+    "driftsavbruddsforsikring": "Driftsavbruddsforsikring",
     # Tings / tingsskade — both refer to property damage cover
-    "tingsforsikring":            "Tingsskadeforsikring",
-    "tingsskadeforsikring":       "Tingsskadeforsikring",
-
+    "tingsforsikring": "Tingsskadeforsikring",
+    "tingsskadeforsikring": "Tingsskadeforsikring",
     # D&O — both Norwegian and abbreviated English forms
-    "styreansvar":                "Styreansvarsforsikring",
-    "styreansvarsforsikring":     "Styreansvarsforsikring",
-    "styreansvar (d&o)":          "Styreansvarsforsikring",
-    "d&o":                        "Styreansvarsforsikring",
+    "styreansvar": "Styreansvarsforsikring",
+    "styreansvarsforsikring": "Styreansvarsforsikring",
+    "styreansvar (d&o)": "Styreansvarsforsikring",
+    "d&o": "Styreansvarsforsikring",
 }
 
 

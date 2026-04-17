@@ -1,11 +1,10 @@
 """Unit tests for api/services/accounting_service.py — AccountingService."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
-
-import pytest
 
 
 # ── Config detection ─────────────────────────────────────────────────────────
@@ -16,6 +15,7 @@ class TestIsTripletexConfigured:
         with patch("api.services.accounting_service._tripletex_config") as m:
             m.return_value = MagicMock(api_key="key123", company_id="co1")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         assert svc.is_tripletex_configured() is True
 
@@ -23,6 +23,7 @@ class TestIsTripletexConfigured:
         with patch("api.services.accounting_service._tripletex_config") as m:
             m.return_value = MagicMock(api_key="", company_id="co1")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         assert svc.is_tripletex_configured() is False
 
@@ -30,6 +31,7 @@ class TestIsTripletexConfigured:
         with patch("api.services.accounting_service._tripletex_config") as m:
             m.return_value = MagicMock(api_key="key123", company_id="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         assert svc.is_tripletex_configured() is False
 
@@ -39,6 +41,7 @@ class TestIsFikenConfigured:
         with patch("api.services.accounting_service._fiken_config") as m:
             m.return_value = MagicMock(access_token="tok", company_slug="slug")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         assert svc.is_fiken_configured() is True
 
@@ -46,6 +49,7 @@ class TestIsFikenConfigured:
         with patch("api.services.accounting_service._fiken_config") as m:
             m.return_value = MagicMock(access_token="", company_slug="slug")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         assert svc.is_fiken_configured() is False
 
@@ -55,11 +59,14 @@ class TestIsFikenConfigured:
 
 class TestSyncInvoicesToTripletex:
     def test_returns_error_when_not_configured(self):
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf:
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+        ):
             mt.return_value = MagicMock(api_key="", company_id="")
             mf.return_value = MagicMock(access_token="", company_slug="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         result = svc.sync_invoices_to_tripletex(firm_id=1)
         assert result["synced"] == 0
@@ -68,14 +75,19 @@ class TestSyncInvoicesToTripletex:
     def test_syncs_policies_successfully(self):
         db = MagicMock()
         policy = MagicMock(id=10, commission_amount_nok=5000.0)
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [policy]
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [
+            policy
+        ]
 
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf, \
-             patch("api.services.accounting_service._create_tripletex_invoice"):
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+            patch("api.services.accounting_service._create_tripletex_invoice"),
+        ):
             mt.return_value = MagicMock(api_key="key", company_id="co1")
             mf.return_value = MagicMock(access_token="", company_slug="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=db)
             result = svc.sync_invoices_to_tripletex(firm_id=1)
 
@@ -85,14 +97,22 @@ class TestSyncInvoicesToTripletex:
     def test_records_error_when_invoice_creation_fails(self):
         db = MagicMock()
         policy = MagicMock(id=99, commission_amount_nok=1000.0)
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [policy]
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [
+            policy
+        ]
 
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf, \
-             patch("api.services.accounting_service._create_tripletex_invoice", side_effect=RuntimeError("API down")):
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+            patch(
+                "api.services.accounting_service._create_tripletex_invoice",
+                side_effect=RuntimeError("API down"),
+            ),
+        ):
             mt.return_value = MagicMock(api_key="key", company_id="co1")
             mf.return_value = MagicMock(access_token="", company_slug="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=db)
             result = svc.sync_invoices_to_tripletex(firm_id=1)
 
@@ -103,11 +123,14 @@ class TestSyncInvoicesToTripletex:
 
 class TestSyncReceiptsToFiken:
     def test_returns_error_when_not_configured(self):
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf:
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+        ):
             mt.return_value = MagicMock(api_key="", company_id="")
             mf.return_value = MagicMock(access_token="", company_slug="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=MagicMock())
         result = svc.sync_receipts_to_fiken(firm_id=1)
         assert result["synced"] == 0
@@ -116,14 +139,19 @@ class TestSyncReceiptsToFiken:
     def test_syncs_receipts_successfully(self):
         db = MagicMock()
         policy = MagicMock(id=20, commission_amount_nok=3000.0)
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [policy]
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = [
+            policy
+        ]
 
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf, \
-             patch("api.services.accounting_service._create_fiken_receipt"):
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+            patch("api.services.accounting_service._create_fiken_receipt"),
+        ):
             mt.return_value = MagicMock(api_key="", company_id="")
             mf.return_value = MagicMock(access_token="tok", company_slug="slug")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=db)
             result = svc.sync_receipts_to_fiken(firm_id=1)
 
@@ -136,11 +164,14 @@ class TestGetSyncStatus:
         db = MagicMock()
         db.query.return_value.filter.return_value.filter.return_value.count.return_value = 5
 
-        with patch("api.services.accounting_service._tripletex_config") as mt, \
-             patch("api.services.accounting_service._fiken_config") as mf:
+        with (
+            patch("api.services.accounting_service._tripletex_config") as mt,
+            patch("api.services.accounting_service._fiken_config") as mf,
+        ):
             mt.return_value = MagicMock(api_key="key", company_id="co1")
             mf.return_value = MagicMock(access_token="", company_slug="")
             from api.services.accounting_service import AccountingService
+
             svc = AccountingService(db=db)
             result = svc.get_sync_status(firm_id=1)
 

@@ -58,6 +58,7 @@ logging.basicConfig(
 # Mirrors the gate in api/auth.py::_is_auth_disabled — kept here so the warning
 # fires once at boot, not on every request. Production cannot disable auth.
 from api.auth import _is_auth_disabled  # noqa: E402
+
 if _is_auth_disabled():
     logging.getLogger("api.auth").warning(
         "⚠ AUTH_DISABLED is active — ENVIRONMENT=%s. Anyone can hit any endpoint. "
@@ -68,6 +69,7 @@ if _is_auth_disabled():
 _ai_conn_str = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 if _ai_conn_str:
     from azure.monitor.opentelemetry import configure_azure_monitor
+
     configure_azure_monitor(connection_string=_ai_conn_str)
 
 # Sentry — secondary error tracker (free tier 5K errors/month). DSN empty by
@@ -77,6 +79,7 @@ if _ai_conn_str:
 _sentry_dsn = os.getenv("SENTRY_DSN")
 if _sentry_dsn:
     import sentry_sdk
+
     sentry_sdk.init(
         dsn=_sentry_dsn,
         environment=os.getenv("ENVIRONMENT", "development"),
@@ -141,6 +144,7 @@ app = FastAPI(title="Broker Accelerator API")
 # in 1.8.x; explicit instrument_app() is required.
 if _ai_conn_str:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     FastAPIInstrumentor.instrument_app(app)
 
 app.state.limiter = limiter
@@ -150,7 +154,9 @@ _cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
 if not _cors_origins:
     _env = os.getenv("ENVIRONMENT", "development")
     if _env in ("production", "staging"):
-        _log.warning("CORS_ORIGINS not set in %s — defaulting to meglerai.no only", _env)
+        logging.getLogger(__name__).warning(
+            "CORS_ORIGINS not set in %s — defaulting to meglerai.no only", _env
+        )
         _cors_origins = ["https://meglerai.no", "https://www.meglerai.no"]
     else:
         _cors_origins = ["*"]
@@ -192,7 +198,8 @@ def _run_migrations_with_lock(alembic_cfg) -> None:
         ).scalar()
         if not got_lock:
             logging.getLogger(__name__).warning(
-                "Advisory lock %d held by another session — running migrations without lock", _LOCK_ID
+                "Advisory lock %d held by another session — running migrations without lock",
+                _LOCK_ID,
             )
         try:
             alembic_command.upgrade(alembic_cfg, "head")
@@ -212,15 +219,19 @@ def _stamp_existing_db_if_needed(alembic_cfg) -> None:
     from api.db import engine  # reuse the already-configured psycopg3 engine
 
     with engine.connect() as conn:
-        has_version_table = conn.execute(text(
-            "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
-            "WHERE table_name = 'alembic_version')"
-        )).scalar()
-        if not has_version_table:
-            has_companies = conn.execute(text(
+        has_version_table = conn.execute(
+            text(
                 "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
-                "WHERE table_name = 'companies')"
-            )).scalar()
+                "WHERE table_name = 'alembic_version')"
+            )
+        ).scalar()
+        if not has_version_table:
+            has_companies = conn.execute(
+                text(
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                    "WHERE table_name = 'companies')"
+                )
+            ).scalar()
             if has_companies:
                 alembic_command.stamp(alembic_cfg, "4fa17f9b251a")
 
@@ -248,14 +259,24 @@ def on_startup():
 
         def _auto_seed_background():
             from api.db import Company
+
             db_seed = next(get_db())
             try:
-                if not db_seed.query(Company).filter(Company.orgnr == "999100101").first():
+                if (
+                    not db_seed.query(Company)
+                    .filter(Company.orgnr == "999100101")
+                    .first()
+                ):
                     from api.services.demo_seed import seed_full_demo
+
                     result = seed_full_demo(db_seed)
-                    logging.getLogger(__name__).info("Auto-seeded demo data: %s", result.get("message", ""))
+                    logging.getLogger(__name__).info(
+                        "Auto-seeded demo data: %s", result.get("message", "")
+                    )
             except Exception as exc:
-                logging.getLogger(__name__).warning("Auto-seed demo data failed: %s", exc)
+                logging.getLogger(__name__).warning(
+                    "Auto-seed demo data failed: %s", exc
+                )
                 db_seed.rollback()
             finally:
                 db_seed.close()
@@ -266,6 +287,7 @@ def on_startup():
     firm_name = os.getenv("BROKER_FIRM_NAME")
     if firm_name:
         from api.db import BrokerFirm
+
         db_firm = next(get_db())
         try:
             firm = db_firm.query(BrokerFirm).filter(BrokerFirm.id == 1).first()
@@ -278,6 +300,7 @@ def on_startup():
     # ── Expired client token cleanup ──────────────────────────────────────────
     from datetime import datetime, timezone as _tz
     from api.db import ClientToken
+
     db_tok = next(get_db())
     try:
         db_tok.query(ClientToken).filter(
@@ -293,9 +316,12 @@ def on_startup():
     db_gdpr = next(get_db())
     try:
         from api.services.gdpr_service import GdprService
+
         purged = GdprService(db_gdpr).purge_old_deletions()
         if purged:
-            logging.getLogger(__name__).info("GDPR purge: hard-deleted %d company records", purged)
+            logging.getLogger(__name__).info(
+                "GDPR purge: hard-deleted %d company records", purged
+            )
     except Exception:
         db_gdpr.rollback()
     finally:
@@ -314,6 +340,7 @@ def on_startup():
 
     def _handle_coverage_analysis(db, payload: dict):
         from api.services.coverage_service import CoverageService
+
         analysis_id = payload.get("analysis_id")
         if analysis_id:
             CoverageService(db).run_analysis(analysis_id)
@@ -326,6 +353,7 @@ def on_startup():
 
     async def _job_worker():
         from api.db import SessionLocal as _SL
+
         while True:
             try:
                 JobQueueService.process_pending(db_factory=_SL)
@@ -336,38 +364,40 @@ def on_startup():
     asyncio.get_event_loop().create_task(_job_worker())
 
     # ── DI container ──────────────────────────────────────────────────────────
-    configure(AppConfig(
-        blob=BlobStorageConfig(
-            endpoint=os.getenv("AZURE_BLOB_ENDPOINT"),
-        ),
-        notification=NotificationConfig(
-            conn_str=os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING"),
-            sender=os.getenv(
-                "ACS_SENDER_ADDRESS",
-                "donotreply@acs-broker-accelerator-prod.azurecomm.net",
+    configure(
+        AppConfig(
+            blob=BlobStorageConfig(
+                endpoint=os.getenv("AZURE_BLOB_ENDPOINT"),
             ),
-        ),
-        # Plan §🟢 #10 — MS Graph outbound. Empty strings until the broker
-        # firm completes the Azure AD app registration; is_configured() then
-        # returns False and POST /email/compose returns 503.
-        msgraph=MsGraphConfig(
-            tenant_id=os.getenv("AZURE_AD_TENANT_ID", ""),
-            client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
-            client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
-            service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
-        ),
-        # Antire Azure AI Foundry — primary LLM provider. OpenAI-compatible
-        # endpoint fronting gpt-5.4 / gpt-5.4-mini / kimi / glm. Phase 1 of
-        # the LLM-stack consolidation; consumers migrate one at a time.
-        foundry=FoundryConfig(
-            base_url=os.getenv("AZURE_FOUNDRY_BASE_URL"),
-            api_key=os.getenv("AZURE_FOUNDRY_API_KEY"),
-            default_text_model=os.getenv("AZURE_FOUNDRY_MODEL", "gpt-5.4-mini"),
-        ),
-        secret=SecretConfig(
-            vault_url=os.getenv("AZURE_KEYVAULT_URL"),
-        ),
-    ))
+            notification=NotificationConfig(
+                conn_str=os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING"),
+                sender=os.getenv(
+                    "ACS_SENDER_ADDRESS",
+                    "donotreply@acs-broker-accelerator-prod.azurecomm.net",
+                ),
+            ),
+            # Plan §🟢 #10 — MS Graph outbound. Empty strings until the broker
+            # firm completes the Azure AD app registration; is_configured() then
+            # returns False and POST /email/compose returns 503.
+            msgraph=MsGraphConfig(
+                tenant_id=os.getenv("AZURE_AD_TENANT_ID", ""),
+                client_id=os.getenv("AZURE_AD_CLIENT_ID", ""),
+                client_secret=os.getenv("AZURE_AD_CLIENT_SECRET", ""),
+                service_mailbox=os.getenv("MS_GRAPH_SERVICE_MAILBOX", ""),
+            ),
+            # Antire Azure AI Foundry — primary LLM provider. OpenAI-compatible
+            # endpoint fronting gpt-5.4 / gpt-5.4-mini / kimi / glm. Phase 1 of
+            # the LLM-stack consolidation; consumers migrate one at a time.
+            foundry=FoundryConfig(
+                base_url=os.getenv("AZURE_FOUNDRY_BASE_URL"),
+                api_key=os.getenv("AZURE_FOUNDRY_API_KEY"),
+                default_text_model=os.getenv("AZURE_FOUNDRY_MODEL", "gpt-5.4-mini"),
+            ),
+            secret=SecretConfig(
+                vault_url=os.getenv("AZURE_KEYVAULT_URL"),
+            ),
+        )
+    )
 
 
 # ── Routers ────────────────────────────────────────────────────────────────

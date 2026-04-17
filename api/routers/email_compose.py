@@ -5,6 +5,7 @@ Activity row of type=email so the timeline reflects what was sent.
 
 Returns 503 when the MS Graph adapter is not configured (env vars missing).
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -50,5 +51,10 @@ def compose_email(
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"E-postsending feilet: {exc}")
-    log_audit(db, "email.send", orgnr=body.orgnr, detail={"to": body.to, "subject": body.subject})
+    log_audit(
+        db,
+        "email.send",
+        orgnr=body.orgnr,
+        detail={"to": body.to, "subject": body.subject},
+    )
     return {"sent": True, "activity_id": activity.id}

@@ -1,4 +1,5 @@
 """Activity timeline / CRM log service."""
+
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -10,7 +11,6 @@ from api.schemas import ActivityIn, ActivityUpdate
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class ActivityService:
@@ -25,13 +25,16 @@ class ActivityService:
         assigned_to_user_id: Optional[int] = None,
     ) -> list[Activity]:
         q = self.db.query(Activity).filter(
-            Activity.orgnr == orgnr, Activity.firm_id == firm_id,
+            Activity.orgnr == orgnr,
+            Activity.firm_id == firm_id,
         )
         if assigned_to_user_id is not None:
             q = q.filter(Activity.assigned_to_user_id == assigned_to_user_id)
         return q.order_by(Activity.created_at.desc()).limit(limit).all()
 
-    def create(self, orgnr: str, firm_id: int, created_by: str, body: ActivityIn) -> Activity:
+    def create(
+        self, orgnr: str, firm_id: int, created_by: str, body: ActivityIn
+    ) -> Activity:
         try:
             atype = ActivityType[body.activity_type]
         except KeyError:

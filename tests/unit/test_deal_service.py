@@ -4,6 +4,7 @@ Mocked DB; covers stage CRUD, deal CRUD, stage transitions, and the
 audit-log calls. Tests are paranoid about firm_id scoping because the
 plan flagged this as a load-bearing tenant boundary.
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -71,7 +72,9 @@ def _stage_filter_returns(db, stage):
 def test_list_stages_filters_by_firm():
     db = _mock_db()
     stages = [_mock_stage(1), _mock_stage(2)]
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = stages
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        stages
+    )
     result = DealService(db).list_stages(firm_id=10)
     assert result == stages
 
@@ -83,7 +86,9 @@ def test_create_stage_persists_with_audit():
     db = _mock_db()
     body = PipelineStageCreate(name="Lead", kind="lead", order_index=0, color="#94A3B8")
     with patch("api.services.deal_service.log_audit") as mock_audit:
-        stage = DealService(db).create_stage(firm_id=10, body=body, actor_email="b@x.no")
+        stage = DealService(db).create_stage(
+            firm_id=10, body=body, actor_email="b@x.no"
+        )
     assert stage.firm_id == 10
     assert stage.name == "Lead"
     assert stage.kind == PipelineStageKind.lead
@@ -119,7 +124,9 @@ def test_update_stage_404_when_other_firm():
     db = _mock_db()
     _stage_filter_returns(db, None)
     with pytest.raises(NotFoundError):
-        DealService(db).update_stage(5, 10, PipelineStageUpdate(name="X"), actor_email="b@x.no")
+        DealService(db).update_stage(
+            5, 10, PipelineStageUpdate(name="X"), actor_email="b@x.no"
+        )
 
 
 # ── delete_stage ──────────────────────────────────────────────────────────────
@@ -152,7 +159,9 @@ def test_delete_stage_succeeds_when_empty():
 def test_list_deals_scopes_to_firm_only():
     db = _mock_db()
     deals = [_mock_deal(1), _mock_deal(2)]
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = deals
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        deals
+    )
     result = DealService(db).list_deals(firm_id=10)
     assert result == deals
 
@@ -181,7 +190,9 @@ def test_create_deal_persists_and_audits():
     db = _mock_db()
     stage = _mock_stage(stage_id=1, firm_id=10)
     _stage_filter_returns(db, stage)
-    body = DealCreate(orgnr="123456789", stage_id=1, title="Q3", expected_premium_nok=50_000)
+    body = DealCreate(
+        orgnr="123456789", stage_id=1, title="Q3", expected_premium_nok=50_000
+    )
     with patch("api.services.deal_service.log_audit") as mock_audit:
         deal = DealService(db).create_deal(firm_id=10, body=body, actor_email="b@x.no")
     assert deal.firm_id == 10
@@ -224,7 +235,9 @@ def test_move_to_stage_changes_stage_id_and_audits():
     new_stage = _mock_stage(stage_id=2, firm_id=10, kind=PipelineStageKind.quoted)
     db.query.return_value.filter.return_value.first.side_effect = [deal, new_stage]
     with patch("api.services.deal_service.log_audit") as mock_audit:
-        result = DealService(db).move_to_stage(1, 10, new_stage_id=2, actor_email="b@x.no")
+        result = DealService(db).move_to_stage(
+            1, 10, new_stage_id=2, actor_email="b@x.no"
+        )
     assert result.stage_id == 2
     mock_audit.assert_called_once()
     assert mock_audit.call_args.args[1] == "deal.stage_change"
@@ -233,20 +246,28 @@ def test_move_to_stage_changes_stage_id_and_audits():
 def test_move_to_won_stage_sets_won_at():
     db = _mock_db()
     deal = _mock_deal(deal_id=1, firm_id=10)
-    won_stage = _mock_stage(stage_id=5, firm_id=10, kind=PipelineStageKind.won, name="Bundet")
+    won_stage = _mock_stage(
+        stage_id=5, firm_id=10, kind=PipelineStageKind.won, name="Bundet"
+    )
     db.query.return_value.filter.return_value.first.side_effect = [deal, won_stage]
     with patch("api.services.deal_service.log_audit"):
-        result = DealService(db).move_to_stage(1, 10, new_stage_id=5, actor_email="b@x.no")
+        result = DealService(db).move_to_stage(
+            1, 10, new_stage_id=5, actor_email="b@x.no"
+        )
     assert result.won_at is not None
 
 
 def test_move_to_lost_stage_sets_lost_at():
     db = _mock_db()
     deal = _mock_deal(deal_id=1, firm_id=10)
-    lost_stage = _mock_stage(stage_id=6, firm_id=10, kind=PipelineStageKind.lost, name="Tapt")
+    lost_stage = _mock_stage(
+        stage_id=6, firm_id=10, kind=PipelineStageKind.lost, name="Tapt"
+    )
     db.query.return_value.filter.return_value.first.side_effect = [deal, lost_stage]
     with patch("api.services.deal_service.log_audit"):
-        result = DealService(db).move_to_stage(1, 10, new_stage_id=6, actor_email="b@x.no")
+        result = DealService(db).move_to_stage(
+            1, 10, new_stage_id=6, actor_email="b@x.no"
+        )
     assert result.lost_at is not None
 
 
@@ -256,12 +277,17 @@ def test_move_to_lost_stage_sets_lost_at():
 def test_lose_deal_records_reason_and_moves_to_lost_stage_when_present():
     db = _mock_db()
     deal = _mock_deal(deal_id=1, firm_id=10, stage_id=2)
-    lost_stage = _mock_stage(stage_id=99, firm_id=10, kind=PipelineStageKind.lost, name="Tapt")
+    lost_stage = _mock_stage(
+        stage_id=99, firm_id=10, kind=PipelineStageKind.lost, name="Tapt"
+    )
     # First .first() resolves the deal; second resolves the lost stage lookup.
     db.query.return_value.filter.return_value.first.side_effect = [deal, lost_stage]
     with patch("api.services.deal_service.log_audit") as mock_audit:
         result = DealService(db).lose_deal(
-            1, 10, reason="Picked competitor", actor_email="b@x.no",
+            1,
+            10,
+            reason="Picked competitor",
+            actor_email="b@x.no",
         )
     assert result.lost_reason == "Picked competitor"
     assert result.lost_at is not None

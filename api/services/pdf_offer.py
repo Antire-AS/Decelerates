@@ -1,18 +1,26 @@
 """Forsikringstilbud PDF generation + offer summary extraction."""
+
 from datetime import date, timedelta
 from typing import Any, Dict, List, Optional
 
 from fpdf import FPDF
 
-from api.services.pdf_base import _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE, _MUST_RED, _REC_ORG, _OPT_GRY
+from api.services.pdf_base import (
+    _DARK_BLUE,
+    _MID_BLUE,
+    _LIGHT_BLUE,
+    _MUST_RED,
+    _REC_ORG,
+    _OPT_GRY,
+)
 from api.services.llm import _llm_answer_raw, _parse_json_from_llm_response
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-
 # ── Priority colour helper ────────────────────────────────────────────────────
+
 
 def _priority_color(p: str) -> tuple:
     p = (p or "").lower()
@@ -25,10 +33,19 @@ def _priority_color(p: str) -> tuple:
 
 # ── Offer summary extraction ──────────────────────────────────────────────────
 
+
 def _extract_offer_summary(insurer: str, extracted_text: str) -> dict:
     """Use LLM to extract key terms from a stored insurance offer."""
     if not extracted_text:
-        return {"selskap": insurer, "premie": "–", "dekning": "–", "egenandel": "–", "vilkaar": "–", "styrker": "–", "svakheter": "–"}
+        return {
+            "selskap": insurer,
+            "premie": "–",
+            "dekning": "–",
+            "egenandel": "–",
+            "vilkaar": "–",
+            "styrker": "–",
+            "svakheter": "–",
+        }
     snippet = extracted_text[:6000]
     prompt = (
         f"Du er en forsikringsekspert. Trekk ut nøkkeltall fra dette forsikringstilbudet fra {insurer}.\n\n"
@@ -44,14 +61,27 @@ def _extract_offer_summary(insurer: str, extracted_text: str) -> dict:
         if data:
             data["selskap"] = insurer
             return data
-    return {"selskap": insurer, "premie": "–", "dekning": extracted_text[:120] + "…", "egenandel": "–", "vilkaar": "–", "styrker": "–", "svakheter": "–"}
+    return {
+        "selskap": insurer,
+        "premie": "–",
+        "dekning": extracted_text[:120] + "…",
+        "egenandel": "–",
+        "vilkaar": "–",
+        "styrker": "–",
+        "svakheter": "–",
+    }
 
 
 # ── Forsikringstilbud page builders ──────────────────────────────────────────
 
+
 def _build_tilbud_broker_header(
-    pdf: Any, broker_name: str, broker_contact: str, broker_email: str,
-    broker_phone: str, DARK_BLUE: tuple,
+    pdf: Any,
+    broker_name: str,
+    broker_contact: str,
+    broker_email: str,
+    broker_phone: str,
+    DARK_BLUE: tuple,
 ) -> None:
     pdf.set_fill_color(*DARK_BLUE)
     pdf.rect(0, 0, 210, 28, "F")
@@ -62,7 +92,9 @@ def _build_tilbud_broker_header(
     pdf.set_font("Helvetica", "", 9)
     pdf.set_xy(18, 19)
     if broker_contact:
-        pdf.cell(0, 5, f"{broker_contact}  |  {broker_email}  |  {broker_phone}", ln=True)
+        pdf.cell(
+            0, 5, f"{broker_contact}  |  {broker_email}  |  {broker_phone}", ln=True
+        )
     pdf.set_text_color(0, 0, 0)
     pdf.set_xy(18, 38)
     pdf.set_font("Helvetica", "B", 28)
@@ -74,9 +106,15 @@ def _build_tilbud_broker_header(
 
 
 def _build_client_company_info(
-    pdf: Any, navn: str, orgnr: str, org_form: Optional[str],
-    nace: Optional[str], nace_desc: Optional[str], kommune: Optional[str],
-    DARK_BLUE: tuple, LIGHT_BLUE: tuple,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    org_form: Optional[str],
+    nace: Optional[str],
+    nace_desc: Optional[str],
+    kommune: Optional[str],
+    DARK_BLUE: tuple,
+    LIGHT_BLUE: tuple,
 ) -> None:
     pdf.ln(8)
     pdf.set_fill_color(*LIGHT_BLUE)
@@ -97,8 +135,14 @@ def _build_client_company_info(
 
 
 def _build_client_summary_and_premium(
-    pdf: Any, today_str: str, valid_str: str, n_dekninger: int,
-    sammendrag: str, total_premie: str, DARK_BLUE: tuple, MID_BLUE: tuple,
+    pdf: Any,
+    today_str: str,
+    valid_str: str,
+    n_dekninger: int,
+    sammendrag: str,
+    total_premie: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
 ) -> None:
     pdf.set_y(pdf.get_y() + 14)
     pdf.set_font("Helvetica", "", 10)
@@ -125,42 +169,104 @@ def _build_client_summary_and_premium(
     pdf.ln(4)
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(0, 5, "Alle premier er veiledende estimater og kan variere ved endelig tegning.", ln=True)
+    pdf.cell(
+        0,
+        5,
+        "Alle premier er veiledende estimater og kan variere ved endelig tegning.",
+        ln=True,
+    )
 
 
 def _build_tilbud_client_box(
-    pdf: Any, navn: str, orgnr: str, org_form: Optional[str],
-    nace: Optional[str], nace_desc: Optional[str], kommune: Optional[str],
-    today_str: str, valid_str: str, n_dekninger: int,
-    sammendrag: str, total_premie: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple, LIGHT_BLUE: tuple,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    org_form: Optional[str],
+    nace: Optional[str],
+    nace_desc: Optional[str],
+    kommune: Optional[str],
+    today_str: str,
+    valid_str: str,
+    n_dekninger: int,
+    sammendrag: str,
+    total_premie: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
+    LIGHT_BLUE: tuple,
 ) -> None:
-    _build_client_company_info(pdf, navn, orgnr, org_form, nace, nace_desc, kommune,
-                               DARK_BLUE, LIGHT_BLUE)
-    _build_client_summary_and_premium(pdf, today_str, valid_str, n_dekninger,
-                                      sammendrag, total_premie, DARK_BLUE, MID_BLUE)
+    _build_client_company_info(
+        pdf, navn, orgnr, org_form, nace, nace_desc, kommune, DARK_BLUE, LIGHT_BLUE
+    )
+    _build_client_summary_and_premium(
+        pdf,
+        today_str,
+        valid_str,
+        n_dekninger,
+        sammendrag,
+        total_premie,
+        DARK_BLUE,
+        MID_BLUE,
+    )
 
 
 def _build_tilbud_forside(
-    pdf: Any, navn: str, orgnr: str, org_form: Optional[str],
-    nace: Optional[str], nace_desc: Optional[str], kommune: Optional[str],
-    broker_name: str, broker_contact: str, broker_email: str, broker_phone: str,
-    today_str: str, valid_str: str, anbefalinger: List[Dict[str, Any]],
-    sammendrag: str, total_premie: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple, LIGHT_BLUE: tuple,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    org_form: Optional[str],
+    nace: Optional[str],
+    nace_desc: Optional[str],
+    kommune: Optional[str],
+    broker_name: str,
+    broker_contact: str,
+    broker_email: str,
+    broker_phone: str,
+    today_str: str,
+    valid_str: str,
+    anbefalinger: List[Dict[str, Any]],
+    sammendrag: str,
+    total_premie: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
+    LIGHT_BLUE: tuple,
 ) -> None:
     pdf.add_page()
-    _build_tilbud_broker_header(pdf, broker_name, broker_contact, broker_email, broker_phone, DARK_BLUE)
-    _build_tilbud_client_box(pdf, navn, orgnr, org_form, nace, nace_desc, kommune,
-                             today_str, valid_str, len(anbefalinger),
-                             sammendrag, total_premie, DARK_BLUE, MID_BLUE, LIGHT_BLUE)
+    _build_tilbud_broker_header(
+        pdf, broker_name, broker_contact, broker_email, broker_phone, DARK_BLUE
+    )
+    _build_tilbud_client_box(
+        pdf,
+        navn,
+        orgnr,
+        org_form,
+        nace,
+        nace_desc,
+        kommune,
+        today_str,
+        valid_str,
+        len(anbefalinger),
+        sammendrag,
+        total_premie,
+        DARK_BLUE,
+        MID_BLUE,
+        LIGHT_BLUE,
+    )
 
 
 def _build_offers_comparison_table(
-    pdf: Any, offer_summaries: List[Dict[str, Any]], today_str: str, DARK_BLUE: tuple,
+    pdf: Any,
+    offer_summaries: List[Dict[str, Any]],
+    today_str: str,
+    DARK_BLUE: tuple,
 ) -> None:
     col_w = [38, 32, 38, 28, 38]
-    headers = ["Forsikringsselskap", "Premie/år", "Dekning", "Egenandel", "Særlige vilkår"]
+    headers = [
+        "Forsikringsselskap",
+        "Premie/år",
+        "Dekning",
+        "Egenandel",
+        "Særlige vilkår",
+    ]
     pdf.set_fill_color(*DARK_BLUE)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 8)
@@ -176,13 +282,18 @@ def _build_offers_comparison_table(
         pdf.set_font("Helvetica", "", 8)
         pdf.cell(col_w[1], 7, str(s.get("premie") or "–")[:18], border="TB", fill=fill)
         pdf.cell(col_w[2], 7, str(s.get("dekning") or "–")[:25], border="TB", fill=fill)
-        pdf.cell(col_w[3], 7, str(s.get("egenandel") or "–")[:16], border="TB", fill=fill)
+        pdf.cell(
+            col_w[3], 7, str(s.get("egenandel") or "–")[:16], border="TB", fill=fill
+        )
         pdf.cell(col_w[4], 7, str(s.get("vilkaar") or "–")[:25], border="TB", fill=fill)
         pdf.ln()
 
 
 def _build_offers_strengths_section(
-    pdf: Any, offer_summaries: List[Dict[str, Any]], DARK_BLUE: tuple, MID_BLUE: tuple,
+    pdf: Any,
+    offer_summaries: List[Dict[str, Any]],
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
 ) -> None:
     pdf.ln(6)
     pdf.set_font("Helvetica", "B", 11)
@@ -207,8 +318,11 @@ def _build_offers_strengths_section(
 
 
 def _build_tilbud_offers_page(
-    pdf: Any, offer_summaries: List[Dict[str, Any]], today_str: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple,
+    pdf: Any,
+    offer_summaries: List[Dict[str, Any]],
+    today_str: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
 ) -> None:
     pdf.add_page()
     pdf.set_text_color(*DARK_BLUE)
@@ -216,14 +330,23 @@ def _build_tilbud_offers_page(
     pdf.cell(0, 10, "Innhentede tilbud fra forsikringsselskaper", ln=True)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 5, f"{len(offer_summaries)} tilbud mottatt og analysert  ·  {today_str}", ln=True)
+    pdf.cell(
+        0,
+        5,
+        f"{len(offer_summaries)} tilbud mottatt og analysert  ·  {today_str}",
+        ln=True,
+    )
     pdf.ln(5)
     _build_offers_comparison_table(pdf, offer_summaries, today_str, DARK_BLUE)
     _build_offers_strengths_section(pdf, offer_summaries, DARK_BLUE, MID_BLUE)
 
 
 def _build_coverage_table_header(
-    pdf: Any, navn: str, orgnr: str, today_str: str, DARK_BLUE: tuple,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    today_str: str,
+    DARK_BLUE: tuple,
 ) -> None:
     pdf.set_text_color(*DARK_BLUE)
     pdf.set_font("Helvetica", "B", 16)
@@ -242,7 +365,9 @@ def _build_coverage_table_header(
 
 
 def _build_coverage_table_rows(
-    pdf: Any, anbefalinger: List[Dict[str, Any]], priority_color: Any,
+    pdf: Any,
+    anbefalinger: List[Dict[str, Any]],
+    priority_color: Any,
 ) -> None:
     for i, rec in enumerate(anbefalinger):
         fill = i % 2 == 0
@@ -258,7 +383,9 @@ def _build_coverage_table_rows(
         pdf.cell(22, row_h, pri, border="TB", fill=fill)
         pdf.set_text_color(30, 30, 30)
         pdf.set_font("Helvetica", "", 9)
-        pdf.cell(40, row_h, str(rec.get("anbefalt_sum") or "")[:25], border="TB", fill=fill)
+        pdf.cell(
+            40, row_h, str(rec.get("anbefalt_sum") or "")[:25], border="TB", fill=fill
+        )
         pdf.cell(54, row_h, beg, border="TB", fill=fill, ln=True)
 
 
@@ -273,8 +400,14 @@ def _build_coverage_table_total(pdf: Any, total_premie: str, DARK_BLUE: tuple) -
 
 
 def _build_tilbud_coverage_table(
-    pdf: Any, navn: str, orgnr: str, anbefalinger: List[Dict[str, Any]],
-    total_premie: str, today_str: str, DARK_BLUE: tuple, priority_color: Any,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    anbefalinger: List[Dict[str, Any]],
+    total_premie: str,
+    today_str: str,
+    DARK_BLUE: tuple,
+    priority_color: Any,
 ) -> None:
     pdf.add_page()
     _build_coverage_table_header(pdf, navn, orgnr, today_str, DARK_BLUE)
@@ -283,7 +416,10 @@ def _build_tilbud_coverage_table(
 
 
 def _build_detail_header(
-    pdf: Any, rec: Dict[str, Any], MID_BLUE: tuple, priority_color: Any,
+    pdf: Any,
+    rec: Dict[str, Any],
+    MID_BLUE: tuple,
+    priority_color: Any,
 ) -> None:
     pri = str(rec.get("prioritet") or "")
     pdf.set_fill_color(*MID_BLUE)
@@ -319,16 +455,21 @@ def _build_detail_content(pdf: Any, rec: Dict[str, Any]) -> None:
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(100, 100, 100)
     pdf.multi_cell(
-        0, 5,
+        0,
+        5,
         "Dekningsomfang og vilkår fastsettes endelig ved tegning. "
         "Premier er estimater basert på oppgitte nøkkeltall og kan avvike fra endelig premie. "
         "Forsikringsselskap og produktvalg klargjøres i endelig tilbud.",
-        border=1, fill=True,
+        border=1,
+        fill=True,
     )
 
 
 def _build_tilbud_coverage_detail(
-    pdf: Any, rec: Dict[str, Any], MID_BLUE: tuple, priority_color: Any,
+    pdf: Any,
+    rec: Dict[str, Any],
+    MID_BLUE: tuple,
+    priority_color: Any,
 ) -> None:
     pdf.add_page()
     _build_detail_header(pdf, rec, MID_BLUE, priority_color)
@@ -352,9 +493,15 @@ def _build_terms_bullets(pdf: Any, broker_name: str, today_str: str) -> None:
 
 
 def _build_tilbud_terms_page(
-    pdf: Any, navn: str, orgnr: str, broker_name: str,
-    broker_contact: str, broker_phone: str, today_str: str,
-    DARK_BLUE: tuple, MID_BLUE: tuple,
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    broker_name: str,
+    broker_contact: str,
+    broker_phone: str,
+    today_str: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
 ) -> None:
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 14)
@@ -379,10 +526,16 @@ def _build_tilbud_terms_page(
     pdf.ln(3)
     pdf.set_font("Helvetica", "I", 7)
     pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 5, f"Generert {today_str} av Broker Accelerator  ·  Ikke bindende uten signatur fra begge parter.", ln=True)
+    pdf.cell(
+        0,
+        5,
+        f"Generert {today_str} av Broker Accelerator  ·  Ikke bindende uten signatur fra begge parter.",
+        ln=True,
+    )
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 def generate_forsikringstilbud_pdf(
     orgnr: str,
@@ -406,16 +559,52 @@ def generate_forsikringstilbud_pdf(
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.set_margins(18, 15, 18)
-    _build_tilbud_forside(pdf, navn, orgnr, organisasjonsform_kode, naeringskode1,
-                          naeringskode1_beskrivelse, kommune, broker_name, broker_contact,
-                          broker_email, broker_phone, today_str, valid_str, anbefalinger,
-                          sammendrag, total_premie, _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE)
+    _build_tilbud_forside(
+        pdf,
+        navn,
+        orgnr,
+        organisasjonsform_kode,
+        naeringskode1,
+        naeringskode1_beskrivelse,
+        kommune,
+        broker_name,
+        broker_contact,
+        broker_email,
+        broker_phone,
+        today_str,
+        valid_str,
+        anbefalinger,
+        sammendrag,
+        total_premie,
+        _DARK_BLUE,
+        _MID_BLUE,
+        _LIGHT_BLUE,
+    )
     if offer_summaries:
-        _build_tilbud_offers_page(pdf, offer_summaries, today_str, _DARK_BLUE, _MID_BLUE)
-    _build_tilbud_coverage_table(pdf, navn, orgnr, anbefalinger, total_premie, today_str,
-                                 _DARK_BLUE, _priority_color)
+        _build_tilbud_offers_page(
+            pdf, offer_summaries, today_str, _DARK_BLUE, _MID_BLUE
+        )
+    _build_tilbud_coverage_table(
+        pdf,
+        navn,
+        orgnr,
+        anbefalinger,
+        total_premie,
+        today_str,
+        _DARK_BLUE,
+        _priority_color,
+    )
     for rec in anbefalinger:
         _build_tilbud_coverage_detail(pdf, rec, _MID_BLUE, _priority_color)
-    _build_tilbud_terms_page(pdf, navn, orgnr, broker_name, broker_contact, broker_phone,
-                             today_str, _DARK_BLUE, _MID_BLUE)
+    _build_tilbud_terms_page(
+        pdf,
+        navn,
+        orgnr,
+        broker_name,
+        broker_contact,
+        broker_phone,
+        today_str,
+        _DARK_BLUE,
+        _MID_BLUE,
+    )
     return bytes(pdf.output())

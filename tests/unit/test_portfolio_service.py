@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -14,14 +15,15 @@ from api.services.portfolio import PortfolioService, collect_alerts
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_portfolio(**kwargs):
     p = MagicMock(spec=Portfolio)
-    p.id      = kwargs.get("id", 1)
-    p.name    = kwargs.get("name", "Test Portfolio")
+    p.id = kwargs.get("id", 1)
+    p.name = kwargs.get("name", "Test Portfolio")
     p.firm_id = kwargs.get("firm_id", 10)
     return p
 
@@ -29,38 +31,41 @@ def _mock_portfolio(**kwargs):
 def _mock_pc(**kwargs):
     pc = MagicMock(spec=PortfolioCompany)
     pc.portfolio_id = kwargs.get("portfolio_id", 1)
-    pc.orgnr        = kwargs.get("orgnr", "123456789")
-    pc.added_at     = kwargs.get("added_at", "2026-01-01T00:00:00+00:00")
+    pc.orgnr = kwargs.get("orgnr", "123456789")
+    pc.added_at = kwargs.get("added_at", "2026-01-01T00:00:00+00:00")
     return pc
 
 
 def _mock_company(**kwargs):
     c = MagicMock(spec=Company)
-    c.orgnr                       = kwargs.get("orgnr", "123456789")
-    c.navn                        = kwargs.get("navn", "Test AS")
-    c.kommune                     = kwargs.get("kommune", "Oslo")
-    c.naeringskode1_beskrivelse   = kwargs.get("naeringskode1_beskrivelse", "IT-tjenester")
-    c.naeringskode1               = kwargs.get("naeringskode1", "62.010")
-    c.risk_score                  = kwargs.get("risk_score", 3)
-    c.regnskapsår                 = kwargs.get("regnskapsår", 2024)
-    c.sum_driftsinntekter         = kwargs.get("sum_driftsinntekter", 5_000_000)
-    c.sum_egenkapital             = kwargs.get("sum_egenkapital", 2_000_000)
-    c.equity_ratio                = kwargs.get("equity_ratio", 0.4)
+    c.orgnr = kwargs.get("orgnr", "123456789")
+    c.navn = kwargs.get("navn", "Test AS")
+    c.kommune = kwargs.get("kommune", "Oslo")
+    c.naeringskode1_beskrivelse = kwargs.get(
+        "naeringskode1_beskrivelse", "IT-tjenester"
+    )
+    c.naeringskode1 = kwargs.get("naeringskode1", "62.010")
+    c.risk_score = kwargs.get("risk_score", 3)
+    c.regnskapsår = kwargs.get("regnskapsår", 2024)
+    c.sum_driftsinntekter = kwargs.get("sum_driftsinntekter", 5_000_000)
+    c.sum_egenkapital = kwargs.get("sum_egenkapital", 2_000_000)
+    c.equity_ratio = kwargs.get("equity_ratio", 0.4)
     return c
 
 
 def _mock_hist(**kwargs):
     h = MagicMock(spec=CompanyHistory)
-    h.orgnr       = kwargs.get("orgnr", "123456789")
-    h.year        = kwargs.get("year", 2024)
-    h.revenue     = kwargs.get("revenue", 10_000_000)
-    h.equity      = kwargs.get("equity", 4_000_000)
+    h.orgnr = kwargs.get("orgnr", "123456789")
+    h.year = kwargs.get("year", 2024)
+    h.revenue = kwargs.get("revenue", 10_000_000)
+    h.equity = kwargs.get("equity", 4_000_000)
     h.equity_ratio = kwargs.get("equity_ratio", 0.4)
     h.antall_ansatte = kwargs.get("antall_ansatte", 50)
     return h
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+
 
 def test_create_adds_to_db_and_commits():
     db = _mock_db()
@@ -105,10 +110,13 @@ def test_create_returns_portfolio():
 
 # ── list_portfolios ───────────────────────────────────────────────────────────
 
+
 def test_list_portfolios_returns_results():
     portfolios = [_mock_portfolio(), _mock_portfolio(id=2)]
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = portfolios
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        portfolios
+    )
     result = PortfolioService(db).list_portfolios(10)
     assert result == portfolios
 
@@ -121,6 +129,7 @@ def test_list_portfolios_returns_empty_when_none():
 
 
 # ── get ───────────────────────────────────────────────────────────────────────
+
 
 def test_get_returns_portfolio_when_found():
     portfolio = _mock_portfolio()
@@ -141,18 +150,23 @@ def test_get_with_firm_id_applies_additional_filter():
     portfolio = _mock_portfolio()
     db = _mock_db()
     # Chained filter calls — both filters applied
-    db.query.return_value.filter.return_value.filter.return_value.first.return_value = portfolio
+    db.query.return_value.filter.return_value.filter.return_value.first.return_value = (
+        portfolio
+    )
     result = PortfolioService(db).get(1, firm_id=10)
     assert result is portfolio
 
 
 # ── delete ────────────────────────────────────────────────────────────────────
 
+
 def test_delete_removes_portfolio_and_commits():
     portfolio = _mock_portfolio()
     db = _mock_db()
     # delete() → get(id, firm_id) → .filter().filter().first()
-    db.query.return_value.filter.return_value.filter.return_value.first.return_value = portfolio
+    db.query.return_value.filter.return_value.filter.return_value.first.return_value = (
+        portfolio
+    )
     PortfolioService(db).delete(1, 10)
     db.delete.assert_called_once_with(portfolio)
     db.commit.assert_called_once()
@@ -160,18 +174,22 @@ def test_delete_removes_portfolio_and_commits():
 
 def test_delete_raises_not_found_when_missing():
     db = _mock_db()
-    db.query.return_value.filter.return_value.filter.return_value.first.return_value = None
+    db.query.return_value.filter.return_value.filter.return_value.first.return_value = (
+        None
+    )
     with pytest.raises(NotFoundError):
         PortfolioService(db).delete(999, 10)
 
 
 # ── add_company ───────────────────────────────────────────────────────────────
 
+
 def test_add_company_adds_when_not_existing():
     db = _mock_db()
     # get() → portfolio found; existing check → None
     db.query.return_value.filter.return_value.first.side_effect = [
-        _mock_portfolio(), None
+        _mock_portfolio(),
+        None,
     ]
     PortfolioService(db).add_company(1, "123456789")
     db.add.assert_called_once()
@@ -181,7 +199,8 @@ def test_add_company_adds_when_not_existing():
 def test_add_company_skips_when_already_member():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.side_effect = [
-        _mock_portfolio(), _mock_pc()
+        _mock_portfolio(),
+        _mock_pc(),
     ]
     PortfolioService(db).add_company(1, "123456789")
     db.add.assert_not_called()
@@ -197,7 +216,8 @@ def test_add_company_raises_not_found_for_missing_portfolio():
 def test_add_company_sets_orgnr():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.side_effect = [
-        _mock_portfolio(), None
+        _mock_portfolio(),
+        None,
     ]
     PortfolioService(db).add_company(1, "987654321")
     added = db.add.call_args[0][0]
@@ -205,6 +225,7 @@ def test_add_company_sets_orgnr():
 
 
 # ── remove_company ────────────────────────────────────────────────────────────
+
 
 def test_remove_company_deletes_when_found():
     pc = _mock_pc()
@@ -224,6 +245,7 @@ def test_remove_company_is_noop_when_not_member():
 
 
 # ── get_risk_summary ──────────────────────────────────────────────────────────
+
 
 def _db_for_risk_summary(pc_list, company=None, hist=None):
     """Return a mock DB wired for get_risk_summary batch queries.
@@ -247,7 +269,9 @@ def _db_for_risk_summary(pc_list, company=None, hist=None):
             m.join.return_value.all.return_value = hist_list
         else:
             # subquery: .filter().group_by().subquery()
-            m.filter.return_value.group_by.return_value.subquery.return_value = MagicMock()
+            m.filter.return_value.group_by.return_value.subquery.return_value = (
+                MagicMock()
+            )
         return m
 
     db = _mock_db()
@@ -315,7 +339,9 @@ def test_get_risk_summary_sorted_by_risk_score_desc():
         elif first is CompanyHistory:
             m.join.return_value.all.return_value = []
         else:
-            m.filter.return_value.group_by.return_value.subquery.return_value = MagicMock()
+            m.filter.return_value.group_by.return_value.subquery.return_value = (
+                MagicMock()
+            )
         return m
 
     db = _mock_db()
@@ -333,6 +359,7 @@ def test_get_risk_summary_empty_portfolio():
 
 # ── collect_alerts ────────────────────────────────────────────────────────────
 
+
 def _db_for_alerts(orgnrs, histories_by_orgnr, companies=None):
     db = _mock_db()
     pcs = [_mock_pc(orgnr=o) for o in orgnrs]
@@ -344,17 +371,28 @@ def _db_for_alerts(orgnrs, histories_by_orgnr, companies=None):
     all_hist = []
     for o in orgnrs:
         for h in histories_by_orgnr.get(o, []):
-            all_hist.append(SimpleNamespace(
-                orgnr=o, year=h.year, revenue=h.revenue,
-                equity_ratio=h.equity_ratio, antall_ansatte=h.antall_ansatte,
-            ))
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = all_hist
+            all_hist.append(
+                SimpleNamespace(
+                    orgnr=o,
+                    year=h.year,
+                    revenue=h.revenue,
+                    equity_ratio=h.equity_ratio,
+                    antall_ansatte=h.antall_ansatte,
+                )
+            )
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        all_hist
+    )
     return db
 
 
 def _make_hist(year, revenue=None, equity_ratio=None, antall_ansatte=None):
-    h = SimpleNamespace(year=year, revenue=revenue, equity_ratio=equity_ratio,
-                        antall_ansatte=antall_ansatte)
+    h = SimpleNamespace(
+        year=year,
+        revenue=revenue,
+        equity_ratio=equity_ratio,
+        antall_ansatte=antall_ansatte,
+    )
     return h
 
 
@@ -439,7 +477,9 @@ def test_collect_alerts_sorted_kritisk_first():
     db = _db_for_alerts(["123456789"], {"123456789": hist})
     result = collect_alerts(1, db)
     severities = [a["severity"] for a in result]
-    assert severities == sorted(severities, key=lambda s: {"Kritisk": 0, "Høy": 1, "Moderat": 2}[s])
+    assert severities == sorted(
+        severities, key=lambda s: {"Kritisk": 0, "Høy": 1, "Moderat": 2}[s]
+    )
 
 
 def test_collect_alerts_no_false_positive_for_stable_company():

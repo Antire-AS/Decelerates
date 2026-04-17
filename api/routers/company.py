@@ -4,8 +4,16 @@ import requests
 from fastapi import APIRouter, Query, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 
-from api.services import fetch_enhetsregisteret, fetch_finanstilsynet_licenses, fetch_org_profile, list_companies as _list_companies
-from api.services.insurance_needs import estimate_insurance_needs, build_insurance_narrative
+from api.services import (
+    fetch_enhetsregisteret,
+    fetch_finanstilsynet_licenses,
+    fetch_org_profile,
+    list_companies as _list_companies,
+)
+from api.services.insurance_needs import (
+    estimate_insurance_needs,
+    build_insurance_narrative,
+)
 from api.services.audit import log_audit
 from api.services.job_queue_service import JobQueueService
 from api.auth import get_optional_user, CurrentUser
@@ -50,8 +58,13 @@ def get_org_profile(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     org = (result or {}).get("org")
-    log_audit(db, "view_company", orgnr=orgnr, actor_email=user.email if user else None,
-              detail={"navn": (org or {}).get("navn")})
+    log_audit(
+        db,
+        "view_company",
+        orgnr=orgnr,
+        actor_email=user.email if user else None,
+        detail={"navn": (org or {}).get("navn")},
+    )
     JobQueueService(db).enqueue("pdf_extract", {"orgnr": orgnr, "org": org})
 
     return result
@@ -81,7 +94,9 @@ def list_companies(
     db: Session = Depends(get_db),
 ) -> list:
     return _list_companies(
-        limit, kommune, db,
+        limit,
+        kommune,
+        db,
         nace_section=nace_section,
         min_revenue=min_revenue,
         max_revenue=max_revenue,
@@ -114,12 +129,16 @@ def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
         # Company not yet saved to DB — fetch live from BRREG
         brreg = fetch_enhet_by_orgnr(orgnr) or {}
         if not brreg:
-            raise HTTPException(status_code=404, detail="Organisation not found in BRREG")
+            raise HTTPException(
+                status_code=404, detail="Organisation not found in BRREG"
+            )
         org = {
             "orgnr": orgnr,
             "navn": brreg.get("navn"),
             "naeringskode1": (brreg.get("naeringskode1") or {}).get("kode"),
-            "organisasjonsform_kode": (brreg.get("organisasjonsform") or {}).get("kode"),
+            "organisasjonsform_kode": (brreg.get("organisasjonsform") or {}).get(
+                "kode"
+            ),
             "antall_ansatte": brreg.get("antallAnsatte"),
             "sum_driftsinntekter": None,
             "sum_eiendeler": None,
@@ -127,11 +146,15 @@ def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
         }
 
     latest = (
-        db.query(CompanyHistory)
-        .filter(CompanyHistory.orgnr == orgnr)
-        .order_by(CompanyHistory.year.desc())
-        .first()
-    ) if db_obj else None
+        (
+            db.query(CompanyHistory)
+            .filter(CompanyHistory.orgnr == orgnr)
+            .order_by(CompanyHistory.year.desc())
+            .first()
+        )
+        if db_obj
+        else None
+    )
 
     regn = {}
     if latest:
@@ -170,11 +193,15 @@ def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
         pass
 
     peers = (
-        db.query(Company)
-        .filter(Company.orgnr != orgnr, Company.naeringskode1.like(f"{nace[:2]}%"))
-        .filter(Company.sum_driftsinntekter.isnot(None))
-        .all()
-    ) if len(nace) >= 2 else []
+        (
+            db.query(Company)
+            .filter(Company.orgnr != orgnr, Company.naeringskode1.like(f"{nace[:2]}%"))
+            .filter(Company.sum_driftsinntekter.isnot(None))
+            .all()
+        )
+        if len(nace) >= 2
+        else []
+    )
 
     def _pct(val, values):
         if val is None or not values:
@@ -194,7 +221,9 @@ def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
             },
             "revenue": {
                 "company": db_obj.sum_driftsinntekter,
-                "peer_avg": round(statistics.mean(peer_revenues)) if peer_revenues else None,
+                "peer_avg": round(statistics.mean(peer_revenues))
+                if peer_revenues
+                else None,
                 "percentile": _pct(db_obj.sum_driftsinntekter, peer_revenues),
             },
             "risk_score": {
@@ -206,15 +235,27 @@ def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
         source = "db_peers"
     else:
         bench = NACE_BENCHMARKS.get(section, {})
-        eq_mid = (bench.get("eq_ratio_min", 0) + bench.get("eq_ratio_max", 0)) / 2 if bench else None
+        eq_mid = (
+            (bench.get("eq_ratio_min", 0) + bench.get("eq_ratio_max", 0)) / 2
+            if bench
+            else None
+        )
         metrics = {
             "equity_ratio": {
                 "company": db_obj.equity_ratio,
                 "peer_avg": round(eq_mid, 3) if eq_mid else None,
                 "percentile": None,
             },
-            "revenue": {"company": db_obj.sum_driftsinntekter, "peer_avg": None, "percentile": None},
-            "risk_score": {"company": db_obj.risk_score, "peer_avg": None, "percentile": None},
+            "revenue": {
+                "company": db_obj.sum_driftsinntekter,
+                "peer_avg": None,
+                "percentile": None,
+            },
+            "risk_score": {
+                "company": db_obj.risk_score,
+                "peer_avg": None,
+                "percentile": None,
+            },
         }
         source = "ssb_ranges"
 

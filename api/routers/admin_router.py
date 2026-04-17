@@ -6,6 +6,7 @@ All endpoints are now split into focused sub-routers:
   - dashboard.py: /dashboard summary (1 endpoint)
   - cron.py: email/notification cron triggers (6 endpoints)
 """
+
 from fastapi import APIRouter
 from api.routers.admin_seed import router as _seed
 from api.routers.debug import router as _debug

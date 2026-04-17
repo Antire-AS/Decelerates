@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; LLM calls, DB queries, and
 PDF generation are all mocked — no real infrastructure required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -23,7 +24,9 @@ from api.routers.risk_router import router, _get_notification
 _app = FastAPI()
 _app.include_router(router)
 
-_FAKE_USER = CurrentUser(email="test@local", name="Test User", oid="test-oid", firm_id=1)
+_FAKE_USER = CurrentUser(
+    email="test@local", name="Test User", oid="test-oid", firm_id=1
+)
 
 
 def _mock_company(**kw):
@@ -65,6 +68,7 @@ def client(mock_db, mock_notification):
 
 # ── GET /risk/config ─────────────────────────────────────────────────────────
 
+
 def test_risk_config_returns_200(client):
     resp = client.get("/risk/config")
     assert resp.status_code == 200
@@ -75,15 +79,22 @@ def test_risk_config_returns_200(client):
 
 # ── POST /org/{orgnr}/risk-offer ─────────────────────────────────────────────
 
+
 @patch("api.routers.risk_router._save_to_rag")
 @patch("api.routers.risk_router._parse_json_from_llm_response")
 @patch("api.routers.risk_router._llm_answer_raw")
 @patch("api.routers.risk_router.fetch_ssb_benchmark", return_value={})
 @patch("api.routers.risk_router.derive_simple_risk")
-def test_risk_offer_returns_200(mock_risk, mock_bench, mock_llm, mock_parse, mock_rag, client, mock_db):
+def test_risk_offer_returns_200(
+    mock_risk, mock_bench, mock_llm, mock_parse, mock_rag, client, mock_db
+):
     mock_risk.return_value = {"score": 5, "factors": []}
     mock_llm.return_value = "some LLM text"
-    mock_parse.return_value = {"sammendrag": "Test", "anbefalinger": [], "total_premieanslag": "100k"}
+    mock_parse.return_value = {
+        "sammendrag": "Test",
+        "anbefalinger": [],
+        "total_premieanslag": "100k",
+    }
     company = _mock_company()
     mock_query = MagicMock()
     mock_query.filter.return_value = mock_query
@@ -105,14 +116,21 @@ def test_risk_offer_returns_404_when_no_company(client, mock_db):
 
 # ── POST /org/{orgnr}/coverage-gap ───────────────────────────────────────────
 
+
 @patch("api.routers.risk_router._save_gap_to_rag")
 @patch("api.routers.risk_router._parse_json_from_llm_response")
 @patch("api.routers.risk_router._llm_answer_raw")
 @patch("api.routers.risk_router.derive_simple_risk")
-def test_coverage_gap_returns_200(mock_risk, mock_llm, mock_parse, mock_rag, client, mock_db):
+def test_coverage_gap_returns_200(
+    mock_risk, mock_llm, mock_parse, mock_rag, client, mock_db
+):
     mock_risk.return_value = {"score": 3, "factors": []}
     mock_llm.return_value = "gap analysis"
-    mock_parse.return_value = {"dekket": ["brann"], "mangler": ["cyber"], "anbefaling": "Kjøp cyber"}
+    mock_parse.return_value = {
+        "dekket": ["brann"],
+        "mangler": ["cyber"],
+        "anbefaling": "Kjøp cyber",
+    }
 
     company = _mock_company()
     offer = MagicMock()
@@ -145,6 +163,7 @@ def test_coverage_gap_no_offers(client, mock_db):
 
 # ── GET /org/{orgnr}/risk-report/pdf ─────────────────────────────────────────
 
+
 @patch("api.routers.risk_router.generate_risk_report_pdf", return_value=b"%PDF-fake")
 @patch("api.routers.risk_router.derive_simple_risk")
 def test_risk_report_pdf_returns_pdf(mock_risk, mock_gen, client, mock_db):
@@ -170,11 +189,17 @@ def test_risk_report_pdf_returns_404(client, mock_db):
 
 # ── POST /org/{orgnr}/narrative ──────────────────────────────────────────────
 
+
 @patch("api.routers.risk_router._save_to_rag")
-@patch("api.routers.risk_router._generate_risk_narrative", return_value="Risk analysis text")
+@patch(
+    "api.routers.risk_router._generate_risk_narrative",
+    return_value="Risk analysis text",
+)
 @patch("api.routers.risk_router.fetch_board_members", return_value=[])
 @patch("api.routers.risk_router.derive_simple_risk")
-def test_narrative_returns_200(mock_risk, mock_members, mock_gen, mock_rag, client, mock_db):
+def test_narrative_returns_200(
+    mock_risk, mock_members, mock_gen, mock_rag, client, mock_db
+):
     mock_risk.return_value = {"score": 4, "factors": []}
     company = _mock_company()
     mock_query = MagicMock()
@@ -188,11 +213,19 @@ def test_narrative_returns_200(mock_risk, mock_members, mock_gen, mock_rag, clie
 
 # ── POST /org/{orgnr}/forsikringstilbud/pdf ──────────────────────────────────
 
+
 @patch("api.routers.risk_router.save_insurance_document")
-@patch("api.routers.risk_router._build_forsikringstilbud_pdf", return_value=b"%PDF-tilbud")
-@patch("api.routers.risk_router._broker_info_from_db", return_value=("Broker AS", "Ola", "ola@b.no", "+47123"))
+@patch(
+    "api.routers.risk_router._build_forsikringstilbud_pdf", return_value=b"%PDF-tilbud"
+)
+@patch(
+    "api.routers.risk_router._broker_info_from_db",
+    return_value=("Broker AS", "Ola", "ola@b.no", "+47123"),
+)
 @patch("api.routers.risk_router._extract_offer_summary", return_value={"selskap": "X"})
-def test_forsikringstilbud_pdf_returns_pdf(mock_sum, mock_broker, mock_build, mock_save, client, mock_db):
+def test_forsikringstilbud_pdf_returns_pdf(
+    mock_sum, mock_broker, mock_build, mock_save, client, mock_db
+):
     company = _mock_company()
     mock_query = MagicMock()
     mock_query.filter.return_value = mock_query
@@ -209,9 +242,12 @@ def test_forsikringstilbud_pdf_returns_pdf(mock_sum, mock_broker, mock_build, mo
 
 # ── POST /org/{orgnr}/forsikringstilbud/email ─────────────────────────────────
 
+
 @patch("api.routers.risk_router.log_audit")
 @patch("api.routers.risk_router.get_or_create_active_token")
-def test_forsikringstilbud_email_returns_200(mock_token, mock_audit, client, mock_db, mock_notification):
+def test_forsikringstilbud_email_returns_200(
+    mock_token, mock_audit, client, mock_db, mock_notification
+):
     token_row = MagicMock()
     token_row.token = "abc-token-123"
     mock_token.return_value = token_row

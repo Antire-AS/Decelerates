@@ -2,6 +2,7 @@
 
 All ACS SDK calls are mocked; conftest.py already stubs azure.communication.email.
 """
+
 from unittest.mock import MagicMock, patch
 
 
@@ -20,6 +21,7 @@ def _unconfigured():
 
 
 # ── is_configured ─────────────────────────────────────────────────────────────
+
 
 def test_is_configured_true_when_conn_str_set():
     assert _adapter().is_configured() is True
@@ -42,6 +44,7 @@ def test_is_configured_false_when_empty_string():
 
 
 # ── send_email ────────────────────────────────────────────────────────────────
+
 
 def test_send_email_returns_false_when_not_configured():
     assert _unconfigured().send_email("to@test.no", "Subject", "<p>body</p>") is False
@@ -79,6 +82,7 @@ def test_send_email_uses_configured_sender():
 
 # ── send_sla_generated ────────────────────────────────────────────────────────
 
+
 def test_send_sla_generated_delegates_to_send_email():
     adapter = _adapter()
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
@@ -91,6 +95,7 @@ def test_send_sla_generated_delegates_to_send_email():
 
 # ── send_risk_report_ready ────────────────────────────────────────────────────
 
+
 def test_send_risk_report_ready_includes_orgnr_and_name():
     adapter = _adapter()
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
@@ -102,6 +107,7 @@ def test_send_risk_report_ready_includes_orgnr_and_name():
 
 # ── send_portfolio_digest ─────────────────────────────────────────────────────
 
+
 def test_send_portfolio_digest_returns_false_when_no_alerts():
     assert _adapter().send_portfolio_digest("b@test.no", "My Portfolio", []) is False
 
@@ -109,8 +115,14 @@ def test_send_portfolio_digest_returns_false_when_no_alerts():
 def test_send_portfolio_digest_sends_email_with_alerts():
     adapter = _adapter()
     alerts = [
-        {"severity": "Kritisk", "navn": "Firma AS", "alert_type": "Høy gjeld",
-         "detail": "Gjeld > 80%", "year_from": "2022", "year_to": "2023"}
+        {
+            "severity": "Kritisk",
+            "navn": "Firma AS",
+            "alert_type": "Høy gjeld",
+            "detail": "Gjeld > 80%",
+            "year_from": "2022",
+            "year_to": "2023",
+        }
     ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         result = adapter.send_portfolio_digest("b@test.no", "My Portfolio", alerts)
@@ -122,7 +134,16 @@ def test_send_portfolio_digest_sends_email_with_alerts():
 
 def test_send_portfolio_digest_subject_includes_alert_count():
     adapter = _adapter()
-    alerts = [{"severity": "Høy", "navn": "A", "alert_type": "x", "detail": "", "year_from": "", "year_to": ""}]
+    alerts = [
+        {
+            "severity": "Høy",
+            "navn": "A",
+            "alert_type": "x",
+            "detail": "",
+            "year_from": "",
+            "year_to": "",
+        }
+    ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         adapter.send_portfolio_digest("b@test.no", "Portfolio X", alerts)
     subject = mock_send.call_args[0][1]
@@ -131,13 +152,21 @@ def test_send_portfolio_digest_subject_includes_alert_count():
 
 # ── send_activity_reminders ───────────────────────────────────────────────────
 
+
 def test_send_activity_reminders_returns_false_when_both_empty():
     assert _adapter().send_activity_reminders("b@test.no", [], []) is False
 
 
 def test_send_activity_reminders_sends_when_overdue_present():
     adapter = _adapter()
-    overdue = [{"due_date": "2024-01-01", "activity_type": "call", "subject": "Follow up", "orgnr": "123"}]
+    overdue = [
+        {
+            "due_date": "2024-01-01",
+            "activity_type": "call",
+            "subject": "Follow up",
+            "orgnr": "123",
+        }
+    ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         result = adapter.send_activity_reminders("b@test.no", overdue, [])
     assert result is True
@@ -147,7 +176,14 @@ def test_send_activity_reminders_sends_when_overdue_present():
 
 def test_send_activity_reminders_sends_when_due_today_present():
     adapter = _adapter()
-    due_today = [{"due_date": "2026-04-03", "activity_type": "email", "subject": "Send proposal", "orgnr": "456"}]
+    due_today = [
+        {
+            "due_date": "2026-04-03",
+            "activity_type": "email",
+            "subject": "Send proposal",
+            "orgnr": "456",
+        }
+    ]
     with patch.object(adapter, "send_email", return_value=True):
         result = adapter.send_activity_reminders("b@test.no", [], due_today)
     assert result is True
@@ -155,10 +191,13 @@ def test_send_activity_reminders_sends_when_due_today_present():
 
 # ── send_forsikringstilbud ────────────────────────────────────────────────────
 
+
 def test_send_forsikringstilbud_includes_share_url():
     adapter = _adapter()
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
-        adapter.send_forsikringstilbud("client@test.no", "Firma AS", "123456789", "https://share.url/xyz")
+        adapter.send_forsikringstilbud(
+            "client@test.no", "Firma AS", "123456789", "https://share.url/xyz"
+        )
     body = mock_send.call_args[0][2]
     assert "https://share.url/xyz" in body
     assert "Firma AS" in body
@@ -166,10 +205,13 @@ def test_send_forsikringstilbud_includes_share_url():
 
 # ── send_renewal_stage_change ─────────────────────────────────────────────────
 
+
 def test_send_renewal_stage_change_translates_stage_label():
     adapter = _adapter()
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
-        adapter.send_renewal_stage_change("b@test.no", "POL-001", "Gjensidige", "Ansvar", "accepted")
+        adapter.send_renewal_stage_change(
+            "b@test.no", "POL-001", "Gjensidige", "Ansvar", "accepted"
+        )
     body = mock_send.call_args[0][2]
     assert "Akseptert" in body
 
@@ -177,7 +219,9 @@ def test_send_renewal_stage_change_translates_stage_label():
 def test_send_renewal_stage_change_includes_policy_details():
     adapter = _adapter()
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
-        adapter.send_renewal_stage_change("b@test.no", "POL-999", "Storebrand", "Ting", "quoted")
+        adapter.send_renewal_stage_change(
+            "b@test.no", "POL-999", "Storebrand", "Ting", "quoted"
+        )
     subject = mock_send.call_args[0][1]
     body = mock_send.call_args[0][2]
     assert "POL-999" in subject
@@ -186,14 +230,23 @@ def test_send_renewal_stage_change_includes_policy_details():
 
 # ── send_renewal_threshold_emails ─────────────────────────────────────────────
 
+
 def test_send_renewal_threshold_emails_returns_false_when_no_policies():
     assert _adapter().send_renewal_threshold_emails("b@test.no", 30, []) is False
 
 
 def test_send_renewal_threshold_emails_includes_policy_details():
     adapter = _adapter()
-    policies = [{"orgnr": "123", "insurer": "Gjensidige", "product_type": "Ansvar",
-                 "annual_premium_nok": 50000, "renewal_date": "2026-06-01", "days_to_renewal": 28}]
+    policies = [
+        {
+            "orgnr": "123",
+            "insurer": "Gjensidige",
+            "product_type": "Ansvar",
+            "annual_premium_nok": 50000,
+            "renewal_date": "2026-06-01",
+            "days_to_renewal": 28,
+        }
+    ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         result = adapter.send_renewal_threshold_emails("b@test.no", 30, policies)
     assert result is True
@@ -203,14 +256,23 @@ def test_send_renewal_threshold_emails_includes_policy_details():
 
 # ── send_renewal_digest ───────────────────────────────────────────────────────
 
+
 def test_send_renewal_digest_returns_false_when_no_renewals():
     assert _adapter().send_renewal_digest("b@test.no", []) is False
 
 
 def test_send_renewal_digest_sends_email_with_renewal_data():
     adapter = _adapter()
-    renewals = [{"orgnr": "123", "insurer": "If", "product_type": "Bil",
-                 "annual_premium_nok": 12000, "renewal_date": "2026-05-01", "days_to_renewal": 45}]
+    renewals = [
+        {
+            "orgnr": "123",
+            "insurer": "If",
+            "product_type": "Bil",
+            "annual_premium_nok": 12000,
+            "renewal_date": "2026-05-01",
+            "days_to_renewal": 45,
+        }
+    ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         result = adapter.send_renewal_digest("b@test.no", renewals)
     assert result is True
@@ -221,10 +283,22 @@ def test_send_renewal_digest_sends_email_with_renewal_data():
 def test_send_renewal_digest_subject_includes_count():
     adapter = _adapter()
     renewals = [
-        {"orgnr": "1", "insurer": "A", "product_type": "X", "annual_premium_nok": 1000,
-         "renewal_date": "2026-05-01", "days_to_renewal": 20},
-        {"orgnr": "2", "insurer": "B", "product_type": "Y", "annual_premium_nok": 2000,
-         "renewal_date": "2026-05-15", "days_to_renewal": 35},
+        {
+            "orgnr": "1",
+            "insurer": "A",
+            "product_type": "X",
+            "annual_premium_nok": 1000,
+            "renewal_date": "2026-05-01",
+            "days_to_renewal": 20,
+        },
+        {
+            "orgnr": "2",
+            "insurer": "B",
+            "product_type": "Y",
+            "annual_premium_nok": 2000,
+            "renewal_date": "2026-05-15",
+            "days_to_renewal": 35,
+        },
     ]
     with patch.object(adapter, "send_email", return_value=True) as mock_send:
         adapter.send_renewal_digest("b@test.no", renewals)

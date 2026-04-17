@@ -5,6 +5,7 @@ gate locks the contract. We need a real numeric user_id (not just firm_id)
 because notifications are per-user; that means resolving the User row from
 the Azure OID on every call.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -35,15 +36,15 @@ def _resolve_user_id(db: Session, user: CurrentUser) -> int:
 
 def _serialize(n) -> dict:
     return {
-        "id":         n.id,
-        "user_id":    n.user_id,
-        "firm_id":    n.firm_id,
-        "orgnr":      n.orgnr,
-        "kind":       n.kind.value,
-        "title":      n.title,
-        "message":    n.message,
-        "link":       n.link,
-        "read":       n.read,
+        "id": n.id,
+        "user_id": n.user_id,
+        "firm_id": n.firm_id,
+        "orgnr": n.orgnr,
+        "kind": n.kind.value,
+        "title": n.title,
+        "message": n.message,
+        "link": n.link,
+        "read": n.read,
         "created_at": n.created_at,
     }
 

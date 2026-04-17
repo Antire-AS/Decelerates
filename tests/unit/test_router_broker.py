@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; BrokerService is
 injected as a MagicMock — no real DB or network required.
 """
+
 import sys
 from unittest.mock import MagicMock
 
@@ -61,13 +62,17 @@ def client(mock_svc):
     # test. Without this, CI's test DB — which has no `users` table — fails
     # the POST /broker-notes endpoints.
     _app.dependency_overrides[get_current_user] = lambda: CurrentUser(
-        email="test@local", name="Test User", oid="test-oid", firm_id=1,
+        email="test@local",
+        name="Test User",
+        oid="test-oid",
+        firm_id=1,
     )
     yield TestClient(_app)
     _app.dependency_overrides.clear()
 
 
 # ── GET /broker/settings ──────────────────────────────────────────────────────
+
 
 def test_get_broker_settings_returns_200(client, mock_svc):
     mock_svc.get_settings.return_value = _mock_settings()
@@ -102,6 +107,7 @@ def test_get_broker_settings_calls_get_settings(client, mock_svc):
 
 # ── POST /broker/settings ─────────────────────────────────────────────────────
 
+
 def test_save_broker_settings_returns_200(client, mock_svc):
     mock_svc.save_settings.return_value = _mock_settings()
     resp = client.post("/broker/settings", json={"firm_name": "New Firm"})
@@ -120,6 +126,7 @@ def test_save_broker_settings_returns_422_when_missing_firm_name(client, mock_sv
 
 
 # ── GET /org/{orgnr}/broker-notes ─────────────────────────────────────────────
+
 
 def test_list_broker_notes_returns_200(client, mock_svc):
     mock_svc.list_notes.return_value = []
@@ -151,14 +158,19 @@ def test_list_broker_notes_calls_list_notes_with_orgnr(client, mock_svc):
 
 # ── POST /org/{orgnr}/broker-notes ────────────────────────────────────────────
 
+
 def test_create_broker_note_returns_200(client, mock_svc):
-    mock_svc.create_note.return_value = _mock_note(id=10, created_at="2026-04-01T12:00:00")
+    mock_svc.create_note.return_value = _mock_note(
+        id=10, created_at="2026-04-01T12:00:00"
+    )
     resp = client.post("/org/123456789/broker-notes", json={"text": "New note"})
     assert resp.status_code == 200
 
 
 def test_create_broker_note_returns_id_and_created_at(client, mock_svc):
-    mock_svc.create_note.return_value = _mock_note(id=42, created_at="2026-04-01T12:00:00")
+    mock_svc.create_note.return_value = _mock_note(
+        id=42, created_at="2026-04-01T12:00:00"
+    )
     resp = client.post("/org/123456789/broker-notes", json={"text": "Hello"})
     body = resp.json()
     assert body["id"] == 42
@@ -178,6 +190,7 @@ def test_create_broker_note_returns_422_when_missing_text(client, mock_svc):
 
 
 # ── DELETE /org/{orgnr}/broker-notes/{note_id} ────────────────────────────────
+
 
 def test_delete_broker_note_returns_200(client, mock_svc):
     mock_svc.delete_note.return_value = None

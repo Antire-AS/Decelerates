@@ -3,6 +3,7 @@
 Mocks the DB query chain + LLM call. Verifies prompt construction and the
 empty/missing-data fallbacks.
 """
+
 from datetime import date
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,7 @@ from api.services.renewal_agent import (
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
+
 
 def _mock_policy(
     orgnr="123456789",
@@ -46,6 +48,7 @@ def _mock_query_chain(return_value, kind="all"):
 
 
 # ── _get_gap_summary ──────────────────────────────────────────────────────────
+
 
 def test_get_gap_summary_returns_norwegian_summary_when_gaps_exist():
     db = MagicMock()
@@ -90,6 +93,7 @@ def test_get_gap_summary_swallows_analyzer_exceptions():
 
 # ── _get_submission_context ───────────────────────────────────────────────────
 
+
 def test_get_submission_context_returns_empty_when_no_submissions():
     db = MagicMock()
     db.query.return_value = _mock_query_chain([], kind="all")
@@ -129,6 +133,7 @@ def test_get_submission_context_handles_null_status():
 
 # ── RenewalAgentService.generate_renewal_brief ────────────────────────────────
 
+
 def test_generate_renewal_brief_returns_llm_output():
     db = MagicMock()
     company = MagicMock()
@@ -137,8 +142,13 @@ def test_generate_renewal_brief_returns_llm_output():
     policy = _mock_policy(orgnr="984851006", insurer="Tryg")
 
     fake_llm_output = "- aksjon 1\n- aksjon 2\n- aksjon 3"
-    with patch("api.services.llm._llm_answer_raw", return_value=fake_llm_output), \
-         patch("api.services.coverage_gap.analyze_coverage_gap", return_value={"gap_count": 0, "items": []}):
+    with (
+        patch("api.services.llm._llm_answer_raw", return_value=fake_llm_output),
+        patch(
+            "api.services.coverage_gap.analyze_coverage_gap",
+            return_value={"gap_count": 0, "items": []},
+        ),
+    ):
         result = RenewalAgentService().generate_renewal_brief(policy, db)
     assert result == fake_llm_output
 
@@ -150,8 +160,13 @@ def test_generate_renewal_brief_returns_empty_string_when_llm_returns_none():
     db.query.return_value = _mock_query_chain(company, kind="first")
     policy = _mock_policy()
 
-    with patch("api.services.llm._llm_answer_raw", return_value=None), \
-         patch("api.services.coverage_gap.analyze_coverage_gap", return_value={"gap_count": 0, "items": []}):
+    with (
+        patch("api.services.llm._llm_answer_raw", return_value=None),
+        patch(
+            "api.services.coverage_gap.analyze_coverage_gap",
+            return_value={"gap_count": 0, "items": []},
+        ),
+    ):
         result = RenewalAgentService().generate_renewal_brief(policy, db)
     assert result == ""
 
@@ -162,12 +177,18 @@ def test_generate_renewal_brief_uses_orgnr_when_company_missing():
     policy = _mock_policy(orgnr="999888777")
 
     captured_prompt = {}
+
     def capture_prompt(prompt):
         captured_prompt["text"] = prompt
         return "ok"
 
-    with patch("api.services.llm._llm_answer_raw", side_effect=capture_prompt), \
-         patch("api.services.coverage_gap.analyze_coverage_gap", return_value={"gap_count": 0, "items": []}):
+    with (
+        patch("api.services.llm._llm_answer_raw", side_effect=capture_prompt),
+        patch(
+            "api.services.coverage_gap.analyze_coverage_gap",
+            return_value={"gap_count": 0, "items": []},
+        ),
+    ):
         RenewalAgentService().generate_renewal_brief(policy, db)
 
     # Falls back to orgnr as the customer name when no Company row exists.
@@ -180,8 +201,16 @@ def test_generate_renewal_brief_handles_null_renewal_date_and_premium():
     policy = _mock_policy(renewal_date=None, annual_premium_nok=None)
 
     captured = {}
-    with patch("api.services.llm._llm_answer_raw", side_effect=lambda p: captured.update(text=p) or "ok"), \
-         patch("api.services.coverage_gap.analyze_coverage_gap", return_value={"gap_count": 0, "items": []}):
+    with (
+        patch(
+            "api.services.llm._llm_answer_raw",
+            side_effect=lambda p: captured.update(text=p) or "ok",
+        ),
+        patch(
+            "api.services.coverage_gap.analyze_coverage_gap",
+            return_value={"gap_count": 0, "items": []},
+        ),
+    ):
         RenewalAgentService().generate_renewal_brief(policy, db)
 
     assert "ukjent" in captured["text"]

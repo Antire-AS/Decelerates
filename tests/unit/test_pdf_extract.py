@@ -1,4 +1,5 @@
 """Unit tests for services/pdf_extract.py — pure parsing functions, no HTTP."""
+
 import pytest
 
 from api.services.pdf_extract import _parse_json_financials
@@ -13,7 +14,7 @@ def test_parse_json_valid():
 
 
 def test_parse_json_markdown_fenced():
-    raw = "```json\n{\"revenue\": 2000000, \"equity\": 100000, \"total_assets\": 400000}\n```"
+    raw = '```json\n{"revenue": 2000000, "equity": 100000, "total_assets": 400000}\n```'
     result = _parse_json_financials(raw)
     assert result is not None
     assert result["revenue"] == 2000000

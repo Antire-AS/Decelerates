@@ -1,4 +1,5 @@
 """Insurer entity and submission tracking endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -6,7 +7,14 @@ from api.auth import CurrentUser, get_current_user
 from api.db import Insurer, Submission
 from api.dependencies import get_db
 from api.domain.exceptions import NotFoundError
-from api.schemas import InsurerIn, InsurerOut, InsurerUpdate, SubmissionIn, SubmissionOut, SubmissionUpdate
+from api.schemas import (
+    InsurerIn,
+    InsurerOut,
+    InsurerUpdate,
+    SubmissionIn,
+    SubmissionOut,
+    SubmissionUpdate,
+)
 from api.services.audit import log_audit
 from api.services.insurer_service import InsurerService
 
@@ -19,36 +27,37 @@ def _get_svc(db: Session = Depends(get_db)) -> InsurerService:
 
 def _serialize_insurer(row: Insurer) -> dict:
     return {
-        "id":            row.id,
-        "firm_id":       row.firm_id,
-        "name":          row.name,
-        "org_number":    row.org_number,
-        "contact_name":  row.contact_name,
+        "id": row.id,
+        "firm_id": row.firm_id,
+        "name": row.name,
+        "org_number": row.org_number,
+        "contact_name": row.contact_name,
         "contact_email": row.contact_email,
         "contact_phone": row.contact_phone,
-        "appetite":      row.appetite or [],
-        "notes":         row.notes,
-        "created_at":    row.created_at.isoformat() if row.created_at else None,
+        "appetite": row.appetite or [],
+        "notes": row.notes,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
     }
 
 
 def _serialize_submission(row: Submission, insurer_name: str | None = None) -> dict:
     return {
-        "id":                  row.id,
-        "orgnr":               row.orgnr,
-        "insurer_id":          row.insurer_id,
-        "insurer_name":        insurer_name,
-        "product_type":        row.product_type,
-        "requested_at":        row.requested_at.isoformat() if row.requested_at else None,
-        "status":              row.status.value if row.status else "pending",
+        "id": row.id,
+        "orgnr": row.orgnr,
+        "insurer_id": row.insurer_id,
+        "insurer_name": insurer_name,
+        "product_type": row.product_type,
+        "requested_at": row.requested_at.isoformat() if row.requested_at else None,
+        "status": row.status.value if row.status else "pending",
         "premium_offered_nok": row.premium_offered_nok,
-        "notes":               row.notes,
-        "created_by_email":    row.created_by_email,
-        "created_at":          row.created_at.isoformat() if row.created_at else None,
+        "notes": row.notes,
+        "created_by_email": row.created_by_email,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
     }
 
 
 # ── Insurer CRUD ──────────────────────────────────────────────────────────────
+
 
 @router.get("/insurers", response_model=list[InsurerOut])
 def list_insurers(
@@ -80,7 +89,9 @@ def update_insurer(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        row = svc.update_insurer(user.firm_id, insurer_id, body.model_dump(exclude_none=True))
+        row = svc.update_insurer(
+            user.firm_id, insurer_id, body.model_dump(exclude_none=True)
+        )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Insurer not found")
     log_audit(db, "insurer.update", detail={"insurer_id": insurer_id})
@@ -103,13 +114,17 @@ def delete_insurer(
 
 # ── Submission CRUD ───────────────────────────────────────────────────────────
 
+
 @router.get("/org/{orgnr}/submissions", response_model=list[SubmissionOut])
 def list_submissions(
     orgnr: str,
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
 ) -> list:
-    return [_serialize_submission(r, name) for r, name in svc.list_submissions_enriched(orgnr, user.firm_id)]
+    return [
+        _serialize_submission(r, name)
+        for r, name in svc.list_submissions_enriched(orgnr, user.firm_id)
+    ]
 
 
 @router.post("/org/{orgnr}/submissions", status_code=201)
@@ -123,7 +138,12 @@ def create_submission(
     data = body.model_dump()
     row = svc.create_submission(orgnr, user.firm_id, user.email, data)
     insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
-    log_audit(db, "submission.create", orgnr=orgnr, detail={"submission_id": row.id, "insurer_id": row.insurer_id})
+    log_audit(
+        db,
+        "submission.create",
+        orgnr=orgnr,
+        detail={"submission_id": row.id, "insurer_id": row.insurer_id},
+    )
     return _serialize_submission(row, insurer.name if insurer else None)
 
 
@@ -136,7 +156,9 @@ def update_submission(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        row = svc.update_submission(user.firm_id, submission_id, body.model_dump(exclude_none=True))
+        row = svc.update_submission(
+            user.firm_id, submission_id, body.model_dump(exclude_none=True)
+        )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Submission not found")
     insurer = db.query(Insurer).filter(Insurer.id == row.insurer_id).first()
@@ -159,6 +181,7 @@ def delete_submission(
 
 
 # ── Analytics ────────────────────────────────────────────────────────────────
+
 
 @router.get("/insurers/match", response_model=list[InsurerOut])
 def match_appetite(
@@ -198,6 +221,7 @@ def draft_submission_email(
 
 # ── Insurer matching agent ────────────────────────────────────────────────────
 
+
 @router.post("/org/{orgnr}/recommend-insurers")
 def recommend_insurers_for_company(
     orgnr: str,
@@ -214,7 +238,10 @@ def recommend_insurers_for_company(
     Returns top 3 recommended insurers with LLM-generated Norwegian reasoning.
     """
     from api.services.insurer_matching import recommend_insurers
+
     product_types = (body or {}).get("product_types")
     result = recommend_insurers(orgnr, user.firm_id, product_types, db)
-    log_audit(db, "recommend.create", orgnr=orgnr, detail={"product_types": product_types})
+    log_audit(
+        db, "recommend.create", orgnr=orgnr, detail={"product_types": product_types}
+    )
     return result

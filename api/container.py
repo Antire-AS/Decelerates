@@ -24,6 +24,7 @@ Two DI patterns coexist by design:
 Both patterns are valid. Use pattern 1 when the service wraps an external
 adapter (blob, email, LLM). Use pattern 2 for pure DB-backed services.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -33,7 +34,10 @@ import punq
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
 from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter
 from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
-from api.adapters.notification_adapter import AzureEmailNotificationAdapter, NotificationConfig
+from api.adapters.notification_adapter import (
+    AzureEmailNotificationAdapter,
+    NotificationConfig,
+)
 from api.adapters.secret_adapter import KeyVaultSecretAdapter, SecretConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
 from api.ports.driven.email_outbound_port import EmailOutboundPort
@@ -121,5 +125,7 @@ def configure(config: AppConfig) -> None:
 def resolve(port_type: type):
     """Resolve a registered port from the container."""
     if _container is None:
-        raise RuntimeError("Container not configured — call container.configure() first")
+        raise RuntimeError(
+            "Container not configured — call container.configure() first"
+        )
     return _container.resolve(port_type)

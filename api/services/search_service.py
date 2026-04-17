@@ -1,4 +1,5 @@
 """Azure AI Search integration for vector chunk storage and retrieval."""
+
 import logging
 import os
 import uuid
@@ -15,7 +16,9 @@ _EMBEDDING_DIMS = 512
 def _is_configured() -> bool:
     endpoint = os.getenv(_ENDPOINT_ENV, "")
     key = os.getenv(_API_KEY_ENV, "")
-    return bool(endpoint and key and endpoint != "your_endpoint_here" and key != "your_key_here")
+    return bool(
+        endpoint and key and endpoint != "your_endpoint_here" and key != "your_key_here"
+    )
 
 
 def _get_index_name() -> str:
@@ -50,7 +53,11 @@ def _build_index_schema(index_name: str):
     ]
     vector_search = VectorSearch(
         algorithms=[HnswAlgorithmConfiguration(name="hnsw-algo")],
-        profiles=[VectorSearchProfile(name="hnsw-profile", algorithm_configuration_name="hnsw-algo")],
+        profiles=[
+            VectorSearchProfile(
+                name="hnsw-profile", algorithm_configuration_name="hnsw-algo"
+            )
+        ],
     )
     return SearchIndex(name=index_name, fields=fields, vector_search=vector_search)
 
@@ -73,7 +80,11 @@ class SearchService:
 
         endpoint = os.getenv(_ENDPOINT_ENV)
         key = os.getenv(_API_KEY_ENV)
-        return SearchClient(endpoint=endpoint, index_name=_get_index_name(), credential=AzureKeyCredential(key))
+        return SearchClient(
+            endpoint=endpoint,
+            index_name=_get_index_name(),
+            credential=AzureKeyCredential(key),
+        )
 
     def ensure_index(self) -> None:
         """Create the search index if it does not already exist."""
@@ -93,7 +104,9 @@ class SearchService:
         except Exception as exc:
             logger.warning("Azure AI Search: ensure_index failed — %s", exc)
 
-    def index_chunk(self, orgnr: str, source: str, chunk_text: str, embedding: list) -> str:
+    def index_chunk(
+        self, orgnr: str, source: str, chunk_text: str, embedding: list
+    ) -> str:
         """Upload a single chunk document. Returns the document id."""
         if not self.is_configured():
             return ""
@@ -112,7 +125,9 @@ class SearchService:
             logger.warning("Azure AI Search: index_chunk failed — %s", exc)
             return ""
 
-    def search_chunks(self, orgnr: str, question_embedding: list, limit: int = 5) -> list[str]:
+    def search_chunks(
+        self, orgnr: str, question_embedding: list, limit: int = 5
+    ) -> list[str]:
         """Vector search filtered by orgnr. Returns list of chunk_text strings."""
         if not self.is_configured():
             return []
@@ -141,7 +156,9 @@ class SearchService:
             return 0
         try:
             client = self._search_client()
-            results = client.search(search_text="*", filter=f"orgnr eq '{orgnr}'", select=["id"])
+            results = client.search(
+                search_text="*", filter=f"orgnr eq '{orgnr}'", select=["id"]
+            )
             docs = [{"id": r["id"]} for r in results]
             if not docs:
                 return 0

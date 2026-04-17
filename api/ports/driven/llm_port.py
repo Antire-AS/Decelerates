@@ -5,6 +5,7 @@ included — annual-report extraction stays on Gemini's native PDF support
 because rasterizing 80-page PDFs through chat-completions is 20–100× more
 expensive than Gemini's inline PDF input.
 """
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 

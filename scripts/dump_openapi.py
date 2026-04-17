@@ -8,6 +8,7 @@ requiring the API server to be running. Run from the repo root:
 
 Default output: frontend/src/lib/openapi-schema.json
 """
+
 from __future__ import annotations
 
 import json

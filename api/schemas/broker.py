@@ -1,4 +1,5 @@
 """Broker settings and SLA schemas."""
+
 from typing import Any, Dict, Optional
 from pydantic import BaseModel
 

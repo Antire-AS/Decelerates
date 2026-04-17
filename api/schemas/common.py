@@ -1,4 +1,5 @@
 """Common request schemas used across multiple routers."""
+
 from typing import List
 from pydantic import BaseModel
 
@@ -34,6 +35,7 @@ class ForsikringstilbudRequest(BaseModel):
 
 class BrokerNoteBody(BaseModel):
     text: str
+
 
 # Backward compat alias
 _BrokerNoteBody = BrokerNoteBody

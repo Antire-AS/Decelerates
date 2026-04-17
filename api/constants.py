@@ -12,7 +12,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 # Annual report PDFs for listed companies with stable public URLs.
 # ======================
 PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
-    "984851006": [   # DNB Bank ASA
+    "984851006": [  # DNB Bank ASA
         {
             "year": 2024,
             "pdf_url": "https://www.ir.dnb.no/sites/default/files/pr/202503192798-2-1.pdf",
@@ -44,7 +44,7 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
             "label": "DNB Annual Report 2019",
         },
     ],
-    "995568217": [   # Gjensidige Forsikring ASA
+    "995568217": [  # Gjensidige Forsikring ASA
         {
             "year": 2024,
             "pdf_url": "https://www.gjensidige.com/files/content-innhold/konsern-filer/annual-reports/Annual%20report%202024.pdf",
@@ -76,14 +76,14 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
             "label": "Gjensidige Annual Report 2019",
         },
     ],
-    "979981344": [   # Søderberg & Partners Norge AS
+    "979981344": [  # Søderberg & Partners Norge AS
         {
             "year": 2023,
             "pdf_url": "https://mb.cision.com/Main/6558/3945675/2668201.pdf",
             "label": "Söderberg & Partners Group Annual Report 2023 (SEK)",
         },
     ],
-    "923609016": [   # Equinor ASA
+    "923609016": [  # Equinor ASA
         {
             "year": 2024,
             "pdf_url": "https://cdn.sanity.io/files/h61q9gi9/global/16ccbc5a098c3b971979118420c4f83ddee18fb4.pdf",
@@ -123,47 +123,104 @@ PDF_SEED_DATA: Dict[str, List[Dict[str, Any]]] = {
 # ======================
 TOP_100_NO_NAMES: List[str] = [
     # Energy & Oil
-    "Equinor ASA", "Aker BP ASA", "Var Energi AS", "Norsk Hydro ASA",
-    "Yara International ASA", "Gassco AS", "Aker Solutions ASA",
-    "Statkraft SF", "Lyse Energi AS", "BKK AS", "Hafslund E-CO AS",
-    "Agder Energi AS", "Skagerak Energi AS", "Glitre Energi AS",
-    "Eidsiva Energi AS", "Statnett SF", "TechnipFMC Norway AS",
-    "Aker ASA", "Elkem ASA", "Borregaard ASA", "Scatec ASA", "NEL ASA",
-    "REC Silicon ASA", "Tomra Systems ASA",
+    "Equinor ASA",
+    "Aker BP ASA",
+    "Var Energi AS",
+    "Norsk Hydro ASA",
+    "Yara International ASA",
+    "Gassco AS",
+    "Aker Solutions ASA",
+    "Statkraft SF",
+    "Lyse Energi AS",
+    "BKK AS",
+    "Hafslund E-CO AS",
+    "Agder Energi AS",
+    "Skagerak Energi AS",
+    "Glitre Energi AS",
+    "Eidsiva Energi AS",
+    "Statnett SF",
+    "TechnipFMC Norway AS",
+    "Aker ASA",
+    "Elkem ASA",
+    "Borregaard ASA",
+    "Scatec ASA",
+    "NEL ASA",
+    "REC Silicon ASA",
+    "Tomra Systems ASA",
     # Telecom & Tech
-    "Telenor ASA", "Telia Norge AS", "Nordic Semiconductor ASA",
-    "Atea ASA", "Crayon Group Holding ASA", "Bouvet ASA", "Adevinta ASA",
-    "Opera Software AS", "Schibsted ASA", "Komplett ASA",
+    "Telenor ASA",
+    "Telia Norge AS",
+    "Nordic Semiconductor ASA",
+    "Atea ASA",
+    "Crayon Group Holding ASA",
+    "Bouvet ASA",
+    "Adevinta ASA",
+    "Opera Software AS",
+    "Schibsted ASA",
+    "Komplett ASA",
     # Finance & Insurance
-    "DNB Bank ASA", "Storebrand ASA", "Gjensidige Forsikring ASA",
-    "SpareBank 1 SR-Bank ASA", "SpareBank 1 SMN", "SpareBank 1 Østlandet",
-    "KLP", "Santander Consumer Bank AS", "Fremtind Forsikring AS",
+    "DNB Bank ASA",
+    "Storebrand ASA",
+    "Gjensidige Forsikring ASA",
+    "SpareBank 1 SR-Bank ASA",
+    "SpareBank 1 SMN",
+    "SpareBank 1 Østlandet",
+    "KLP",
+    "Santander Consumer Bank AS",
+    "Fremtind Forsikring AS",
     "Instabank ASA",
     # Retail & Consumer
-    "NorgesGruppen ASA", "Coop Norge SA", "Rema 1000 AS",
-    "Reitan Servicehandel AS", "XXL ASA", "Power International AS",
-    "Elkjøp Nordic AS", "H&M Hennes & Mauritz AS", "Varner AS",
+    "NorgesGruppen ASA",
+    "Coop Norge SA",
+    "Rema 1000 AS",
+    "Reitan Servicehandel AS",
+    "XXL ASA",
+    "Power International AS",
+    "Elkjøp Nordic AS",
+    "H&M Hennes & Mauritz AS",
+    "Varner AS",
     # Industry & Manufacturing
-    "Kongsberg Gruppen ASA", "Akastor ASA",
+    "Kongsberg Gruppen ASA",
+    "Akastor ASA",
     # Seafood & Food
-    "Mowi ASA", "SalMar ASA", "Lerøy Seafood Group ASA",
-    "Grieg Seafood ASA", "Cermaq Group AS", "Orkla ASA", "Tine SA",
+    "Mowi ASA",
+    "SalMar ASA",
+    "Lerøy Seafood Group ASA",
+    "Grieg Seafood ASA",
+    "Cermaq Group AS",
+    "Orkla ASA",
+    "Tine SA",
     "Nortura SA",
     # Shipping & Transport
-    "Wallenius Wilhelmsen ASA", "Odfjell SE", "Frontline ASA",
-    "Golden Ocean Group AS", "Stolt-Nielsen ASA",
-    "Posten Norge AS", "Bring Logistics AS",
+    "Wallenius Wilhelmsen ASA",
+    "Odfjell SE",
+    "Frontline ASA",
+    "Golden Ocean Group AS",
+    "Stolt-Nielsen ASA",
+    "Posten Norge AS",
+    "Bring Logistics AS",
     # Construction
-    "Veidekke ASA", "AF Gruppen ASA", "Skanska Norge AS",
-    "NCC Norge AS", "Norconsult AS", "Multiconsult ASA",
-    "Sweco Norge AS", "Rambøll Norway AS",
+    "Veidekke ASA",
+    "AF Gruppen ASA",
+    "Skanska Norge AS",
+    "NCC Norge AS",
+    "Norconsult AS",
+    "Multiconsult ASA",
+    "Sweco Norge AS",
+    "Rambøll Norway AS",
     # Healthcare & Public
-    "Helse Sør-Øst RHF", "Helse Vest RHF",
-    "Helse Midt-Norge RHF", "Helse Nord RHF",
+    "Helse Sør-Øst RHF",
+    "Helse Vest RHF",
+    "Helse Midt-Norge RHF",
+    "Helse Nord RHF",
     # Property & Infrastructure
-    "Entra ASA", "Obos BBL", "Selvaag Bolig ASA", "Avinor AS",
+    "Entra ASA",
+    "Obos BBL",
+    "Selvaag Bolig ASA",
+    "Avinor AS",
     # Other
-    "Norske Skog ASA", "Peterson AS",
+    "Norske Skog ASA",
+    "Peterson AS",
 ]
 
 # ======================
@@ -191,39 +248,153 @@ GEMINI_PDF_MODELS: List[str] = ["gemini-2.5-flash", "gemini-1.5-flash"]
 # SSB-informed industry benchmarks
 # ======================
 NACE_BENCHMARKS: Dict[str, Dict[str, Any]] = {
-    "A": {"industry": "Agriculture / Forestry / Fishing",      "eq_ratio_min": 0.35, "eq_ratio_max": 0.55, "margin_min": 0.03, "margin_max": 0.10},
-    "B": {"industry": "Mining / Quarrying",                     "eq_ratio_min": 0.30, "eq_ratio_max": 0.50, "margin_min": 0.10, "margin_max": 0.25},
-    "C": {"industry": "Manufacturing",                          "eq_ratio_min": 0.30, "eq_ratio_max": 0.50, "margin_min": 0.03, "margin_max": 0.10},
-    "D": {"industry": "Electricity / Gas / Steam",              "eq_ratio_min": 0.30, "eq_ratio_max": 0.50, "margin_min": 0.05, "margin_max": 0.15},
-    "E": {"industry": "Water / Waste Management",               "eq_ratio_min": 0.30, "eq_ratio_max": 0.45, "margin_min": 0.05, "margin_max": 0.12},
-    "F": {"industry": "Construction",                           "eq_ratio_min": 0.20, "eq_ratio_max": 0.38, "margin_min": 0.02, "margin_max": 0.07},
-    "G": {"industry": "Wholesale / Retail Trade",               "eq_ratio_min": 0.25, "eq_ratio_max": 0.42, "margin_min": 0.01, "margin_max": 0.05},
-    "H": {"industry": "Transport / Storage",                    "eq_ratio_min": 0.22, "eq_ratio_max": 0.38, "margin_min": 0.02, "margin_max": 0.07},
-    "I": {"industry": "Accommodation / Food Service",           "eq_ratio_min": 0.15, "eq_ratio_max": 0.35, "margin_min": 0.01, "margin_max": 0.06},
-    "J": {"industry": "Information / Communication / IT",       "eq_ratio_min": 0.40, "eq_ratio_max": 0.65, "margin_min": 0.08, "margin_max": 0.20},
-    "K": {"industry": "Financial / Insurance Services",         "eq_ratio_min": 0.10, "eq_ratio_max": 0.25, "margin_min": 0.10, "margin_max": 0.30},
-    "L": {"industry": "Real Estate",                            "eq_ratio_min": 0.30, "eq_ratio_max": 0.55, "margin_min": 0.15, "margin_max": 0.35},
-    "M": {"industry": "Professional / Scientific / Technical",  "eq_ratio_min": 0.35, "eq_ratio_max": 0.60, "margin_min": 0.06, "margin_max": 0.15},
-    "N": {"industry": "Administrative / Support Services",      "eq_ratio_min": 0.28, "eq_ratio_max": 0.45, "margin_min": 0.03, "margin_max": 0.10},
-    "O": {"industry": "Public Administration",                  "eq_ratio_min": 0.30, "eq_ratio_max": 0.60, "margin_min": 0.00, "margin_max": 0.05},
-    "P": {"industry": "Education",                              "eq_ratio_min": 0.30, "eq_ratio_max": 0.55, "margin_min": 0.02, "margin_max": 0.08},
-    "Q": {"industry": "Health / Social Work",                   "eq_ratio_min": 0.28, "eq_ratio_max": 0.48, "margin_min": 0.02, "margin_max": 0.08},
-    "R": {"industry": "Arts / Entertainment / Recreation",      "eq_ratio_min": 0.22, "eq_ratio_max": 0.45, "margin_min": 0.02, "margin_max": 0.08},
-    "S": {"industry": "Other Service Activities",               "eq_ratio_min": 0.25, "eq_ratio_max": 0.45, "margin_min": 0.03, "margin_max": 0.09},
+    "A": {
+        "industry": "Agriculture / Forestry / Fishing",
+        "eq_ratio_min": 0.35,
+        "eq_ratio_max": 0.55,
+        "margin_min": 0.03,
+        "margin_max": 0.10,
+    },
+    "B": {
+        "industry": "Mining / Quarrying",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.50,
+        "margin_min": 0.10,
+        "margin_max": 0.25,
+    },
+    "C": {
+        "industry": "Manufacturing",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.50,
+        "margin_min": 0.03,
+        "margin_max": 0.10,
+    },
+    "D": {
+        "industry": "Electricity / Gas / Steam",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.50,
+        "margin_min": 0.05,
+        "margin_max": 0.15,
+    },
+    "E": {
+        "industry": "Water / Waste Management",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.45,
+        "margin_min": 0.05,
+        "margin_max": 0.12,
+    },
+    "F": {
+        "industry": "Construction",
+        "eq_ratio_min": 0.20,
+        "eq_ratio_max": 0.38,
+        "margin_min": 0.02,
+        "margin_max": 0.07,
+    },
+    "G": {
+        "industry": "Wholesale / Retail Trade",
+        "eq_ratio_min": 0.25,
+        "eq_ratio_max": 0.42,
+        "margin_min": 0.01,
+        "margin_max": 0.05,
+    },
+    "H": {
+        "industry": "Transport / Storage",
+        "eq_ratio_min": 0.22,
+        "eq_ratio_max": 0.38,
+        "margin_min": 0.02,
+        "margin_max": 0.07,
+    },
+    "I": {
+        "industry": "Accommodation / Food Service",
+        "eq_ratio_min": 0.15,
+        "eq_ratio_max": 0.35,
+        "margin_min": 0.01,
+        "margin_max": 0.06,
+    },
+    "J": {
+        "industry": "Information / Communication / IT",
+        "eq_ratio_min": 0.40,
+        "eq_ratio_max": 0.65,
+        "margin_min": 0.08,
+        "margin_max": 0.20,
+    },
+    "K": {
+        "industry": "Financial / Insurance Services",
+        "eq_ratio_min": 0.10,
+        "eq_ratio_max": 0.25,
+        "margin_min": 0.10,
+        "margin_max": 0.30,
+    },
+    "L": {
+        "industry": "Real Estate",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.55,
+        "margin_min": 0.15,
+        "margin_max": 0.35,
+    },
+    "M": {
+        "industry": "Professional / Scientific / Technical",
+        "eq_ratio_min": 0.35,
+        "eq_ratio_max": 0.60,
+        "margin_min": 0.06,
+        "margin_max": 0.15,
+    },
+    "N": {
+        "industry": "Administrative / Support Services",
+        "eq_ratio_min": 0.28,
+        "eq_ratio_max": 0.45,
+        "margin_min": 0.03,
+        "margin_max": 0.10,
+    },
+    "O": {
+        "industry": "Public Administration",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.60,
+        "margin_min": 0.00,
+        "margin_max": 0.05,
+    },
+    "P": {
+        "industry": "Education",
+        "eq_ratio_min": 0.30,
+        "eq_ratio_max": 0.55,
+        "margin_min": 0.02,
+        "margin_max": 0.08,
+    },
+    "Q": {
+        "industry": "Health / Social Work",
+        "eq_ratio_min": 0.28,
+        "eq_ratio_max": 0.48,
+        "margin_min": 0.02,
+        "margin_max": 0.08,
+    },
+    "R": {
+        "industry": "Arts / Entertainment / Recreation",
+        "eq_ratio_min": 0.22,
+        "eq_ratio_max": 0.45,
+        "margin_min": 0.02,
+        "margin_max": 0.08,
+    },
+    "S": {
+        "industry": "Other Service Activities",
+        "eq_ratio_min": 0.25,
+        "eq_ratio_max": 0.45,
+        "margin_min": 0.03,
+        "margin_max": 0.09,
+    },
 }
 
 # ── LLM / analysis limits ─────────────────────────────────────────────────────
-LLM_DOCUMENT_CHAR_LIMIT = 12_000   # max chars sent to LLM for document analysis
-LLM_TEXT_CHAR_LIMIT = 8_000        # max chars for text-based LLM fallback
-TEXT_EMBED_CHAR_LIMIT = 2_000      # max chars sent to the embedding model
+LLM_DOCUMENT_CHAR_LIMIT = 12_000  # max chars sent to LLM for document analysis
+LLM_TEXT_CHAR_LIMIT = 8_000  # max chars for text-based LLM fallback
+TEXT_EMBED_CHAR_LIMIT = 2_000  # max chars sent to the embedding model
 GEMINI_FILES_API_THRESHOLD = 18 * 1024 * 1024  # 18 MB — use Files API above this
-PDF_PAGE_LIMIT_EXTRACT = 60        # max pages for pdfplumber extraction
-PDF_PAGE_LIMIT_LAYOUT = 40         # max pages for layout analysis
-PDF_URL_LIMIT = 8                  # max PDF URLs to validate per discovery run
+PDF_PAGE_LIMIT_EXTRACT = 60  # max pages for pdfplumber extraction
+PDF_PAGE_LIMIT_LAYOUT = 40  # max pages for layout analysis
+PDF_URL_LIMIT = 8  # max PDF URLs to validate per discovery run
 
 _NACE_SECTION_MAP: List[tuple] = [
-    (range(1, 4),   "A"),
-    (range(5, 10),  "B"),
+    (range(1, 4), "A"),
+    (range(5, 10), "B"),
     (range(10, 34), "C"),
     (range(35, 36), "D"),
     (range(36, 40), "E"),

@@ -11,6 +11,7 @@ with AI-generated content:
 Both are cached on the Policy row so the LLM is only called once per renewal cycle.
 The cron idempotency still comes from `last_renewal_notified_days`.
 """
+
 import logging
 
 from sqlalchemy.orm import Session
@@ -23,6 +24,7 @@ _log = logging.getLogger(__name__)
 def _get_gap_summary(policy: Policy, db: Session) -> str:
     """Return a Norwegian coverage-gap sentence, or empty string if none."""
     from api.services.coverage_gap import analyze_coverage_gap
+
     try:
         gap = analyze_coverage_gap(policy.orgnr, policy.firm_id, db)
         if gap["gap_count"] > 0:
@@ -53,13 +55,16 @@ def _get_submission_context(policy: Policy, db: Session) -> str:
     lines = []
     for s in subs:
         status = s.status.value if s.status else "ukjent"
-        premium = f"{int(s.premium_offered_nok):,} NOK" if s.premium_offered_nok else "ikke oppgitt"
+        premium = (
+            f"{int(s.premium_offered_nok):,} NOK"
+            if s.premium_offered_nok
+            else "ikke oppgitt"
+        )
         lines.append(f"  - {status}: premie {premium}")
     return "Tidligere markedstilnærminger:\n" + "\n".join(lines)
 
 
 class RenewalAgentService:
-
     def generate_renewal_brief(self, policy: Policy, db: Session) -> str:
         """Draft a 3-bullet renewal brief for a policy using LLM."""
         from api.services.llm import _llm_answer_raw
@@ -68,8 +73,14 @@ class RenewalAgentService:
         company_name = company.navn if company else policy.orgnr
         gap_summary = _get_gap_summary(policy, db)
         sub_lines = _get_submission_context(policy, db)
-        renewal_date = policy.renewal_date.isoformat() if policy.renewal_date else "ukjent"
-        premium = f"{int(policy.annual_premium_nok):,} NOK" if policy.annual_premium_nok else "ikke oppgitt"
+        renewal_date = (
+            policy.renewal_date.isoformat() if policy.renewal_date else "ukjent"
+        )
+        premium = (
+            f"{int(policy.annual_premium_nok):,} NOK"
+            if policy.annual_premium_nok
+            else "ikke oppgitt"
+        )
         prompt = (
             f"Du er en norsk forsikringsmegler. Lag en kort fornyelsesbriefing (3 kulepunkter) "
             f"for følgende polise:\n\n"
@@ -86,13 +97,17 @@ class RenewalAgentService:
         )
         return _llm_answer_raw(prompt) or ""
 
-    def generate_renewal_email_draft(self, policy: Policy, brief: str, db: Session) -> str:
+    def generate_renewal_email_draft(
+        self, policy: Policy, brief: str, db: Session
+    ) -> str:
         """Draft a professional Norwegian email to the client about the upcoming renewal."""
         from api.services.llm import _llm_answer_raw
 
         company = db.query(Company).filter(Company.orgnr == policy.orgnr).first()
         company_name = company.navn if company else policy.orgnr
-        renewal_date = policy.renewal_date.isoformat() if policy.renewal_date else "ukjent"
+        renewal_date = (
+            policy.renewal_date.isoformat() if policy.renewal_date else "ukjent"
+        )
         prompt = (
             f"Du er en norsk forsikringsmegler. Skriv en profesjonell e-post til kunden "
             f"om kommende fornyelse av forsikringspolisen.\n\n"
@@ -111,9 +126,7 @@ class RenewalAgentService:
         )
         return _llm_answer_raw(prompt) or ""
 
-    def process_renewals_batch(
-        self, firm_id: int, db: Session
-    ) -> list[dict]:
+    def process_renewals_batch(self, firm_id: int, db: Session) -> list[dict]:
         """Generate AI briefs + email drafts for all policies approaching renewal.
 
         Called by the daily cron endpoint. Caches results on the Policy row so
@@ -125,7 +138,8 @@ class RenewalAgentService:
         results = []
         for threshold in [90, 60, 30]:
             policies = svc.get_policies_needing_renewal_notification(
-                firm_id=firm_id, threshold_days=threshold,
+                firm_id=firm_id,
+                threshold_days=threshold,
             )
             for p in policies:
                 try:
@@ -136,18 +150,29 @@ class RenewalAgentService:
                         brief = p.renewal_brief
 
                     if not p.renewal_email_draft:
-                        p.renewal_email_draft = self.generate_renewal_email_draft(p, brief, db)
+                        p.renewal_email_draft = self.generate_renewal_email_draft(
+                            p, brief, db
+                        )
 
                     db.commit()
-                    results.append({
-                        "orgnr": p.orgnr, "policy_id": p.id,
-                        "threshold": threshold, "brief_generated": True,
-                    })
+                    results.append(
+                        {
+                            "orgnr": p.orgnr,
+                            "policy_id": p.id,
+                            "threshold": threshold,
+                            "brief_generated": True,
+                        }
+                    )
                 except Exception as exc:
                     _log.warning("Renewal agent: failed for policy %d: %s", p.id, exc)
                     db.rollback()
-                    results.append({
-                        "orgnr": p.orgnr, "policy_id": p.id,
-                        "threshold": threshold, "brief_generated": False, "error": str(exc),
-                    })
+                    results.append(
+                        {
+                            "orgnr": p.orgnr,
+                            "policy_id": p.id,
+                            "threshold": threshold,
+                            "brief_generated": False,
+                            "error": str(exc),
+                        }
+                    )
         return results

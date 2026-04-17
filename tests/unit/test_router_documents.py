@@ -1,4 +1,5 @@
 """Unit tests for api/routers/documents.py — InsuranceDocument CRUD + analysis."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -48,6 +49,7 @@ def client(mock_db):
 
 # ── GET /insurance-documents ──────────────────────────────────────────────────
 
+
 def test_list_documents_returns_200(client, mock_db):
     mock_db.query.return_value.order_by.return_value.all.return_value = []
     resp = client.get("/insurance-documents")
@@ -82,6 +84,7 @@ def test_list_documents_filters_applied(client, mock_db):
 
 # ── GET /insurance-documents/{doc_id}/pdf ─────────────────────────────────────
 
+
 def test_download_document_pdf_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc()
     resp = client.get("/insurance-documents/1/pdf")
@@ -105,10 +108,13 @@ def test_download_document_pdf_returns_pdf_bytes(client, mock_db):
 
 # ── GET /insurance-documents/{doc_id}/keypoints ───────────────────────────────
 
+
 def test_get_keypoints_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc()
-    with patch("api.routers.documents.get_document_keypoints",
-               return_value={"keypoints": ["Point 1", "Point 2"]}):
+    with patch(
+        "api.routers.documents.get_document_keypoints",
+        return_value={"keypoints": ["Point 1", "Point 2"]},
+    ):
         resp = client.get("/insurance-documents/1/keypoints")
     assert resp.status_code == 200
 
@@ -123,8 +129,9 @@ def test_get_keypoints_includes_doc_id_and_title(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc(
         id=5, title="Vilkår 2023"
     )
-    with patch("api.routers.documents.get_document_keypoints",
-               return_value={"keypoints": []}):
+    with patch(
+        "api.routers.documents.get_document_keypoints", return_value={"keypoints": []}
+    ):
         resp = client.get("/insurance-documents/5/keypoints")
     body = resp.json()
     assert body["doc_id"] == 5
@@ -132,6 +139,7 @@ def test_get_keypoints_includes_doc_id_and_title(client, mock_db):
 
 
 # ── GET /insurance-documents/{doc_id}/similar ─────────────────────────────────
+
 
 def test_get_similar_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc()
@@ -148,9 +156,12 @@ def test_get_similar_returns_404_when_missing(client, mock_db):
 
 # ── DELETE /insurance-documents/{doc_id} ──────────────────────────────────────
 
+
 def test_delete_document_returns_200(client, mock_db):
-    with patch("api.routers.documents.remove_insurance_document", return_value=True), \
-         patch("api.routers.documents.log_audit"):
+    with (
+        patch("api.routers.documents.remove_insurance_document", return_value=True),
+        patch("api.routers.documents.log_audit"),
+    ):
         resp = client.delete("/insurance-documents/1")
     assert resp.status_code == 200
     assert resp.json() == {"deleted": 1}
@@ -164,12 +175,15 @@ def test_delete_document_returns_404_when_missing(client, mock_db):
 
 # ── POST /insurance-documents/{doc_id}/chat ───────────────────────────────────
 
+
 def test_chat_with_document_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc()
-    with patch("api.routers.documents.answer_document_question",
-               return_value="Svaret er ja."):
-        resp = client.post("/insurance-documents/1/chat",
-                           json={"question": "Hva dekkes?"})
+    with patch(
+        "api.routers.documents.answer_document_question", return_value="Svaret er ja."
+    ):
+        resp = client.post(
+            "/insurance-documents/1/chat", json={"question": "Hva dekkes?"}
+        )
     assert resp.status_code == 200
     assert resp.json()["answer"] == "Svaret er ja."
 
@@ -182,13 +196,16 @@ def test_chat_with_document_returns_404_when_missing(client, mock_db):
 
 def test_chat_with_document_returns_503_when_llm_unavailable(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_doc()
-    with patch("api.routers.documents.answer_document_question",
-               side_effect=LlmUnavailableError("no key")):
+    with patch(
+        "api.routers.documents.answer_document_question",
+        side_effect=LlmUnavailableError("no key"),
+    ):
         resp = client.post("/insurance-documents/1/chat", json={"question": "?"})
     assert resp.status_code == 503
 
 
 # ── POST /insurance-documents/compare ────────────────────────────────────────
+
 
 def test_compare_returns_400_when_not_two_ids(client, mock_db):
     resp = client.post("/insurance-documents/compare", json={"doc_ids": [1]})
@@ -225,7 +242,9 @@ def test_compare_returns_503_when_llm_unavailable(client, mock_db):
     doc_a = _mock_doc(id=1)
     doc_b = _mock_doc(id=2)
     mock_db.query.return_value.filter.return_value.all.return_value = [doc_a, doc_b]
-    with patch("api.routers.documents.compare_two_documents",
-               side_effect=LlmUnavailableError("no LLM")):
+    with patch(
+        "api.routers.documents.compare_two_documents",
+        side_effect=LlmUnavailableError("no LLM"),
+    ):
         resp = client.post("/insurance-documents/compare", json={"doc_ids": [1, 2]})
     assert resp.status_code == 503

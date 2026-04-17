@@ -5,6 +5,7 @@ the two _serialize_* shapes (insurer + submission) and NotFoundError → 404
 conversion across all six 404 paths. The InsurerService itself has its own
 test suite.
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -66,6 +67,7 @@ def _submission_row(id=1, insurer_id=1, premium=100000):
 
 # ── _serialize_insurer ────────────────────────────────────────────────────────
 
+
 def test_serialize_insurer_returns_full_dict():
     row = _insurer_row()
     result = _serialize_insurer(row)
@@ -90,6 +92,7 @@ def test_serialize_insurer_handles_null_created_at():
 
 # ── _serialize_submission ─────────────────────────────────────────────────────
 
+
 def test_serialize_submission_includes_insurer_name():
     row = _submission_row()
     result = _serialize_submission(row, insurer_name="If")
@@ -112,6 +115,7 @@ def test_serialize_submission_accepts_none_insurer_name():
 
 
 # ── Insurer CRUD ──────────────────────────────────────────────────────────────
+
 
 def test_list_insurers_serializes_rows():
     svc = MagicMock()
@@ -136,7 +140,9 @@ def test_update_insurer_returns_serialized_row():
     svc.update_insurer.return_value = _insurer_row(id=7)
     body = MagicMock()
     body.model_dump.return_value = {"name": "Updated"}
-    result = update_insurer(insurer_id=7, body=body, user=_user(), svc=svc, db=MagicMock())
+    result = update_insurer(
+        insurer_id=7, body=body, user=_user(), svc=svc, db=MagicMock()
+    )
     assert result["id"] == 7
 
 
@@ -165,6 +171,7 @@ def test_delete_insurer_raises_404_when_not_found():
 
 
 # ── Submission CRUD ───────────────────────────────────────────────────────────
+
 
 def test_list_submissions_returns_enriched_serialized_list():
     svc = MagicMock()
@@ -244,6 +251,7 @@ def test_delete_submission_raises_404_when_not_found():
 
 # ── Analytics ─────────────────────────────────────────────────────────────────
 
+
 def test_match_appetite_returns_serialized_insurers():
     svc = MagicMock()
     svc.match_appetite.return_value = [_insurer_row(id=1), _insurer_row(id=2)]
@@ -263,7 +271,9 @@ def test_get_win_loss_summary_returns_service_result():
 def test_draft_submission_email_returns_payload():
     svc = MagicMock()
     svc.draft_submission_email.return_value = "Hei, vi ønsker å innhente tilbud..."
-    result = draft_submission_email(submission_id=7, user=_user(), svc=svc, db=MagicMock())
+    result = draft_submission_email(
+        submission_id=7, user=_user(), svc=svc, db=MagicMock()
+    )
     assert result["submission_id"] == 7
     assert "Hei" in result["draft_email"]
 

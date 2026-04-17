@@ -19,6 +19,7 @@ Until these are set, `is_configured()` returns False and the route returns
 Phase 2 (deferred per plan): swap to MSAL on-behalf-of for "send as user"
 delegated flow so emails appear in the broker's own Sent items folder.
 """
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -32,10 +33,11 @@ class MsGraphConfig:
     """Frozen config — read once in api/main.py per the Antire convention.
     Empty strings are intentional sentinels (vs Optional[str]) so the
     is_configured() check is a simple `all(...)`."""
-    tenant_id:        str = ""
-    client_id:        str = ""
-    client_secret:    str = ""
-    service_mailbox:  str = ""
+
+    tenant_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    service_mailbox: str = ""
 
 
 _GRAPH_BASE = "https://graph.microsoft.com/v1.0"
@@ -49,7 +51,9 @@ class MsGraphEmailAdapter(EmailOutboundPort):
 
     def is_configured(self) -> bool:
         c = self.config
-        return bool(c.tenant_id and c.client_id and c.client_secret and c.service_mailbox)
+        return bool(
+            c.tenant_id and c.client_id and c.client_secret and c.service_mailbox
+        )
 
     def send_email(
         self,
@@ -59,7 +63,9 @@ class MsGraphEmailAdapter(EmailOutboundPort):
         on_behalf_of_email: Optional[str] = None,  # noqa: ARG002 (Phase 2)
     ) -> str:
         if not self.is_configured():
-            raise RuntimeError("MS Graph email is not configured (missing AZURE_AD_* env vars)")
+            raise RuntimeError(
+                "MS Graph email is not configured (missing AZURE_AD_* env vars)"
+            )
         token = self._fetch_token()
         return self._post_send_mail(token, to, subject, body_html)
 
@@ -70,10 +76,10 @@ class MsGraphEmailAdapter(EmailOutboundPort):
             resp = client.post(
                 token_url,
                 data={
-                    "client_id":     self.config.client_id,
+                    "client_id": self.config.client_id,
                     "client_secret": self.config.client_secret,
-                    "scope":         _GRAPH_SCOPE,
-                    "grant_type":    "client_credentials",
+                    "scope": _GRAPH_SCOPE,
+                    "grant_type": "client_credentials",
                 },
             )
         resp.raise_for_status()

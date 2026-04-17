@@ -19,6 +19,7 @@ def _adapter(conn_str=None, sender=None):
 
 # ── is_configured ─────────────────────────────────────────────────────────────
 
+
 def test_not_configured_when_conn_str_none():
     assert _adapter(conn_str=None).is_configured() is False
 
@@ -32,10 +33,16 @@ def test_not_configured_when_placeholder_value():
 
 
 def test_configured_when_real_conn_str():
-    assert _adapter(conn_str="endpoint=https://acs.example.com;accesskey=abc").is_configured() is True
+    assert (
+        _adapter(
+            conn_str="endpoint=https://acs.example.com;accesskey=abc"
+        ).is_configured()
+        is True
+    )
 
 
 # ── send_email returns False when not configured ──────────────────────────────
+
 
 def test_send_email_returns_false_when_not_configured():
     result = _adapter().send_email("to@test.com", "Subject", "<p>body</p>")
@@ -43,6 +50,7 @@ def test_send_email_returns_false_when_not_configured():
 
 
 # ── send_forsikringstilbud ────────────────────────────────────────────────────
+
 
 def test_send_forsikringstilbud_returns_false_when_not_configured():
     result = _adapter().send_forsikringstilbud(
@@ -60,7 +68,9 @@ def test_send_forsikringstilbud_generates_html_with_name(monkeypatch):
         return True
 
     monkeypatch.setattr(AzureEmailNotificationAdapter, "send_email", _fake_send)
-    monkeypatch.setattr(AzureEmailNotificationAdapter, "is_configured", lambda self: True)
+    monkeypatch.setattr(
+        AzureEmailNotificationAdapter, "is_configured", lambda self: True
+    )
 
     _adapter(conn_str="fake").send_forsikringstilbud(
         "client@firma.no", "Norsk AS", "984851006", "https://app.example.com/?token=xyz"
@@ -74,9 +84,14 @@ def test_send_forsikringstilbud_generates_html_with_name(monkeypatch):
 
 def test_send_forsikringstilbud_subject_contains_client_name(monkeypatch):
     sent = []
-    monkeypatch.setattr(AzureEmailNotificationAdapter, "send_email",
-                        lambda self, to, subject, body: sent.append(subject) or True)
-    monkeypatch.setattr(AzureEmailNotificationAdapter, "is_configured", lambda self: True)
+    monkeypatch.setattr(
+        AzureEmailNotificationAdapter,
+        "send_email",
+        lambda self, to, subject, body: sent.append(subject) or True,
+    )
+    monkeypatch.setattr(
+        AzureEmailNotificationAdapter, "is_configured", lambda self: True
+    )
     _adapter(conn_str="fake").send_forsikringstilbud(
         "x@x.no", "MinBedrift AS", "111222333", "https://app.example.com"
     )
@@ -85,35 +100,52 @@ def test_send_forsikringstilbud_subject_contains_client_name(monkeypatch):
 
 # ── send_sla_generated ────────────────────────────────────────────────────────
 
+
 def test_send_sla_generated_returns_false_when_not_configured():
     assert _adapter().send_sla_generated("to@test.com", "Client AS") is False
 
 
 def test_send_sla_generated_html_contains_client_name(monkeypatch):
     bodies = []
-    monkeypatch.setattr(AzureEmailNotificationAdapter, "send_email",
-                        lambda self, to, subject, body: bodies.append(body) or True)
-    monkeypatch.setattr(AzureEmailNotificationAdapter, "is_configured", lambda self: True)
+    monkeypatch.setattr(
+        AzureEmailNotificationAdapter,
+        "send_email",
+        lambda self, to, subject, body: bodies.append(body) or True,
+    )
+    monkeypatch.setattr(
+        AzureEmailNotificationAdapter, "is_configured", lambda self: True
+    )
     _adapter(conn_str="fake").send_sla_generated("x@x.no", "Client AS")
     assert "Client AS" in bodies[0]
 
 
 # ── send_activity_reminders ───────────────────────────────────────────────────
 
+
 def test_send_activity_reminders_empty_returns_false():
     assert _adapter().send_activity_reminders("to@test.com", [], []) is False
 
 
 def test_send_activity_reminders_returns_false_when_not_configured():
-    overdue = [{"due_date": "2026-01-01", "activity_type": "call",
-                "subject": "Call client", "orgnr": "123456789"}]
+    overdue = [
+        {
+            "due_date": "2026-01-01",
+            "activity_type": "call",
+            "subject": "Call client",
+            "orgnr": "123456789",
+        }
+    ]
     assert _adapter().send_activity_reminders("to@test.com", overdue, []) is False
 
 
 def test_activity_row_contains_due_date():
     row_html = AzureEmailNotificationAdapter._activity_row(
-        {"due_date": "2026-04-15", "activity_type": "meeting",
-         "subject": "Møte med klient", "orgnr": "984851006"},
+        {
+            "due_date": "2026-04-15",
+            "activity_type": "meeting",
+            "subject": "Møte med klient",
+            "orgnr": "984851006",
+        },
         "#c0392b",
     )
     assert "2026-04-15" in row_html
@@ -124,8 +156,12 @@ def test_activity_row_contains_due_date():
 
 def test_activity_row_missing_orgnr_shows_dash():
     row_html = AzureEmailNotificationAdapter._activity_row(
-        {"due_date": "2026-04-15", "activity_type": "task",
-         "subject": "Follow up", "orgnr": None},
+        {
+            "due_date": "2026-04-15",
+            "activity_type": "task",
+            "subject": "Follow up",
+            "orgnr": None,
+        },
         "#e67e22",
     )
     assert "–" in row_html
@@ -133,30 +169,53 @@ def test_activity_row_missing_orgnr_shows_dash():
 
 # ── send_portfolio_digest ─────────────────────────────────────────────────────
 
+
 def test_send_portfolio_digest_empty_returns_false():
     assert _adapter().send_portfolio_digest("to@test.com", "My Portfolio", []) is False
 
 
 def test_send_portfolio_digest_returns_false_when_not_configured():
-    alerts = [{"navn": "Test AS", "severity": "Høy", "alert_type": "Inntektsvekst",
-               "detail": "+25%", "year_from": 2023, "year_to": 2024}]
-    assert _adapter().send_portfolio_digest("to@test.com", "My Portfolio", alerts) is False
+    alerts = [
+        {
+            "navn": "Test AS",
+            "severity": "Høy",
+            "alert_type": "Inntektsvekst",
+            "detail": "+25%",
+            "year_from": 2023,
+            "year_to": 2024,
+        }
+    ]
+    assert (
+        _adapter().send_portfolio_digest("to@test.com", "My Portfolio", alerts) is False
+    )
 
 
 # ── send_renewal_digest ───────────────────────────────────────────────────────
+
 
 def test_send_renewal_digest_empty_returns_false():
     assert _adapter().send_renewal_digest("to@test.com", []) is False
 
 
 def test_send_renewal_digest_returns_false_when_not_configured():
-    renewals = [{"orgnr": "123456789", "insurer": "If", "product_type": "Ting",
-                 "annual_premium_nok": 50000, "renewal_date": "2026-05-01",
-                 "days_to_renewal": 40}]
+    renewals = [
+        {
+            "orgnr": "123456789",
+            "insurer": "If",
+            "product_type": "Ting",
+            "annual_premium_nok": 50000,
+            "renewal_date": "2026-05-01",
+            "days_to_renewal": 40,
+        }
+    ]
     assert _adapter().send_renewal_digest("to@test.com", renewals) is False
 
 
 # ── send_risk_report_ready ────────────────────────────────────────────────────
 
+
 def test_send_risk_report_ready_returns_false_when_not_configured():
-    assert _adapter().send_risk_report_ready("to@test.com", "984851006", "DNB Bank ASA") is False
+    assert (
+        _adapter().send_risk_report_ready("to@test.com", "984851006", "DNB Bank ASA")
+        is False
+    )

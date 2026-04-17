@@ -4,6 +4,7 @@ Requires TEST_DATABASE_URL. Auth is bypassed via dependency override.
 Run:
     TEST_DATABASE_URL=postgresql://... uv run python -m pytest tests/integration/test_portfolio.py -v
 """
+
 import os
 from datetime import date, timedelta
 
@@ -14,9 +15,9 @@ pytestmark = pytest.mark.skipif(
     reason="set TEST_DATABASE_URL=postgresql://... to run integration tests",
 )
 
-_FIRM_ID  = 1
+_FIRM_ID = 1
 _FIRM2_ID = 2
-_ORGNR    = "111222333"
+_ORGNR = "111222333"
 
 
 # ── Shared fixtures ────────────────────────────────────────────────────────────
@@ -32,7 +33,9 @@ def auth_client(test_db):
     from api.dependencies import get_db
 
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = resolve_user_factory("test@broker.no", "oid-1", _FIRM_ID)
+    app.dependency_overrides[get_current_user] = resolve_user_factory(
+        "test@broker.no", "oid-1", _FIRM_ID
+    )
     yield AuthClient(TestClient(app), make_user("test@broker.no", "oid-1", _FIRM_ID))
     app.dependency_overrides.clear()
 
@@ -45,7 +48,9 @@ def auth_client_firm2(test_db):
     from api.dependencies import get_db
 
     app.dependency_overrides[get_db] = lambda: test_db
-    app.dependency_overrides[get_current_user] = resolve_user_factory("other@broker.no", "oid-2", _FIRM2_ID)
+    app.dependency_overrides[get_current_user] = resolve_user_factory(
+        "other@broker.no", "oid-2", _FIRM2_ID
+    )
     yield AuthClient(TestClient(app), make_user("other@broker.no", "oid-2", _FIRM2_ID))
     app.dependency_overrides.clear()
 
@@ -57,11 +62,14 @@ def seed_broker_firms(test_db):
 
     for fid, name in [(_FIRM_ID, "Test Megling AS"), (_FIRM2_ID, "Annet Megling AS")]:
         if not test_db.query(BrokerFirm).filter(BrokerFirm.id == fid).first():
-            test_db.add(BrokerFirm(id=fid, name=name, created_at=datetime.now(timezone.utc)))
+            test_db.add(
+                BrokerFirm(id=fid, name=name, created_at=datetime.now(timezone.utc))
+            )
             test_db.commit()
 
 
 # ── Portfolio CRUD ─────────────────────────────────────────────────────────────
+
 
 class TestPortfolioCRUD:
     def test_create_returns_id_and_name(self, auth_client):
@@ -108,8 +116,7 @@ class TestPortfolioCRUD:
 
 # See tests/integration/test_policies.py for xfail rationale.
 _PORTFOLIO_ISOLATION_FOLLOWUP = (
-    "Pre-existing: /portfolio endpoints don't scope by firm_id. "
-    "See tier 🟡 follow-up."
+    "Pre-existing: /portfolio endpoints don't scope by firm_id. See tier 🟡 follow-up."
 )
 _PORTFOLIO_ANALYTICS_FOLLOWUP = (
     "Pre-existing: portfolio analytics aggregation drift "
@@ -120,12 +127,16 @@ _PORTFOLIO_ANALYTICS_FOLLOWUP = (
 class TestFirmIsolation:
     @pytest.mark.xfail(reason=_PORTFOLIO_ISOLATION_FOLLOWUP, strict=False)
     def test_portfolio_not_visible_to_other_firm(self, auth_client, auth_client_firm2):
-        pid = auth_client.post("/portfolio", json={"name": "Firm1 Portfolio"}).json()["id"]
+        pid = auth_client.post("/portfolio", json={"name": "Firm1 Portfolio"}).json()[
+            "id"
+        ]
         firm2_portfolios = auth_client_firm2.get("/portfolio").json()
         assert not any(p["id"] == pid for p in firm2_portfolios)
 
     @pytest.mark.xfail(reason=_PORTFOLIO_ISOLATION_FOLLOWUP, strict=False)
-    def test_delete_other_firms_portfolio_returns_404(self, auth_client, auth_client_firm2):
+    def test_delete_other_firms_portfolio_returns_404(
+        self, auth_client, auth_client_firm2
+    ):
         pid = auth_client.post("/portfolio", json={"name": "Only Firm1"}).json()["id"]
         assert auth_client_firm2.delete(f"/portfolio/{pid}").status_code == 404
 
@@ -134,15 +145,25 @@ class TestFirmIsolation:
         """Policies created under firm 1 must not appear in firm 2's analytics."""
         from datetime import datetime, timezone
         from api.db import Policy, PolicyStatus
-        pid = auth_client.post("/portfolio", json={"name": "Analytics Isolation"}).json()["id"]
+
+        pid = auth_client.post(
+            "/portfolio", json={"name": "Analytics Isolation"}
+        ).json()["id"]
         auth_client.post(f"/portfolio/{pid}/companies", json={"orgnr": _ORGNR})
         # Directly insert a policy for firm 1
         now = datetime.now(timezone.utc)
-        test_db.add(Policy(
-            orgnr=_ORGNR, firm_id=_FIRM_ID, insurer="TestIns", product_type="Ting",
-            annual_premium_nok=100_000, status=PolicyStatus.active,
-            created_at=now, updated_at=now,
-        ))
+        test_db.add(
+            Policy(
+                orgnr=_ORGNR,
+                firm_id=_FIRM_ID,
+                insurer="TestIns",
+                product_type="Ting",
+                annual_premium_nok=100_000,
+                status=PolicyStatus.active,
+                created_at=now,
+                updated_at=now,
+            )
+        )
         test_db.commit()
         firm1_analytics = auth_client.get(f"/portfolio/{pid}/analytics").json()
         assert firm1_analytics["total_annual_premium_nok"] == 100_000
@@ -154,18 +175,23 @@ class TestFirmIsolation:
 
 # ── Analytics endpoint ─────────────────────────────────────────────────────────
 
+
 class TestPortfolioAnalytics:
     def _make_portfolio_with_policies(self, auth_client, test_db):
         from datetime import datetime, timezone
         from api.db import Policy, PolicyStatus
+
         # Clean up any leftover policies from prior test runs to keep aggregate
         # assertions deterministic. test_db.rollback() in the fixture is a no-op
         # because the service layer commits inside each request.
         test_db.query(Policy).filter(
-            Policy.orgnr == _ORGNR, Policy.firm_id == _FIRM_ID,
+            Policy.orgnr == _ORGNR,
+            Policy.firm_id == _FIRM_ID,
         ).delete(synchronize_session=False)
         test_db.commit()
-        pid = auth_client.post("/portfolio", json={"name": "Analytics Test"}).json()["id"]
+        pid = auth_client.post("/portfolio", json={"name": "Analytics Test"}).json()[
+            "id"
+        ]
         auth_client.post(f"/portfolio/{pid}/companies", json={"orgnr": _ORGNR})
         now = datetime.now(timezone.utc)
         for insurer, product, premium, days in [
@@ -173,21 +199,33 @@ class TestPortfolioAnalytics:
             ("If", "Ansvar", 100_000, 120),
             ("Gjensidige", "Cyber", 50_000, 60),
         ]:
-            test_db.add(Policy(
-                orgnr=_ORGNR, firm_id=_FIRM_ID, insurer=insurer, product_type=product,
-                annual_premium_nok=float(premium), status=PolicyStatus.active,
-                renewal_date=date.today() + timedelta(days=days),
-                created_at=now, updated_at=now,
-            ))
+            test_db.add(
+                Policy(
+                    orgnr=_ORGNR,
+                    firm_id=_FIRM_ID,
+                    insurer=insurer,
+                    product_type=product,
+                    annual_premium_nok=float(premium),
+                    status=PolicyStatus.active,
+                    renewal_date=date.today() + timedelta(days=days),
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
         test_db.commit()
         return pid
 
     def test_analytics_response_shape(self, auth_client, test_db):
         pid = self._make_portfolio_with_policies(auth_client, test_db)
         data = auth_client.get(f"/portfolio/{pid}/analytics").json()
-        for key in ("total_annual_premium_nok", "active_policy_count",
-                    "insurer_concentration", "product_concentration",
-                    "upcoming_renewals_90d", "upcoming_renewals_30d"):
+        for key in (
+            "total_annual_premium_nok",
+            "active_policy_count",
+            "insurer_concentration",
+            "product_concentration",
+            "upcoming_renewals_90d",
+            "upcoming_renewals_30d",
+        ):
             assert key in data, f"missing key: {key}"
 
     @pytest.mark.xfail(reason=_PORTFOLIO_ANALYTICS_FOLLOWUP, strict=False)
@@ -227,22 +265,34 @@ class TestPortfolioAnalytics:
 
 # ── Concentration endpoint ─────────────────────────────────────────────────────
 
+
 class TestPortfolioConcentration:
     def test_concentration_response_shape(self, auth_client, test_db):
         from api.db import Company
+
         pid = auth_client.post("/portfolio", json={"name": "Conc Test"}).json()["id"]
         auth_client.post(f"/portfolio/{pid}/companies", json={"orgnr": _ORGNR})
         if not test_db.query(Company).filter(Company.orgnr == _ORGNR).first():
             # Company has no created_at column (see api/db.py:28-50)
-            test_db.add(Company(
-                orgnr=_ORGNR, navn="Test AS",
-                naeringskode1="47.110", kommune="Oslo",
-                sum_driftsinntekter=50_000_000,
-            ))
+            test_db.add(
+                Company(
+                    orgnr=_ORGNR,
+                    navn="Test AS",
+                    naeringskode1="47.110",
+                    kommune="Oslo",
+                    sum_driftsinntekter=50_000_000,
+                )
+            )
             test_db.commit()
         data = auth_client.get(f"/portfolio/{pid}/concentration").json()
-        for key in ("portfolio_id", "total_companies", "total_revenue",
-                    "by_industry", "by_geography", "by_size"):
+        for key in (
+            "portfolio_id",
+            "total_companies",
+            "total_revenue",
+            "by_industry",
+            "by_geography",
+            "by_size",
+        ):
             assert key in data, f"missing key: {key}"
 
     def test_concentration_unknown_portfolio_returns_404(self, auth_client):

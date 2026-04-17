@@ -1,14 +1,15 @@
 """Unit tests for api/services/tender_service.py — tender lifecycle."""
+
 import sys
-from datetime import date, datetime, timezone
-from unittest.mock import MagicMock, patch, PropertyMock
+from datetime import date
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-from api.db import Tender, TenderRecipient, TenderOffer, TenderStatus, TenderRecipientStatus
+from api.db import Tender, TenderRecipientStatus
 from api.services.tender_service import TenderService
 
 
@@ -28,7 +29,7 @@ class TestCreate:
         db.commit = MagicMock()
         db.refresh = MagicMock()
 
-        result = svc.create(
+        svc.create(
             orgnr="984851006",
             firm_id=1,
             title="Test Tender",
@@ -156,7 +157,7 @@ class TestUploadOffer:
         db.commit = MagicMock()
         db.refresh = MagicMock()
 
-        offer = svc.upload_offer(
+        svc.upload_offer(
             tender_id=1,
             insurer_name="If",
             filename="tilbud.pdf",
@@ -209,6 +210,7 @@ class TestSendTenderEmail:
     @patch("api.container.resolve")
     def test_sends_email(self, mock_resolve):
         from api.services.tender_service import _send_tender_email
+
         mock_notification = MagicMock()
         mock_notification.send_email.return_value = True
         mock_resolve.return_value = mock_notification
@@ -227,6 +229,7 @@ class TestSendTenderEmail:
     @patch("api.container.resolve", side_effect=Exception("no port"))
     def test_returns_false_on_error(self, mock_resolve):
         from api.services.tender_service import _send_tender_email
+
         tender = MagicMock()
         tender.product_types = []
         tender.deadline = None

@@ -4,6 +4,7 @@ Phase 1 foundation: extract tenant_id from the JWT issuer claim and look up
 (or auto-provision) a BrokerFirm row. Called from auth.py when a real JWT
 is validated (not in AUTH_DISABLED mode).
 """
+
 import logging
 import re
 from datetime import datetime, timezone
@@ -15,9 +16,7 @@ from api.db import BrokerFirm
 _log = logging.getLogger(__name__)
 
 # Azure AD v2.0 issuer format: https://login.microsoftonline.com/{tenant_id}/v2.0
-_ISSUER_RE = re.compile(
-    r"https://login\.microsoftonline\.com/([0-9a-f-]+)/v2\.0"
-)
+_ISSUER_RE = re.compile(r"https://login\.microsoftonline\.com/([0-9a-f-]+)/v2\.0")
 
 
 class SsoService:
@@ -36,9 +35,7 @@ class SsoService:
             raise ValueError("Cannot extract tenant_id from token claims")
 
         firm = (
-            db.query(BrokerFirm)
-            .filter(BrokerFirm.azure_tenant_id == tenant_id)
-            .first()
+            db.query(BrokerFirm).filter(BrokerFirm.azure_tenant_id == tenant_id).first()
         )
         if firm:
             return firm

@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -29,6 +30,7 @@ def _mock_company(**kwargs):
 
 # ── _get_company ──────────────────────────────────────────────────────────────
 
+
 def test_get_company_raises_not_found_when_missing():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
@@ -45,6 +47,7 @@ def test_get_company_returns_company_when_found():
 
 
 # ── erase_company ─────────────────────────────────────────────────────────────
+
 
 def test_erase_company_raises_not_found_when_missing():
     db = _mock_db()
@@ -103,6 +106,7 @@ def test_erase_company_returns_summary_dict():
 
 
 # ── _serialize_export ─────────────────────────────────────────────────────────
+
 
 def _mock_records():
     history = MagicMock()
@@ -191,6 +195,7 @@ def test_serialize_export_deleted_at_iso_when_set():
 
 
 # ── purge_old_deletions ───────────────────────────────────────────────────────
+
 
 def test_purge_old_deletions_returns_zero_when_no_old_companies():
     db = _mock_db()

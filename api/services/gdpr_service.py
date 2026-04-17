@@ -1,18 +1,24 @@
 """GDPR compliance service — soft-delete (Art. 17), data export (Art. 20), retention purge."""
+
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from api.db import (
-    Company, CompanyHistory, CompanyNote, CompanyPdfSource, CompanyChunk,
-    Policy, Claim, Activity,
+    Company,
+    CompanyHistory,
+    CompanyNote,
+    CompanyPdfSource,
+    CompanyChunk,
+    Policy,
+    Claim,
+    Activity,
 )
 from api.domain.exceptions import NotFoundError
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 _RETENTION_DAYS = 90  # hard-delete soft-deleted companies after this many days
@@ -47,7 +53,11 @@ class GdprService:
         except Exception:
             self.db.rollback()
             raise
-        return {"orgnr": orgnr, "deleted_at": now.isoformat(), "chunks_removed": chunks_deleted}
+        return {
+            "orgnr": orgnr,
+            "deleted_at": now.isoformat(),
+            "chunks_removed": chunks_deleted,
+        }
 
     def export_company_data(self, orgnr: str) -> dict[str, Any]:
         """Export all data held for a company (GDPR Art. 20 — data portability)."""
@@ -60,14 +70,18 @@ class GdprService:
             "history": (
                 self.db.query(CompanyHistory)
                 .filter(CompanyHistory.orgnr == orgnr)
-                .order_by(CompanyHistory.year.desc()).all()
+                .order_by(CompanyHistory.year.desc())
+                .all()
             ),
             "notes": (
                 self.db.query(CompanyNote)
                 .filter(CompanyNote.orgnr == orgnr)
-                .order_by(CompanyNote.id.desc()).all()
+                .order_by(CompanyNote.id.desc())
+                .all()
             ),
-            "sources": self.db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all(),
+            "sources": self.db.query(CompanyPdfSource)
+            .filter(CompanyPdfSource.orgnr == orgnr)
+            .all(),
             "policies": self.db.query(Policy).filter(Policy.orgnr == orgnr).all(),
             "claims": self.db.query(Claim).filter(Claim.orgnr == orgnr).all(),
             "activities": self.db.query(Activity).filter(Activity.orgnr == orgnr).all(),
@@ -82,22 +96,39 @@ class GdprService:
                 "kommune": company.kommune,
                 "naeringskode1_beskrivelse": company.naeringskode1_beskrivelse,
                 "risk_score": company.risk_score,
-                "deleted_at": company.deleted_at.isoformat() if company.deleted_at else None,
+                "deleted_at": company.deleted_at.isoformat()
+                if company.deleted_at
+                else None,
             },
             "financial_history": [
-                {"year": h.year, "source": h.source, "sum_driftsinntekter": h.sum_driftsinntekter}
+                {
+                    "year": h.year,
+                    "source": h.source,
+                    "sum_driftsinntekter": h.sum_driftsinntekter,
+                }
                 for h in r["history"]
             ],
             "notes": [{"question": n.question, "answer": n.answer} for n in r["notes"]],
-            "pdf_sources": [{"year": s.year, "pdf_url": s.pdf_url} for s in r["sources"]],
+            "pdf_sources": [
+                {"year": s.year, "pdf_url": s.pdf_url} for s in r["sources"]
+            ],
             "policies": [
-                {"insurer": p.insurer, "product_type": p.product_type,
-                 "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None}
+                {
+                    "insurer": p.insurer,
+                    "product_type": p.product_type,
+                    "renewal_date": p.renewal_date.isoformat()
+                    if p.renewal_date
+                    else None,
+                }
                 for p in r["policies"]
             ],
-            "claims": [{"claim_number": c.claim_number, "status": c.status.value} for c in r["claims"]],
+            "claims": [
+                {"claim_number": c.claim_number, "status": c.status.value}
+                for c in r["claims"]
+            ],
             "activities": [
-                {"subject": a.subject, "activity_type": a.activity_type.value} for a in r["activities"]
+                {"subject": a.subject, "activity_type": a.activity_type.value}
+                for a in r["activities"]
             ],
         }
 
@@ -113,7 +144,9 @@ class GdprService:
         for company in companies:
             orgnr = company.orgnr
             for model in (CompanyChunk, CompanyNote, CompanyHistory, CompanyPdfSource):
-                self.db.query(model).filter(model.orgnr == orgnr).delete(synchronize_session=False)
+                self.db.query(model).filter(model.orgnr == orgnr).delete(
+                    synchronize_session=False
+                )
             self.db.delete(company)
             count += 1
         try:

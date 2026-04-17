@@ -3,7 +3,6 @@
 Pure static tests — no DB, no network, no API keys.
 """
 
-
 from api.routers.portfolio_router import _parse_csv_orgnrs
 
 
@@ -12,6 +11,7 @@ def _csv(content: str) -> bytes:
 
 
 # ── Named orgnr column ────────────────────────────────────────────────────────
+
 
 def test_named_orgnr_column():
     csv_bytes = _csv("orgnr\n984851006\n995568217\n")
@@ -34,6 +34,7 @@ def test_column_with_orgnr_substring():
 
 # ── No header fallback (first column) ─────────────────────────────────────────
 
+
 def test_no_header_first_column():
     csv_bytes = _csv("984851006\n995568217\n")
     valid, invalid = _parse_csv_orgnrs(csv_bytes)
@@ -42,6 +43,7 @@ def test_no_header_first_column():
 
 
 # ── Validation ────────────────────────────────────────────────────────────────
+
 
 def test_invalid_orgnr_too_short():
     csv_bytes = _csv("orgnr\n12345\n984851006\n")
@@ -69,6 +71,7 @@ def test_deduplication():
 
 
 # ── Edge cases ────────────────────────────────────────────────────────────────
+
 
 def test_empty_file():
     valid, invalid = _parse_csv_orgnrs(_csv(""))
