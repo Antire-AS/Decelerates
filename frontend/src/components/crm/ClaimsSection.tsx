@@ -129,8 +129,8 @@ export default function ClaimsSection({ orgnr, policies }: {
             ) : (
               <>
                 <div>
-                  <label className="label-xs">Forsikringsavtale *</label>
-                  <select value={policyId} onChange={(e) => setPolicyId(e.target.value)} className="input-sm w-full" required>
+                  <label className="label-xs" htmlFor="claim-policy">Forsikringsavtale *</label>
+                  <select id="claim-policy" value={policyId} onChange={(e) => setPolicyId(e.target.value)} className="input-sm w-full" required>
                     <option value="">Velg avtale…</option>
                     {policies.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -141,40 +141,40 @@ export default function ClaimsSection({ orgnr, policies }: {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label-xs">Skadenummer</label>
-                    <input value={claimNumber} onChange={(e) => setClaimNumber(e.target.value)} className="input-sm w-full" />
+                    <label className="label-xs" htmlFor="claim-number">Skadenummer</label>
+                    <input id="claim-number" value={claimNumber} onChange={(e) => setClaimNumber(e.target.value)} className="input-sm w-full" />
                   </div>
                   <div>
-                    <label className="label-xs">Status</label>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-sm w-full">
+                    <label className="label-xs" htmlFor="claim-status">Status</label>
+                    <select id="claim-status" value={status} onChange={(e) => setStatus(e.target.value)} className="input-sm w-full">
                       {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="label-xs">Hendelsesdato</label>
-                    <input type="date" value={incidentDate} onChange={(e) => setIncidentDate(e.target.value)} className="input-sm w-full" />
+                    <label className="label-xs" htmlFor="claim-incident-date">Hendelsesdato</label>
+                    <input id="claim-incident-date" type="date" value={incidentDate} onChange={(e) => setIncidentDate(e.target.value)} className="input-sm w-full" />
                   </div>
                   <div>
-                    <label className="label-xs">Meldt dato</label>
-                    <input type="date" value={reportedDate} onChange={(e) => setReportedDate(e.target.value)} className="input-sm w-full" />
+                    <label className="label-xs" htmlFor="claim-reported-date">Meldt dato</label>
+                    <input id="claim-reported-date" type="date" value={reportedDate} onChange={(e) => setReportedDate(e.target.value)} className="input-sm w-full" />
                   </div>
                   <div>
-                    <label className="label-xs">Estimert beløp (kr)</label>
-                    <input type="number" value={estimated} onChange={(e) => setEstimated(e.target.value)} min="0" step="10000" className="input-sm w-full" />
+                    <label className="label-xs" htmlFor="claim-estimated-amount">Estimert beløp (kr)</label>
+                    <input id="claim-estimated-amount" type="number" value={estimated} onChange={(e) => setEstimated(e.target.value)} min="0" step="10000" className="input-sm w-full" />
                   </div>
                   <div>
-                    <label className="label-xs">Kontakt hos forsikringsselskap</label>
-                    <input value={insContact} onChange={(e) => setInsContact(e.target.value)} className="input-sm w-full" />
+                    <label className="label-xs" htmlFor="claim-insurer-contact">Kontakt hos forsikringsselskap</label>
+                    <input id="claim-insurer-contact" value={insContact} onChange={(e) => setInsContact(e.target.value)} className="input-sm w-full" />
                   </div>
                 </div>
                 <div>
-                  <label className="label-xs">Beskrivelse</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
+                  <label className="label-xs" htmlFor="claim-description">Beskrivelse</label>
+                  <textarea id="claim-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
                     className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
                 </div>
                 <div>
-                  <label className="label-xs">Notater</label>
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                  <label className="label-xs" htmlFor="claim-notes">Notater</label>
+                  <textarea id="claim-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
                     placeholder="Interne notater (synlig kun for megler)"
                     className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
                 </div>

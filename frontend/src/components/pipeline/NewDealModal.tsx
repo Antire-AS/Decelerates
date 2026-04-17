@@ -116,7 +116,7 @@ export function NewDealModal({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Company autocomplete */}
           <div>
-            <label className="label-xs">Selskap *</label>
+            <label className="label-xs" htmlFor="new-deal-company-search">Selskap *</label>
             {picked ? (
               <div className="flex items-center justify-between bg-[#F9F7F4] border border-[#D4C9B8] rounded-lg px-3 py-2">
                 <div className="min-w-0">
@@ -139,6 +139,7 @@ export function NewDealModal({
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#C4BDB4]" />
                   <input
+                    id="new-deal-company-search"
                     autoFocus
                     value={companyQuery}
                     onChange={(e) => setCompanyQuery(e.target.value)}
@@ -176,8 +177,9 @@ export function NewDealModal({
           </div>
 
           <div>
-            <label className="label-xs">Tittel</label>
+            <label className="label-xs" htmlFor="new-deal-title">Tittel</label>
             <input
+              id="new-deal-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="F.eks. Q3 fornyelse"
@@ -187,8 +189,9 @@ export function NewDealModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label-xs">Stage *</label>
+              <label className="label-xs" htmlFor="new-deal-stage">Stage *</label>
               <select
+                id="new-deal-stage"
                 value={stageId}
                 onChange={(e) => setStageId(Number(e.target.value))}
                 className="input-sm w-full"
@@ -201,8 +204,9 @@ export function NewDealModal({
               </select>
             </div>
             <div>
-              <label className="label-xs">Forventet premie (NOK)</label>
+              <label className="label-xs" htmlFor="new-deal-expected-premium">Forventet premie (NOK)</label>
               <input
+                id="new-deal-expected-premium"
                 type="number"
                 value={premium}
                 onChange={(e) => setPremium(e.target.value)}
@@ -214,8 +218,9 @@ export function NewDealModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label-xs">Forventet closing</label>
+              <label className="label-xs" htmlFor="new-deal-close-date">Forventet closing</label>
               <input
+                id="new-deal-close-date"
                 type="date"
                 value={closeDate}
                 onChange={(e) => setCloseDate(e.target.value)}
@@ -223,8 +228,9 @@ export function NewDealModal({
               />
             </div>
             <div>
-              <label className="label-xs">Kilde</label>
+              <label className="label-xs" htmlFor="new-deal-source">Kilde</label>
               <input
+                id="new-deal-source"
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
                 placeholder="Inbound / Referral / …"
@@ -234,8 +240,9 @@ export function NewDealModal({
           </div>
 
           <div>
-            <label className="label-xs">Notater</label>
+            <label className="label-xs" htmlFor="new-deal-notes">Notater</label>
             <textarea
+              id="new-deal-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}

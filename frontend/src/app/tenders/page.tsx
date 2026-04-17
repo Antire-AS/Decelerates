@@ -203,8 +203,9 @@ function NewTenderModal({
         <div className="p-6 space-y-5">
           {/* Company */}
           <div>
-            <label className="label-xs">Organisasjonsnummer</label>
+            <label className="label-xs" htmlFor="tender-orgnr">Organisasjonsnummer</label>
             <input
+              id="tender-orgnr"
               className="input-sm w-full"
               placeholder="F.eks. 984851006"
               value={orgnr}
@@ -214,8 +215,9 @@ function NewTenderModal({
 
           {/* Title */}
           <div>
-            <label className="label-xs">Tittel</label>
+            <label className="label-xs" htmlFor="tender-title">Tittel</label>
             <input
+              id="tender-title"
               className="input-sm w-full"
               placeholder="F.eks. Totalforsikring 2026"
               value={title}
@@ -225,7 +227,7 @@ function NewTenderModal({
 
           {/* Products */}
           <div>
-            <label className="label-xs">Produkttyper</label>
+            <p className="label-xs">Produkttyper</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {PRODUCT_OPTIONS.map((p) => (
                 <button
@@ -245,8 +247,9 @@ function NewTenderModal({
 
           {/* Deadline */}
           <div>
-            <label className="label-xs">Anbudsfrist</label>
+            <label className="label-xs" htmlFor="tender-deadline">Anbudsfrist</label>
             <input
+              id="tender-deadline"
               type="date"
               className="input-sm w-full"
               value={deadline}
@@ -256,7 +259,7 @@ function NewTenderModal({
 
           {/* Recipients from insurer directory */}
           <div>
-            <label className="label-xs">Forsikringsselskaper (mottakere)</label>
+            <p className="label-xs">Forsikringsselskaper (mottakere)</p>
             {recipients.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-1 mb-2">
                 {recipients.map((r) => (
@@ -289,8 +292,9 @@ function NewTenderModal({
 
           {/* Notes */}
           <div>
-            <label className="label-xs">Kravspesifikasjon / notater</label>
+            <label className="label-xs" htmlFor="tender-notes">Kravspesifikasjon / notater</label>
             <textarea
+              id="tender-notes"
               className="input-sm w-full h-24 resize-none"
               placeholder="Beskriv krav, spesielle behov, osv."
               value={notes}

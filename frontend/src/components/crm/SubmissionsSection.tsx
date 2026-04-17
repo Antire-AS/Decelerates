@@ -109,8 +109,9 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
             <form onSubmit={handleCreate} className="border border-[#C5D0E8] rounded-lg p-3 space-y-3 bg-[#F8F9FB]">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Forsikringsselskap *</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-insurer">Forsikringsselskap *</label>
                   <select
+                    id="submission-insurer"
                     value={insurerId}
                     onChange={(e) => setInsurerId(e.target.value ? Number(e.target.value) : "")}
                     required
@@ -128,8 +129,9 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   )}
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Produkt *</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-product">Produkt *</label>
                   <select
+                    id="submission-product"
                     value={productType}
                     onChange={(e) => setProductType(e.target.value)}
                     className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
@@ -140,8 +142,9 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Sendt dato</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-requested-at">Sendt dato</label>
                   <input
+                    id="submission-requested-at"
                     type="date"
                     value={requestedAt}
                     onChange={(e) => setRequestedAt(e.target.value)}
@@ -149,8 +152,9 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Notater</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-notes">Notater</label>
                   <input
+                    id="submission-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"

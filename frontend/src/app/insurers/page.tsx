@@ -72,8 +72,9 @@ function InsurerForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Navn *</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-name">Navn *</label>
           <input
+            id="insurer-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -82,8 +83,9 @@ function InsurerForm({
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Org.nr</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-orgnr">Org.nr</label>
           <input
+            id="insurer-orgnr"
             value={orgNumber}
             onChange={(e) => setOrgNumber(e.target.value)}
             className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
@@ -92,16 +94,18 @@ function InsurerForm({
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Kontaktperson</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-name">Kontaktperson</label>
           <input
+            id="insurer-contact-name"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
             className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">E-post</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-email">E-post</label>
           <input
+            id="insurer-contact-email"
             type="email"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
@@ -109,8 +113,9 @@ function InsurerForm({
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Telefon</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-phone">Telefon</label>
           <input
+            id="insurer-contact-phone"
             value={contactPhone}
             onChange={(e) => setContactPhone(e.target.value)}
             className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
@@ -119,7 +124,7 @@ function InsurerForm({
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Produktappetitt</label>
+        <p className="text-xs text-[#8A7F74] font-medium">Produktappetitt</p>
         <div className="flex flex-wrap gap-1.5 mt-1.5">
           {PRODUCT_TYPES.map((p) => (
             <button
@@ -139,8 +144,9 @@ function InsurerForm({
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Notater</label>
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-notes">Notater</label>
         <textarea
+          id="insurer-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}

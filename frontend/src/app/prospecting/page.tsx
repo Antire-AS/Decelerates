@@ -180,7 +180,7 @@ export default function ProspectingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#EDE8E3]">
           <div>
             <div className="flex justify-between items-baseline mb-1">
-              <label className="text-xs font-medium text-[#8A7F74]">Omsetning (MNOK)</label>
+              <p className="text-xs font-medium text-[#8A7F74]">Omsetning (MNOK)</p>
               <span className="text-xs text-[#2C3E50] font-mono">{minRevenueMnok}–{maxRevenueMnok}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export default function ProspectingPage() {
           </div>
           <div>
             <div className="flex justify-between items-baseline mb-1">
-              <label className="text-xs font-medium text-[#8A7F74]">Risikoscore (0–20)</label>
+              <p className="text-xs font-medium text-[#8A7F74]">Risikoscore (0–20)</p>
               <span className="text-xs text-[#2C3E50] font-mono">{minRiskScore}–{maxRiskScore}</span>
             </div>
             <div className="flex items-center gap-2">

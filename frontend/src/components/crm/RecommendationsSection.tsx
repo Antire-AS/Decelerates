@@ -81,8 +81,9 @@ function NewRecommendationForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Anbefalt forsikringsselskap *</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-insurer">Anbefalt forsikringsselskap *</label>
           <input
+            id="rec-insurer"
             value={recommendedInsurer}
             onChange={(e) => setRecommendedInsurer(e.target.value)}
             required
@@ -97,8 +98,9 @@ function NewRecommendationForm({
           </datalist>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Koble til behovsanalyse (IDD)</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-idd">Koble til behovsanalyse (IDD)</label>
           <select
+            id="rec-idd"
             value={iddId}
             onChange={(e) => setIddId(e.target.value ? Number(e.target.value) : "")}
             className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
@@ -115,9 +117,9 @@ function NewRecommendationForm({
 
       {allSubs.length > 0 && (
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">
+          <p className="text-xs text-[#8A7F74] font-medium">
             Inkluder tilbud i sammenligningen
-          </label>
+          </p>
           <div className="mt-1.5 space-y-1">
             {allSubs.map((sub) => (
               <label key={sub.id} className="flex items-center gap-2 cursor-pointer">
@@ -145,13 +147,14 @@ function NewRecommendationForm({
       )}
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-rationale">
           Begrunnelse{" "}
           <span className="font-normal text-[#8A7F74]">
             (la stå tom for å generere med AI)
           </span>
         </label>
         <textarea
+          id="rec-rationale"
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
           rows={4}

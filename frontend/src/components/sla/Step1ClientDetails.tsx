@@ -27,8 +27,8 @@ export function Step1ClientDetails({ data, set, err, setErr, lookupLoading, onLo
       <div className="space-y-3">
         <div className="flex gap-2">
           <div className="flex-1">
-            <label className="label-xs">Org.nr *</label>
-            <input value={data.client_orgnr ?? ""} onChange={(e) => set({ client_orgnr: e.target.value })}
+            <label className="label-xs" htmlFor="sla-client-orgnr">Org.nr *</label>
+            <input id="sla-client-orgnr" value={data.client_orgnr ?? ""} onChange={(e) => set({ client_orgnr: e.target.value })}
               placeholder="9 siffer" className="input-sm w-full" />
           </div>
           <button onClick={onLookup} disabled={lookupLoading}
@@ -38,18 +38,18 @@ export function Step1ClientDetails({ data, set, err, setErr, lookupLoading, onLo
           </button>
         </div>
         <div>
-          <label className="label-xs">Klientnavn *</label>
-          <input value={data.client_navn ?? ""} onChange={(e) => set({ client_navn: e.target.value })}
+          <label className="label-xs" htmlFor="sla-client-navn">Klientnavn *</label>
+          <input id="sla-client-navn" value={data.client_navn ?? ""} onChange={(e) => set({ client_navn: e.target.value })}
             className="input-sm w-full" />
         </div>
         <div>
-          <label className="label-xs">Adresse</label>
-          <textarea value={data.client_adresse ?? ""} onChange={(e) => set({ client_adresse: e.target.value })}
+          <label className="label-xs" htmlFor="sla-client-adresse">Adresse</label>
+          <textarea id="sla-client-adresse" value={data.client_adresse ?? ""} onChange={(e) => set({ client_adresse: e.target.value })}
             rows={2} className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
         </div>
         <div>
-          <label className="label-xs">Kontaktperson (navn + e-post)</label>
-          <input value={data.client_kontakt ?? ""} onChange={(e) => set({ client_kontakt: e.target.value })}
+          <label className="label-xs" htmlFor="sla-client-kontakt">Kontaktperson (navn + e-post)</label>
+          <input id="sla-client-kontakt" value={data.client_kontakt ?? ""} onChange={(e) => set({ client_kontakt: e.target.value })}
             className="input-sm w-full" />
         </div>
       </div>

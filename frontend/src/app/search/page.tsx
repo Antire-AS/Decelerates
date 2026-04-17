@@ -44,10 +44,11 @@ export default function SearchPage() {
       <form onSubmit={handleSearch} className="broker-card space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="search-query">
               Navn eller orgnr
             </label>
             <input
+              id="search-query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="F.eks. DNB BANK ASA eller 984851006"
@@ -57,10 +58,11 @@ export default function SearchPage() {
             />
           </div>
           <div className="w-full sm:w-36">
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="search-kommune">
               Kommune (valgfri)
             </label>
             <input
+              id="search-kommune"
               value={kommunenr}
               onChange={(e) => setKommunenr(e.target.value)}
               placeholder="F.eks. Oslo"
@@ -70,10 +72,11 @@ export default function SearchPage() {
             />
           </div>
           <div className="w-full sm:w-28">
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1">
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="search-size">
               Maks treff
             </label>
             <select
+              id="search-size"
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
