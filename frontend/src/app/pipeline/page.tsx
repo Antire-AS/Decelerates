@@ -22,6 +22,7 @@ import {
 } from "@/lib/api";
 import { KanbanColumn } from "@/components/pipeline/KanbanColumn";
 import { NewDealModal } from "@/components/pipeline/NewDealModal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 /**
  * Plan §🟢 #9 — kanban deal pipeline.
@@ -82,6 +83,7 @@ export default function PipelinePage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStageId, setModalStageId] = useState<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<DealOut | null>(null);
 
   const sensors = useSensors(
     // 5px activation distance prevents accidental drags on click.
@@ -126,8 +128,11 @@ export default function PipelinePage() {
     }
   }
 
-  async function handleDeleteDeal(d: DealOut) {
-    if (!confirm(`Slett deal "${d.title ?? d.orgnr}"?`)) return;
+  function handleDeleteDeal(d: DealOut) {
+    setPendingDelete(d);
+  }
+
+  async function performDeleteDeal(d: DealOut) {
     setLocalDeals((prev) => prev.filter((x) => x.id !== d.id));
     try {
       await deleteDeal(d.id);
@@ -209,6 +214,18 @@ export default function PipelinePage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
+        title={pendingDelete ? `Slett deal "${pendingDelete.title ?? pendingDelete.orgnr}"?` : ""}
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (pendingDelete) performDeleteDeal(pendingDelete);
+        }}
+      />
     </div>
   );
 }
