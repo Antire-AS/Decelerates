@@ -65,12 +65,12 @@ function SidebarContent({
   return (
     <>
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-[#D4C9B8]">
+      <div className="px-4 py-5 border-b border-brand-stone">
         <div className="flex items-center gap-2">
-          <Scale className="w-6 h-6 text-[#4A6FA5]" />
+          <Scale className="w-6 h-6 text-brand-mid" />
           <div>
-            <p className="text-sm font-bold text-[#2C3E50] leading-tight">Broker</p>
-            <p className="text-xs text-[#8A7F74] leading-tight">Accelerator</p>
+            <p className="text-sm font-bold text-brand-dark leading-tight">Broker</p>
+            <p className="text-xs text-brand-muted leading-tight">Accelerator</p>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@ function SidebarContent({
       </nav>
 
       {/* Language toggle + user */}
-      <div className="px-3 py-3 border-t border-[#D4C9B8] space-y-1">
+      <div className="px-3 py-3 border-t border-brand-stone space-y-1">
         <button
           onClick={() => (window as { __openOnboarding?: () => void }).__openOnboarding?.()}
           className="nav-item w-full"
@@ -163,7 +163,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         Hopp til hovedinnhold
       </a>
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
-      <aside className="hidden md:flex w-56 flex-shrink-0 bg-[#F5F0EB] border-r border-[#D4C9B8] flex-col">
+      <aside className="hidden md:flex w-56 flex-shrink-0 bg-brand-beige border-r border-brand-stone flex-col">
         <SidebarContent {...sidebarProps} />
       </aside>
 
@@ -177,7 +177,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Mobile drawer panel ───────────────────────────────────────── */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#F5F0EB] border-r border-[#D4C9B8] transition-transform duration-200 md:hidden",
+        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-brand-beige border-r border-brand-stone transition-transform duration-200 md:hidden",
         mobileOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <SidebarContent {...sidebarProps} onNavClick={() => setMobileOpen(false)} />
@@ -188,24 +188,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Main content ────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Mobile top bar — bell sits next to the menu button. */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#F5F0EB] border-b border-[#D4C9B8] flex-shrink-0">
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-brand-beige border-b border-brand-stone flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-1.5 rounded-lg text-[#2C3E50] hover:bg-[#EDE8E3]"
+            className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
             aria-label="Åpne meny"
           >
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Scale className="w-4 h-4 text-[#4A6FA5]" />
-            <span className="text-sm font-bold text-[#2C3E50]">Broker Accelerator</span>
+            <Scale className="w-4 h-4 text-brand-mid" />
+            <span className="text-sm font-bold text-brand-dark">Broker Accelerator</span>
           </div>
           <div className="ml-auto flex items-center gap-1">
             <NotificationBell />
             {mobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 rounded-lg text-[#2C3E50] hover:bg-[#EDE8E3]"
+                className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
                 aria-label="Lukk meny"
               >
                 <X className="w-5 h-5" />
@@ -215,11 +215,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Desktop top bar — minimal, right-aligned bell only (sidebar owns everything else). */}
-        <header className="hidden md:flex items-center justify-end px-6 py-2 bg-[#F5F0EB] border-b border-[#D4C9B8] flex-shrink-0">
+        <header className="hidden md:flex items-center justify-end px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
           <NotificationBell />
         </header>
 
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-[#F5F0EB] focus:outline-none">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-brand-beige focus:outline-none">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
             {children}
           </div>
