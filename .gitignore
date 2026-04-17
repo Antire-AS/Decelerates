@@ -13,3 +13,4 @@ cf-proxy/.wrangler/
 /routers/
 /services/
 /domain/
+.worktrees/
