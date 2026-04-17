@@ -15,6 +15,23 @@ export const UNKNOWN_BAND: RiskBand = {
   label: "Ukjent", min: -1, max: -1, color: "#C4BDB4",
 };
 
+/**
+ * Tailwind class lookup for band-tinted backgrounds (e.g., risk score
+ * pills in Portal, PortfolioTab, CompareTab). Centralised here so the
+ * mapping cannot drift between consumers.
+ */
+const BAND_TAILWIND_BG: Record<string, string> = {
+  "Lav":       "bg-green-100 text-green-700",
+  "Moderat":   "bg-amber-100 text-amber-700",
+  "Høy":       "bg-red-100 text-red-700",
+  "Svært høy": "bg-red-100 text-red-700",
+  "Ukjent":    "bg-gray-100 text-gray-700",
+};
+
+export function bandTailwindClass(label: string): string {
+  return BAND_TAILWIND_BG[label] ?? BAND_TAILWIND_BG["Ukjent"];
+}
+
 const FALLBACK_MAX_SCORE = 20;
 
 export interface UseRiskConfigResult {
