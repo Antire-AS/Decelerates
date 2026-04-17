@@ -16,8 +16,6 @@ import {
   Trash2,
   Send,
   Clock,
-  CheckCircle,
-  BarChart2,
   X,
 } from "lucide-react";
 import Link from "next/link";

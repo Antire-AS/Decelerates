@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Player } from "@remotion/player";
-import { X, Play, Pause, RotateCcw } from "lucide-react";
+import { X } from "lucide-react";
 import { DemoVideo, DEMO_VIDEO_CONFIG } from "./DemoComposition";
 
 export default function DemoVideoModal() {

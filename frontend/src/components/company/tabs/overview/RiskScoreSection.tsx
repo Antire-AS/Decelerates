@@ -1,4 +1,3 @@
-import { AlertTriangle } from "lucide-react";
 import RiskBadge from "@/components/company/RiskBadge";
 import type { RiskFactor } from "@/lib/api-types";
 import { Section, CATEGORY_DOTS, riskBandLabel } from "./shared";

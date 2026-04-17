@@ -11,15 +11,12 @@ import {
   updateTender,
   type Tender,
 } from "@/lib/api";
-import { fmtNok } from "@/lib/format";
 import {
   ArrowLeft,
   Send,
-  Upload,
   BarChart2,
   Clock,
   CheckCircle,
-  XCircle,
   FileText,
   AlertTriangle,
   Loader2,
