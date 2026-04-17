@@ -1,15 +1,28 @@
 """Dependency injection container — punq-based wiring of ports to adapters.
 
-Usage
------
-Call ``configure(config)`` once at application startup (in ``api/main.py``).
-Routers resolve ports via ``Depends(_get_<port>)`` factory functions.
+Architecture
+------------
+Two DI patterns coexist by design:
 
-    from api.container import resolve
-    from api.ports.driven.notification_port import NotificationPort
+1. **Port resolution** (infrastructure adapters):
+   Services that need external I/O (email, blob, LLM, secrets) resolve
+   ports from the container via ``resolve(PortType)``. This makes adapters
+   swappable and testable.
 
-    def _get_notification() -> NotificationPort:
-        return resolve(NotificationPort)  # type: ignore[return-value]
+       from api.container import resolve
+       notification = resolve(NotificationPort)
+
+2. **FastAPI Depends** (business services):
+   Services that only need a DB session use FastAPI's built-in DI:
+
+       def _svc(db = Depends(get_db)) -> UserService:
+           return UserService(db)
+
+   This is clean, testable (override via app.dependency_overrides),
+   and doesn't need the punq container.
+
+Both patterns are valid. Use pattern 1 when the service wraps an external
+adapter (blob, email, LLM). Use pattern 2 for pure DB-backed services.
 """
 from __future__ import annotations
 

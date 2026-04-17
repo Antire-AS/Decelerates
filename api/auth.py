@@ -82,21 +82,72 @@ def _get_jwks(tenant_id: str) -> dict:
     return _jwks_cache
 
 
+_GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
+_google_jwks_cache: dict | None = None
+
+
+def _get_google_jwks() -> dict:
+    global _google_jwks_cache
+    if _google_jwks_cache:
+        return _google_jwks_cache
+    resp = requests.get(_GOOGLE_JWKS_URL, timeout=10)
+    resp.raise_for_status()
+    _google_jwks_cache = resp.json()
+    return _google_jwks_cache
+
+
+def _detect_provider(token: str) -> str:
+    """Peek at the unverified payload to determine if this is a Google or Azure token."""
+    try:
+        payload = jwt.decode(token, options={"verify_signature": False})
+        iss = payload.get("iss", "")
+        if "accounts.google.com" in iss:
+            return "google"
+    except Exception:
+        pass
+    return "azure"
+
+
 def _validate_token(token: str) -> dict:
+    provider = _detect_provider(token)
+
+    if provider == "google":
+        return _validate_google_token(token)
+    return _validate_azure_token(token)
+
+
+def _validate_google_token(token: str) -> dict:
+    """Validate a Google OAuth2 id_token."""
+    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+    if not google_client_id:
+        raise ValueError("GOOGLE_CLIENT_ID must be set for Google auth")
+
+    jwks = _get_google_jwks()
+    header = jwt.get_unverified_header(token)
+    try:
+        matching = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
+    except StopIteration:
+        raise jwt.InvalidTokenError("No matching Google key found in JWKS")
+    key = jwt.algorithms.RSAAlgorithm.from_jwk(matching)
+
+    return jwt.decode(
+        token, key,
+        algorithms=["RS256"],
+        audience=google_client_id,
+        issuer=["https://accounts.google.com", "accounts.google.com"],
+    )
+
+
+def _validate_azure_token(token: str) -> dict:
+    """Validate an Azure AD / Entra ID JWT."""
     tenant_id = os.getenv("AZURE_TENANT_ID", "")
-    # AUTH_AUDIENCE = App Registration client ID (the Next.js frontend's
-    # NextAuth Azure AD app — used to issue id_tokens that the API validates).
-    # Falls back to AZURE_CLIENT_ID only if AUTH_AUDIENCE is absent (legacy / local dev).
-    audience  = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
+    audience = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
     if not tenant_id or not audience:
         raise ValueError("AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation")
 
-    # Multi-tenant mode: AZURE_TENANT_ID=common accepts tokens from any Microsoft tenant.
-    # In this mode we validate the signature and audience but skip the issuer check,
-    # since each external user's token will carry their own tenant in the issuer claim.
     multi_tenant = tenant_id.lower() == "common"
-    jwks_tenant  = "common" if multi_tenant else tenant_id
-    jwks   = _get_jwks(jwks_tenant)
+    jwks_tenant = "common" if multi_tenant else tenant_id
+    jwks = _get_jwks(jwks_tenant)
     header = jwt.get_unverified_header(token)
     try:
         matching = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
