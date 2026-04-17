@@ -75,7 +75,7 @@ export default function CompareTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Søk selskap…"
-          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
         />
         <div className="max-h-52 overflow-y-auto space-y-0.5">
           {filtered.map((c) => (

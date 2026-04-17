@@ -138,14 +138,14 @@ export default function ProspectingPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Navn eller orgnr…"
-              className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+              className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
             />
           </div>
 
           <select
             value={industryFilter}
             onChange={(e) => setIndustry(e.target.value)}
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           >
             <option value="">Alle bransjer</option>
             {industries.map((ind) => (
@@ -157,13 +157,13 @@ export default function ProspectingPage() {
             value={municipalityFilter}
             onChange={(e) => setMunicipality(e.target.value)}
             placeholder="Kommune…"
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
 
           <select
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value)}
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           >
             <option value="all">Alle risikonivåer</option>
             {(["low", "mid", "high", "veryhigh"] as const).map((key, i) => {

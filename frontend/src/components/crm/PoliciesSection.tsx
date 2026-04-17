@@ -201,7 +201,7 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
             <div>
               <label className="label-xs" htmlFor="policy-notes">Notater</label>
               <textarea id="policy-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
             </div>
             {err && <p className="text-xs text-red-600">{err}</p>}
             <div className="flex gap-2">

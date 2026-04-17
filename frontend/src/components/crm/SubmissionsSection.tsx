@@ -115,7 +115,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                     value={insurerId}
                     onChange={(e) => setInsurerId(e.target.value ? Number(e.target.value) : "")}
                     required
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   >
                     <option value="">Velg selskap…</option>
                     {insurers.map((ins) => (
@@ -134,7 +134,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                     id="submission-product"
                     value={productType}
                     onChange={(e) => setProductType(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   >
                     {PRODUCT_TYPES.map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -148,7 +148,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                     type="date"
                     value={requestedAt}
                     onChange={(e) => setRequestedAt(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   />
                 </div>
                 <div>
@@ -157,7 +157,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                     id="submission-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                     placeholder="Valgfritt"
                   />
                 </div>
@@ -199,7 +199,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   <select
                     value={sub.status}
                     onChange={(e) => handleStatusChange(sub, e.target.value as Submission["status"])}
-                    className={`text-xs px-2 py-0.5 rounded-full border-0 font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] ${STATUS_COLORS[sub.status]}`}
+                    className={`text-xs px-2 py-0.5 rounded-full border-0 font-medium cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] ${STATUS_COLORS[sub.status]}`}
                   >
                     {Object.entries(STATUS_LABELS).map(([val, label]) => (
                       <option key={val} value={val}>{label}</option>

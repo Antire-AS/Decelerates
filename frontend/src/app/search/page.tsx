@@ -54,7 +54,7 @@ export default function SearchPage() {
               placeholder="F.eks. DNB BANK ASA eller 984851006"
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
                          bg-white text-[#2C3E50] placeholder-[#C4BDB4]
-                         focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           <div className="w-full sm:w-36">
@@ -68,7 +68,7 @@ export default function SearchPage() {
               placeholder="F.eks. Oslo"
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
                          bg-white text-[#2C3E50] placeholder-[#C4BDB4]
-                         focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           <div className="w-full sm:w-28">
@@ -80,7 +80,7 @@ export default function SearchPage() {
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
               className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
-                         bg-white text-[#2C3E50] focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+                         bg-white text-[#2C3E50] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6FA5]"
             >
               {[5, 10, 20, 50].map((n) => (
                 <option key={n} value={n}>{n}</option>

@@ -182,7 +182,7 @@ export default function ManageTab() {
               onChange={(e) => setIngestOrgnr(e.target.value.replace(/\D/g, "").slice(0, 9))}
               maxLength={9}
               placeholder="123456789"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           <div>
@@ -192,7 +192,7 @@ export default function ManageTab() {
               value={ingestSource}
               onChange={(e) => setIngestSource(e.target.value)}
               placeholder="custom_note"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function ManageTab() {
             onChange={(e) => setIngestText(e.target.value)}
             rows={5}
             placeholder="Lim inn notater, sammendrag eller fritekst…"
-            className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-y"
+            className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-y"
           />
         </div>
         <button

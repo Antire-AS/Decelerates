@@ -54,7 +54,7 @@ export default function NotaterSection({ orgnr }: { orgnr: string }) {
           onChange={(e) => setText(e.target.value)}
           placeholder="Skriv et notat om selskapet…"
           rows={3}
-          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-2 resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
         />
         {err && <p className="text-xs text-red-600">{err}</p>}
         <button

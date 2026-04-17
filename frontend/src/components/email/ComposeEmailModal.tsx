@@ -100,7 +100,7 @@ export function ComposeEmailModal({
               onChange={(e) => setBody(e.target.value)}
               rows={8}
               placeholder="Skriv meldingen din her…"
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           {err && <p className="text-xs text-red-600">{err}</p>}

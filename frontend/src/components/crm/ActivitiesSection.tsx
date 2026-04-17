@@ -149,7 +149,7 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
             <div>
               <label className="label-xs" htmlFor="activity-body">Detaljer</label>
               <textarea id="activity-body" value={body} onChange={(e) => setBody(e.target.value)} rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

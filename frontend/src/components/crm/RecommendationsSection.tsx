@@ -88,7 +88,7 @@ function NewRecommendationForm({
             onChange={(e) => setRecommendedInsurer(e.target.value)}
             required
             list="insurer-options"
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="Velg eller skriv inn"
           />
           <datalist id="insurer-options">
@@ -103,7 +103,7 @@ function NewRecommendationForm({
             id="rec-idd"
             value={iddId}
             onChange={(e) => setIddId(e.target.value ? Number(e.target.value) : "")}
-            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           >
             <option value="">Ingen</option>
             {iddList.map((idd) => (
@@ -159,7 +159,7 @@ function NewRecommendationForm({
           onChange={(e) => setRationale(e.target.value)}
           rows={4}
           placeholder="Skriv begrunnelse manuelt, eller la feltet stå tomt for AI-generert tekst…"
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
         />
       </div>
 

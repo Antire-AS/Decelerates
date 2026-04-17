@@ -146,7 +146,7 @@ export function NewDealModal({
                     placeholder="Søk etter navn eller orgnr…"
                     className="w-full pl-8 pr-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
                                bg-white text-[#2C3E50] placeholder-[#C4BDB4]
-                               focus:outline-none focus:ring-2 focus:ring-[#4A6FA5]"
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6FA5]"
                   />
                 </div>
                 {searching && (
@@ -246,7 +246,7 @@ export function NewDealModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
 

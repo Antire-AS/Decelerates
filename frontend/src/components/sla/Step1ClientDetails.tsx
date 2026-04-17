@@ -45,7 +45,7 @@ export function Step1ClientDetails({ data, set, err, setErr, lookupLoading, onLo
         <div>
           <label className="label-xs" htmlFor="sla-client-adresse">Adresse</label>
           <textarea id="sla-client-adresse" value={data.client_adresse ?? ""} onChange={(e) => set({ client_adresse: e.target.value })}
-            rows={2} className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+            rows={2} className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
         </div>
         <div>
           <label className="label-xs" htmlFor="sla-client-kontakt">Kontaktperson (navn + e-post)</label>

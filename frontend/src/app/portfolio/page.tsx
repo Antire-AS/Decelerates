@@ -246,7 +246,7 @@ export default function PortfolioPage() {
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Søk selskap…"
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
               {riskFilter !== null && (
                 <button onClick={() => setRiskFilter(null)}
                   className="text-xs px-2.5 py-1 rounded-full bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]">

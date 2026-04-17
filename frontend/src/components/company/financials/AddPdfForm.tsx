@@ -46,7 +46,7 @@ export default function AddPdfForm({
             value={pdfUrl}
             onChange={(e) => { setPdfUrl(e.target.value); setPdfOk(false); }}
             placeholder="https://example.com/arsrapport-2023.pdf"
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
           />
           <input
             type="number"
@@ -54,7 +54,7 @@ export default function AddPdfForm({
             onChange={(e) => setPdfYear(Number(e.target.value))}
             min={2000}
             max={new Date().getFullYear()}
-            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+            className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 w-24 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
           />
           <button
             onClick={handleAddPdf}
@@ -70,7 +70,7 @@ export default function AddPdfForm({
           value={pdfLabel}
           onChange={(e) => setPdfLabel(e.target.value)}
           placeholder="Etikett (valgfri, f.eks. «Konsern»)"
-          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
         />
         {pdfErr && <p className="text-xs text-red-600">{pdfErr}</p>}
         {pdfOk && <p className="text-xs text-green-700">Regnskapstall hentet og lagret.</p>}
