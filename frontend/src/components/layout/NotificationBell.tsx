@@ -146,13 +146,13 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-80 sm:w-96 bg-white border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-1 w-80 sm:w-96 bg-popover border border-border rounded-lg shadow-xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-border">
             <p className="text-sm font-semibold text-foreground">Varsler</p>
             {unread > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-[#4A6FA5] hover:text-[#3d5e8e]"
+                className="text-xs text-primary hover:text-primary/80"
               >
                 Marker alle som lest
               </button>
@@ -172,10 +172,10 @@ export function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleClickItem(n)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-border last:border-0 hover:bg-[#F9F7F4] transition-colors flex items-start gap-2.5
+                  className={`w-full text-left px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted transition-colors flex items-start gap-2.5
                               ${n.read ? "" : "bg-blue-50/40"}`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${n.read ? "text-[#C4BDB4]" : "text-[#4A6FA5]"}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${n.read ? "text-muted-foreground" : "text-primary"}`} />
                   <div className="min-w-0 flex-1">
                     <p className={`text-xs font-semibold truncate ${n.read ? "text-muted-foreground" : "text-foreground"}`}>
                       {n.title}
@@ -183,7 +183,7 @@ export function NotificationBell() {
                     {n.message && (
                       <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
                     )}
-                    <p className="text-[10px] text-[#C4BDB4] mt-0.5">
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
                       {new Date(n.created_at).toLocaleString("nb-NO", {
                         day: "2-digit",
                         month: "short",
@@ -193,7 +193,7 @@ export function NotificationBell() {
                     </p>
                   </div>
                   {!n.read && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4A6FA5] flex-shrink-0 mt-1.5" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5" />
                   )}
                 </button>
               );
