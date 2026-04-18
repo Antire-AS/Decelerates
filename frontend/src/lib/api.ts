@@ -922,7 +922,8 @@ export const getInsuranceBenchmarks = (revenue?: number, naceSection?: string) =
   if (revenue != null) params.set("revenue", String(revenue));
   if (naceSection) params.set("nace_section", naceSection);
   const qs = params.toString();
-  return apiFetch<PremiumBenchmarkResponse>(`/insurance/benchmarks${qs ? "?" + qs : ""}`);
+  const suffix = qs ? `?${qs}` : "";
+  return apiFetch<PremiumBenchmarkResponse>(`/insurance/benchmarks${suffix}`);
 };
 
 // ── Coverage Analysis ────────────────────────────────────────────────────────
