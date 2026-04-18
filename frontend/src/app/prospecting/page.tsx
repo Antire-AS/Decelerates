@@ -13,6 +13,8 @@ import {
 } from "@/lib/api";
 import { useRiskConfig } from "@/lib/useRiskConfig";
 
+const BAND_KEYS = ["low", "mid", "high", "veryhigh"] as const;
+
 export default function ProspectingPage() {
   const { bands, bandFor } = useRiskConfig();
   const RISK_BANDS = useMemo(
@@ -166,7 +168,7 @@ export default function ProspectingPage() {
             className="text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           >
             <option value="all">Alle risikonivåer</option>
-            {(["low", "mid", "high", "veryhigh"] as const).map((key, i) => {
+            {BAND_KEYS.map((key, i) => {
               const b = bands[i];
               return b ? (
                 <option key={key} value={key}>{b.label} ({b.min}–{b.max})</option>
@@ -242,10 +244,7 @@ export default function ProspectingPage() {
           const count = (companies ?? []).filter((c) =>
             c.risk_score != null && c.risk_score >= b.min && c.risk_score <= b.max
           ).length;
-          const key =
-            b.min === 0  ? "low" :
-            b.min === 4  ? "mid" :
-            b.min === 8  ? "high" : "veryhigh";
+          const key = BAND_KEYS[RISK_BANDS.indexOf(b)] ?? "veryhigh";
           const active = riskFilter === key;
           return (
             <button key={b.label}
