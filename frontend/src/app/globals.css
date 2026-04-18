@@ -39,6 +39,39 @@
   --radius:          0.5rem;
 }
 
+.dark {
+  /* Surfaces */
+  --background:      210 29% 13%;  /* near-black with brand-dark hue */
+  --foreground:      38 25% 94%;   /* brand-beige as light-on-dark text */
+
+  --card:            210 29% 16%;  /* one step lighter than bg */
+  --card-foreground: 38 25% 94%;
+
+  --popover:            210 29% 16%;
+  --popover-foreground: 38 25% 94%;
+
+  /* Interactives */
+  --primary:           215 57% 70%;  /* brand-light as the primary in dark mode */
+  --primary-foreground: 210 29% 13%;
+
+  --secondary:           36 18% 30%;  /* dark brand-stone */
+  --secondary-foreground: 38 25% 94%;
+
+  --muted:             28 11% 40%;    /* dark brand-muted */
+  --muted-foreground:  38 18% 78%;    /* brand-stone-ish */
+
+  --accent:             215 34% 47%;  /* brand-mid in dark */
+  --accent-foreground:  38 25% 94%;
+
+  --destructive:           5 64% 59%;   /* slightly brighter danger */
+  --destructive-foreground: 38 25% 94%;
+
+  /* Borders + inputs */
+  --border:  210 20% 25%;
+  --input:   210 20% 25%;
+  --ring:    215 57% 70%;
+}
+
 @layer base {
   body {
     @apply bg-[#F5F0EB] text-[#2C3E50] font-sans;
@@ -46,6 +79,11 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-[#2C3E50];
+  }
+
+  html, body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
