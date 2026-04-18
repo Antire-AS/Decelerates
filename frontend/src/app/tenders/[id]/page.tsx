@@ -22,6 +22,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const STATUS_BADGE: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
   draft: { label: "Utkast", cls: "bg-gray-100 text-gray-700", icon: FileText },
@@ -63,7 +64,7 @@ export default function TenderDetailPage() {
       await sendTender(Number(id));
       mutate();
     } catch {
-      alert("Kunne ikke sende anbudsforespørsler");
+      toast.error("Kunne ikke sende anbudsforespørsler");
     } finally {
       setSending(false);
     }
@@ -79,7 +80,7 @@ export default function TenderDetailPage() {
       setUploadInsurer("");
       mutate();
     } catch {
-      alert("Kunne ikke laste opp tilbud");
+      toast.error("Kunne ikke laste opp tilbud");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -92,7 +93,7 @@ export default function TenderDetailPage() {
       await analyseTender(Number(id));
       mutate();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Analyse feilet");
+      toast.error(err instanceof Error ? err.message : "Analyse feilet");
     } finally {
       setAnalysing(false);
     }
