@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // IA cleanup (2026-04):
 //   - /documents and /videos are now sub-tabs of /knowledge
@@ -202,6 +203,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="ml-auto flex items-center gap-1">
             <NotificationBell />
+            <ThemeToggle />
             {mobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
@@ -214,9 +216,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Desktop top bar — minimal, right-aligned bell only (sidebar owns everything else). */}
-        <header className="hidden md:flex items-center justify-end px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+        {/* Desktop top bar — minimal, right-aligned bell + theme toggle (sidebar owns everything else). */}
+        <header className="hidden md:flex items-center justify-end gap-2 px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
           <NotificationBell />
+          <ThemeToggle />
         </header>
 
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-brand-beige focus:outline-none">
