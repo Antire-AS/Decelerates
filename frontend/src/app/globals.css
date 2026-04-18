@@ -74,11 +74,11 @@
 
 @layer base {
   body {
-    @apply bg-[#F5F0EB] text-[#2C3E50] font-sans;
+    @apply text-foreground font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-[#2C3E50];
+    @apply font-semibold tracking-tight text-foreground;
   }
 
   html, body {
@@ -89,7 +89,7 @@
 
 @layer components {
   .broker-card {
-    @apply bg-white rounded-xl border border-[#D4C9B8] shadow-sm p-5;
+    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm p-5;
   }
 
   .broker-badge-low    { @apply bg-green-100  text-green-800  text-xs font-medium px-2 py-0.5 rounded-full; }
@@ -99,29 +99,29 @@
 
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-           text-[#8A7F74] hover:bg-[#EDE8E3] hover:text-[#2C3E50]
+           text-muted-foreground hover:bg-accent hover:text-accent-foreground
            transition-colors cursor-pointer;
   }
 
   .nav-item-active {
-    @apply bg-[#2C3E50] text-white hover:bg-[#2C3E50] hover:text-white;
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
   }
 
   .label-xs {
-    @apply block text-xs text-[#8A7F74] mb-0.5;
+    @apply block text-xs text-muted-foreground mb-0.5;
   }
 
   .input-sm {
-    @apply w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white
-           focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5];
+    @apply w-full px-2 py-1.5 text-xs border border-input rounded-lg bg-background
+           focus:outline-none focus-visible:ring-1 focus-visible:ring-ring;
   }
 
   .skip-to-content {
     @apply sr-only;
   }
   .skip-to-content:focus {
-    @apply not-sr-only fixed top-2 left-2 z-[100] bg-[#2C3E50] text-white
+    @apply not-sr-only fixed top-2 left-2 z-[100] bg-primary text-primary-foreground
            px-4 py-2 rounded-lg text-sm font-medium shadow-lg outline-none
-           ring-2 ring-[#C5D8F0];
+           ring-2 ring-ring;
   }
 }
