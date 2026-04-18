@@ -31,8 +31,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Velkommen</h1>
-        <p className="text-sm text-[#8A7F74] mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Velkommen</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Forsikringsmegling · Due Diligence · Risikoprofil
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       {dashLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="broker-card h-20 animate-pulse bg-[#EDE8E3]" />
+            <div key={i} className="broker-card h-20 animate-pulse bg-muted" />
           ))}
         </div>
       )}
@@ -77,8 +77,8 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Premium book */}
             <div className="broker-card space-y-2">
-              <p className="text-xs text-[#8A7F74] font-medium">Samlet premievolum</p>
-              <p className="text-2xl font-bold text-[#2C3E50]">
+              <p className="text-xs text-muted-foreground font-medium">Samlet premievolum</p>
+              <p className="text-2xl font-bold text-foreground">
                 kr {fmt(data.total_premium_book)}
               </p>
               {data.renewals_90d > 0 && (
@@ -94,10 +94,10 @@ export default function DashboardPage() {
                 <>
                   <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-[#2C3E50]">
+                    <p className="text-sm font-semibold text-foreground">
                       {data.renewals_30d} avtale(r) forfaller innen 30 dager
                     </p>
-                    <p className="text-xs text-[#8A7F74]">
+                    <p className="text-xs text-muted-foreground">
                       kr {fmt(data.premium_at_risk_30d)} i premie er til fornyelse
                     </p>
                   </div>
@@ -107,7 +107,7 @@ export default function DashboardPage() {
                   ✓ Ingen avtaler forfaller de neste 30 dagene
                 </p>
               ) : (
-                <p className="text-sm text-[#8A7F74]">Ingen aktive avtaler ennå</p>
+                <p className="text-sm text-muted-foreground">Ingen aktive avtaler ennå</p>
               )}
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
           {/* Recent activities */}
           {data.recent_activities?.length > 0 && (
             <div className="broker-card">
-              <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">
+              <h2 className="text-sm font-semibold text-foreground mb-3">
                 Siste aktiviteter
               </h2>
               <div className="space-y-2">
@@ -123,11 +123,11 @@ export default function DashboardPage() {
                   <div key={a.id} className="flex items-start gap-2 text-sm">
                     <span className="mt-0.5">{ACTIVITY_ICONS[a.type] ?? "•"}</span>
                     <span
-                      className={a.completed ? "line-through text-[#8A7F74]" : "text-[#2C3E50]"}
+                      className={a.completed ? "line-through text-muted-foreground" : "text-foreground"}
                     >
                       {a.subject}
                     </span>
-                    <span className="ml-auto text-xs text-[#8A7F74]">
+                    <span className="ml-auto text-xs text-muted-foreground">
                       {a.created_by}
                       {a.orgnr && ` · ${a.orgnr}`}
                     </span>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
 
       {/* Quick navigation */}
       <div className="broker-card">
-        <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Hurtignavigering</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-3">Hurtignavigering</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { href: "/search",    label: "Selskapsøk",  icon: Search },
@@ -166,12 +166,12 @@ export default function DashboardPage() {
       {/* Companies in DB (shown when no CRM data yet) */}
       {!hasCrm && companies && companies.length > 0 && (
         <div className="broker-card">
-          <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">
+          <h2 className="text-sm font-semibold text-foreground mb-3">
             Selskaper i databasen
           </h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+              <tr className="text-xs text-muted-foreground border-b border-border">
                 <th className="text-left pb-2 font-medium">Selskap</th>
                 <th className="text-left pb-2 font-medium">Bransje</th>
                 <th className="text-left pb-2 font-medium">Kommune</th>
@@ -181,15 +181,15 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-[#EDE8E3]">
               {companies.map((c) => (
                 <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
-                  <td className="py-2 font-medium text-[#2C3E50]">
+                  <td className="py-2 font-medium text-foreground">
                     <Link href={`/search/${c.orgnr}`} className="hover:underline">
                       {c.navn ?? c.orgnr}
                     </Link>
                   </td>
-                  <td className="py-2 text-[#8A7F74] text-xs max-w-[140px] truncate">
+                  <td className="py-2 text-muted-foreground text-xs max-w-[140px] truncate">
                     {(c.naeringskode1_beskrivelse ?? "").slice(0, 30)}
                   </td>
-                  <td className="py-2 text-[#8A7F74] text-xs">{c.kommune ?? "–"}</td>
+                  <td className="py-2 text-muted-foreground text-xs">{c.kommune ?? "–"}</td>
                   <td className="py-2">
                     <RiskBadge score={c.risk_score} />
                   </td>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
 
       {!hasCrm && (
         <div className="broker-card bg-[#EEF4FC] border-[#C5D8F0]">
-          <p className="text-sm text-[#2C3E50]">
+          <p className="text-sm text-foreground">
             <strong>Kom i gang:</strong> Gå til{" "}
             <Link href="/admin" className="text-[#4A6FA5] underline">Admin</Link>{" "}
             og trykk <em>Seed CRM demo-data</em> for å fylle opp med realistiske testdata.

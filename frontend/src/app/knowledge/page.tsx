@@ -35,15 +35,15 @@ export default function KnowledgePage() {
   const TAB_CLS = (t: Tab) =>
     `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
       activeTab === t
-        ? "bg-[#2C3E50] text-white"
-        : "text-[#8A7F74] hover:bg-[#EDE8E3]"
+        ? "bg-primary text-primary-foreground"
+        : "text-muted-foreground hover:bg-muted"
     }`;
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Kunnskapsbase</h1>
-        <p className="text-sm text-[#8A7F74] mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Kunnskapsbase</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           AI-assistent, semantisk søk og indeksadministrasjon
         </p>
       </div>

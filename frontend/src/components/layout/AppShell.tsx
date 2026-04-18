@@ -192,7 +192,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-brand-beige border-b border-brand-stone flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
+            className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
             aria-label="Åpne meny"
           >
             <Menu className="w-5 h-5" />
@@ -207,7 +207,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {mobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
+                className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
                 aria-label="Lukk meny"
               >
                 <X className="w-5 h-5" />

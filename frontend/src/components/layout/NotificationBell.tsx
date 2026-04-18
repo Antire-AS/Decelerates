@@ -135,7 +135,7 @@ export function NotificationBell() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Notifications"
-        className="relative p-2 rounded-lg hover:bg-[#EDE8E3] transition-colors text-[#2C3E50]"
+        className="relative p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
       >
         <Bell className="w-4 h-4" />
         {unread > 0 && (
@@ -146,9 +146,9 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-80 sm:w-96 bg-white border border-[#EDE8E3] rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-[#EDE8E3]">
-            <p className="text-sm font-semibold text-[#2C3E50]">Varsler</p>
+        <div className="absolute right-0 mt-1 w-80 sm:w-96 bg-white border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+            <p className="text-sm font-semibold text-foreground">Varsler</p>
             {unread > 0 && (
               <button
                 onClick={handleMarkAllRead}
@@ -161,10 +161,10 @@ export function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {loadingPanel && (
-              <p className="p-4 text-xs text-[#8A7F74] text-center">Laster…</p>
+              <p className="p-4 text-xs text-muted-foreground text-center">Laster…</p>
             )}
             {!loadingPanel && items.length === 0 && (
-              <p className="p-6 text-xs text-[#8A7F74] text-center">Ingen varsler ennå.</p>
+              <p className="p-6 text-xs text-muted-foreground text-center">Ingen varsler ennå.</p>
             )}
             {items.map((n) => {
               const Icon = KIND_ICON[n.kind] ?? Bell;
@@ -172,16 +172,16 @@ export function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleClickItem(n)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-[#EDE8E3] last:border-0 hover:bg-[#F9F7F4] transition-colors flex items-start gap-2.5
+                  className={`w-full text-left px-3 py-2.5 border-b border-border last:border-0 hover:bg-[#F9F7F4] transition-colors flex items-start gap-2.5
                               ${n.read ? "" : "bg-blue-50/40"}`}
                 >
                   <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${n.read ? "text-[#C4BDB4]" : "text-[#4A6FA5]"}`} />
                   <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-semibold truncate ${n.read ? "text-[#8A7F74]" : "text-[#2C3E50]"}`}>
+                    <p className={`text-xs font-semibold truncate ${n.read ? "text-muted-foreground" : "text-foreground"}`}>
                       {n.title}
                     </p>
                     {n.message && (
-                      <p className="text-[10px] text-[#8A7F74] truncate">{n.message}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
                     )}
                     <p className="text-[10px] text-[#C4BDB4] mt-0.5">
                       {new Date(n.created_at).toLocaleString("nb-NO", {
