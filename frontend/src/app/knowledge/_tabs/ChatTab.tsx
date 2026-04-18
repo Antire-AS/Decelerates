@@ -11,6 +11,7 @@ export default function ChatTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,8 +25,10 @@ export default function ChatTab() {
     setError(null);
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     setIsLoading(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const res = await knowledgeChat(q);
+      const res = await knowledgeChat(q, undefined, controller.signal);
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: res.answer,
@@ -33,9 +36,17 @@ export default function ChatTab() {
         source_snippets: res.source_snippets,
       }]);
     } catch (err) {
-      setError(`Kunne ikke hente svar: ${err instanceof Error ? err.message : "Ukjent feil"}`);
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "_(Avbrutt)_",
+        }]);
+      } else {
+        setError(`Kunne ikke hente svar: ${err instanceof Error ? err.message : "Ukjent feil"}`);
+      }
     } finally {
       setIsLoading(false);
+      abortRef.current = null;
     }
   }
 
@@ -127,17 +138,24 @@ export default function ChatTab() {
           placeholder="Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)"
           rows={2} disabled={isLoading}
           className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50] resize-none disabled:opacity-50" />
-        {messages.length > 0 && (
+        {messages.length > 0 && !isLoading && (
           <button type="button" onClick={() => { setMessages([]); setError(null); }}
             title="Tøm samtale"
             className="px-3 py-2 rounded-lg border border-[#EDE8E3] text-[#8A7F74] hover:bg-[#F4F1ED] text-sm flex items-center gap-1">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
-        <button type="submit" disabled={isLoading || !question.trim()}
-          className="px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] disabled:opacity-50">
-          Send
-        </button>
+        {isLoading ? (
+          <button type="button" onClick={() => abortRef.current?.abort()}
+            className="px-4 py-2 rounded-lg border border-[#EDE8E3] text-[#2C3E50] text-sm font-medium hover:bg-[#F4F1ED]">
+            Stopp
+          </button>
+        ) : (
+          <button type="submit" disabled={!question.trim()}
+            className="px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] disabled:opacity-50">
+            Send
+          </button>
+        )}
       </form>
     </div>
   );

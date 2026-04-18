@@ -8,6 +8,10 @@ import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle, C
 import { getOrgIdd, getAllIdd, createOrgIdd, deleteOrgIdd, type IddBehovsanalyse } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
+function RequiredMark() {
+  return <span className="text-red-500 ml-0.5" aria-label="Påkrevd felt">*</span>;
+}
+
 const PRODUCTS = [
   "Motorvognforsikring",
   "Næringseiendom",
@@ -205,20 +209,32 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       <h3 className="text-sm font-semibold text-[#2C3E50]">Ny behovsanalyse</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {[
-          ["client_name", "Selskapsnavn"],
-          ["client_contact_name", "Kontaktperson"],
-          ["client_contact_email", "E-post kontakt"],
-          ["annual_revenue_nok", "Omsetning (NOK)"],
-        ].map(([key, label]) => (
+        {(
+          [
+            ["client_name", "Selskapsnavn", false],
+            ["client_contact_name", "Kontaktperson", true],
+            ["client_contact_email", "E-post kontakt", false],
+            ["annual_revenue_nok", "Omsetning (NOK)", false],
+          ] as const
+        ).map(([key, label, required]) => (
           <div key={key}>
-            <label className="text-xs text-[#8A7F74] font-medium" htmlFor={`idd-${key}`}>{label}</label>
+            <label className="text-xs text-[#8A7F74] font-medium" htmlFor={`idd-${key}`}>
+              {label}
+              {required && <RequiredMark />}
+            </label>
             <input
               id={`idd-${key}`}
               value={(form as Record<string, unknown>)[key] as string}
               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+              required={required}
+              aria-describedby={required ? `idd-${key}-hint` : undefined}
               className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
+            {key === "client_contact_name" && (
+              <p id="idd-client_contact_name-hint" className="text-[10px] text-[#8A7F74] mt-0.5">
+                Navn på kontaktperson hos kunden.
+              </p>
+            )}
           </div>
         ))}
       </div>
@@ -289,12 +305,19 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-suitability-basis">Egnethetsvurdering (IDD § 7-7)</label>
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-suitability-basis">
+          Egnethetsvurdering (IDD § 7-7)<RequiredMark />
+        </label>
         <textarea id="idd-suitability-basis" value={form.suitability_basis}
           onChange={(e) => setForm((f) => ({ ...f, suitability_basis: e.target.value }))}
           rows={2}
+          required
+          aria-describedby="idd-suitability-basis-hint"
           placeholder="Begrunn hvorfor anbefalte produkter er egnet for kunden…"
           className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none" />
+        <p id="idd-suitability-basis-hint" className="text-[10px] text-[#8A7F74] mt-0.5">
+          Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.
+        </p>
       </div>
 
       <div>
