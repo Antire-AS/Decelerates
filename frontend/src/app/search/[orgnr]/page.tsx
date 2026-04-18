@@ -30,6 +30,7 @@ import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Loader2, FileText, Download } from "lucide-react";
 
 export default function OrgProfilePage({
@@ -49,7 +50,7 @@ export default function OrgProfilePage({
   );
   const { data: slaList } = useSWR<unknown[]>("sla", getSlaAgreements);
   // Policies only needed in CRM tab — defer until tab is active
-  const { data: policies = [] } = useSWR(
+  const { data: policies, isLoading: policiesLoading } = useSWR(
     activeTab === "crm" ? `policies-${orgnr}` : null,
     () => getOrgPolicies(orgnr),
   );
@@ -290,13 +291,23 @@ export default function OrgProfilePage({
                 Last ned forsikringsbevis
               </button>
             </div>
-            <ContactsSection orgnr={orgnr} />
-            <PoliciesSection orgnr={orgnr} />
-            <SubmissionsSection orgnr={orgnr} />
-            <RecommendationsSection orgnr={orgnr} />
-            <ClaimsSection orgnr={orgnr} policies={policies} />
-            <ActivitiesSection orgnr={orgnr} />
-            <ClientPortalSection orgnr={orgnr} />
+            {policiesLoading && !policies ? (
+              <div className="space-y-4" aria-busy="true" aria-live="polite">
+                <Skeleton className="h-24 rounded-lg" />
+                <Skeleton className="h-32 rounded-lg" />
+                <Skeleton className="h-24 rounded-lg" />
+              </div>
+            ) : (
+              <>
+                <ContactsSection orgnr={orgnr} />
+                <PoliciesSection orgnr={orgnr} />
+                <SubmissionsSection orgnr={orgnr} />
+                <RecommendationsSection orgnr={orgnr} />
+                <ClaimsSection orgnr={orgnr} policies={policies ?? []} />
+                <ActivitiesSection orgnr={orgnr} />
+                <ClientPortalSection orgnr={orgnr} />
+              </>
+            )}
           </div>
         </TabsContent>
 
