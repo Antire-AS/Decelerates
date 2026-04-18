@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import {
   getSlaAgreements, createSlaAgreement, signSlaAgreement, downloadSlaPdf,
@@ -25,6 +25,19 @@ function NewAgreementWizard() {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [createdId, setCreatedId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const hasInput = step > 1 || Object.values(data).some((v) =>
+      Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "" && v !== null
+    );
+    if (!hasInput || createdId !== null) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [step, data, createdId]);
 
   const total = 5;
   const set = (patch: Partial<SlaData>) => setData((d) => ({ ...d, ...patch }));
