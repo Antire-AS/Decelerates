@@ -79,7 +79,7 @@ function InsurerForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="f.eks. If Skadeforsikring"
           />
         </div>
@@ -89,7 +89,7 @@ function InsurerForm({
             id="insurer-orgnr"
             value={orgNumber}
             onChange={(e) => setOrgNumber(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="9 siffer"
             maxLength={9}
           />
@@ -100,7 +100,7 @@ function InsurerForm({
             id="insurer-contact-name"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
         <div>
@@ -110,7 +110,7 @@ function InsurerForm({
             type="email"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
         <div>
@@ -119,7 +119,7 @@ function InsurerForm({
             id="insurer-contact-phone"
             value={contactPhone}
             onChange={(e) => setContactPhone(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
       </div>
@@ -135,7 +135,7 @@ function InsurerForm({
               className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
                 appetite.includes(p)
                   ? "bg-[#4A6FA5] text-white border-[#4A6FA5]"
-                  : "bg-white text-[#8A7F74] border-gray-200 hover:border-[#4A6FA5]"
+                  : "bg-white text-[#8A7F74] border-brand-stone hover:border-[#4A6FA5]"
               }`}
             >
               {p}
@@ -151,7 +151,7 @@ function InsurerForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
         />
       </div>
 
@@ -159,7 +159,7 @@ function InsurerForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] border border-gray-200 rounded-md"
+          className="px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] border border-brand-stone rounded-md"
         >
           Avbryt
         </button>
@@ -345,7 +345,7 @@ export default function InsurersPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Søk etter selskap…"
-        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+        className="w-full px-3 py-2 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
       />
 
       {isLoading && (
