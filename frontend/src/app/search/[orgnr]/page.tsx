@@ -29,6 +29,7 @@ import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Loader2, FileText, Download } from "lucide-react";
 
 export default function OrgProfilePage({
@@ -163,12 +164,8 @@ export default function OrgProfilePage({
     { label: "Kontrakt",         desc: "Tjenesteavtale signert i Avtaler",   done: hasContract },
   ];
 
-  const TAB_CLS = (t: string) =>
-    `px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-      activeTab === t
-        ? "bg-[#2C3E50] text-white"
-        : "text-[#8A7F74] hover:bg-[#EDE8E3]"
-    }`;
+  const triggerCls =
+    "data-[state=active]:bg-[#2C3E50] data-[state=active]:text-white data-[state=active]:shadow-none text-[#8A7F74] hover:bg-[#EDE8E3] px-4 py-2 text-sm font-medium rounded-lg";
 
   return (
     <div className="space-y-5">
@@ -201,115 +198,118 @@ export default function OrgProfilePage({
       {/* Workflow stepper */}
       <WorkflowStepper steps={steps} />
 
-      {/* Tab navigation */}
-      <div className="flex gap-2 flex-wrap">
-        {(["oversikt", "okonomi", "forsikring", "crm", "notater", "chat"] as const).map((t) => (
-          <button key={t} onClick={() => setActiveTab(t)} className={TAB_CLS(t)}>
-            {t === "oversikt"   ? "Oversikt"   :
-             t === "okonomi"    ? "Økonomi"    :
-             t === "forsikring" ? "Forsikring" :
-             t === "crm"        ? "CRM"        :
-             t === "notater"    ? "Notater"    : "Chat"}
-          </button>
-        ))}
-      </div>
+      {/* Tab navigation + content */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+        className="space-y-5"
+      >
+        <TabsList className="flex-wrap justify-start bg-transparent p-0 h-auto gap-2">
+          <TabsTrigger value="oversikt"   className={triggerCls}>Oversikt</TabsTrigger>
+          <TabsTrigger value="okonomi"    className={triggerCls}>Økonomi</TabsTrigger>
+          <TabsTrigger value="forsikring" className={triggerCls}>Forsikring</TabsTrigger>
+          <TabsTrigger value="crm"        className={triggerCls}>CRM</TabsTrigger>
+          <TabsTrigger value="notater"    className={triggerCls}>Notater</TabsTrigger>
+          <TabsTrigger value="chat"       className={triggerCls}>Chat</TabsTrigger>
+        </TabsList>
 
-      {/* ── Oversikt ─────────────────────────────────────────────────── */}
-      {activeTab === "oversikt" && (
-        <OverviewTab
-          orgnr={orgnr}
-          org={org as Record<string, unknown>}
-          regn={regn as Record<string, unknown>}
-          history={history}
-          risk={risk as { score?: number; reasons?: string[]; equity_ratio?: number }}
-          pep={pep as Record<string, unknown>}
-          koordinaterData={koordinaterData}
-          roles={roles}
-          licenses={licenses}
-          bankruptcy={bankruptcy}
-          benchmark={benchmark}
-          struktur={strukturData}
-        />
-      )}
-
-      {/* ── Økonomi ─────────────────────────────────────────────────── */}
-      {activeTab === "okonomi" && (
-        <FinancialsTab
-          orgnr={orgnr}
-          regn={regn as Record<string, unknown>}
-          equityRatio={risk.equity_ratio}
-          history={history}
-          historyLoading={historyLoading}
-          onHistoryRefetch={() => mutateHistory()}
-          extractionStatus={extractionStatus}
-          expandedYear={expandedYear}
-          setExpandedYear={setExpandedYear}
-          commentary={commentary}
-          commentaryLoading={commentaryLoading}
-          commentaryErr={commentaryErr}
-          handleCommentary={handleCommentary}
-          pdfUrl={pdfUrl}
-          setPdfUrl={setPdfUrl}
-          pdfYear={pdfYear}
-          setPdfYear={setPdfYear}
-          pdfLabel={pdfLabel}
-          setPdfLabel={setPdfLabel}
-          pdfLoading={pdfLoading}
-          pdfErr={pdfErr}
-          pdfOk={pdfOk}
-          handleAddPdf={handleAddPdf}
-          setPdfOk={setPdfOk}
-        />
-      )}
-
-      {/* ── Forsikring ──────────────────────────────────────────────── */}
-      {activeTab === "forsikring" && (
-        <div className="space-y-6">
-          <PremiumBenchmark
-            revenue={(prof?.regnskap?.revenue as number | undefined) ?? undefined}
-            naceSection={(prof?.org?.naeringskode1 as string | undefined) ?? undefined}
+        {/* ── Oversikt ─────────────────────────────────────────────────── */}
+        <TabsContent value="oversikt" className="mt-0 focus-visible:ring-0">
+          <OverviewTab
+            orgnr={orgnr}
+            org={org as Record<string, unknown>}
+            regn={regn as Record<string, unknown>}
+            history={history}
+            risk={risk as { score?: number; reasons?: string[]; equity_ratio?: number }}
+            pep={pep as Record<string, unknown>}
+            koordinaterData={koordinaterData}
+            roles={roles}
+            licenses={licenses}
+            bankruptcy={bankruptcy}
+            benchmark={benchmark}
+            struktur={strukturData}
           />
-          <CoverageSection orgnr={orgnr} />
-          <ForsikringSection orgnr={orgnr} />
-        </div>
-      )}
+        </TabsContent>
 
-      {/* ── CRM ─────────────────────────────────────────────────────── */}
-      {activeTab === "crm" && (
-        <div className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            <Link href={`/idd?orgnr=${orgnr}`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
-              <FileText className="w-3.5 h-3.5" />
-              IDD behovsanalyse
-            </Link>
-            <button
-              onClick={() => downloadCertificatePdf(orgnr)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Last ned forsikringsbevis
-            </button>
+        {/* ── Økonomi ─────────────────────────────────────────────────── */}
+        <TabsContent value="okonomi" className="mt-0 focus-visible:ring-0">
+          <FinancialsTab
+            orgnr={orgnr}
+            regn={regn as Record<string, unknown>}
+            equityRatio={risk.equity_ratio}
+            history={history}
+            historyLoading={historyLoading}
+            onHistoryRefetch={() => mutateHistory()}
+            extractionStatus={extractionStatus}
+            expandedYear={expandedYear}
+            setExpandedYear={setExpandedYear}
+            commentary={commentary}
+            commentaryLoading={commentaryLoading}
+            commentaryErr={commentaryErr}
+            handleCommentary={handleCommentary}
+            pdfUrl={pdfUrl}
+            setPdfUrl={setPdfUrl}
+            pdfYear={pdfYear}
+            setPdfYear={setPdfYear}
+            pdfLabel={pdfLabel}
+            setPdfLabel={setPdfLabel}
+            pdfLoading={pdfLoading}
+            pdfErr={pdfErr}
+            pdfOk={pdfOk}
+            handleAddPdf={handleAddPdf}
+            setPdfOk={setPdfOk}
+          />
+        </TabsContent>
+
+        {/* ── Forsikring ──────────────────────────────────────────────── */}
+        <TabsContent value="forsikring" className="mt-0 focus-visible:ring-0">
+          <div className="space-y-6">
+            <PremiumBenchmark
+              revenue={(prof?.regnskap?.revenue as number | undefined) ?? undefined}
+              naceSection={(prof?.org?.naeringskode1 as string | undefined) ?? undefined}
+            />
+            <CoverageSection orgnr={orgnr} />
+            <ForsikringSection orgnr={orgnr} />
           </div>
-          <ContactsSection orgnr={orgnr} />
-          <PoliciesSection orgnr={orgnr} />
-          <SubmissionsSection orgnr={orgnr} />
-          <RecommendationsSection orgnr={orgnr} />
-          <ClaimsSection orgnr={orgnr} policies={policies} />
-          <ActivitiesSection orgnr={orgnr} />
-          <ClientPortalSection orgnr={orgnr} />
-        </div>
-      )}
+        </TabsContent>
 
-      {/* ── Notater ──────────────────────────────────────────────────── */}
-      {activeTab === "notater" && (
-        <NotaterSection orgnr={orgnr} />
-      )}
+        {/* ── CRM ─────────────────────────────────────────────────────── */}
+        <TabsContent value="crm" className="mt-0 focus-visible:ring-0">
+          <div className="space-y-4">
+            <div className="flex gap-2 flex-wrap">
+              <Link href={`/idd?orgnr=${orgnr}`}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+                <FileText className="w-3.5 h-3.5" />
+                IDD behovsanalyse
+              </Link>
+              <button
+                onClick={() => downloadCertificatePdf(orgnr)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Last ned forsikringsbevis
+              </button>
+            </div>
+            <ContactsSection orgnr={orgnr} />
+            <PoliciesSection orgnr={orgnr} />
+            <SubmissionsSection orgnr={orgnr} />
+            <RecommendationsSection orgnr={orgnr} />
+            <ClaimsSection orgnr={orgnr} policies={policies} />
+            <ActivitiesSection orgnr={orgnr} />
+            <ClientPortalSection orgnr={orgnr} />
+          </div>
+        </TabsContent>
 
-      {/* ── Chat ─────────────────────────────────────────────────────── */}
-      {activeTab === "chat" && (
-        <OrgChatSection orgnr={orgnr} orgName={String(org.navn ?? orgnr)} />
-      )}
+        {/* ── Notater ──────────────────────────────────────────────────── */}
+        <TabsContent value="notater" className="mt-0 focus-visible:ring-0">
+          <NotaterSection orgnr={orgnr} />
+        </TabsContent>
+
+        {/* ── Chat ─────────────────────────────────────────────────────── */}
+        <TabsContent value="chat" className="mt-0 focus-visible:ring-0">
+          <OrgChatSection orgnr={orgnr} orgName={String(org.navn ?? orgnr)} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
