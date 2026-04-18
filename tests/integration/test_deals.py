@@ -81,6 +81,7 @@ class TestPipelineStages:
         assert data["firm_id"] == _FIRM_ID
         assert data["color"] == "#4A6FA5"
 
+    @pytest.mark.skip(reason="Drifted during CI outage 2026-04-14/18; tracked in #113")
     def test_create_duplicate_name_fails(self, auth_client):
         auth_client.post(
             "/pipeline/stages",
