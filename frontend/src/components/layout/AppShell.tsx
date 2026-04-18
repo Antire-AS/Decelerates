@@ -29,6 +29,7 @@ import {
 import OnboardingTour from "./OnboardingTour";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CommandPalette } from "@/components/command-palette";
 
 // IA cleanup (2026-04):
 //   - /documents and /videos are now sub-tabs of /knowledge
@@ -163,6 +164,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#main-content" className="skip-to-content">
         Hopp til hovedinnhold
       </a>
+      {/* Global ⌘K command palette — mounted once, listens for its own keybind. */}
+      <CommandPalette />
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
       <aside className="hidden md:flex w-56 flex-shrink-0 bg-brand-beige border-r border-brand-stone flex-col">
         <SidebarContent {...sidebarProps} />
@@ -218,6 +221,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Desktop top bar — minimal, right-aligned bell + theme toggle (sidebar owns everything else). */}
         <header className="hidden md:flex items-center justify-end gap-2 px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+          <button
+            onClick={() => {
+              // Dispatch a synthetic ⌘K keydown — the CommandPalette's global
+              // listener handles the open/close toggle itself.
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+            }}
+            className="hidden md:inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+            aria-label="Åpne kommandopalett"
+          >
+            <Search className="h-3 w-3" />
+            Søk…
+            <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+          </button>
           <NotificationBell />
           <ThemeToggle />
         </header>
