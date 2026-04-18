@@ -68,8 +68,20 @@ jobs:
         run: uv run radon cc api/ -n C -s || true
 
   ruff:
-    uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-ruff-formating.yml@v0.19.0
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Ruff check
+        run: uvx ruff check api/ tests/ scripts/
+
+      - name: Ruff format check
+        run: uvx ruff format --check api/ tests/ scripts/
 
   # Inlined pyright — reusable-pyright-type-checker.yml@v0.19.0 still runs
   # setup-deploy-key unconditionally, which crashes on repos without a
@@ -96,10 +108,18 @@ jobs:
         # bugs in other categories still fail the build.
 
   duplication:
-    uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.19.0
-    secrets: inherit
-    with:
-      ignore-patterns: "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**"
+    name: duplication / duplication-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Run jscpd
+        run: npx jscpd --ignore '**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**' --threshold 5
 
   frontend:
     runs-on: ubuntu-latest
