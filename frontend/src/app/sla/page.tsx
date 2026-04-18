@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import {
   getSlaAgreements, createSlaAgreement, signSlaAgreement, downloadSlaPdf,
@@ -25,6 +25,19 @@ function NewAgreementWizard() {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [createdId, setCreatedId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const hasInput = step > 1 || Object.values(data).some((v) =>
+      Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "" && v !== null
+    );
+    if (!hasInput || createdId !== null) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [step, data, createdId]);
 
   const total = 5;
   const set = (patch: Partial<SlaData>) => setData((d) => ({ ...d, ...patch }));
@@ -273,29 +286,29 @@ function BrokerSettingsForm() {
       <form onSubmit={handleSave} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <label className="label-xs">Firmanavn *</label>
-            <input value={val("firm_name")} onChange={(e) => set("firm_name", e.target.value)} required className="input-sm w-full" />
+            <label className="label-xs" htmlFor="broker-firm-name">Firmanavn *</label>
+            <input id="broker-firm-name" value={val("firm_name")} onChange={(e) => set("firm_name", e.target.value)} required className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Org.nr</label>
-            <input value={val("orgnr")} onChange={(e) => set("orgnr", e.target.value)} className="input-sm w-full" />
+            <label className="label-xs" htmlFor="broker-orgnr">Org.nr</label>
+            <input id="broker-orgnr" value={val("orgnr")} onChange={(e) => set("orgnr", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Kontaktperson</label>
-            <input value={val("contact_name")} onChange={(e) => set("contact_name", e.target.value)} className="input-sm w-full" />
+            <label className="label-xs" htmlFor="broker-contact-name">Kontaktperson</label>
+            <input id="broker-contact-name" value={val("contact_name")} onChange={(e) => set("contact_name", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">E-post</label>
-            <input type="email" value={val("contact_email")} onChange={(e) => set("contact_email", e.target.value)} className="input-sm w-full" />
+            <label className="label-xs" htmlFor="broker-contact-email">E-post</label>
+            <input id="broker-contact-email" type="email" value={val("contact_email")} onChange={(e) => set("contact_email", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Telefon</label>
-            <input value={val("contact_phone")} onChange={(e) => set("contact_phone", e.target.value)} className="input-sm w-full" />
+            <label className="label-xs" htmlFor="broker-contact-phone">Telefon</label>
+            <input id="broker-contact-phone" value={val("contact_phone")} onChange={(e) => set("contact_phone", e.target.value)} className="input-sm w-full" />
           </div>
           <div className="col-span-2">
-            <label className="label-xs">Adresse</label>
-            <textarea value={val("address")} onChange={(e) => set("address", e.target.value)} rows={2}
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+            <label className="label-xs" htmlFor="broker-address">Adresse</label>
+            <textarea id="broker-address" value={val("address")} onChange={(e) => set("address", e.target.value)} rows={2}
+              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
           </div>
         </div>
         {msg && <p className={`text-xs ${msg.startsWith("Feil") ? "text-red-600" : "text-green-700"}`}>{msg}</p>}

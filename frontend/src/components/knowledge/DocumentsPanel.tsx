@@ -169,20 +169,20 @@ export default function DocumentsPanel() {
         <div className="broker-card space-y-3">
           <p className="text-sm font-semibold text-[#2C3E50]">Last opp dokument</p>
           <div>
-            <label className="label-xs">PDF-fil *</label>
-            <input type="file" accept=".pdf"
+            <label className="label-xs" htmlFor="doc-upload-file">PDF-fil *</label>
+            <input id="doc-upload-file" type="file" accept=".pdf"
               onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
               className="block w-full text-xs text-[#8A7F74] file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-[#2C3E50] file:text-white hover:file:bg-[#3d5166] cursor-pointer mt-0.5" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label-xs">Org.nr (valgfritt)</label>
-              <input type="text" value={uploadOrgnr} onChange={(e) => setUploadOrgnr(e.target.value)}
+              <label className="label-xs" htmlFor="doc-upload-orgnr">Org.nr (valgfritt)</label>
+              <input id="doc-upload-orgnr" type="text" value={uploadOrgnr} onChange={(e) => setUploadOrgnr(e.target.value)}
                 placeholder="984851006" className="input-sm" />
             </div>
             <div>
-              <label className="label-xs">Tagger (kommaseparert)</label>
-              <input type="text" value={uploadTags} onChange={(e) => setUploadTags(e.target.value)}
+              <label className="label-xs" htmlFor="doc-upload-tags">Tagger (kommaseparert)</label>
+              <input id="doc-upload-tags" type="text" value={uploadTags} onChange={(e) => setUploadTags(e.target.value)}
                 placeholder="tilbud, ansvar" className="input-sm" />
             </div>
           </div>

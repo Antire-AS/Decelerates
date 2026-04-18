@@ -147,61 +147,61 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
           <form onSubmit={handleAdd} className="mt-3 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label-xs">Forsikringsselskap *</label>
-                <input value={insurer} onChange={(e) => setInsurer(e.target.value)} required
+                <label className="label-xs" htmlFor="policy-insurer">Forsikringsselskap *</label>
+                <input id="policy-insurer" value={insurer} onChange={(e) => setInsurer(e.target.value)} required
                   className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Produkttype *</label>
-                <select value={productType} onChange={(e) => setProductType(e.target.value)} className="input-sm w-full">
+                <label className="label-xs" htmlFor="policy-product-type">Produkttype *</label>
+                <select id="policy-product-type" value={productType} onChange={(e) => setProductType(e.target.value)} className="input-sm w-full">
                   {PRODUCT_TYPES.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="label-xs">Avtalenummer</label>
-                <input value={policyNumber} onChange={(e) => setPolicyNumber(e.target.value)} className="input-sm w-full" />
+                <label className="label-xs" htmlFor="policy-number">Avtalenummer</label>
+                <input id="policy-number" value={policyNumber} onChange={(e) => setPolicyNumber(e.target.value)} className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-sm w-full">
+                <label className="label-xs" htmlFor="policy-status">Status</label>
+                <select id="policy-status" value={status} onChange={(e) => setStatus(e.target.value)} className="input-sm w-full">
                   {["active","pending","expired","cancelled"].map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className="label-xs">Årspremie (kr)</label>
-                <input type="number" value={premium} onChange={(e) => setPremium(e.target.value)} min="0" step="1000" className="input-sm w-full" />
+                <label className="label-xs" htmlFor="policy-premium">Årspremie (kr)</label>
+                <input id="policy-premium" type="number" value={premium} onChange={(e) => setPremium(e.target.value)} min="0" step="1000" className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Forsikringssum (kr)</label>
-                <input type="number" value={coverage} onChange={(e) => setCoverage(e.target.value)} min="0" step="100000" className="input-sm w-full" />
+                <label className="label-xs" htmlFor="policy-coverage">Forsikringssum (kr)</label>
+                <input id="policy-coverage" type="number" value={coverage} onChange={(e) => setCoverage(e.target.value)} min="0" step="100000" className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Startdato</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input-sm w-full" />
+                <label className="label-xs" htmlFor="policy-start-date">Startdato</label>
+                <input id="policy-start-date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Fornyelsesdato</label>
-                <input type="date" value={renewalDate} onChange={(e) => setRenewalDate(e.target.value)} className="input-sm w-full" />
+                <label className="label-xs" htmlFor="policy-renewal-date">Fornyelsesdato</label>
+                <input id="policy-renewal-date" type="date" value={renewalDate} onChange={(e) => setRenewalDate(e.target.value)} className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Provisjonssats (%)</label>
-                <input type="number" value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)}
+                <label className="label-xs" htmlFor="policy-commission-rate">Provisjonssats (%)</label>
+                <input id="policy-commission-rate" type="number" value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)}
                   min="0" max="100" step="0.1" placeholder="f.eks. 12.5" className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Provisjonsbeløp (kr)</label>
-                <input type="number" value={commissionAmt} onChange={(e) => setCommissionAmt(e.target.value)}
+                <label className="label-xs" htmlFor="policy-commission-amount">Provisjonsbeløp (kr)</label>
+                <input id="policy-commission-amount" type="number" value={commissionAmt} onChange={(e) => setCommissionAmt(e.target.value)}
                   min="0" step="100" placeholder="Beregnes automatisk om tomt" className="input-sm w-full" />
               </div>
             </div>
             <div>
-              <label className="label-xs">Dokument-URL</label>
-              <input type="url" value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://..." className="input-sm w-full" />
+              <label className="label-xs" htmlFor="policy-doc-url">Dokument-URL</label>
+              <input id="policy-doc-url" type="url" value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://..." className="input-sm w-full" />
             </div>
             <div>
-              <label className="label-xs">Notater</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+              <label className="label-xs" htmlFor="policy-notes">Notater</label>
+              <textarea id="policy-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
             </div>
             {err && <p className="text-xs text-red-600">{err}</p>}
             <div className="flex gap-2">

@@ -364,10 +364,11 @@ export async function downloadInsuranceDocumentPdf(id: number, filename: string)
 
 // ── Knowledge ────────────────────────────────────────────────────────────────
 
-export const knowledgeChat = (question: string, orgnr?: string) =>
+export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSignal) =>
   apiFetch<KnowledgeChatOut>("/knowledge/chat", {
     method: "POST",
     body: JSON.stringify({ question, orgnr }),
+    signal,
   });
 
 export const getKnowledgeStats = () =>
@@ -921,7 +922,8 @@ export const getInsuranceBenchmarks = (revenue?: number, naceSection?: string) =
   if (revenue != null) params.set("revenue", String(revenue));
   if (naceSection) params.set("nace_section", naceSection);
   const qs = params.toString();
-  return apiFetch<PremiumBenchmarkResponse>(`/insurance/benchmarks${qs ? "?" + qs : ""}`);
+  const suffix = qs ? `?${qs}` : "";
+  return apiFetch<PremiumBenchmarkResponse>(`/insurance/benchmarks${suffix}`);
 };
 
 // ── Coverage Analysis ────────────────────────────────────────────────────────

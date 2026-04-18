@@ -9,8 +9,9 @@ import {
   type CoverageAnalysis,
 } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
-  Upload,
   Trash2,
   Shield,
   ShieldAlert,
@@ -19,7 +20,6 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
-  FileText,
 } from "lucide-react";
 
 interface CoverageSectionProps {
@@ -49,7 +49,7 @@ export default function CoverageSection({ orgnr }: CoverageSectionProps) {
       setInsurer("");
       mutate();
     } catch {
-      alert("Kunne ikke analysere dokumentet");
+      toast.error("Kunne ikke analysere dokumentet");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -122,6 +122,7 @@ export default function CoverageSection({ orgnr }: CoverageSectionProps) {
 
 function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const cd = analysis.coverage_data as CoverageData | undefined;
 
   return (
@@ -149,8 +150,9 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.stopPropagation(); if (confirm("Slett denne analysen?")) onDelete(); }}
+            onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
             className="p-1 hover:bg-red-50 rounded text-[#8A7F74] hover:text-red-500"
+            aria-label="Slett analyse"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -243,6 +245,16 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Slett denne analysen?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={onDelete}
+      />
     </div>
   );
 }

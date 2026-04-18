@@ -13,6 +13,7 @@ import {
   getOrgIdd,
   type Recommendation, type Submission, type Insurer, type IddBehovsanalyse,
 } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 // ── New recommendation form ───────────────────────────────────────────────────
 
@@ -81,13 +82,14 @@ function NewRecommendationForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Anbefalt forsikringsselskap *</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-insurer">Anbefalt forsikringsselskap *</label>
           <input
+            id="rec-insurer"
             value={recommendedInsurer}
             onChange={(e) => setRecommendedInsurer(e.target.value)}
             required
             list="insurer-options"
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="Velg eller skriv inn"
           />
           <datalist id="insurer-options">
@@ -97,11 +99,12 @@ function NewRecommendationForm({
           </datalist>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Koble til behovsanalyse (IDD)</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-idd">Koble til behovsanalyse (IDD)</label>
           <select
+            id="rec-idd"
             value={iddId}
             onChange={(e) => setIddId(e.target.value ? Number(e.target.value) : "")}
-            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           >
             <option value="">Ingen</option>
             {iddList.map((idd) => (
@@ -115,9 +118,9 @@ function NewRecommendationForm({
 
       {allSubs.length > 0 && (
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">
+          <p className="text-xs text-[#8A7F74] font-medium">
             Inkluder tilbud i sammenligningen
-          </label>
+          </p>
           <div className="mt-1.5 space-y-1">
             {allSubs.map((sub) => (
               <label key={sub.id} className="flex items-center gap-2 cursor-pointer">
@@ -145,18 +148,19 @@ function NewRecommendationForm({
       )}
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-rationale">
           Begrunnelse{" "}
           <span className="font-normal text-[#8A7F74]">
             (la stå tom for å generere med AI)
           </span>
         </label>
         <textarea
+          id="rec-rationale"
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
           rows={4}
           placeholder="Skriv begrunnelse manuelt, eller la feltet stå tomt for AI-generert tekst…"
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
         />
       </div>
 
@@ -190,6 +194,7 @@ function RecommendationCard({
 }) {
   const [open, setOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   async function handleDownload() {
     setDownloading(true);
@@ -200,8 +205,11 @@ function RecommendationCard({
     }
   }
 
-  async function handleDelete() {
-    if (!confirm("Slett anbefaling?")) return;
+  function handleDelete() {
+    setConfirmDelete(true);
+  }
+
+  async function performDelete() {
     await deleteRecommendation(orgnr, rec.id);
     onDeleted();
   }
@@ -257,6 +265,16 @@ function RecommendationCard({
           </p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Slett anbefaling?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={performDelete}
+      />
     </div>
   );
 }

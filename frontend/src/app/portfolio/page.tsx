@@ -8,21 +8,12 @@ import {
 } from "recharts";
 import {
   getCompanies, getPortfolios, createPortfolio, seedFullDemo,
-  getRiskConfig,
-  type Company, type PortfolioItem, type RiskBand,
+  type Company, type PortfolioItem,
 } from "@/lib/api";
+import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
 import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
-
-// Fallback used until the backend responds — matches api/risk.py::RISK_BANDS
-const _FALLBACK_BANDS: RiskBand[] = [
-  { label: "Lav",        min: 0,  max: 3,  color: "#27AE60" },
-  { label: "Moderat",    min: 4,  max: 7,  color: "#C8A951" },
-  { label: "Høy",        min: 8,  max: 12, color: "#E67E22" },
-  { label: "Svært høy",  min: 13, max: 20, color: "#C0392B" },
-];
-const _UNKNOWN_BAND: RiskBand = { label: "Ukjent", min: -1, max: -1, color: "#C4BDB4" };
 
 export default function PortfolioPage() {
   const { data: companies, isLoading } = useSWR<Company[]>(
@@ -31,25 +22,9 @@ export default function PortfolioPage() {
   const { data: portfolios = [], mutate: mutatePortfolios } = useSWR<PortfolioItem[]>(
     "portfolios", getPortfolios,
   );
-  const { data: riskCfg } = useSWR("risk-config", getRiskConfig);
-
-  // Dynamic risk bands from GET /risk/config — single source of truth in
-  // api/risk.py. Falls back to _FALLBACK_BANDS until the endpoint responds.
-  const RISK_BANDS = useMemo(() => {
-    const bands = riskCfg?.bands ?? _FALLBACK_BANDS;
-    return [...bands, _UNKNOWN_BAND];
-  }, [riskCfg]);
-
-  const band = useMemo(() => {
-    const bands = riskCfg?.bands ?? _FALLBACK_BANDS;
-    return (score?: number) => {
-      if (score == null) return bands.length; // Ukjent index
-      for (let i = 0; i < bands.length; i++) {
-        if (score >= bands[i].min && score <= bands[i].max) return i;
-      }
-      return bands.length - 1; // above max → last real band
-    };
-  }, [riskCfg]);
+  const { bands, bandIndexFor } = useRiskConfig();
+  const RISK_BANDS = useMemo(() => [...bands, UNKNOWN_BAND], [bands]);
+  const band = bandIndexFor;
 
   const [search, setSearch]         = useState("");
   const [riskFilter, setRiskFilter] = useState<number | null>(null);
@@ -271,7 +246,7 @@ export default function PortfolioPage() {
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Søk selskap…"
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
               {riskFilter !== null && (
                 <button onClick={() => setRiskFilter(null)}
                   className="text-xs px-2.5 py-1 rounded-full bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]">

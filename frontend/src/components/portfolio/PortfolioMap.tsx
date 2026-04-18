@@ -7,19 +7,12 @@ import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import type { PortfolioRiskRow } from "@/lib/api";
 import { apiBaseUrl } from "@/lib/api-utils";
+import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
 
 // Fix default marker icons broken by webpack
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 
-function riskColor(score?: number): string {
-  if (score == null) return "#C4BDB4";
-  if (score <= 3) return "#27AE60";
-  if (score <= 7) return "#C8A951";
-  return "#C0392B";
-}
-
-function makeIcon(score?: number) {
-  const color = riskColor(score);
+function makeIcon(color: string) {
   return L.divIcon({
     className: "",
     html: `<div style="
@@ -48,6 +41,9 @@ interface Props {
 export default function PortfolioMap({ rows }: Props) {
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { bands, bandFor } = useRiskConfig();
+
+  const colorFor = (score?: number | null) => bandFor(score).color;
 
   useEffect(() => {
     if (!rows.length) { setLoading(false); return; }
@@ -88,16 +84,17 @@ export default function PortfolioMap({ rows }: Props) {
   const centerLat = markers.reduce((s, m) => s + m.lat, 0) / markers.length;
   const centerLon = markers.reduce((s, m) => s + m.lon, 0) / markers.length;
 
+  // Build legend entries from live band config (+ unknown entry)
+  const legendEntries = [
+    ...bands.map((b) => ({ label: b.label, color: b.color })),
+    { label: "Ukjent", color: UNKNOWN_BAND.color },
+  ];
+
   return (
     <div className="space-y-2">
       {/* Legend */}
       <div className="flex gap-4 text-xs text-[#8A7F74]">
-        {[
-          { label: "Lav risiko (≤3)", color: "#27AE60" },
-          { label: "Moderat (4–7)",   color: "#C8A951" },
-          { label: "Høy (≥8)",        color: "#C0392B" },
-          { label: "Ukjent",          color: "#C4BDB4" },
-        ].map(({ label, color }) => (
+        {legendEntries.map(({ label, color }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ background: color }} />
             <span>{label}</span>
@@ -116,7 +113,7 @@ export default function PortfolioMap({ rows }: Props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {markers.map((m) => (
-          <Marker key={m.orgnr} position={[m.lat, m.lon]} icon={makeIcon(m.risk_score)}>
+          <Marker key={m.orgnr} position={[m.lat, m.lon]} icon={makeIcon(colorFor(m.risk_score))}>
             <Popup>
               <div className="text-xs space-y-1 min-w-[120px]">
                 <p className="font-semibold text-[#2C3E50]">{m.navn ?? m.orgnr}</p>

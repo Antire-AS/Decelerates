@@ -30,25 +30,25 @@ export function Step4TermsKyc({ data, set, err, setErr, onBack, onNext }: Props)
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-xs">Type legitimasjon</label>
-            <select value={data.kyc_id_type ?? "Pass"} onChange={(e) => set({ kyc_id_type: e.target.value })}
+            <label className="label-xs" htmlFor="kyc-id-type">Type legitimasjon</label>
+            <select id="kyc-id-type" value={data.kyc_id_type ?? "Pass"} onChange={(e) => set({ kyc_id_type: e.target.value })}
               className="input-sm w-full">
               {["Pass", "Nasjonalt ID-kort", "Bankkort med bilde", "Annet"].map((v) => <option key={v}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="label-xs">Dokumentreferanse / ID-nummer</label>
-            <input value={data.kyc_id_ref ?? ""} onChange={(e) => set({ kyc_id_ref: e.target.value })}
+            <label className="label-xs" htmlFor="kyc-id-ref">Dokumentreferanse / ID-nummer</label>
+            <input id="kyc-id-ref" value={data.kyc_id_ref ?? ""} onChange={(e) => set({ kyc_id_ref: e.target.value })}
               placeholder="e.g. N12345678" className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Signatarens navn</label>
-            <input value={data.kyc_signatory ?? ""} onChange={(e) => set({ kyc_signatory: e.target.value })}
+            <label className="label-xs" htmlFor="kyc-signatory">Signatarens navn</label>
+            <input id="kyc-signatory" value={data.kyc_signatory ?? ""} onChange={(e) => set({ kyc_signatory: e.target.value })}
               className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Firmaattest dato</label>
-            <input value={data.kyc_firmadato ?? ""} onChange={(e) => set({ kyc_firmadato: e.target.value })}
+            <label className="label-xs" htmlFor="kyc-firmadato">Firmaattest dato</label>
+            <input id="kyc-firmadato" value={data.kyc_firmadato ?? ""} onChange={(e) => set({ kyc_firmadato: e.target.value })}
               placeholder="DD.MM.ÅÅÅÅ" className="input-sm w-full" />
           </div>
         </div>

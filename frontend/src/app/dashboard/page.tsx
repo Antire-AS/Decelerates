@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { getDashboard, getCompanies, type DashboardData, type Company } from "@/lib/api";
 import MetricCard from "@/components/dashboard/MetricCard";
 import RiskBadge from "@/components/company/RiskBadge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Search, RotateCcw, BarChart2, FolderOpen, AlertTriangle } from "lucide-react";
 import { fmt } from "@/lib/format";
 
@@ -14,7 +15,7 @@ const ACTIVITY_ICONS: Record<string, string> = {
 
 
 export default function DashboardPage() {
-  const { data, isLoading: dashLoading } = useSWR<DashboardData>(
+  const { data, isLoading: dashLoading, error: dashError, mutate: retryDash } = useSWR<DashboardData>(
     "dashboard",
     getDashboard,
     { refreshInterval: 60_000 },
@@ -35,6 +36,21 @@ export default function DashboardPage() {
           Forsikringsmegling · Due Diligence · Risikoprofil
         </p>
       </div>
+
+      {dashError && (
+        <Alert variant="destructive">
+          <AlertTitle>Kunne ikke laste dashboard</AlertTitle>
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <span>{dashError instanceof Error ? dashError.message : "Ukjent feil."}</span>
+            <button
+              onClick={() => retryDash()}
+              className="px-3 py-1 rounded-md border border-brand-stone text-xs text-brand-dark hover:bg-brand-beige"
+            >
+              Prøv igjen
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Key metrics */}
       {dashLoading && (

@@ -179,7 +179,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
           onKeyDown={handleKeyDown}
           placeholder="Still et spørsmål… (Enter for å sende)"
           rows={2}
-          className="flex-1 text-sm border border-[#D4C9B8] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="flex-1 text-sm border border-[#D4C9B8] rounded-lg px-3 py-2 resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
         />
         <button
           onClick={handleSend}

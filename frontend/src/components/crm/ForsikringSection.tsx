@@ -257,7 +257,7 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
                       <select
                         value={o.status ?? "pending"}
                         onChange={(e) => handleStatusChange(o.id, e.target.value)}
-                        className="text-xs border border-[#D4C9B8] rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                        className="text-xs border border-[#D4C9B8] rounded px-1.5 py-1 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                       >
                         {Object.entries(OFFER_STATUS_LABEL).map(([v, l]) => (
                           <option key={v} value={v}>{l}</option>

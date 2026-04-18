@@ -8,8 +8,10 @@ import {
 import { Loader2 } from "lucide-react";
 import { getCompanies, type Company } from "@/lib/api";
 import { fmtMnok } from "./_shared";
+import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
 
 export default function CompareTab() {
+  const { bandFor } = useRiskConfig();
   const { data: companies, isLoading } = useSWR<Company[]>("companies-compare", () => getCompanies(500));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -73,7 +75,7 @@ export default function CompareTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Søk selskap…"
-          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
         />
         <div className="max-h-52 overflow-y-auto space-y-0.5">
           {filtered.map((c) => (
@@ -85,9 +87,7 @@ export default function CompareTab() {
               {c.risk_score != null && (
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                   selected.has(c.orgnr) ? "bg-white/20 text-white"
-                  : c.risk_score <= 3 ? "bg-green-100 text-green-700"
-                  : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
-                  : "bg-red-100 text-red-700"
+                  : bandTailwindClass(bandFor(c.risk_score).label)
                 }`}>{c.risk_score}</span>
               )}
             </button>
@@ -137,9 +137,7 @@ export default function CompareTab() {
                     <td className="py-2 text-right">
                       {c.risk_score != null ? (
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          c.risk_score <= 3 ? "bg-green-100 text-green-700"
-                          : c.risk_score <= 7 ? "bg-amber-100 text-amber-700"
-                          : "bg-red-100 text-red-700"
+                          bandTailwindClass(bandFor(c.risk_score).label)
                         }`}>{c.risk_score}</span>
                       ) : "–"}
                     </td>

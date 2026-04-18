@@ -7,6 +7,7 @@ import ProvisjonTab  from "./_tabs/ProvisjonTab";
 import PortfolioTab  from "./_tabs/PortfolioTab";
 import CompareTab    from "./_tabs/CompareTab";
 import NlQueryTab    from "./_tabs/NlQueryTab";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const TABS = [
   { id: "premium",    label: "Premieanalyse" },
@@ -33,20 +34,25 @@ export default function PortfolioAnalyticsPage() {
         <Link href="/portfolio" className="text-xs text-[#4A6FA5] hover:underline">← Tilbake til portefølje</Link>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === t.id ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
-            }`}>{t.label}</button>
-        ))}
-      </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)}>
+        <TabsList className="flex-wrap justify-start bg-transparent p-0 h-auto gap-2">
+          {TABS.map((t) => (
+            <TabsTrigger
+              key={t.id}
+              value={t.id}
+              className="data-[state=active]:bg-[#2C3E50] data-[state=active]:text-white data-[state=active]:shadow-none bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3] px-4 py-2 text-sm font-medium rounded-lg"
+            >
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {activeTab === "premium"   && <PremiumTab />}
-      {activeTab === "provisjon" && <ProvisjonTab />}
-      {activeTab === "portfolio" && <PortfolioTab />}
-      {activeTab === "compare"   && <CompareTab />}
-      {activeTab === "nlquery"   && <NlQueryTab />}
+        <TabsContent value="premium"   className="focus-visible:ring-0"><PremiumTab /></TabsContent>
+        <TabsContent value="provisjon" className="focus-visible:ring-0"><ProvisjonTab /></TabsContent>
+        <TabsContent value="portfolio" className="focus-visible:ring-0"><PortfolioTab /></TabsContent>
+        <TabsContent value="compare"   className="focus-visible:ring-0"><CompareTab /></TabsContent>
+        <TabsContent value="nlquery"   className="focus-visible:ring-0"><NlQueryTab /></TabsContent>
+      </Tabs>
     </div>
   );
 }

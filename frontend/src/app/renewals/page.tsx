@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { getRenewals, advanceRenewalStage, type Renewal } from "@/lib/api";
 import { fmt, fmtDate } from "@/lib/format";
 import { downloadXlsx } from "@/lib/excel-export";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Download, Sparkles, Mail } from "lucide-react";
 
 function urgencyClass(days: number) {
@@ -36,7 +37,7 @@ export default function RenewalsPage() {
   const [advancing, setAdvancing]       = useState<number | null>(null);
   const [notifyEmails, setNotifyEmails] = useState<Record<number, string>>({});
 
-  const { data: renewals, isLoading, mutate } = useSWR<Renewal[]>(
+  const { data: renewals, isLoading, error, mutate } = useSWR<Renewal[]>(
     ["renewals", days],
     () => getRenewals(days),
   );
@@ -94,6 +95,21 @@ export default function RenewalsPage() {
           ))}
         </div>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Kunne ikke laste fornyelser</AlertTitle>
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <span>{error instanceof Error ? error.message : "Ukjent feil."}</span>
+            <button
+              onClick={() => mutate()}
+              className="px-3 py-1 rounded-md border border-brand-stone text-xs text-brand-dark hover:bg-brand-beige"
+            >
+              Prøv igjen
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Summary metrics */}
       {!isLoading && renewals && renewals.length > 0 && (

@@ -9,6 +9,7 @@ import {
   type Submission, type Insurer,
 } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const STATUS_LABELS: Record<string, string> = {
   pending:   "Avventer",
@@ -41,6 +42,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
   const [open, setOpen]       = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving]   = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   // Form state
   const [insurerId, setInsurerId]     = useState<number | "">("");
@@ -74,8 +76,11 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
     mutate();
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Slett forespørsel?")) return;
+  function handleDelete(id: number) {
+    setDeleteId(id);
+  }
+
+  async function performDelete(id: number) {
     await deleteSubmission(id);
     mutate();
   }
@@ -109,12 +114,13 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
             <form onSubmit={handleCreate} className="border border-[#C5D0E8] rounded-lg p-3 space-y-3 bg-[#F8F9FB]">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Forsikringsselskap *</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-insurer">Forsikringsselskap *</label>
                   <select
+                    id="submission-insurer"
                     value={insurerId}
                     onChange={(e) => setInsurerId(e.target.value ? Number(e.target.value) : "")}
                     required
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   >
                     <option value="">Velg selskap…</option>
                     {insurers.map((ins) => (
@@ -128,11 +134,12 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   )}
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Produkt *</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-product">Produkt *</label>
                   <select
+                    id="submission-product"
                     value={productType}
                     onChange={(e) => setProductType(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   >
                     {PRODUCT_TYPES.map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -140,20 +147,22 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Sendt dato</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-requested-at">Sendt dato</label>
                   <input
+                    id="submission-requested-at"
                     type="date"
                     value={requestedAt}
                     onChange={(e) => setRequestedAt(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#8A7F74] font-medium">Notater</label>
+                  <label className="text-xs text-[#8A7F74] font-medium" htmlFor="submission-notes">Notater</label>
                   <input
+                    id="submission-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
                     placeholder="Valgfritt"
                   />
                 </div>
@@ -195,7 +204,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   <select
                     value={sub.status}
                     onChange={(e) => handleStatusChange(sub, e.target.value as Submission["status"])}
-                    className={`text-xs px-2 py-0.5 rounded-full border-0 font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] ${STATUS_COLORS[sub.status]}`}
+                    className={`text-xs px-2 py-0.5 rounded-full border-0 font-medium cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] ${STATUS_COLORS[sub.status]}`}
                   >
                     {Object.entries(STATUS_LABELS).map(([val, label]) => (
                       <option key={val} value={val}>{label}</option>
@@ -218,6 +227,18 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        title="Slett forespørsel?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (deleteId !== null) performDelete(deleteId);
+        }}
+      />
     </div>
   );
 }

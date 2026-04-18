@@ -9,6 +9,7 @@ import {
   getInsurers, createInsurer, updateInsurer, deleteInsurer,
   type Insurer,
 } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const PRODUCT_TYPES = [
   "Motorvognforsikring",
@@ -72,54 +73,59 @@ function InsurerForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Navn *</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-name">Navn *</label>
           <input
+            id="insurer-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="f.eks. If Skadeforsikring"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Org.nr</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-orgnr">Org.nr</label>
           <input
+            id="insurer-orgnr"
             value={orgNumber}
             onChange={(e) => setOrgNumber(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             placeholder="9 siffer"
             maxLength={9}
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Kontaktperson</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-name">Kontaktperson</label>
           <input
+            id="insurer-contact-name"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">E-post</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-email">E-post</label>
           <input
+            id="insurer-contact-email"
             type="email"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Telefon</label>
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-phone">Telefon</label>
           <input
+            id="insurer-contact-phone"
             value={contactPhone}
             onChange={(e) => setContactPhone(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Produktappetitt</label>
+        <p className="text-xs text-[#8A7F74] font-medium">Produktappetitt</p>
         <div className="flex flex-wrap gap-1.5 mt-1.5">
           {PRODUCT_TYPES.map((p) => (
             <button
@@ -129,7 +135,7 @@ function InsurerForm({
               className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
                 appetite.includes(p)
                   ? "bg-[#4A6FA5] text-white border-[#4A6FA5]"
-                  : "bg-white text-[#8A7F74] border-gray-200 hover:border-[#4A6FA5]"
+                  : "bg-white text-[#8A7F74] border-brand-stone hover:border-[#4A6FA5]"
               }`}
             >
               {p}
@@ -139,12 +145,13 @@ function InsurerForm({
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Notater</label>
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-notes">Notater</label>
         <textarea
+          id="insurer-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
         />
       </div>
 
@@ -152,7 +159,7 @@ function InsurerForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] border border-gray-200 rounded-md"
+          className="px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] border border-brand-stone rounded-md"
         >
           Avbryt
         </button>
@@ -181,9 +188,13 @@ function InsurerCard({
 }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  async function handleDelete() {
-    if (!confirm(`Slett ${insurer.name}?`)) return;
+  function handleDelete() {
+    setConfirmDelete(true);
+  }
+
+  async function performDelete() {
     await deleteInsurer(insurer.id);
     onDeleted();
   }
@@ -271,6 +282,16 @@ function InsurerCard({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={`Slett ${insurer.name}?`}
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={performDelete}
+      />
     </div>
   );
 }
@@ -324,7 +345,7 @@ export default function InsurersPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Søk etter selskap…"
-        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+        className="w-full px-3 py-2 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
       />
 
       {isLoading && (

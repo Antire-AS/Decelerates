@@ -16,11 +16,11 @@ import {
   Trash2,
   Send,
   Clock,
-  CheckCircle,
-  BarChart2,
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   draft: { label: "Utkast", color: "bg-gray-100 text-gray-700" },
@@ -46,6 +46,7 @@ export default function TendersPage() {
   const { data: tenders, mutate } = useSWR<TenderListItem[]>("tenders", () => getTenders());
   const { data: insurers } = useSWR<Insurer[]>("insurers", getInsurers);
   const [showNew, setShowNew] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   return (
     <div>
@@ -108,11 +109,10 @@ export default function TendersPage() {
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      if (confirm("Slett dette anbudet?")) {
-                        deleteTender(t.id).then(() => mutate());
-                      }
+                      setDeleteId(t.id);
                     }}
                     className="p-1.5 hover:bg-red-50 rounded text-[#8A7F74] hover:text-red-500"
+                    aria-label="Slett anbud"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -134,6 +134,20 @@ export default function TendersPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        title="Slett dette anbudet?"
+        description="Handlingen kan ikke angres."
+        confirmLabel="Slett"
+        destructive
+        onConfirm={() => {
+          if (deleteId !== null) {
+            deleteTender(deleteId).then(() => mutate());
+          }
+        }}
+      />
     </div>
   );
 }
@@ -186,7 +200,7 @@ function NewTenderModal({
       });
       onCreated();
     } catch {
-      alert("Kunne ikke opprette anbud");
+      toast.error("Kunne ikke opprette anbud");
     } finally {
       setSaving(false);
     }
@@ -205,8 +219,9 @@ function NewTenderModal({
         <div className="p-6 space-y-5">
           {/* Company */}
           <div>
-            <label className="label-xs">Organisasjonsnummer</label>
+            <label className="label-xs" htmlFor="tender-orgnr">Organisasjonsnummer</label>
             <input
+              id="tender-orgnr"
               className="input-sm w-full"
               placeholder="F.eks. 984851006"
               value={orgnr}
@@ -216,8 +231,9 @@ function NewTenderModal({
 
           {/* Title */}
           <div>
-            <label className="label-xs">Tittel</label>
+            <label className="label-xs" htmlFor="tender-title">Tittel</label>
             <input
+              id="tender-title"
               className="input-sm w-full"
               placeholder="F.eks. Totalforsikring 2026"
               value={title}
@@ -227,7 +243,7 @@ function NewTenderModal({
 
           {/* Products */}
           <div>
-            <label className="label-xs">Produkttyper</label>
+            <p className="label-xs">Produkttyper</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {PRODUCT_OPTIONS.map((p) => (
                 <button
@@ -247,8 +263,9 @@ function NewTenderModal({
 
           {/* Deadline */}
           <div>
-            <label className="label-xs">Anbudsfrist</label>
+            <label className="label-xs" htmlFor="tender-deadline">Anbudsfrist</label>
             <input
+              id="tender-deadline"
               type="date"
               className="input-sm w-full"
               value={deadline}
@@ -258,7 +275,7 @@ function NewTenderModal({
 
           {/* Recipients from insurer directory */}
           <div>
-            <label className="label-xs">Forsikringsselskaper (mottakere)</label>
+            <p className="label-xs">Forsikringsselskaper (mottakere)</p>
             {recipients.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-1 mb-2">
                 {recipients.map((r) => (
@@ -291,8 +308,9 @@ function NewTenderModal({
 
           {/* Notes */}
           <div>
-            <label className="label-xs">Kravspesifikasjon / notater</label>
+            <label className="label-xs" htmlFor="tender-notes">Kravspesifikasjon / notater</label>
             <textarea
+              id="tender-notes"
               className="input-sm w-full h-24 resize-none"
               placeholder="Beskriv krav, spesielle behov, osv."
               value={notes}

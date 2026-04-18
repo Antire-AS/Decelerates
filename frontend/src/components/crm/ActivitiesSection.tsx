@@ -134,31 +134,31 @@ export default function ActivitiesSection({ orgnr }: { orgnr: string }) {
             {/* Type + Emne stack on phones, sit side-by-side on sm+ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="label-xs">Type</label>
-                <select value={atype} onChange={(e) => setAtype(e.target.value)} className="input-sm w-full">
+                <label className="label-xs" htmlFor="activity-type">Type</label>
+                <select id="activity-type" value={atype} onChange={(e) => setAtype(e.target.value)} className="input-sm w-full">
                   {Object.entries(TYPE_LABEL).map(([v, l]) => (
                     <option key={v} value={v}>{TYPE_ICON[v]} {l}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="label-xs">Emne *</label>
-                <input value={subject} onChange={(e) => setSubject(e.target.value)} required className="input-sm w-full" />
+                <label className="label-xs" htmlFor="activity-subject">Emne *</label>
+                <input id="activity-subject" value={subject} onChange={(e) => setSubject(e.target.value)} required className="input-sm w-full" />
               </div>
             </div>
             <div>
-              <label className="label-xs">Detaljer</label>
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+              <label className="label-xs" htmlFor="activity-body">Detaljer</label>
+              <textarea id="activity-body" value={body} onChange={(e) => setBody(e.target.value)} rows={2}
+                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="label-xs">Frist (kun for oppgaver)</label>
-                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-sm w-full" />
+                <label className="label-xs" htmlFor="activity-due-date">Frist (kun for oppgaver)</label>
+                <input id="activity-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-sm w-full" />
               </div>
               <div>
-                <label className="label-xs">Tildelt</label>
-                <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="input-sm w-full">
+                <label className="label-xs" htmlFor="activity-assigned-to">Tildelt</label>
+                <select id="activity-assigned-to" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="input-sm w-full">
                   <option value="">— Ingen —</option>
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>{u.name || u.email}</option>

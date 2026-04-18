@@ -4,6 +4,66 @@
  */
 
 export interface paths {
+    "/accounting/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Accounting Status
+         * @description Return sync status for Tripletex and Fiken.
+         */
+        get: operations["get_accounting_status_accounting_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/accounting/sync/fiken": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Fiken
+         * @description Sync receipts to Fiken. Requires admin role.
+         */
+        post: operations["sync_fiken_accounting_sync_fiken_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/accounting/sync/tripletex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Tripletex
+         * @description Sync invoices to Tripletex. Requires admin role.
+         */
+        post: operations["sync_tripletex_accounting_sync_tripletex_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities/bulk-complete": {
         parameters: {
             query?: never;
@@ -33,10 +93,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Send Activity Reminders
-         * @description Email the broker about overdue and due-today activities. Safe to call from cron.
-         */
+        /** Send Activity Reminders */
         post: operations["send_activity_reminders_admin_activity_reminders_post"];
         delete?: never;
         options?: never;
@@ -53,10 +110,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Admin Demo
-         * @description Seed demo portfolio with 8 major Norwegian companies and trigger PDF extraction.
-         */
+        /** Admin Demo */
         post: operations["admin_demo_admin_demo_post"];
         delete?: never;
         options?: never;
@@ -73,13 +127,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Send Portfolio Digest
-         * @description Send a portfolio health digest email to the broker's contact_email.
-         *
-         *     Iterates all portfolios, collects alerts for each, and sends a single
-         *     combined email. Idempotent — safe to call from a scheduled cron job.
-         */
+        /** Send Portfolio Digest */
         post: operations["send_portfolio_digest_admin_portfolio_digest_post"];
         delete?: never;
         options?: never;
@@ -96,13 +144,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Refresh Portfolio Risk
-         * @description Re-fetch BRREG data for all portfolio companies, re-score risk, notify on changes.
-         *
-         *     Designed for weekly cron (Monday 05:00 UTC). Rate-limited to 500ms
-         *     between BRREG requests to avoid hammering the government API.
-         */
+        /** Refresh Portfolio Risk */
         post: operations["refresh_portfolio_risk_admin_refresh_portfolio_risk_post"];
         delete?: never;
         options?: never;
@@ -119,13 +161,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Send Renewal Threshold Emails
-         * @description Send targeted renewal reminders at 90/60/30-day thresholds. Idempotent — safe for cron.
-         *
-         *     Each policy is notified at most once per threshold: once a 30-day email is sent,
-         *     it won't be re-sent until the next renewal cycle (last_renewal_notified_days reset on new policy).
-         */
+        /** Send Renewal Threshold Emails */
         post: operations["send_renewal_threshold_emails_admin_renewal_threshold_emails_post"];
         delete?: never;
         options?: never;
@@ -143,10 +179,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * Admin Reset
-         * @description Reset collected company data so it will be re-fetched fresh from the web.
-         */
+        /** Admin Reset */
         delete: operations["admin_reset_admin_reset_delete"];
         options?: never;
         head?: never;
@@ -162,10 +195,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Seed Crm Demo
-         * @description Seed realistic demo policies, claims, and activities for the demo companies.
-         */
+        /** Seed Crm Demo */
         post: operations["seed_crm_demo_admin_seed_crm_demo_post"];
         delete?: never;
         options?: never;
@@ -182,10 +212,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Seed Demo Documents Endpoint
-         * @description Generate anonymised demo insurance documents from existing real documents.
-         */
+        /** Seed Demo Documents Endpoint */
         post: operations["seed_demo_documents_endpoint_admin_seed_demo_documents_post"];
         delete?: never;
         options?: never;
@@ -202,13 +229,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Seed Full Demo Endpoint
-         * @description Seed 8 fictional Norwegian companies with 5-year financial history and renewal policies.
-         *
-         *     Completely synthetic data (orgnr 999100101–108). Idempotent — skips existing records.
-         *     Renewal dates spread 15–91 days out for a realistic pipeline demo.
-         */
+        /** Seed Full Demo Endpoint */
         post: operations["seed_full_demo_endpoint_admin_seed_full_demo_post"];
         delete?: never;
         options?: never;
@@ -225,10 +246,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Admin Seed Norway Top100
-         * @description Seed Norges Topp 100 portfolio, fetch BRREG profiles, queue PDF extraction.
-         */
+        /** Admin Seed Norway Top100 */
         post: operations["admin_seed_norway_top100_admin_seed_norway_top100_post"];
         delete?: never;
         options?: never;
@@ -245,10 +263,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Trigger Coverage Gap Alerts
-         * @description Scan all active clients for coverage gaps and email the broker. Safe for cron.
-         */
+        /** Trigger Coverage Gap Alerts */
         post: operations["trigger_coverage_gap_alerts_admin_trigger_coverage_gap_alerts_post"];
         delete?: never;
         options?: never;
@@ -265,10 +280,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Trigger Renewal Digest
-         * @description Send a renewal digest for policies expiring within 30 days. Safe for cron.
-         */
+        /** Trigger Renewal Digest */
         post: operations["trigger_renewal_digest_admin_trigger_renewal_digest_post"];
         delete?: never;
         options?: never;
@@ -308,6 +320,46 @@ export interface paths {
          * @description Aggregate the broker's premium book by insurer, product type, and status.
          */
         get: operations["get_premium_analytics_analytics_premiums_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Quote
+         * @description Insurer submits a quote (premium) for a submission they received.
+         */
+        post: operations["submit_quote_api_v1_quotes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Submission
+         * @description Insurer views a submission they received.
+         */
+        get: operations["get_submission_api_v1_submissions__submission_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -531,6 +583,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/coverage/{analysis_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Coverage
+         * @description Get a single coverage analysis.
+         */
+        get: operations["get_coverage_coverage__analysis_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Coverage
+         * @description Delete a coverage analysis.
+         */
+        delete: operations["delete_coverage_coverage__analysis_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboard": {
         parameters: {
             query?: never;
@@ -628,10 +704,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Debug Status
-         * @description Diagnostic endpoint — returns blob storage health, DB state, and video moov-atom status.
-         */
+        /** Debug Status */
         get: operations["debug_status_debug_status_get"];
         put?: never;
         post?: never;
@@ -955,6 +1028,29 @@ export interface paths {
          * @description Return top-3 most similar insurance documents by text embedding cosine distance.
          */
         get: operations["get_similar_documents_insurance_documents__doc_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/insurance/benchmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Insurance Benchmarks
+         * @description Return indicative premium ranges for Norwegian business insurance.
+         *
+         *     Optionally supply revenue (NOK) and nace_section (A-S) to get
+         *     company-specific estimates with NACE risk adjustments.
+         */
+        get: operations["get_insurance_benchmarks_insurance_benchmarks_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1512,6 +1608,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Coverage
+         * @description List all coverage analyses for a company.
+         */
+        get: operations["list_coverage_org__orgnr__coverage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org/{orgnr}/coverage-gap": {
         parameters: {
             query?: never;
@@ -1530,6 +1646,26 @@ export interface paths {
          * @description Compare uploaded insurance offers against the company's risk profile to identify coverage gaps.
          */
         post: operations["coverage_gap_analysis_org__orgnr__coverage_gap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/org/{orgnr}/coverage/analyse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyse Coverage
+         * @description Upload a policy PDF and analyse its coverage with AI.
+         */
+        post: operations["analyse_coverage_org__orgnr__coverage_analyse_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2907,6 +3043,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tenders
+         * @description List tenders, optionally filtered by company.
+         */
+        get: operations["list_tenders_tenders_get"];
+        put?: never;
+        /**
+         * Create Tender
+         * @description Create a new tender (anbud).
+         */
+        post: operations["create_tender_tenders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tender
+         * @description Get tender details with recipients and offers.
+         */
+        get: operations["get_tender_tenders__tender_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Tender
+         * @description Delete a tender and all associated offers.
+         */
+        delete: operations["delete_tender_tenders__tender_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Tender
+         * @description Update tender fields.
+         */
+        patch: operations["update_tender_tenders__tender_id__patch"];
+        trace?: never;
+    };
+    "/tenders/{tender_id}/analyse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyse Tender
+         * @description Run AI comparison of all offers in a tender.
+         */
+        post: operations["analyse_tender_tenders__tender_id__analyse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Offer
+         * @description Upload a PDF offer from an insurer.
+         */
+        post: operations["upload_offer_tenders__tender_id__offers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}/recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Recipient
+         * @description Add a recipient to a tender.
+         */
+        post: operations["add_recipient_tenders__tender_id__recipients_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Tender
+         * @description Send tender invitations to all recipients via email.
+         */
+        post: operations["send_tender_tenders__tender_id__send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users": {
         parameters: {
             query?: never;
@@ -3115,12 +3383,7 @@ export interface components {
             /** Orgnr */
             orgnr?: string | null;
         };
-        /**
-         * AuditLogPageOut
-         * @description Paginated audit log response. `total` is the count of rows matching the
-         *     filter (NOT the page); `has_more` is True when more rows exist past `offset
-         *     + items.length`. The frontend uses these to render the 'Page 2 of N' UI.
-         */
+        /** AuditLogPageOut */
         AuditLogPageOut: {
             /** Has More */
             has_more: boolean;
@@ -3192,6 +3455,39 @@ export interface components {
             /** Orgnr */
             orgnr: string;
         };
+        /** Body_add_recipient_tenders__tender_id__recipients_post */
+        Body_add_recipient_tenders__tender_id__recipients_post: {
+            /**
+             * Insurer Email
+             * @default
+             */
+            insurer_email: string;
+            /** Insurer Name */
+            insurer_name: string;
+        };
+        /** Body_analyse_coverage_org__orgnr__coverage_analyse_post */
+        Body_analyse_coverage_org__orgnr__coverage_analyse_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /**
+             * Insurer
+             * @default
+             */
+            insurer: string;
+            /**
+             * Product Type
+             * @default
+             */
+            product_type: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+        };
         /** Body_batch_import_csv_batch_import_post */
         Body_batch_import_csv_batch_import_post: {
             /**
@@ -3241,6 +3537,18 @@ export interface components {
             /** Year */
             year?: number | null;
         };
+        /** Body_upload_offer_tenders__tender_id__offers_post */
+        Body_upload_offer_tenders__tender_id__offers_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /** Insurer Name */
+            insurer_name: string;
+            /** Recipient Id */
+            recipient_id?: number;
+        };
         /** Body_upload_video_videos_upload_post */
         Body_upload_video_videos_upload_post: {
             /**
@@ -3248,6 +3556,11 @@ export interface components {
              * Format: binary
              */
             file: string;
+        };
+        /** BrokerNoteBody */
+        BrokerNoteBody: {
+            /** Text */
+            text: string;
         };
         /** BrokerSettingsIn */
         BrokerSettingsIn: {
@@ -3436,6 +3749,38 @@ export interface components {
             /** Lon */
             lon: number;
         };
+        /** CoverageAnalysisOut */
+        CoverageAnalysisOut: {
+            /** Coverage Data */
+            coverage_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** Coverage Sum Nok */
+            coverage_sum_nok?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deductible Nok */
+            deductible_nok?: number | null;
+            /** Filename */
+            filename?: string | null;
+            /** Id */
+            id: number;
+            /** Insurer */
+            insurer?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Premium Nok */
+            premium_nok?: number | null;
+            /** Product Type */
+            product_type?: string | null;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+        };
         /** DealCreate */
         DealCreate: {
             /** Expected Close Date */
@@ -3504,11 +3849,7 @@ export interface components {
             /** Stage Id */
             stage_id: number;
         };
-        /**
-         * DealUpdate
-         * @description Generic patch — every field optional. Stage transitions go through
-         *     PATCH /deals/{id}/stage instead so they're auditable as a single op.
-         */
+        /** DealUpdate */
         DealUpdate: {
             /** Expected Close Date */
             expected_close_date?: string | null;
@@ -3540,10 +3881,7 @@ export interface components {
             /** Doc Ids */
             doc_ids: number[];
         };
-        /**
-         * DocumentChatOut
-         * @description Response from POST /insurance-documents/{doc_id}/chat.
-         */
+        /** DocumentChatOut */
         DocumentChatOut: {
             /** Answer */
             answer: string;
@@ -3552,12 +3890,7 @@ export interface components {
             /** Question */
             question: string;
         };
-        /**
-         * DocumentCompareOut
-         * @description Response from POST /insurance-documents/compare. The `structured` payload
-         *     is the LLM JSON output from compare_two_documents — kept loose so the LLM
-         *     schema can evolve without breaking the wrapper.
-         */
+        /** DocumentCompareOut */
         DocumentCompareOut: {
             doc_a: components["schemas"]["DocumentRef"];
             doc_b: components["schemas"]["DocumentRef"];
@@ -3566,10 +3899,7 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /**
-         * DocumentKeypointsOut
-         * @description Response from GET /insurance-documents/{doc_id}/keypoints.
-         */
+        /** DocumentKeypointsOut */
         DocumentKeypointsOut: {
             /** Doc Id */
             doc_id: number;
@@ -3675,12 +4005,7 @@ export interface components {
             /** Years */
             years: components["schemas"]["HistoryRowOut"][];
         };
-        /**
-         * HistoryRowOut
-         * @description One year of financial history. Sparse — most fields are optional because
-         *     BRREG-vs-PDF sources populate different subsets. The frontend expects
-         *     these exact field names.
-         */
+        /** HistoryRowOut */
         HistoryRowOut: {
             /** Antallansatte */
             antallAnsatte?: number | null;
@@ -3971,11 +4296,7 @@ export interface components {
             /** Orgnr */
             orgnr: string;
         };
-        /**
-         * NotificationListOut
-         * @description Wrapper that ships the unread count alongside the rows so the bell icon
-         *     can render `15 unread` without a second round-trip.
-         */
+        /** NotificationListOut */
         NotificationListOut: {
             /** Items */
             items: components["schemas"]["NotificationOut"][];
@@ -4016,10 +4337,7 @@ export interface components {
             /** User Id */
             user_id: number;
         };
-        /**
-         * OrgChatOut
-         * @description Response from POST /org/{orgnr}/chat — RAG/notes-grounded answer.
-         */
+        /** OrgChatOut */
         OrgChatOut: {
             /** Answer */
             answer: string;
@@ -4030,10 +4348,7 @@ export interface components {
             /** Session Id */
             session_id: string;
         };
-        /**
-         * PdfHistoryOut
-         * @description Response from POST /org/{orgnr}/pdf-history — single extracted year row.
-         */
+        /** PdfHistoryOut */
         PdfHistoryOut: {
             /** Extracted */
             extracted?: {
@@ -4119,10 +4434,7 @@ export interface components {
              */
             order_index: number;
         };
-        /**
-         * PipelineStageOut
-         * @description A column in a broker firm's deal pipeline kanban board.
-         */
+        /** PipelineStageOut */
         PipelineStageOut: {
             /** Color */
             color?: string | null;
@@ -4282,6 +4594,26 @@ export interface components {
             description: string | null;
             /** Name */
             name: string;
+        };
+        /** QuoteResponse */
+        QuoteResponse: {
+            /** Premium Offered Nok */
+            premium_offered_nok: number | null;
+            /** Status */
+            status: string;
+            /** Submission Id */
+            submission_id: number;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** QuoteSubmit */
+        QuoteSubmit: {
+            /** Notes */
+            notes?: string | null;
+            /** Premium Offered Nok */
+            premium_offered_nok: number;
+            /** Submission Id */
+            submission_id: number;
         };
         /** RecommendationIn */
         RecommendationIn: {
@@ -4478,6 +4810,175 @@ export interface components {
             /** Status */
             status?: ("pending" | "quoted" | "declined" | "withdrawn") | null;
         };
+        /** SubmissionView */
+        SubmissionView: {
+            /** Id */
+            id: number;
+            /** Notes */
+            notes: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Product Type */
+            product_type: string;
+            /** Requested At */
+            requested_at: string | null;
+            /** Status */
+            status: string;
+        };
+        /** TenderAnalysisOut */
+        TenderAnalysisOut: {
+            /** Analysis */
+            analysis: {
+                [key: string]: unknown;
+            };
+            /** Tender Id */
+            tender_id: number;
+        };
+        /** TenderCreate */
+        TenderCreate: {
+            /** Deadline */
+            deadline?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Product Types */
+            product_types: string[];
+            /** Recipients */
+            recipients?: components["schemas"]["TenderRecipientIn"][];
+            /** Title */
+            title: string;
+        };
+        /** TenderListOut */
+        TenderListOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deadline */
+            deadline?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Offer Count
+             * @default 0
+             */
+            offer_count: number;
+            /** Orgnr */
+            orgnr: string;
+            /** Product Types */
+            product_types?: string[];
+            /**
+             * Recipient Count
+             * @default 0
+             */
+            recipient_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "sent" | "closed" | "analysed";
+            /** Title */
+            title: string;
+        };
+        /** TenderOfferOut */
+        TenderOfferOut: {
+            /** Extracted Data */
+            extracted_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** Filename */
+            filename: string;
+            /** Id */
+            id: number;
+            /** Insurer Name */
+            insurer_name: string;
+            /** Recipient Id */
+            recipient_id?: number | null;
+            /** Tender Id */
+            tender_id: number;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+        };
+        /** TenderOut */
+        TenderOut: {
+            /** Analysis Result */
+            analysis_result?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Email */
+            created_by_email?: string | null;
+            /** Deadline */
+            deadline?: string | null;
+            /** Id */
+            id: number;
+            /** Notes */
+            notes?: string | null;
+            /** Offers */
+            offers?: components["schemas"]["TenderOfferOut"][];
+            /** Orgnr */
+            orgnr: string;
+            /** Product Types */
+            product_types?: string[];
+            /** Recipients */
+            recipients?: components["schemas"]["TenderRecipientOut"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "sent" | "closed" | "analysed";
+            /** Title */
+            title: string;
+        };
+        /** TenderRecipientIn */
+        TenderRecipientIn: {
+            /** Insurer Email */
+            insurer_email?: string | null;
+            /** Insurer Name */
+            insurer_name: string;
+        };
+        /** TenderRecipientOut */
+        TenderRecipientOut: {
+            /** Id */
+            id: number;
+            /** Insurer Email */
+            insurer_email?: string | null;
+            /** Insurer Name */
+            insurer_name: string;
+            /** Response At */
+            response_at?: string | null;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "sent" | "received" | "declined";
+            /** Tender Id */
+            tender_id: number;
+        };
+        /** TenderUpdate */
+        TenderUpdate: {
+            /** Deadline */
+            deadline?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Product Types */
+            product_types?: string[] | null;
+            /** Status */
+            status?: ("draft" | "sent" | "closed" | "analysed") | null;
+            /** Title */
+            title?: string | null;
+        };
         /** UserRoleUpdate */
         UserRoleUpdate: {
             /** Role */
@@ -4496,11 +4997,6 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** _BrokerNoteBody */
-        _BrokerNoteBody: {
-            /** Text */
-            text: string;
-        };
     };
     responses: never;
     parameters: never;
@@ -4510,6 +5006,72 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_accounting_status_accounting_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    sync_fiken_accounting_sync_fiken_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    sync_tripletex_accounting_sync_tripletex_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     bulk_complete_activities_activities_bulk_complete_post: {
         parameters: {
             query?: never;
@@ -4847,6 +5409,74 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    submit_quote_api_v1_quotes_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-API-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_submission_api_v1_submissions__submission_id__get: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-API-Key": string;
+            };
+            path: {
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5213,6 +5843,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_coverage_coverage__analysis_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysis_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageAnalysisOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_coverage_coverage__analysis_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysis_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -6027,6 +6719,38 @@ export interface operations {
             };
         };
     };
+    get_insurance_benchmarks_insurance_benchmarks_get: {
+        parameters: {
+            query?: {
+                revenue?: number;
+                nace_section?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_insurers_insurers_get: {
         parameters: {
             query?: never;
@@ -6758,7 +7482,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["_BrokerNoteBody"];
+                "application/json": components["schemas"]["BrokerNoteBody"];
             };
         };
         responses: {
@@ -7294,6 +8018,37 @@ export interface operations {
             };
         };
     };
+    list_coverage_org__orgnr__coverage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageAnalysisOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_coverage_gap_org__orgnr__coverage_gap_get: {
         parameters: {
             query?: never;
@@ -7349,6 +8104,41 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyse_coverage_org__orgnr__coverage_analyse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_analyse_coverage_org__orgnr__coverage_analyse_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageAnalysisOut"];
                 };
             };
             /** @description Validation Error */
@@ -10118,6 +10908,299 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tenders_tenders_get: {
+        parameters: {
+            query?: {
+                orgnr?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderListOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_tender_tenders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tender_tenders__tender_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_tender_tenders__tender_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tender_tenders__tender_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyse_tender_tenders__tender_id__analyse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderAnalysisOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_offer_tenders__tender_id__offers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_offer_tenders__tender_id__offers_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_recipient_tenders__tender_id__recipients_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_add_recipient_tenders__tender_id__recipients_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_tender_tenders__tender_id__send_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOut"];
                 };
             };
             /** @description Validation Error */
