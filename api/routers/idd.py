@@ -4,6 +4,7 @@ Covers behovsanalyse (needs assessment) as required by
 forsikringsformidlingsloven §§ 5-4, 7-1 to 7-10 and
 Finanstilsynet circular 9/2019.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -24,27 +25,27 @@ def _get_idd_service(db: Session = Depends(get_db)) -> IddService:
 
 def _serialize(row: IddBehovsanalyse) -> dict:
     return {
-        "id":                          row.id,
-        "orgnr":                       row.orgnr,
-        "created_by_email":            row.created_by_email,
-        "created_at":                  row.created_at.isoformat() if row.created_at else None,
-        "client_name":                 row.client_name,
-        "client_contact_name":         row.client_contact_name,
-        "client_contact_email":        row.client_contact_email,
-        "existing_insurance":          row.existing_insurance or [],
-        "risk_appetite":               row.risk_appetite,
-        "property_owned":              row.property_owned,
-        "has_employees":               row.has_employees,
-        "has_vehicles":                row.has_vehicles,
-        "has_professional_liability":  row.has_professional_liability,
-        "has_cyber_risk":              row.has_cyber_risk,
-        "annual_revenue_nok":          row.annual_revenue_nok,
-        "special_requirements":        row.special_requirements,
-        "recommended_products":        row.recommended_products or [],
-        "advisor_notes":               row.advisor_notes,
-        "suitability_basis":           row.suitability_basis,
-        "fee_basis":                   row.fee_basis,
-        "fee_amount_nok":              row.fee_amount_nok,
+        "id": row.id,
+        "orgnr": row.orgnr,
+        "created_by_email": row.created_by_email,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "client_name": row.client_name,
+        "client_contact_name": row.client_contact_name,
+        "client_contact_email": row.client_contact_email,
+        "existing_insurance": row.existing_insurance or [],
+        "risk_appetite": row.risk_appetite,
+        "property_owned": row.property_owned,
+        "has_employees": row.has_employees,
+        "has_vehicles": row.has_vehicles,
+        "has_professional_liability": row.has_professional_liability,
+        "has_cyber_risk": row.has_cyber_risk,
+        "annual_revenue_nok": row.annual_revenue_nok,
+        "special_requirements": row.special_requirements,
+        "recommended_products": row.recommended_products or [],
+        "advisor_notes": row.advisor_notes,
+        "suitability_basis": row.suitability_basis,
+        "fee_basis": row.fee_basis,
+        "fee_amount_nok": row.fee_amount_nok,
     }
 
 

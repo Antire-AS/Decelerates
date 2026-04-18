@@ -4,6 +4,7 @@ All DB queries, NotificationPort, and external services are mocked.
 Tests cover portfolio-digest, renewal-threshold, activity-reminders,
 coverage-gap-alerts, refresh-portfolio-risk, debug/status, and dashboard.
 """
+
 import sys
 from datetime import date, datetime, timedelta
 from unittest.mock import MagicMock, patch
@@ -96,37 +97,37 @@ def _mock_firm(firm_id=1):
     f.id = firm_id
     return f
 
+    # ── POST /admin/portfolio-digest ─────────────────────────────────────────────
 
-# ── POST /admin/portfolio-digest ─────────────────────────────────────────────
-
-    with patch("api.routers.admin_router.collect_alerts", return_value=[]), \
-         patch("api.routers.cron.create_notification_for_users_safe"):
+    with (
+        patch("api.routers.admin_router.collect_alerts", return_value=[]),
+        patch("api.routers.cron.create_notification_for_users_safe"),
+    ):
         resp = client.post("/admin/portfolio-digest")
     assert resp.status_code == 200
     body = resp.json()
     assert "recipient" in body
 
-
-
-# ── POST /admin/renewal-threshold-emails ─────────────────────────────────────
+    # ── POST /admin/renewal-threshold-emails ─────────────────────────────────────
 
     mock_policy_svc = MagicMock()
-    mock_policy_svc.get_policies_needing_renewal_notification.return_value = [_mock_policy()]
+    mock_policy_svc.get_policies_needing_renewal_notification.return_value = [
+        _mock_policy()
+    ]
     mock_policy_svc.mark_renewal_notified.return_value = None
 
-    with patch("api.routers.admin_router.PolicyService", return_value=mock_policy_svc), \
-         patch("api.routers.admin_router.RenewalAgentService") as mock_ras, \
-         patch("api.routers.cron.create_notification_for_users_safe"):
+    with (
+        patch("api.routers.admin_router.PolicyService", return_value=mock_policy_svc),
+        patch("api.routers.admin_router.RenewalAgentService") as mock_ras,
+        patch("api.routers.cron.create_notification_for_users_safe"),
+    ):
         mock_ras.return_value.process_renewals_batch.return_value = None
         resp = client.post("/admin/renewal-threshold-emails")
     assert resp.status_code == 200
     body = resp.json()
     assert body["recipient"] == "broker@test.no"
 
-
-
-
-# ── POST /admin/activity-reminders ───────────────────────────────────────────
+    # ── POST /admin/activity-reminders ───────────────────────────────────────────
 
     with patch("api.routers.cron.create_notification_for_users_safe"):
         resp = client.post("/admin/activity-reminders")
@@ -134,24 +135,25 @@ def _mock_firm(firm_id=1):
     body = resp.json()
     assert body["sent"] is True
 
-
     resp = client.post("/admin/activity-reminders")
     assert resp.status_code == 200
     assert resp.json()["sent"] is False
 
+    # ── POST /admin/trigger-coverage-gap-alerts ──────────────────────────────────
 
-# ── POST /admin/trigger-coverage-gap-alerts ──────────────────────────────────
-
-    gaps = [{"orgnr": "123", "navn": "TestCo", "gap_count": 1, "gaps": [{"type": "ansvar"}]}]
-    with patch("api.routers.admin_router.get_companies_with_gaps", return_value=gaps), \
-         patch("api.routers.admin_router.log_audit"), \
-         patch("api.routers.cron.create_notification_for_users_safe"):
+    gaps = [
+        {"orgnr": "123", "navn": "TestCo", "gap_count": 1, "gaps": [{"type": "ansvar"}]}
+    ]
+    with (
+        patch("api.routers.admin_router.get_companies_with_gaps", return_value=gaps),
+        patch("api.routers.admin_router.log_audit"),
+        patch("api.routers.cron.create_notification_for_users_safe"),
+    ):
         resp = client.post("/admin/trigger-coverage-gap-alerts")
     assert resp.status_code == 200
     body = resp.json()
     assert body["companies_with_gaps"] == 1
     assert body["sent"] is True
-
 
     with patch("api.routers.admin_router.get_companies_with_gaps", return_value=[]):
         resp = client.post("/admin/trigger-coverage-gap-alerts")
@@ -160,6 +162,7 @@ def _mock_firm(firm_id=1):
 
 
 # ── POST /admin/trigger-renewal-digest ───────────────────────────────────────
+
 
 def test_trigger_renewal_digest_sends(client, mock_db, mock_notification):
     settings = _mock_settings()
@@ -183,6 +186,7 @@ def test_trigger_renewal_digest_sends(client, mock_db, mock_notification):
 
 
 # ── GET /dashboard ───────────────────────────────────────────────────────────
+
 
 def test_dashboard_returns_summary(client, mock_db):
     q = mock_db.query.return_value

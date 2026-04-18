@@ -1,4 +1,5 @@
 """InsuranceDocument and InsuranceOffer CRUD + LLM document analysis."""
+
 import io
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -6,7 +7,12 @@ from typing import List, Optional
 import pdfplumber
 from sqlalchemy.orm import Session
 
-from api.constants import LLM_DOCUMENT_CHAR_LIMIT, LLM_TEXT_CHAR_LIMIT, PDF_PAGE_LIMIT_LAYOUT, TEXT_EMBED_CHAR_LIMIT
+from api.constants import (
+    LLM_DOCUMENT_CHAR_LIMIT,
+    LLM_TEXT_CHAR_LIMIT,
+    PDF_PAGE_LIMIT_LAYOUT,
+    TEXT_EMBED_CHAR_LIMIT,
+)
 from api.db import InsuranceDocument, InsuranceOffer
 from api.domain.exceptions import LlmUnavailableError
 from api.services.llm import (
@@ -20,7 +26,7 @@ from api.services.llm import (
 _KEYPOINTS_PROMPT = (
     "Du er en norsk forsikringsekspert. Analyser dette forsikringsdokumentet grundig og trekk ut ALLE viktige punkter.\n\n"
     "Returner KUN gyldig JSON i dette eksakte formatet (alle lister skal ha 5-8 punkter der det er mulig):\n"
-    '{\n'
+    "{\n"
     '  "om_dokumentet": "1-2 setninger: hva slags forsikring er dette, hvem er tilbyder/forsikringsselskap",\n'
     '  "hva_dekkes": ["dekning 1", "dekning 2", "dekning 3", "dekning 4", "dekning 5"],\n'
     '  "forsikringssum": "beløp eller grense for dekning",\n'
@@ -30,7 +36,7 @@ _KEYPOINTS_PROMPT = (
     '  "unntak": ["unntak 1", "unntak 2", "unntak 3"],\n'
     '  "kontaktinfo": "skadenummer, kontaktperson eller nettside",\n'
     '  "sammendrag": "3-4 setninger som beskriver hva dokumentet dekker, hvem det gjelder for, og viktigste betingelser"\n'
-    '}'
+    "}"
 )
 
 
@@ -46,7 +52,9 @@ def _pdf_bytes_to_text(pdf_bytes: bytes) -> str:
     """Extract text from raw PDF bytes using pdfplumber (up to PDF_PAGE_LIMIT_LAYOUT pages)."""
     try:
         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            return "\n".join(p.extract_text() or "" for p in pdf.pages[:PDF_PAGE_LIMIT_LAYOUT])
+            return "\n".join(
+                p.extract_text() or "" for p in pdf.pages[:PDF_PAGE_LIMIT_LAYOUT]
+            )
     except Exception:
         return ""
 
@@ -69,7 +77,7 @@ def _build_compare_prompt(a: InsuranceDocument, b: InsuranceDocument) -> str:
         f"Dokument A: {a.title} ({a.insurer}, {a.year})\n"
         f"Dokument B: {b.title} ({b.insurer}, {b.year})\n\n"
         f"Returner KUN gyldig JSON (ingen markdown, ingen tekst utenfor JSON):\n"
-        f'{{\n'
+        f"{{\n"
         f'  "doc_a_summary": "3-4 setninger om hva Dokument A dekker, for hvem og viktigste betingelser",\n'
         f'  "doc_b_summary": "3-4 setninger om hva Dokument B dekker, for hvem og viktigste betingelser",\n'
         f'  "pros_a": ["fordel 1", "fordel 2", "fordel 3"],\n'
@@ -78,11 +86,11 @@ def _build_compare_prompt(a: InsuranceDocument, b: InsuranceDocument) -> str:
         f'  "cons_b": ["ulempe 1", "ulempe 2"],\n'
         f'  "comparison": [\n'
         f'    {{"area": "Dekningsomfang", "doc_a": "hva A sier", "doc_b": "hva B sier", "winner": "A|B|Lik"}}\n'
-        f'  ],\n'
+        f"  ],\n"
         f'  "conclusion": "Samlet konklusjon for forsikringstaker — 3-4 setninger"\n'
-        f'}}\n\n'
-        f'Inkluder i comparison: Dekningsomfang, Selvrisiko, Forsikringssum, Unntak/begrensninger, '
-        f'Særlige vilkår, Forsikringsperiode. winner=A betyr A er bedre, B=B er bedre, Lik=ingen vesentlig forskjell.'
+        f"}}\n\n"
+        f"Inkluder i comparison: Dekningsomfang, Selvrisiko, Forsikringssum, Unntak/begrensninger, "
+        f"Særlige vilkår, Forsikringsperiode. winner=A betyr A er bedre, B=B er bedre, Lik=ingen vesentlig forskjell."
     )
 
 
@@ -93,7 +101,9 @@ class DocumentAnalysisService:
         """Extract key points from an InsuranceDocument via text LLM or Gemini PDF fallback."""
         text = doc.extracted_text or ""
         if len(text) > 500:
-            raw = _llm_answer_raw(f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}")
+            raw = _llm_answer_raw(
+                f"{_KEYPOINTS_PROMPT}\n\nDokument:\n{text[:LLM_DOCUMENT_CHAR_LIMIT]}"
+            )
             if raw:
                 parsed = _parse_json_from_llm_response(raw)
                 if parsed:
@@ -106,7 +116,9 @@ class DocumentAnalysisService:
                 return parsed
 
         return {
-            "sammendrag": (text[:400] + "…") if text else "Ingen tekstinnhold tilgjengelig",
+            "sammendrag": (text[:400] + "…")
+            if text
+            else "Ingen tekstinnhold tilgjengelig",
             "viktige_vilkaar": [],
             "unntak": [],
         }
@@ -114,6 +126,7 @@ class DocumentAnalysisService:
     def answer_document_question(self, doc: InsuranceDocument, question: str) -> str:
         """Answer a question about an InsuranceDocument. Raises LlmUnavailableError if no LLM."""
         from api.services.llm import _sanitize_user_input
+
         safe_question = _sanitize_user_input(question)
         prompt = (
             f"Du er en norsk forsikringsrådgiver. Svar alltid på norsk. "
@@ -212,7 +225,11 @@ class DocumentService:
 
     def remove_document(self, doc_id: int) -> bool:
         """Delete an InsuranceDocument by ID. Returns True if found and deleted."""
-        doc = self.db.query(InsuranceDocument).filter(InsuranceDocument.id == doc_id).first()
+        doc = (
+            self.db.query(InsuranceDocument)
+            .filter(InsuranceDocument.id == doc_id)
+            .first()
+        )
         if not doc:
             return False
         self.db.delete(doc)
@@ -233,7 +250,10 @@ class DocumentService:
             return []
         others = (
             self.db.query(InsuranceDocument)
-            .filter(InsuranceDocument.id != doc.id, InsuranceDocument.extracted_text.isnot(None))
+            .filter(
+                InsuranceDocument.id != doc.id,
+                InsuranceDocument.extracted_text.isnot(None),
+            )
             .all()
         )
         scored = []
@@ -241,7 +261,9 @@ class DocumentService:
             other_emb = _embed((other.extracted_text or "")[:TEXT_EMBED_CHAR_LIMIT])
             if other_emb:
                 sim = _cosine_similarity(embedding, other_emb)
-                scored.append({"id": other.id, "title": other.title, "similarity": round(sim, 4)})
+                scored.append(
+                    {"id": other.id, "title": other.title, "similarity": round(sim, 4)}
+                )
         return sorted(scored, key=lambda x: x["similarity"], reverse=True)[:limit]
 
     # ── InsuranceOffer ─────────────────────────────────────────────────────────
@@ -256,7 +278,11 @@ class DocumentService:
         saved = []
         for item in offer_data:
             insurer_guess = (
-                item["filename"].rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
+                item["filename"]
+                .rsplit(".", 1)[0]
+                .replace("_", " ")
+                .replace("-", " ")
+                .title()
             )
             row = InsuranceOffer(
                 orgnr=orgnr,
@@ -268,7 +294,13 @@ class DocumentService:
             )
             self.db.add(row)
             self.db.flush()
-            saved.append({"id": row.id, "filename": row.filename, "insurer_name": row.insurer_name})
+            saved.append(
+                {
+                    "id": row.id,
+                    "filename": row.filename,
+                    "insurer_name": row.insurer_name,
+                }
+            )
         try:
             self.db.commit()
         except Exception:
@@ -278,9 +310,11 @@ class DocumentService:
 
     def remove_offer(self, offer_id: int, orgnr: str) -> bool:
         """Delete an InsuranceOffer by ID + orgnr. Returns True if found and deleted."""
-        row = self.db.query(InsuranceOffer).filter(
-            InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr
-        ).first()
+        row = (
+            self.db.query(InsuranceOffer)
+            .filter(InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr)
+            .first()
+        )
         if not row:
             return False
         self.db.delete(row)
@@ -294,12 +328,22 @@ class DocumentService:
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────
 
+
 def store_insurance_document(
-    pdf_bytes: bytes, filename: str, title: str, category: str, insurer: str,
-    year: Optional[int], period: str, orgnr: Optional[str], db: Session,
+    pdf_bytes: bytes,
+    filename: str,
+    title: str,
+    category: str,
+    insurer: str,
+    year: Optional[int],
+    period: str,
+    orgnr: Optional[str],
+    db: Session,
     tags: Optional[str] = None,
 ) -> InsuranceDocument:
-    return DocumentService(db).store_document(pdf_bytes, filename, title, category, insurer, year, period, orgnr, tags)
+    return DocumentService(db).store_document(
+        pdf_bytes, filename, title, category, insurer, year, period, orgnr, tags
+    )
 
 
 def remove_insurance_document(doc_id: int, db: Session) -> bool:
@@ -318,7 +362,9 @@ def compare_two_documents(a: InsuranceDocument, b: InsuranceDocument) -> dict:
     return DocumentAnalysisService().compare_two_documents(a, b)
 
 
-def save_insurance_offers(orgnr: str, offer_data: List[dict], db: Session) -> List[dict]:
+def save_insurance_offers(
+    orgnr: str, offer_data: List[dict], db: Session
+) -> List[dict]:
     return DocumentService(db).save_offers(orgnr, offer_data)
 
 
@@ -333,6 +379,7 @@ def find_similar_documents(doc: InsuranceDocument, db: Session, limit: int = 3) 
 def _auto_extract_keypoints(doc: InsuranceDocument, db: Session) -> None:
     """Extract keypoints + structured premium data from a document."""
     import logging
+
     _log = logging.getLogger(__name__)
     if doc.cached_keypoints:
         return
@@ -344,15 +391,22 @@ def _auto_extract_keypoints(doc: InsuranceDocument, db: Session) -> None:
         db.commit()
         _log.info("Doc intel agent: keypoints extracted for doc %d", doc.id)
     except Exception as exc:
-        _log.warning("Doc intel agent: keypoint extraction failed for doc %d: %s", doc.id, exc)
+        _log.warning(
+            "Doc intel agent: keypoint extraction failed for doc %d: %s", doc.id, exc
+        )
         db.rollback()
 
 
 def _auto_compare_tilbuds(doc: InsuranceDocument, db: Session) -> None:
     """If 2+ tilbuds exist for the same orgnr, auto-compare the two most recent."""
     import logging
+
     _log = logging.getLogger(__name__)
-    if not doc.orgnr or doc.category not in ("tilbud", "forsikringstilbud", "tilbud_sammenligning"):
+    if not doc.orgnr or doc.category not in (
+        "tilbud",
+        "forsikringstilbud",
+        "tilbud_sammenligning",
+    ):
         return
     try:
         others = (
@@ -360,7 +414,9 @@ def _auto_compare_tilbuds(doc: InsuranceDocument, db: Session) -> None:
             .filter(
                 InsuranceDocument.orgnr == doc.orgnr,
                 InsuranceDocument.id != doc.id,
-                InsuranceDocument.category.in_(["tilbud", "forsikringstilbud", "tilbud_sammenligning"]),
+                InsuranceDocument.category.in_(
+                    ["tilbud", "forsikringstilbud", "tilbud_sammenligning"]
+                ),
             )
             .order_by(InsuranceDocument.id.desc())
             .limit(1)
@@ -370,9 +426,15 @@ def _auto_compare_tilbuds(doc: InsuranceDocument, db: Session) -> None:
             comparison = DocumentAnalysisService().compare_two_documents(doc, others[0])
             doc.auto_comparison_result = comparison
             db.commit()
-            _log.info("Doc intel agent: auto-compared doc %d with doc %d", doc.id, others[0].id)
+            _log.info(
+                "Doc intel agent: auto-compared doc %d with doc %d",
+                doc.id,
+                others[0].id,
+            )
     except Exception as exc:
-        _log.warning("Doc intel agent: auto-comparison failed for doc %d: %s", doc.id, exc)
+        _log.warning(
+            "Doc intel agent: auto-comparison failed for doc %d: %s", doc.id, exc
+        )
         db.rollback()
 
 
@@ -392,6 +454,7 @@ def auto_analyze_document(doc_id: int, db: Session) -> None:
 def _try_parse_premium(doc: InsuranceDocument, kp: dict) -> None:
     """Best-effort extraction of premium/coverage/deductible from keypoints dict."""
     import re
+
     def _parse_nok(val: str | None) -> float | None:
         if not val:
             return None
@@ -402,7 +465,9 @@ def _try_parse_premium(doc: InsuranceDocument, kp: dict) -> None:
             return None
 
     if not doc.parsed_premium_nok:
-        doc.parsed_premium_nok = _parse_nok(kp.get("forsikringspremie") or kp.get("premie"))
+        doc.parsed_premium_nok = _parse_nok(
+            kp.get("forsikringspremie") or kp.get("premie")
+        )
     if not doc.parsed_coverage_nok:
         doc.parsed_coverage_nok = _parse_nok(kp.get("forsikringssum"))
     if not doc.parsed_deductible_nok:
@@ -412,9 +477,12 @@ def _try_parse_premium(doc: InsuranceDocument, kp: dict) -> None:
 def update_offer_status(offer_id: int, orgnr: str, status: str, db: Session) -> bool:
     """Update the win/loss status of a stored offer. Returns False if not found."""
     from api.db import OfferStatus
-    row = db.query(InsuranceOffer).filter(
-        InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr
-    ).first()
+
+    row = (
+        db.query(InsuranceOffer)
+        .filter(InsuranceOffer.id == offer_id, InsuranceOffer.orgnr == orgnr)
+        .first()
+    )
     if not row:
         return False
     try:
@@ -433,6 +501,7 @@ def parse_and_store_offer(offer_id: int, db_factory=None) -> None:
     """Background task: LLM-extract structured fields from a stored offer and persist them."""
     from api.db import SessionLocal
     from api.services.pdf_generate import _extract_offer_summary
+
     if db_factory is None:
         db_factory = SessionLocal
     db = db_factory()
@@ -440,12 +509,14 @@ def parse_and_store_offer(offer_id: int, db_factory=None) -> None:
         row = db.query(InsuranceOffer).filter(InsuranceOffer.id == offer_id).first()
         if not row or not row.extracted_text:
             return
-        parsed = _extract_offer_summary(row.insurer_name or row.filename, row.extracted_text)
-        row.parsed_premie    = parsed.get("premie")
-        row.parsed_dekning   = parsed.get("dekning")
+        parsed = _extract_offer_summary(
+            row.insurer_name or row.filename, row.extracted_text
+        )
+        row.parsed_premie = parsed.get("premie")
+        row.parsed_dekning = parsed.get("dekning")
         row.parsed_egenandel = parsed.get("egenandel")
-        row.parsed_vilkaar   = parsed.get("vilkaar")
-        row.parsed_styrker   = parsed.get("styrker")
+        row.parsed_vilkaar = parsed.get("vilkaar")
+        row.parsed_styrker = parsed.get("styrker")
         row.parsed_svakheter = parsed.get("svakheter")
         db.commit()
     except Exception:

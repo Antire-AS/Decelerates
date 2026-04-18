@@ -1,4 +1,5 @@
 """Web fetching utilities for PDF discovery — DuckDuckGo search and HTML scraping."""
+
 import logging
 import re
 from typing import Any, Dict, List, Optional
@@ -16,6 +17,7 @@ _DDG_UA = (
 
 
 # ── DuckDuckGo search ─────────────────────────────────────────────────────────
+
 
 def _extract_pdfs_from_html(html: str) -> List[str]:
     """Extract PDF links from DuckDuckGo HTML (direct URLs + uddg= encoded links)."""
@@ -56,7 +58,7 @@ def _search_for_pdfs(navn: str, hjemmeside: Optional[str], year: int) -> List[st
     if hjemmeside:
         domain = re.sub(r"^https?://", "", hjemmeside).rstrip("/").split("/")[0]
         queries.append(f'site:{domain} "annual report" {year} filetype:pdf')
-    queries.append(f'{navn} annual report {year} filetype:pdf')
+    queries.append(f"{navn} annual report {year} filetype:pdf")
 
     all_urls: List[str] = []
     for query in queries:
@@ -128,6 +130,7 @@ def _ddg_search_results(query: str) -> List[Dict[str, Any]]:
 
 # ── HTML fetching (Playwright + requests fallback) ─────────────────────────────
 
+
 def _fetch_html_requests(url: str) -> Optional[str]:
     """Requests fallback for _fetch_html when Playwright is unavailable."""
     try:
@@ -153,6 +156,7 @@ def _fetch_html(url: str) -> Optional[str]:
     """Fetch raw HTML — Playwright first, requests fallback."""
     try:
         from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             try:
@@ -186,9 +190,11 @@ def _parse_html_for_agent(html: str, base_url: str) -> Dict[str, Any]:
     text = re.sub(r"<[^>]+>", " ", html)
     text = re.sub(r"\s+", " ", text).strip()[:3000]
 
-    pdf_links = list(dict.fromkeys(
-        re.findall(r'https?://[^\s"\'<>]+\.pdf(?:[?#][^\s"\'<>]*)?', html, re.I)
-    ))[:20]
+    pdf_links = list(
+        dict.fromkeys(
+            re.findall(r'https?://[^\s"\'<>]+\.pdf(?:[?#][^\s"\'<>]*)?', html, re.I)
+        )
+    )[:20]
 
     ir_keywords = re.compile(
         r"annual|report|arsrapport|investor|ir\b|financial|results|downloads", re.I
@@ -219,18 +225,24 @@ def _fetch_url_content(url: str) -> Dict[str, Any]:
 def _parse_agent_pdf_list(raw: str) -> List[Dict[str, Any]]:
     """Extract and validate a JSON array of {year, pdf_url, label} from agent output."""
     import json
+
     if not raw:
         return []
     cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
     for pattern in (cleaned, re.search(r"\[.*\]", cleaned, re.DOTALL)):
-        text = pattern if isinstance(pattern, str) else (pattern.group() if pattern else None)
+        text = (
+            pattern
+            if isinstance(pattern, str)
+            else (pattern.group() if pattern else None)
+        )
         if not text:
             continue
         try:
             result = json.loads(text)
             if isinstance(result, list):
                 return [
-                    r for r in result
+                    r
+                    for r in result
                     if isinstance(r.get("year"), int)
                     and isinstance(r.get("pdf_url"), str)
                     and r["pdf_url"].startswith("http")

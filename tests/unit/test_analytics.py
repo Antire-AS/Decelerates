@@ -2,13 +2,16 @@
 
 Pure static tests — no DB, no network, no API keys.
 """
+
 from types import SimpleNamespace
 
 from api.routers.analytics import _aggregate
 
 
 def _policy(insurer: str, product: str, premium: float, status=None):
-    p = SimpleNamespace(insurer=insurer, product_type=product, annual_premium_nok=premium)
+    p = SimpleNamespace(
+        insurer=insurer, product_type=product, annual_premium_nok=premium
+    )
     if status is not None:
         p.status = SimpleNamespace(value=status)
     return p

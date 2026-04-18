@@ -14,6 +14,7 @@ Usage in routers:
     def my_endpoint(user: CurrentUser = Depends(get_current_user)):
         ...
 """
+
 import logging
 import os
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ from api.dependencies import get_db
 _log = logging.getLogger(__name__)
 _bearer = HTTPBearer(auto_error=False)
 
+
 # ── Auth toggle ───────────────────────────────────────────────────────────────
 # Auth is ON by default everywhere. To bypass JWT validation in dev/staging:
 #     ENVIRONMENT=development AUTH_DISABLED=1 uv run uvicorn api.main:app
@@ -40,6 +42,8 @@ def _is_auth_disabled() -> bool:
     if os.getenv("ENVIRONMENT", "development").lower() == "production":
         return False
     return os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 # JWKS cache — populated lazily on first token validation, one entry per worker
@@ -48,11 +52,11 @@ _jwks_cache: Optional[dict] = None
 
 @dataclass
 class CurrentUser:
-    email:   str
-    name:    str
-    oid:     str
+    email: str
+    name: str
+    oid: str
     firm_id: int = 1
-    role:    str = "broker"
+    role: str = "broker"
 
 
 def require_role(*allowed_roles: str):
@@ -61,6 +65,7 @@ def require_role(*allowed_roles: str):
     Usage: `user: CurrentUser = Depends(require_role("admin"))`
     or:    `user: CurrentUser = Depends(require_role("admin", "broker"))`
     """
+
     def _check(user: CurrentUser = Depends(get_current_user)):
         if user.role not in allowed_roles:
             raise HTTPException(
@@ -68,6 +73,7 @@ def require_role(*allowed_roles: str):
                 detail=f"Krever rolle: {', '.join(allowed_roles)}. Din rolle: {user.role}",
             )
         return user
+
     return _check
 
 
@@ -82,21 +88,75 @@ def _get_jwks(tenant_id: str) -> dict:
     return _jwks_cache
 
 
-def _validate_token(token: str) -> dict:
-    tenant_id = os.getenv("AZURE_TENANT_ID", "")
-    # AUTH_AUDIENCE = App Registration client ID (the Next.js frontend's
-    # NextAuth Azure AD app — used to issue id_tokens that the API validates).
-    # Falls back to AZURE_CLIENT_ID only if AUTH_AUDIENCE is absent (legacy / local dev).
-    audience  = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
-    if not tenant_id or not audience:
-        raise ValueError("AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation")
+_GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
+_google_jwks_cache: dict | None = None
 
-    # Multi-tenant mode: AZURE_TENANT_ID=common accepts tokens from any Microsoft tenant.
-    # In this mode we validate the signature and audience but skip the issuer check,
-    # since each external user's token will carry their own tenant in the issuer claim.
+
+def _get_google_jwks() -> dict:
+    global _google_jwks_cache
+    if _google_jwks_cache:
+        return _google_jwks_cache
+    resp = requests.get(_GOOGLE_JWKS_URL, timeout=10)
+    resp.raise_for_status()
+    _google_jwks_cache = resp.json()
+    return _google_jwks_cache
+
+
+def _detect_provider(token: str) -> str:
+    """Peek at the unverified payload to determine if this is a Google or Azure token."""
+    try:
+        payload = jwt.decode(token, options={"verify_signature": False})
+        iss = payload.get("iss", "")
+        if "accounts.google.com" in iss:
+            return "google"
+    except Exception:
+        pass
+    return "azure"
+
+
+def _validate_token(token: str) -> dict:
+    provider = _detect_provider(token)
+
+    if provider == "google":
+        return _validate_google_token(token)
+    return _validate_azure_token(token)
+
+
+def _validate_google_token(token: str) -> dict:
+    """Validate a Google OAuth2 id_token."""
+    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+    if not google_client_id:
+        raise ValueError("GOOGLE_CLIENT_ID must be set for Google auth")
+
+    jwks = _get_google_jwks()
+    header = jwt.get_unverified_header(token)
+    try:
+        matching = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
+    except StopIteration:
+        raise jwt.InvalidTokenError("No matching Google key found in JWKS")
+    key = jwt.algorithms.RSAAlgorithm.from_jwk(matching)
+
+    return jwt.decode(
+        token,
+        key,
+        algorithms=["RS256"],
+        audience=google_client_id,
+        issuer=["https://accounts.google.com", "accounts.google.com"],
+    )
+
+
+def _validate_azure_token(token: str) -> dict:
+    """Validate an Azure AD / Entra ID JWT."""
+    tenant_id = os.getenv("AZURE_TENANT_ID", "")
+    audience = os.getenv("AUTH_AUDIENCE") or os.getenv("AZURE_CLIENT_ID", "")
+    if not tenant_id or not audience:
+        raise ValueError(
+            "AZURE_TENANT_ID and AUTH_AUDIENCE must be set for JWT validation"
+        )
+
     multi_tenant = tenant_id.lower() == "common"
-    jwks_tenant  = "common" if multi_tenant else tenant_id
-    jwks   = _get_jwks(jwks_tenant)
+    jwks_tenant = "common" if multi_tenant else tenant_id
+    jwks = _get_jwks(jwks_tenant)
     header = jwt.get_unverified_header(token)
     try:
         matching = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
@@ -118,9 +178,9 @@ def _validate_token(token: str) -> dict:
 # database satisfies both code paths. Without provisioning this row, every
 # router that does `db.query(User).filter(User.azure_oid == user.oid).first()`
 # returns 404 in dev mode (notifications, saved_searches, etc).
-_DEV_USER_OID   = "dev-oid"
+_DEV_USER_OID = "dev-oid"
 _DEV_USER_EMAIL = "dev@local"
-_DEV_USER_NAME  = "Dev User"
+_DEV_USER_NAME = "Dev User"
 
 
 def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
@@ -133,9 +193,12 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
     already exists.
     """
     from api.services.user_service import UserService
+
     svc = UserService(db)
     user = svc.get_or_create(
-        oid=_DEV_USER_OID, email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
+        oid=_DEV_USER_OID,
+        email=_DEV_USER_EMAIL,
+        name=_DEV_USER_NAME,
     )
     # Reconcile firm_id: if the dev user row predates the demo seed (or the
     # DB was partially reset), it may point at a non-existent firm. Force it
@@ -148,8 +211,11 @@ def _ensure_dev_user_provisioned(db: Session) -> CurrentUser:
         db.refresh(user)
     # Dev user always gets admin role so all endpoints are accessible in dev mode
     return CurrentUser(
-        email=_DEV_USER_EMAIL, name=_DEV_USER_NAME,
-        oid=_DEV_USER_OID, firm_id=user.firm_id, role="admin",
+        email=_DEV_USER_EMAIL,
+        name=_DEV_USER_NAME,
+        oid=_DEV_USER_OID,
+        firm_id=user.firm_id,
+        role="admin",
     )
 
 
@@ -166,33 +232,48 @@ def get_optional_user(
         claims = _validate_token(creds.credentials)
     except Exception:
         return None
-    oid   = claims.get("oid", "")
+    oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
-    name  = claims.get("name", "")
+    name = claims.get("name", "")
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
-                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
+
+    user = UserService(db).get_or_create(
+        oid=oid, email=email, name=name, firm_id=firm_id
+    )
+    return CurrentUser(
+        email=email,
+        name=name,
+        oid=oid,
+        firm_id=user.firm_id,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+    )
 
 
 def _validate_and_extract_claims(creds: Optional[HTTPAuthorizationCredentials]) -> dict:
     """Validate JWT token and return claims, or raise 401."""
     if not creds:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Missing Authorization header", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         return _validate_token(creds.credentials)
     except Exception as exc:
         _log.debug("Token validation failed: %s", exc)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid or expired token", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def _resolve_sso_firm(claims: dict, db: Session) -> int | None:
     """Try to map Azure AD tenant to a BrokerFirm. Returns firm_id or None."""
     try:
         from api.services.sso_service import SsoService
+
         return SsoService().resolve_firm_from_token(claims, db).id
     except Exception as exc:
         _log.debug("SSO firm resolution failed (non-fatal): %s", exc)
@@ -207,11 +288,19 @@ def get_current_user(
     if _is_auth_disabled():
         return _ensure_dev_user_provisioned(db)
     claims = _validate_and_extract_claims(creds)
-    oid   = claims.get("oid", "")
+    oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
-    name  = claims.get("name", "")
+    name = claims.get("name", "")
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
-    user = UserService(db).get_or_create(oid=oid, email=email, name=name, firm_id=firm_id)
-    return CurrentUser(email=email, name=name, oid=oid, firm_id=user.firm_id,
-                       role=user.role.value if hasattr(user.role, "value") else str(user.role))
+
+    user = UserService(db).get_or_create(
+        oid=oid, email=email, name=name, firm_id=firm_id
+    )
+    return CurrentUser(
+        email=email,
+        name=name,
+        oid=oid,
+        firm_id=user.firm_id,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+    )

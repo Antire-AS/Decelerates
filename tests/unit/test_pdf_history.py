@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -51,6 +52,7 @@ def _sample_parsed() -> dict:
 
 
 # ── _upsert_history_row ───────────────────────────────────────────────────────
+
 
 def test_upsert_history_row_sets_source_pdf():
     existing = MagicMock()
@@ -103,18 +105,25 @@ def test_upsert_history_row_handles_missing_optional_fields():
 
 # ── fetch_history_from_pdf ────────────────────────────────────────────────────
 
-@patch("api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed())
+
+@patch(
+    "api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed()
+)
 def test_fetch_history_from_pdf_creates_new_row(mock_parse):
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
 
-    fetch_history_from_pdf("123456789", "http://example.com/r.pdf", 2023, "Årsrapport 2023", db)
+    fetch_history_from_pdf(
+        "123456789", "http://example.com/r.pdf", 2023, "Årsrapport 2023", db
+    )
 
     db.add.assert_called_once()
     db.commit.assert_called_once()
 
 
-@patch("api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed())
+@patch(
+    "api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed()
+)
 def test_fetch_history_from_pdf_updates_existing_row(mock_parse):
     existing = _mock_history_row()
     db = _mock_db()
@@ -135,13 +144,17 @@ def test_fetch_history_from_pdf_raises_pdf_extraction_error(mock_parse):
     db.commit.assert_not_called()
 
 
-@patch("api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed())
+@patch(
+    "api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed()
+)
 def test_fetch_history_from_pdf_returns_dict_with_expected_keys(mock_parse):
     existing = _mock_history_row()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = existing
 
-    result = fetch_history_from_pdf("123", "http://example.com/r.pdf", 2023, "label", db)
+    result = fetch_history_from_pdf(
+        "123", "http://example.com/r.pdf", 2023, "label", db
+    )
 
     assert result["year"] == 2023
     assert result["source"] == "pdf"
@@ -151,7 +164,9 @@ def test_fetch_history_from_pdf_returns_dict_with_expected_keys(mock_parse):
     assert "equity_ratio" in result
 
 
-@patch("api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed())
+@patch(
+    "api.services.pdf_history._parse_financials_from_pdf", return_value=_sample_parsed()
+)
 def test_fetch_history_from_pdf_new_row_sets_orgnr_and_year(mock_parse):
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
@@ -165,11 +180,14 @@ def test_fetch_history_from_pdf_new_row_sets_orgnr_and_year(mock_parse):
 
 # ── _get_full_history ─────────────────────────────────────────────────────────
 
+
 @patch("api.services.pdf_history.fetch_regnskap_history", return_value=[])
 def test_get_full_history_returns_db_rows(mock_brreg):
     row = _mock_history_row(year=2023, source="pdf", raw=None)
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [row]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        row
+    ]
 
     result = _get_full_history("123456789", db)
 
@@ -178,13 +196,16 @@ def test_get_full_history_returns_db_rows(mock_brreg):
     assert result[0]["source"] == "pdf"
 
 
-@patch("api.services.pdf_history.fetch_regnskap_history", return_value=[
-    {"year": 2022, "revenue": 900_000, "net_result": 40_000}
-])
+@patch(
+    "api.services.pdf_history.fetch_regnskap_history",
+    return_value=[{"year": 2022, "revenue": 900_000, "net_result": 40_000}],
+)
 def test_get_full_history_merges_brreg_rows(mock_brreg):
     row = _mock_history_row(year=2023, raw=None)
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [row]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        row
+    ]
 
     result = _get_full_history("123456789", db)
 
@@ -193,13 +214,16 @@ def test_get_full_history_merges_brreg_rows(mock_brreg):
     assert 2022 in years
 
 
-@patch("api.services.pdf_history.fetch_regnskap_history", return_value=[
-    {"year": 2023, "revenue": 999_999}
-])
+@patch(
+    "api.services.pdf_history.fetch_regnskap_history",
+    return_value=[{"year": 2023, "revenue": 999_999}],
+)
 def test_get_full_history_db_row_wins_over_brreg_for_same_year(mock_brreg):
     row = _mock_history_row(year=2023, source="pdf", revenue=1_000_000, raw=None)
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [row]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        row
+    ]
 
     result = _get_full_history("123456789", db)
 
@@ -208,9 +232,14 @@ def test_get_full_history_db_row_wins_over_brreg_for_same_year(mock_brreg):
     assert result[0]["revenue"] == 1_000_000
 
 
-@patch("api.services.pdf_history.fetch_regnskap_history", return_value=[
-    {"year": 2021}, {"year": 2022}, {"year": 2023},
-])
+@patch(
+    "api.services.pdf_history.fetch_regnskap_history",
+    return_value=[
+        {"year": 2021},
+        {"year": 2022},
+        {"year": 2023},
+    ],
+)
 def test_get_full_history_sorted_descending(mock_brreg):
     db = _mock_db()
     db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
@@ -221,11 +250,16 @@ def test_get_full_history_sorted_descending(mock_brreg):
     assert years == sorted(years, reverse=True)
 
 
-@patch("api.services.pdf_history.fetch_regnskap_history", side_effect=Exception("BRREG unavailable"))
+@patch(
+    "api.services.pdf_history.fetch_regnskap_history",
+    side_effect=Exception("BRREG unavailable"),
+)
 def test_get_full_history_handles_brreg_exception_gracefully(mock_brreg):
     row = _mock_history_row(year=2023, raw=None)
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [row]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        row
+    ]
 
     result = _get_full_history("123456789", db)
 
@@ -237,7 +271,9 @@ def test_get_full_history_handles_brreg_exception_gracefully(mock_brreg):
 def test_get_full_history_row_with_raw_dict_merged_into_base(mock_brreg):
     row = _mock_history_row(year=2023, raw={"extra_field": "extra_value"})
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [row]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        row
+    ]
 
     result = _get_full_history("123456789", db)
 
@@ -256,9 +292,14 @@ def test_get_full_history_returns_empty_list_when_no_data(mock_brreg):
     assert result == []
 
 
-@patch("api.services.pdf_history.fetch_regnskap_history", return_value=[
-    {"year": 2020}, {"year": 2021}, {"year": 2022},
-])
+@patch(
+    "api.services.pdf_history.fetch_regnskap_history",
+    return_value=[
+        {"year": 2020},
+        {"year": 2021},
+        {"year": 2022},
+    ],
+)
 def test_get_full_history_brreg_rows_tagged_as_brreg_source(mock_brreg):
     db = _mock_db()
     db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []

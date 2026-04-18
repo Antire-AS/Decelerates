@@ -10,7 +10,6 @@ import {
 } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
 import {
-  Upload,
   Trash2,
   Shield,
   ShieldAlert,
@@ -19,7 +18,6 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
-  FileText,
 } from "lucide-react";
 
 interface CoverageSectionProps {

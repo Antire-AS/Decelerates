@@ -4,6 +4,7 @@ Per-user filter persistence for /prospecting. Tightly scoped: every read AND
 write enforces user_id == current user, so a broker can never see or modify
 another user's saved searches.
 """
+
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -33,10 +34,10 @@ def _resolve_user_id(db: Session, user: CurrentUser) -> int:
 
 def _serialize(s: SavedSearch) -> dict:
     return {
-        "id":         s.id,
-        "user_id":    s.user_id,
-        "name":       s.name,
-        "params":     s.params,
+        "id": s.id,
+        "user_id": s.user_id,
+        "name": s.name,
+        "params": s.params,
         "created_at": s.created_at,
     }
 

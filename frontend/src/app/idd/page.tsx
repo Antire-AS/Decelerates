@@ -211,11 +211,12 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
           ["annual_revenue_nok", "Omsetning (NOK)"],
         ].map(([key, label]) => (
           <div key={key}>
-            <label className="text-xs text-[#8A7F74] font-medium">{label}</label>
+            <label className="text-xs text-[#8A7F74] font-medium" htmlFor={`idd-${key}`}>{label}</label>
             <input
+              id={`idd-${key}`}
               value={(form as Record<string, unknown>)[key] as string}
               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-              className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
         ))}
@@ -223,31 +224,31 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Risikoappetitt</label>
-          <select value={form.risk_appetite}
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-risk-appetite">Risikoappetitt</label>
+          <select id="idd-risk-appetite" value={form.risk_appetite}
             onChange={(e) => setForm((f) => ({ ...f, risk_appetite: e.target.value }))}
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]">
+            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]">
             <option value="lav">Lav</option>
             <option value="middels">Middels</option>
             <option value="høy">Høy</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Vederlagsgrunnlag</label>
-          <select value={form.fee_basis}
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-fee-basis">Vederlagsgrunnlag</label>
+          <select id="idd-fee-basis" value={form.fee_basis}
             onChange={(e) => setForm((f) => ({ ...f, fee_basis: e.target.value }))}
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]">
+            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]">
             <option value="provisjon">Provisjon</option>
             <option value="honorar">Honorar</option>
             <option value="begge">Begge</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium">Honorar (NOK)</label>
-          <input value={form.fee_amount_nok}
+          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-fee-amount">Honorar (NOK)</label>
+          <input id="idd-fee-amount" value={form.fee_amount_nok}
             onChange={(e) => setForm((f) => ({ ...f, fee_amount_nok: e.target.value }))}
             placeholder="0"
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]" />
+            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
         </div>
       </div>
 
@@ -287,20 +288,20 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Egnethetsvurdering (IDD § 7-7)</label>
-        <textarea value={form.suitability_basis}
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-suitability-basis">Egnethetsvurdering (IDD § 7-7)</label>
+        <textarea id="idd-suitability-basis" value={form.suitability_basis}
           onChange={(e) => setForm((f) => ({ ...f, suitability_basis: e.target.value }))}
           rows={2}
           placeholder="Begrunn hvorfor anbefalte produkter er egnet for kunden…"
-          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-none" />
+          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none" />
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium">Rådgivers notater</label>
-        <textarea value={form.advisor_notes}
+        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-advisor-notes">Rådgivers notater</label>
+        <textarea id="idd-advisor-notes" value={form.advisor_notes}
           onChange={(e) => setForm((f) => ({ ...f, advisor_notes: e.target.value }))}
           rows={2}
-          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-none" />
+          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none" />
       </div>
 
       {err && <p className="text-xs text-red-500">{err}</p>}

@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; RecommendationService is
 injected as a MagicMock — no real DB or Signicat required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -24,7 +25,9 @@ from api.routers.recommendations import router, _get_svc
 _app = FastAPI()
 _app.include_router(router)
 
-_FAKE_USER = CurrentUser(email="test@local", name="Test User", oid="test-oid", firm_id=1)
+_FAKE_USER = CurrentUser(
+    email="test@local", name="Test User", oid="test-oid", firm_id=1
+)
 
 
 def _mock_recommendation(**kw):
@@ -62,6 +65,7 @@ def client(mock_db, mock_svc):
 
 # ── GET /org/{orgnr}/recommendations ─────────────────────────────────────────
 
+
 def test_list_recommendations_returns_200(client, mock_svc):
     mock_svc.list.return_value = []
     resp = client.get("/org/123456789/recommendations")
@@ -79,6 +83,7 @@ def test_list_recommendations_returns_items(client, mock_svc):
 
 
 # ── POST /org/{orgnr}/recommendations ────────────────────────────────────────
+
 
 def test_create_recommendation_returns_201(client, mock_db, mock_svc):
     # IDD check must exist
@@ -116,6 +121,7 @@ def test_create_recommendation_returns_422_without_idd(client, mock_db, mock_svc
 
 # ── DELETE /org/{orgnr}/recommendations/{rec_id} ────────────────────────────
 
+
 def test_delete_recommendation_returns_204(client, mock_svc):
     mock_svc.delete.return_value = None
     resp = client.delete("/org/123456789/recommendations/7")
@@ -129,6 +135,7 @@ def test_delete_recommendation_returns_404(client, mock_svc):
 
 
 # ── GET /org/{orgnr}/recommendations/{rec_id}/pdf ────────────────────────────
+
 
 def test_get_recommendation_pdf_cached(client, mock_svc):
     row = _mock_recommendation(pdf_content=b"%PDF-cached")
@@ -145,6 +152,7 @@ def test_get_recommendation_pdf_not_found(client, mock_svc):
 
 
 # ── POST /org/{orgnr}/recommendations/{rec_id}/sign ──────────────────────────
+
 
 @patch("api.routers.recommendations.SignicatService")
 def test_sign_not_configured_returns_503(mock_signicat_cls, client, mock_svc):

@@ -7,21 +7,27 @@ and BOTH clients end up acting as the second firm. To avoid that, the
 user identity for each request is read from a contextvar that the
 `AuthClient` wrapper sets per-call.
 """
+
 import contextvars
 
-_TEST_USER_CTX: contextvars.ContextVar = contextvars.ContextVar("test_user", default=None)
+_TEST_USER_CTX: contextvars.ContextVar = contextvars.ContextVar(
+    "test_user", default=None
+)
 
 
 def make_user(email: str, oid: str, firm_id: int):
     from api.auth import CurrentUser
+
     return CurrentUser(email=email, name="Test", oid=oid, firm_id=firm_id)
 
 
 def resolve_user_factory(default_email: str, default_oid: str, default_firm_id: int):
     """Returns a `get_current_user` override that prefers the contextvar's user."""
+
     def _resolve_user():
         u = _TEST_USER_CTX.get()
         return u or make_user(default_email, default_oid, default_firm_id)
+
     return _resolve_user
 
 
@@ -39,6 +45,7 @@ class AuthClient:
                 return getattr(self._c, method_name)(*args, **kwargs)
             finally:
                 _TEST_USER_CTX.reset(token)
+
         return _call
 
     def __getattr__(self, name):

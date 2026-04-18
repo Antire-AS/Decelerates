@@ -8,6 +8,7 @@ Run with:
 
 Requires the same Azure env vars as the API (AZURE_BLOB_ENDPOINT).
 """
+
 import json
 import os
 import sys
@@ -41,14 +42,16 @@ def main():
     print(f"Chapters before: {before}, after trimming to ≤{VIDEO_DURATION_S}s: {after}")
     for ch in trimmed:
         ts = ch.get("start_seconds", 0)
-        print(f"  {ts//60}:{str(ts%60).zfill(2)}  {ch.get('title','')}")
+        print(f"  {ts // 60}:{str(ts % 60).zfill(2)}  {ch.get('title', '')}")
 
     if before == after:
         print("No chapters removed — nothing to fix.")
         return
 
     corrected = trimmed if isinstance(data, list) else {**data, "chapters": trimmed}
-    corrected_bytes = json.dumps(corrected, ensure_ascii=False, indent=2).encode("utf-8")
+    corrected_bytes = json.dumps(corrected, ensure_ascii=False, indent=2).encode(
+        "utf-8"
+    )
 
     print(f"\nUploading corrected {SECTIONS_BLOB} ({len(corrected_bytes)} bytes)...")
     svc.upload(CONTAINER, SECTIONS_BLOB, corrected_bytes)

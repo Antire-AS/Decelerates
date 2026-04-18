@@ -71,8 +71,9 @@ export function ComposeEmailModal({
 
         <form onSubmit={handleSend} className="p-5 space-y-3">
           <div>
-            <label className="label-xs">Til *</label>
+            <label className="label-xs" htmlFor="email-to">Til *</label>
             <input
+              id="email-to"
               type="email"
               value={to}
               onChange={(e) => setTo(e.target.value)}
@@ -82,8 +83,9 @@ export function ComposeEmailModal({
             />
           </div>
           <div>
-            <label className="label-xs">Emne *</label>
+            <label className="label-xs" htmlFor="email-subject">Emne *</label>
             <input
+              id="email-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
@@ -91,13 +93,14 @@ export function ComposeEmailModal({
             />
           </div>
           <div>
-            <label className="label-xs">Melding</label>
+            <label className="label-xs" htmlFor="email-body">Melding</label>
             <textarea
+              id="email-body"
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={8}
               placeholder="Skriv meldingen din her…"
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           {err && <p className="text-xs text-red-600">{err}</p>}

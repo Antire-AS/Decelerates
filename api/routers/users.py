@@ -1,4 +1,5 @@
 """User management endpoints."""
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,11 +21,11 @@ def _svc(db: Session = Depends(get_db)) -> UserService:
 
 def _serialize(user, include_firm: bool = False) -> dict:
     d = {
-        "id":         user.id,
-        "email":      user.email,
-        "name":       user.name,
-        "role":       user.role.value,
-        "firm_id":    user.firm_id,
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "role": user.role.value,
+        "firm_id": user.firm_id,
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }
     return d
@@ -34,9 +35,9 @@ def _serialize(user, include_firm: bool = False) -> dict:
 def get_me(user: CurrentUser = Depends(get_current_user)) -> dict:
     """Return the current user's profile."""
     return {
-        "email":   user.email,
-        "name":    user.name,
-        "oid":     user.oid,
+        "email": user.email,
+        "name": user.name,
+        "oid": user.oid,
         "firm_id": user.firm_id,
     }
 
@@ -60,8 +61,14 @@ def update_role(
 ) -> dict:
     """Change a user's role (admin only)."""
     try:
-        updated = svc.update_role(user_id, body, requester_role=user.role if hasattr(user, "role") else "broker")
-        log_audit(db, "user.role.update", detail={"user_id": user_id, "new_role": body.role})
+        updated = svc.update_role(
+            user_id,
+            body,
+            requester_role=user.role if hasattr(user, "role") else "broker",
+        )
+        log_audit(
+            db, "user.role.update", detail={"user_id": user_id, "new_role": body.role}
+        )
         return _serialize(updated)
     except ForbiddenError as e:
         raise HTTPException(status_code=403, detail=str(e))

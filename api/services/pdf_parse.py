@@ -10,6 +10,7 @@ Note: `_gemini_api_keys()` is kept here as a re-exported helper because
 the agentic IR PDF discovery in api/services/pdf_agents.py still uses the
 legacy API-key Gemini for its tool-use loop (separate cleanup pending).
 """
+
 import json
 import logging
 import os
@@ -54,7 +55,10 @@ def _parse_json_financials(raw: str) -> Optional[Dict[str, Any]]:
 
 # ── Gemini PDF extraction ──────────────────────────────────────────────────────
 
-def _gemini_inline(client: Any, model_name: str, pdf_bytes: bytes, prompt: str) -> Optional[str]:
+
+def _gemini_inline(
+    client: Any, model_name: str, pdf_bytes: bytes, prompt: str
+) -> Optional[str]:
     """Send PDF bytes inline to Vertex AI Gemini.
 
     Vertex AI accepts PDFs of any practical size inline; the AI-Studio
@@ -116,7 +120,11 @@ def _try_gemini(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[str]:
                     return raw
             except Exception as exc:
                 msg = str(exc)
-                if "quota" in msg.lower() or "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                if (
+                    "quota" in msg.lower()
+                    or "429" in msg
+                    or "RESOURCE_EXHAUSTED" in msg
+                ):
                     continue  # try next model
                 break  # non-quota error on this client, skip remaining models
     return None
@@ -129,7 +137,9 @@ def _sanity_check_financials(data: Dict[str, Any]) -> bool:
     eq = data.get("equity")
     assets = data.get("total_assets")
     if rev and net and rev > 0 and abs(net) > abs(rev):
-        logger.warning("[extract] Sanity fail: |net_result| > revenue — likely parent-only figures")
+        logger.warning(
+            "[extract] Sanity fail: |net_result| > revenue — likely parent-only figures"
+        )
         return False
     if eq and assets and assets > 0 and eq > assets:
         logger.warning("[extract] Sanity fail: equity > total_assets")
@@ -155,7 +165,9 @@ def _download_pdf_bytes(pdf_url: str) -> Optional[bytes]:
     return None
 
 
-def _try_gemini_with_retry(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
+def _try_gemini_with_retry(
+    pdf_bytes: bytes, orgnr: str, year: int
+) -> Optional[Dict[str, Any]]:
     """Try Gemini PDF extraction up to 2 times, sanity-checking each result."""
     for attempt in range(2):
         raw = _try_gemini(pdf_bytes, orgnr, year)
@@ -165,14 +177,18 @@ def _try_gemini_with_retry(pdf_bytes: bytes, orgnr: str, year: int) -> Optional[
                 return result
             if result and attempt == 0:
                 logger.warning(
-                    "[extract] Attempt 1 failed sanity check for %s year %d — retrying", orgnr, year
+                    "[extract] Attempt 1 failed sanity check for %s year %d — retrying",
+                    orgnr,
+                    year,
                 )
                 continue
         break
     return None
 
 
-def _parse_financials_from_pdf(pdf_url: str, orgnr: str, year: int) -> Optional[Dict[str, Any]]:
+def _parse_financials_from_pdf(
+    pdf_url: str, orgnr: str, year: int
+) -> Optional[Dict[str, Any]]:
     """Extract key financials from an annual report PDF using Gemini native PDF.
 
     Returns None on failure — callers should treat that as "couldn't extract,

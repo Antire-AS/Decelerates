@@ -5,6 +5,7 @@ port (cron digests etc.). This port is for the broker-composes-and-sends
 flow: a real human-authored message to a real client recipient, sent through
 the broker firm's MS 365 tenant.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

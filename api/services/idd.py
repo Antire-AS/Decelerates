@@ -1,4 +1,5 @@
 """IDD (Insurance Distribution Directive) service — behovsanalyse CRUD."""
+
 # PEP 563 deferred annotation evaluation. Required because this class has a
 # `list` method that shadows the builtin `list` mid-class-body, which would
 # otherwise break the `-> list[IddBehovsanalyse]` annotations on later methods
@@ -16,12 +17,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class IddService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, orgnr: str, firm_id: int, created_by_email: str, data: dict) -> IddBehovsanalyse:
+    def create(
+        self, orgnr: str, firm_id: int, created_by_email: str, data: dict
+    ) -> IddBehovsanalyse:
         row = IddBehovsanalyse(
             orgnr=orgnr,
             firm_id=firm_id,
@@ -41,12 +43,16 @@ class IddService:
     def list(self, orgnr: str, firm_id: int) -> list[IddBehovsanalyse]:
         return (
             self.db.query(IddBehovsanalyse)
-            .filter(IddBehovsanalyse.orgnr == orgnr, IddBehovsanalyse.firm_id == firm_id)
+            .filter(
+                IddBehovsanalyse.orgnr == orgnr, IddBehovsanalyse.firm_id == firm_id
+            )
             .order_by(IddBehovsanalyse.created_at.desc())
             .all()
         )
 
-    def list_all_for_firm(self, firm_id: int, limit: int = 100) -> list[IddBehovsanalyse]:
+    def list_all_for_firm(
+        self, firm_id: int, limit: int = 100
+    ) -> list[IddBehovsanalyse]:
         """All IDD analyses for a firm across every company. Used by /idd list view."""
         return (
             self.db.query(IddBehovsanalyse)
@@ -68,9 +74,12 @@ class IddService:
             self.db.rollback()
             raise
 
-    def generate_suitability_reasoning(self, orgnr: str, firm_id: int, idd_id: int) -> str:
+    def generate_suitability_reasoning(
+        self, orgnr: str, firm_id: int, idd_id: int
+    ) -> str:
         """Use LLM to explain why recommended products are suitable for this client."""
         from api.services.llm import _llm_answer_raw
+
         row = self._get_or_raise(orgnr, firm_id, idd_id)
         products = ", ".join(row.recommended_products or []) or "ikke spesifisert"
         prompt = (

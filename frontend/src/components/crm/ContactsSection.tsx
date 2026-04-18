@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import useSWR from "swr";
 import {
   getOrgContacts, createContact, deleteContact,
@@ -109,7 +109,7 @@ export default function ContactsSection({ orgnr }: { orgnr: string }) {
                 value={notes} onChange={(e) => setNotes(e.target.value)}
                 placeholder="Notater"
                 rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
               />
               {err && <p className="text-xs text-red-600">{err}</p>}
               <div className="flex gap-2">
@@ -132,12 +132,13 @@ export default function ContactsSection({ orgnr }: { orgnr: string }) {
 function Input({ label, value, onChange, type = "text", required = false }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean;
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="block text-xs text-[#8A7F74] mb-0.5">{label}</label>
+      <label className="block text-xs text-[#8A7F74] mb-0.5" htmlFor={id}>{label}</label>
       <input
-        type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required}
-        className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+        id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required}
+        className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
       />
     </div>
   );

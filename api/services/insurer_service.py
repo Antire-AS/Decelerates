@@ -1,4 +1,5 @@
 """Insurer and Submission CRUD service."""
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -8,7 +9,6 @@ from api.domain.exceptions import NotFoundError
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _aggregate_submissions(submissions) -> tuple[dict, dict, dict]:
@@ -115,10 +115,16 @@ class InsurerService:
         """Return submissions paired with their insurer name for display."""
         rows = self.list_submissions(orgnr, firm_id)
         insurer_ids = [s.insurer_id for s in rows]
-        insurer_map = {
-            i.id: i.name
-            for i in self.db.query(Insurer).filter(Insurer.id.in_(insurer_ids)).all()
-        } if insurer_ids else {}
+        insurer_map = (
+            {
+                i.id: i.name
+                for i in self.db.query(Insurer)
+                .filter(Insurer.id.in_(insurer_ids))
+                .all()
+            }
+            if insurer_ids
+            else {}
+        )
         return [(r, insurer_map.get(r.insurer_id)) for r in rows]
 
     def create_submission(
@@ -147,7 +153,9 @@ class InsurerService:
             raise
         return row
 
-    def update_submission(self, firm_id: int, submission_id: int, data: dict) -> Submission:
+    def update_submission(
+        self, firm_id: int, submission_id: int, data: dict
+    ) -> Submission:
         row = self._get_submission_or_raise(firm_id, submission_id)
         if "status" in data and data["status"] is not None:
             try:
@@ -191,17 +199,21 @@ class InsurerService:
     def get_win_loss_summary(self, firm_id: int) -> dict:
         """Win/loss analysis across all submissions for the firm."""
         submissions = (
-            self.db.query(Submission)
-            .filter(Submission.firm_id == firm_id)
-            .all()
+            self.db.query(Submission).filter(Submission.firm_id == firm_id).all()
         )
         total = len(submissions)
         by_status, by_insurer, by_product = _aggregate_submissions(submissions)
         insurer_ids = list(by_insurer.keys())
-        insurer_map = {
-            i.id: i.name
-            for i in self.db.query(Insurer).filter(Insurer.id.in_(insurer_ids)).all()
-        } if insurer_ids else {}
+        insurer_map = (
+            {
+                i.id: i.name
+                for i in self.db.query(Insurer)
+                .filter(Insurer.id.in_(insurer_ids))
+                .all()
+            }
+            if insurer_ids
+            else {}
+        )
         quoted = by_status.get("quoted", 0)
         win_rate = round(quoted / total * 100, 1) if total else 0.0
         return {

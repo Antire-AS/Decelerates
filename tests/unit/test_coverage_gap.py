@@ -1,13 +1,19 @@
 """Unit tests for coverage gap analysis."""
+
 from unittest.mock import MagicMock, patch
 
 
 from api.db import Company, Policy, PolicyStatus
 
 
-def _make_company(orgnr="123456789", naeringskode1="J", antall_ansatte=10,
-                  sum_driftsinntekter=20_000_000.0, sum_eiendeler=8_000_000.0,
-                  organisasjonsform_kode="AS"):
+def _make_company(
+    orgnr="123456789",
+    naeringskode1="J",
+    antall_ansatte=10,
+    sum_driftsinntekter=20_000_000.0,
+    sum_eiendeler=8_000_000.0,
+    organisasjonsform_kode="AS",
+):
     c = MagicMock(spec=Company)
     c.orgnr = orgnr
     c.navn = "Test AS"
@@ -20,8 +26,12 @@ def _make_company(orgnr="123456789", naeringskode1="J", antall_ansatte=10,
     return c
 
 
-def _make_policy(product_type="Ansvarsforsikring", coverage_amount_nok=5_000_000.0,
-                 insurer="Gjensidige", policy_number="POL-1"):
+def _make_policy(
+    product_type="Ansvarsforsikring",
+    coverage_amount_nok=5_000_000.0,
+    insurer="Gjensidige",
+    policy_number="POL-1",
+):
     p = MagicMock(spec=Policy)
     p.product_type = product_type
     p.coverage_amount_nok = coverage_amount_nok
@@ -53,6 +63,7 @@ def _make_db(company=None, policies=None, history=None):
 class TestAnalyzeCoverageGap:
     def test_gap_when_no_policies(self):
         from api.services.coverage_gap import analyze_coverage_gap
+
         company = _make_company(antall_ansatte=5)
         db = _make_db(company=company, policies=[])
         result = analyze_coverage_gap("123456789", firm_id=1, db=db)
@@ -62,6 +73,7 @@ class TestAnalyzeCoverageGap:
 
     def test_covered_when_matching_policy_exists(self):
         from api.services.coverage_gap import analyze_coverage_gap
+
         company = _make_company(antall_ansatte=5)
         # Provide all common coverage types to test coverage
         policies = [
@@ -77,6 +89,7 @@ class TestAnalyzeCoverageGap:
 
     def test_returns_required_keys(self):
         from api.services.coverage_gap import analyze_coverage_gap
+
         company = _make_company()
         db = _make_db(company=company, policies=[])
         result = analyze_coverage_gap("123456789", 1, db)
@@ -88,6 +101,7 @@ class TestAnalyzeCoverageGap:
 
     def test_undercoverage_note_flagged(self):
         from api.services.coverage_gap import analyze_coverage_gap
+
         company = _make_company(sum_eiendeler=20_000_000.0, organisasjonsform_kode="AS")
         # Policy with very low coverage — below 70% of estimated
         low_policy = _make_policy("Eiendomsforsikring", coverage_amount_nok=100_000.0)
@@ -101,6 +115,7 @@ class TestAnalyzeCoverageGap:
 class TestGetCompaniesWithGaps:
     def test_returns_companies_with_gaps(self):
         from api.services.coverage_gap import get_companies_with_gaps
+
         company = _make_company()
 
         db = MagicMock()
@@ -111,11 +126,20 @@ class TestGetCompaniesWithGaps:
 
         with patch("api.services.coverage_gap.analyze_coverage_gap") as mock_analyze:
             mock_analyze.return_value = {
-                "gap_count": 2, "total_count": 5,
+                "gap_count": 2,
+                "total_count": 5,
                 "items": [
-                    {"type": "Cyberforsikring", "priority": "Anbefalt", "status": "gap"},
-                    {"type": "Ansvarsforsikring", "priority": "Kritisk", "status": "gap"},
-                ]
+                    {
+                        "type": "Cyberforsikring",
+                        "priority": "Anbefalt",
+                        "status": "gap",
+                    },
+                    {
+                        "type": "Ansvarsforsikring",
+                        "priority": "Kritisk",
+                        "status": "gap",
+                    },
+                ],
             }
             db.query.return_value.filter.return_value.first.return_value = company
             result = get_companies_with_gaps(firm_id=1, db=db)

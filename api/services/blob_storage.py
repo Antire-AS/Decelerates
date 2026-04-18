@@ -9,6 +9,7 @@ New code should resolve BlobStoragePort from the DI container instead:
     from api.ports.driven.blob_storage_port import BlobStoragePort
     blob = resolve(BlobStoragePort)
 """
+
 import os
 
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
@@ -16,7 +17,6 @@ from api.ports.driven.blob_storage_port import BlobStoragePort
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class BlobStorageService(AzureBlobStorageAdapter):

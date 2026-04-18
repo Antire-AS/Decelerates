@@ -6,6 +6,7 @@ Tools are defined in OpenAI function-calling format. Each tool has:
 
 All handlers receive db + firm_id + orgnr for authorization context.
 """
+
 import json
 import logging
 from datetime import datetime, timezone
@@ -46,7 +47,8 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {
                     "product_types": {
-                        "type": "array", "items": {"type": "string"},
+                        "type": "array",
+                        "items": {"type": "string"},
                         "description": "Forsikringstyper å matche (valgfritt — utledes fra dekningsgap hvis tom)",
                     },
                 },
@@ -63,7 +65,10 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {
                     "title": {"type": "string", "description": "Tittel på dealen"},
-                    "expected_premium_nok": {"type": "number", "description": "Forventet premie i NOK"},
+                    "expected_premium_nok": {
+                        "type": "number",
+                        "description": "Forventet premie i NOK",
+                    },
                 },
                 "required": ["title"],
             },
@@ -94,23 +99,31 @@ TOOL_SCHEMAS = [
 
 # ── Tool handlers ─────────────────────────────────────────────────────────────
 
+
 def _handle_search_knowledge(
-    args: dict, db: Session, firm_id: int, orgnr: str,
+    args: dict,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     from api.services.rag import retrieve_chunks
+
     chunks = retrieve_chunks(orgnr, args.get("query", ""), db, limit=5)
     if not chunks:
         return "Ingen relevante resultater funnet i kunnskapsbasen."
     return "\n\n".join(
-        f"[{c.get('source', '?')}] {c.get('text', '')[:300]}"
-        for c in chunks
+        f"[{c.get('source', '?')}] {c.get('text', '')[:300]}" for c in chunks
     )
 
 
 def _handle_coverage_gap(
-    args: dict, db: Session, firm_id: int, orgnr: str,
+    args: dict,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     from api.services.coverage_gap import analyze_coverage_gap
+
     result = analyze_coverage_gap(orgnr, firm_id, db)
     gaps = [i for i in result["items"] if i["status"] == "gap"]
     if not gaps:
@@ -122,24 +135,34 @@ def _handle_coverage_gap(
 
 
 def _handle_recommend_insurers(
-    args: dict, db: Session, firm_id: int, orgnr: str,
+    args: dict,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     from api.services.insurer_matching import recommend_insurers
+
     result = recommend_insurers(orgnr, firm_id, args.get("product_types"), db)
     recs = result.get("recommendations", [])
     if not recs:
         return "Ingen forsikringsselskaper registrert for dette firmaet."
     lines = ["Anbefalte forsikringsselskaper:"]
     for r in recs:
-        lines.append(f"  {r['insurer_name']} (score: {r['score']:.0%}) — {r['reasoning']}")
+        lines.append(
+            f"  {r['insurer_name']} (score: {r['score']:.0%}) — {r['reasoning']}"
+        )
     return "\n".join(lines)
 
 
 def _handle_create_deal(
-    args: dict, db: Session, firm_id: int, orgnr: str,
+    args: dict,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     from api.services.deal_service import DealService
     from api.schemas import DealCreate
+
     svc = DealService(db)
     stages = svc.list_stages(firm_id)
     if not stages:
@@ -155,17 +178,25 @@ def _handle_create_deal(
 
 
 def _handle_log_activity(
-    args: dict, db: Session, firm_id: int, orgnr: str,
+    args: dict,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     from api.db import Activity, ActivityType
+
     try:
         atype = ActivityType[args.get("activity_type", "note")]
     except KeyError:
         atype = ActivityType.note
     activity = Activity(
-        orgnr=orgnr, firm_id=firm_id, type=atype,
-        subject=args.get("subject", ""), body=args.get("body", ""),
-        completed=False, created_at=datetime.now(timezone.utc),
+        orgnr=orgnr,
+        firm_id=firm_id,
+        type=atype,
+        subject=args.get("subject", ""),
+        body=args.get("body", ""),
+        completed=False,
+        created_at=datetime.now(timezone.utc),
     )
     db.add(activity)
     db.commit()
@@ -176,11 +207,11 @@ def _handle_log_activity(
 # ── Dispatch ──────────────────────────────────────────────────────────────────
 
 _HANDLERS = {
-    "search_knowledge":    _handle_search_knowledge,
-    "run_coverage_gap":    _handle_coverage_gap,
-    "recommend_insurers":  _handle_recommend_insurers,
-    "create_deal":         _handle_create_deal,
-    "log_activity":        _handle_log_activity,
+    "search_knowledge": _handle_search_knowledge,
+    "run_coverage_gap": _handle_coverage_gap,
+    "recommend_insurers": _handle_recommend_insurers,
+    "create_deal": _handle_create_deal,
+    "log_activity": _handle_log_activity,
 }
 
 
@@ -189,7 +220,11 @@ class CopilotToolsService:
         self.db = db
 
     def execute_tool(
-        self, name: str, args_json: str, firm_id: int, orgnr: str,
+        self,
+        name: str,
+        args_json: str,
+        firm_id: int,
+        orgnr: str,
     ) -> str:
         """Execute a tool by name. Returns the result string for the LLM."""
         handler = _HANDLERS.get(name)
@@ -208,6 +243,10 @@ class CopilotToolsService:
 
 # Backward compat
 def execute_tool(
-    name: str, args_json: str, db: Session, firm_id: int, orgnr: str,
+    name: str,
+    args_json: str,
+    db: Session,
+    firm_id: int,
+    orgnr: str,
 ) -> str:
     return CopilotToolsService(db).execute_tool(name, args_json, firm_id, orgnr)

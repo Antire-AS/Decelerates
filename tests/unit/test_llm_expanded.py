@@ -1,4 +1,5 @@
 """Expanded unit tests for api/services/llm.py — LLM answer + compare + embed."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -16,9 +17,9 @@ from api.domain.exceptions import LlmUnavailableError
 
 # ── _fmt_nok ──────────────────────────────────────────────────────────────────
 
+
 def test_fmt_nok_millions():
     assert "MNOK" in _fmt_nok(50_000_000)
-
 
 
 def test_fmt_nok_none():
@@ -30,6 +31,7 @@ def test_fmt_nok_zero():
 
 
 # ── _llm_answer_raw ──────────────────────────────────────────────────────────
+
 
 @patch("api.services.llm._try_foundry_chat", return_value="Generated text")
 def test_llm_answer_raw_success(mock_chat):
@@ -45,6 +47,7 @@ def test_llm_answer_raw_no_provider(mock_chat):
 
 # ── _llm_answer ───────────────────────────────────────────────────────────────
 
+
 @patch("api.services.llm._try_foundry_chat", return_value="Answer about company")
 def test_llm_answer_success(mock_chat):
     result = _llm_answer("Context: revenue 100M", "What is the revenue?")
@@ -54,11 +57,13 @@ def test_llm_answer_success(mock_chat):
 @patch("api.services.llm._try_foundry_chat", return_value=None)
 def test_llm_answer_raises_when_unconfigured(mock_chat):
     import pytest
+
     with pytest.raises(LlmUnavailableError):
         _llm_answer("ctx", "q")
 
 
 # ── _compare_offers_with_llm ─────────────────────────────────────────────────
+
 
 @patch("api.services.llm._try_foundry_chat", return_value="Comparison result")
 def test_compare_offers_success(mock_chat):

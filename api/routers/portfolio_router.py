@@ -1,4 +1,5 @@
 """Portfolio endpoints — named company lists with risk analysis and cross-company chat."""
+
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, Request
@@ -39,7 +40,9 @@ def _run_coverage_gap_background(orgnr: str, firm_id: int) -> None:
     db = SessionLocal()
     try:
         from api.services.coverage_gap import analyze_coverage_gap
-        from api.services.notification_inbox_service import create_notification_for_users_safe
+        from api.services.notification_inbox_service import (
+            create_notification_for_users_safe,
+        )
 
         result = analyze_coverage_gap(orgnr, firm_id, db)
         if result["gap_count"] == 0:
@@ -62,7 +65,11 @@ def _run_coverage_gap_background(orgnr: str, firm_id: int) -> None:
             link=f"/search/{orgnr}?tab=forsikring",
             orgnr=orgnr,
         )
-        _log.info("Coverage gap agent: %s has %d gaps — notification created", orgnr, result["gap_count"])
+        _log.info(
+            "Coverage gap agent: %s has %d gaps — notification created",
+            orgnr,
+            result["gap_count"],
+        )
     except Exception as exc:
         _log.warning("Coverage gap agent failed for %s: %s", orgnr, exc)
     finally:
@@ -70,6 +77,7 @@ def _run_coverage_gap_background(orgnr: str, firm_id: int) -> None:
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
+
 
 @router.post("/portfolio")
 def create_portfolio(
@@ -80,7 +88,12 @@ def create_portfolio(
 ) -> dict:
     p = svc.create(body.name, user.firm_id, body.description or "")
     log_audit(db, "portfolio.create", detail={"portfolio_id": p.id, "name": body.name})
-    return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
+    return {
+        "id": p.id,
+        "name": p.name,
+        "description": p.description,
+        "created_at": p.created_at,
+    }
 
 
 @router.get("/portfolio")
@@ -89,7 +102,12 @@ def list_portfolios(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     return [
-        {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
+        {
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "created_at": p.created_at,
+        }
         for p in svc.list_portfolios(user.firm_id)
     ]
 
@@ -104,7 +122,12 @@ def get_portfolio(
         p = svc.get(portfolio_id, user.firm_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    return {"id": p.id, "name": p.name, "description": p.description, "created_at": p.created_at}
+    return {
+        "id": p.id,
+        "name": p.name,
+        "description": p.description,
+        "created_at": p.created_at,
+    }
 
 
 @router.delete("/portfolio/{portfolio_id}")
@@ -138,11 +161,18 @@ def add_company(
     # Auto-run coverage gap analysis in the background so the broker gets
     # a notification if the new company has missing insurance coverage.
     background_tasks.add_task(_run_coverage_gap_background, body.orgnr, user.firm_id)
-    log_audit(db, "portfolio.add_company", orgnr=body.orgnr, detail={"portfolio_id": portfolio_id})
+    log_audit(
+        db,
+        "portfolio.add_company",
+        orgnr=body.orgnr,
+        detail={"portfolio_id": portfolio_id},
+    )
     return {"portfolio_id": portfolio_id, "orgnr": body.orgnr}
 
 
-@router.post("/portfolio/{portfolio_id}/companies/bulk", response_model=PortfolioBulkAddOut)
+@router.post(
+    "/portfolio/{portfolio_id}/companies/bulk", response_model=PortfolioBulkAddOut
+)
 def add_companies_bulk(
     portfolio_id: int,
     body: PortfolioBulkAdd,
@@ -171,7 +201,11 @@ def add_companies_bulk(
     # Schedule coverage gap analysis for each newly added company.
     for orgnr in added_orgnrs:
         background_tasks.add_task(_run_coverage_gap_background, orgnr, user.firm_id)
-    log_audit(db, "portfolio.add_bulk", detail={"portfolio_id": portfolio_id, "added": added, "skipped": skipped})
+    log_audit(
+        db,
+        "portfolio.add_bulk",
+        detail={"portfolio_id": portfolio_id, "added": added, "skipped": skipped},
+    )
     return {"added": added, "skipped": skipped}
 
 
@@ -184,11 +218,17 @@ def remove_company(
     user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     svc.remove_company(portfolio_id, orgnr)
-    log_audit(db, "portfolio.remove_company", orgnr=orgnr, detail={"portfolio_id": portfolio_id})
+    log_audit(
+        db,
+        "portfolio.remove_company",
+        orgnr=orgnr,
+        detail={"portfolio_id": portfolio_id},
+    )
     return {"portfolio_id": portfolio_id, "orgnr": orgnr}
 
 
 # ── Analysis ──────────────────────────────────────────────────────────────────
+
 
 @router.get("/portfolio/{portfolio_id}/risk")
 def get_portfolio_risk(
@@ -226,6 +266,7 @@ def stream_ingest_portfolio(portfolio_id: int, include_pdfs: bool = False):
     Event types: start | searching | done | skipped | error | complete
                  pdf_searching | pdf_found | pdf_none | pdf_error
     """
+
     def generate():
         db = SessionLocal()
         try:
@@ -239,6 +280,7 @@ def stream_ingest_portfolio(portfolio_id: int, include_pdfs: bool = False):
 @router.get("/portfolio/{portfolio_id}/seed-norway/stream")
 def stream_seed_norway(portfolio_id: int):
     """Stream live NDJSON progress while seeding the portfolio with Norway's Top 100 companies."""
+
     def generate():
         db = SessionLocal()
         try:
@@ -342,17 +384,26 @@ def download_portfolio_pdf(
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    orgnrs = [r.orgnr for r in db.query(PortfolioCompany).filter(PortfolioCompany.portfolio_id == portfolio_id).all()]
+    orgnrs = [
+        r.orgnr
+        for r in db.query(PortfolioCompany)
+        .filter(PortfolioCompany.portfolio_id == portfolio_id)
+        .all()
+    ]
     companies = [
         {
-            "orgnr": c.orgnr, "navn": c.navn, "omsetning": c.sum_driftsinntekter,
-            "antall_ansatte": c.antall_ansatte, "egenkapitalandel": c.equity_ratio,
-            "risk_score": c.risk_score, "kommune": c.kommune,
+            "orgnr": c.orgnr,
+            "navn": c.navn,
+            "omsetning": c.sum_driftsinntekter,
+            "antall_ansatte": c.antall_ansatte,
+            "egenkapitalandel": c.equity_ratio,
+            "risk_score": c.risk_score,
+            "kommune": c.kommune,
             "naeringskode1_beskrivelse": c.naeringskode1_beskrivelse,
         }
         for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
     ]
-    companies.sort(key=lambda x: (x.get("risk_score") or 0), reverse=True)
+    companies.sort(key=lambda x: x.get("risk_score") or 0, reverse=True)
     alerts = collect_alerts(portfolio_id, db)
     concentration = svc.get_concentration(portfolio_id)
     settings = db.query(BrokerSettings).first()
@@ -426,12 +477,16 @@ async def batch_import_csv(
     content = await file.read()
     valid, invalid_vals = _parse_csv_orgnrs(content)
     if len(valid) > _MAX_IMPORT_ROWS:
-        raise HTTPException(status_code=422, detail=f"Maks {_MAX_IMPORT_ROWS} orgnr per import.")
+        raise HTTPException(
+            status_code=422, detail=f"Maks {_MAX_IMPORT_ROWS} orgnr per import."
+        )
 
     def generate():
         db = SessionLocal()
         try:
-            yield from PortfolioService(db).stream_batch_import(portfolio_id, valid, invalid_count=len(invalid_vals))
+            yield from PortfolioService(db).stream_batch_import(
+                portfolio_id, valid, invalid_count=len(invalid_vals)
+            )
         finally:
             db.close()
 

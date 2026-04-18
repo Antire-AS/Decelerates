@@ -1,4 +1,5 @@
 """Email compose schemas."""
+
 from pydantic import BaseModel
 
 

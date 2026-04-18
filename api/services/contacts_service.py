@@ -1,4 +1,5 @@
 """Contact persons CRUD service."""
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -9,7 +10,6 @@ from api.schemas import ContactPersonIn, ContactPersonUpdate
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class ContactsService:
@@ -46,7 +46,9 @@ class ContactsService:
             raise
         return contact
 
-    def update_contact(self, contact_id: int, orgnr: str, body: ContactPersonUpdate) -> ContactPerson:
+    def update_contact(
+        self, contact_id: int, orgnr: str, body: ContactPersonUpdate
+    ) -> ContactPerson:
         contact = self._get_or_raise(contact_id, orgnr)
         if body.is_primary:
             self._clear_primary(orgnr)

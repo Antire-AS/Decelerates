@@ -9,12 +9,21 @@ export const CATEGORY_DOTS: Record<string, string> = {
   Eksponering: "#8E44AD",
 };
 
-export function riskBandLabel(score?: number): { label: string; guidance: string } {
-  if (score == null) return { label: "Ukjent", guidance: "Score ikke beregnet." };
-  if (score <= 5) return { label: "Lav", guidance: "Normalpremie forventes. Godt grunnlag for tegning." };
-  if (score <= 10) return { label: "Moderat", guidance: "Forvent normal til lett forhøyet premie. Standard tegning." };
-  if (score <= 15) return { label: "Høy", guidance: "Forhøyet premie sannsynlig. Krever ekstra dokumentasjon." };
-  return { label: "Svært høy", guidance: "Tegning kan være vanskelig. Vurder spesialmarked." };
+const GUIDANCE_BY_LABEL: Record<string, string> = {
+  "Lav":       "Normalpremie forventes. Godt grunnlag for tegning.",
+  "Moderat":   "Forvent normal til lett forhøyet premie. Standard tegning.",
+  "Høy":       "Forhøyet premie sannsynlig. Krever ekstra dokumentasjon.",
+  "Svært høy": "Tegning kan være vanskelig. Vurder spesialmarked.",
+  "Ukjent":    "Score ikke beregnet.",
+};
+
+/**
+ * Synchronous helper used by callers that already have a band label in hand
+ * (e.g., from `useRiskConfig().bandFor(score)`). Returns the broker-facing
+ * guidance copy for that band.
+ */
+export function riskGuidanceForLabel(label: string): string {
+  return GUIDANCE_BY_LABEL[label] ?? GUIDANCE_BY_LABEL["Ukjent"];
 }
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {

@@ -6,6 +6,7 @@ sort and the regnskap extractors getting the most attention because they
 are the parts where a regression is silent and only shows up in the UI
 (see UI audit F02 for the kind of bug this is meant to catch).
 """
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -31,6 +32,7 @@ from api.services.brreg_client import (
 
 
 # ── _build_enhet_dict ─────────────────────────────────────────────────────────
+
 
 def test_build_enhet_dict_full():
     raw = {
@@ -68,39 +70,44 @@ def test_build_enhet_dict_missing_fields():
 
 # ── _relevance_score ──────────────────────────────────────────────────────────
 
+
 def test_relevance_exact_match_wins():
-    exact      = {"navn": "DNB", "organisasjonsform_kode": "AS"}
-    starts     = {"navn": "DNB BANK ASA", "organisasjonsform_kode": "ASA"}
-    contains   = {"navn": "TANDEM DNB AS", "organisasjonsform_kode": "AS"}
-    rows = sorted([starts, contains, exact],
-                  key=lambda r: _relevance_score(r, "DNB"), reverse=True)
+    exact = {"navn": "DNB", "organisasjonsform_kode": "AS"}
+    starts = {"navn": "DNB BANK ASA", "organisasjonsform_kode": "ASA"}
+    contains = {"navn": "TANDEM DNB AS", "organisasjonsform_kode": "AS"}
+    rows = sorted(
+        [starts, contains, exact],
+        key=lambda r: _relevance_score(r, "DNB"),
+        reverse=True,
+    )
     assert rows[0] is exact
 
 
 def test_relevance_starts_with_beats_contains():
-    starts   = {"navn": "DNB BANK ASA", "organisasjonsform_kode": "ASA"}
-    contains = {"navn": "BIG DNB AS",   "organisasjonsform_kode": "AS"}
-    rows = sorted([contains, starts],
-                  key=lambda r: _relevance_score(r, "DNB"), reverse=True)
+    starts = {"navn": "DNB BANK ASA", "organisasjonsform_kode": "ASA"}
+    contains = {"navn": "BIG DNB AS", "organisasjonsform_kode": "AS"}
+    rows = sorted(
+        [contains, starts], key=lambda r: _relevance_score(r, "DNB"), reverse=True
+    )
     assert rows[0] is starts
 
 
 def test_relevance_org_form_priority():
     """When two rows tie on text match, ASA outranks FLI outranks UTLA."""
-    asa  = {"navn": "DNB BANK ASA",          "organisasjonsform_kode": "ASA"}
-    fli  = {"navn": "DNB BEDRIFTSIDRETTSLAG","organisasjonsform_kode": "FLI"}
-    utla = {"navn": "DNB MONCHEBANK",        "organisasjonsform_kode": "UTLA"}
-    rows = sorted([fli, utla, asa],
-                  key=lambda r: _relevance_score(r, "DNB"), reverse=True)
+    asa = {"navn": "DNB BANK ASA", "organisasjonsform_kode": "ASA"}
+    fli = {"navn": "DNB BEDRIFTSIDRETTSLAG", "organisasjonsform_kode": "FLI"}
+    utla = {"navn": "DNB MONCHEBANK", "organisasjonsform_kode": "UTLA"}
+    rows = sorted(
+        [fli, utla, asa], key=lambda r: _relevance_score(r, "DNB"), reverse=True
+    )
     assert rows == [asa, fli, utla]
 
 
 def test_relevance_shorter_name_wins_within_bucket():
     """Same prefix + same org-form → shorter name ranks higher."""
-    short = {"navn": "DNB BANK",          "organisasjonsform_kode": "ASA"}
-    long  = {"navn": "DNB BANK NORGE ASA","organisasjonsform_kode": "ASA"}
-    rows = sorted([long, short],
-                  key=lambda r: _relevance_score(r, "DNB"), reverse=True)
+    short = {"navn": "DNB BANK", "organisasjonsform_kode": "ASA"}
+    long = {"navn": "DNB BANK NORGE ASA", "organisasjonsform_kode": "ASA"}
+    rows = sorted([long, short], key=lambda r: _relevance_score(r, "DNB"), reverse=True)
     assert rows[0] is short
 
 
@@ -119,6 +126,7 @@ def test_relevance_handles_missing_fields():
 
 # ── fetch_enhetsregisteret ────────────────────────────────────────────────────
 
+
 def _enhet(navn: str, code: str = "AS", orgnr: str = "111") -> dict:
     return {
         "organisasjonsnummer": orgnr,
@@ -133,12 +141,16 @@ def test_fetch_enhetsregisteret_sorts_by_relevance(mock_get):
     """The DNB-style scenario from UI audit F02."""
     mock_get.return_value = SimpleNamespace(
         status_code=200,
-        json=lambda: {"_embedded": {"enheter": [
-            _enhet("DNB BEDRIFTSIDRETTSLAG", "FLI", "1"),
-            _enhet("DNB BANK ASA",            "ASA", "2"),
-            _enhet("DNB EIENDOM AS",          "AS",  "3"),
-            _enhet("DNB MONCHEBANK",          "UTLA","4"),
-        ]}},
+        json=lambda: {
+            "_embedded": {
+                "enheter": [
+                    _enhet("DNB BEDRIFTSIDRETTSLAG", "FLI", "1"),
+                    _enhet("DNB BANK ASA", "ASA", "2"),
+                    _enhet("DNB EIENDOM AS", "AS", "3"),
+                    _enhet("DNB MONCHEBANK", "UTLA", "4"),
+                ]
+            }
+        },
         raise_for_status=lambda: None,
     )
     results = fetch_enhetsregisteret("DNB")
@@ -173,12 +185,15 @@ def test_fetch_enhetsregisteret_passes_kommunenummer(mock_get):
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_enhetsregisteret_empty(mock_get):
     mock_get.return_value = SimpleNamespace(
-        status_code=200, json=lambda: {}, raise_for_status=lambda: None,
+        status_code=200,
+        json=lambda: {},
+        raise_for_status=lambda: None,
     )
     assert fetch_enhetsregisteret("Test") == []
 
 
 # ── fetch_enhet_by_orgnr ──────────────────────────────────────────────────────
+
 
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_enhet_by_orgnr_404(mock_get):
@@ -228,6 +243,7 @@ def test_fetch_enhet_by_orgnr_full(mock_get):
 
 # ── _pick_latest_regnskap + extractors ────────────────────────────────────────
 
+
 def test_pick_latest_regnskap_picks_max_year():
     rs = [
         {"regnskapsperiode": {"tilDato": "2020-12-31"}, "id": "old"},
@@ -246,11 +262,13 @@ def test_pick_latest_regnskap_handles_invalid_dates():
 
 
 def test_extract_periode_full():
-    out = _extract_periode({
-        "regnskapsperiode": {"tilDato": "2024-12-31", "fraDato": "2024-01-01"},
-        "valuta": "NOK",
-        "id": "abc",
-    })
+    out = _extract_periode(
+        {
+            "regnskapsperiode": {"tilDato": "2024-12-31", "fraDato": "2024-01-01"},
+            "valuta": "NOK",
+            "id": "abc",
+        }
+    )
     assert out["regnskapsår"] == 2024
     assert out["valuta"] == "NOK"
     assert out["id"] == "abc"
@@ -263,36 +281,42 @@ def test_extract_periode_invalid_date():
 
 def test_extract_virksomhet_handles_typo_key():
     """The legacy 'regnkapsprinsipper' typo key should also work."""
-    out = _extract_virksomhet({
-        "virksomhet": {"organisasjonsnummer": "111"},
-        "regnkapsprinsipper": {"smaaForetak": True},
-    })
+    out = _extract_virksomhet(
+        {
+            "virksomhet": {"organisasjonsnummer": "111"},
+            "regnkapsprinsipper": {"smaaForetak": True},
+        }
+    )
     assert out["smaa_foretak"] is True
 
 
 def test_extract_resultat_nested():
-    raw = {"resultatregnskapResultat": {
-        "driftsresultat": {
-            "driftsinntekter": {"sumDriftsinntekter": 100},
-            "driftskostnad": {"sumDriftskostnad": 60},
-            "driftsresultat": 40,
-        },
-        "aarsresultat": 30,
-    }}
+    raw = {
+        "resultatregnskapResultat": {
+            "driftsresultat": {
+                "driftsinntekter": {"sumDriftsinntekter": 100},
+                "driftskostnad": {"sumDriftskostnad": 60},
+                "driftsresultat": 40,
+            },
+            "aarsresultat": 30,
+        }
+    }
     out = _extract_resultat(raw)
     assert out["sum_driftsinntekter"] == 100
     assert out["aarsresultat"] == 30
 
 
 def test_extract_balanse_nested():
-    raw = {"egenkapitalGjeld": {
-        "sumEgenkapitalGjeld": 1000,
-        "egenkapital": {"sumEgenkapital": 400},
-        "gjeldOversikt": {
-            "kortsiktigGjeld": {"sumKortsiktigGjeld": 200},
-            "langsiktigGjeld": {"sumLangsiktigGjeld": 400},
-        },
-    }}
+    raw = {
+        "egenkapitalGjeld": {
+            "sumEgenkapitalGjeld": 1000,
+            "egenkapital": {"sumEgenkapital": 400},
+            "gjeldOversikt": {
+                "kortsiktigGjeld": {"sumKortsiktigGjeld": 200},
+                "langsiktigGjeld": {"sumLangsiktigGjeld": 400},
+            },
+        }
+    }
     out = _extract_balanse(raw)
     assert out["sum_egenkapital"] == 400
     assert out["sum_kortsiktig_gjeld"] == 200
@@ -307,10 +331,19 @@ def test_extract_eiendeler():
 
 # ── _deduplicate_by_year ──────────────────────────────────────────────────────
 
+
 def test_deduplicate_prefers_selskap_over_konsern():
     rs = [
-        {"regnskapsperiode": {"tilDato": "2024-12-31"}, "regnskapstype": "KONSERN", "id": "k"},
-        {"regnskapsperiode": {"tilDato": "2024-12-31"}, "regnskapstype": "SELSKAP", "id": "s"},
+        {
+            "regnskapsperiode": {"tilDato": "2024-12-31"},
+            "regnskapstype": "KONSERN",
+            "id": "k",
+        },
+        {
+            "regnskapsperiode": {"tilDato": "2024-12-31"},
+            "regnskapstype": "SELSKAP",
+            "id": "s",
+        },
     ]
     out = _deduplicate_by_year(rs)
     assert out[2024]["id"] == "s"
@@ -326,6 +359,7 @@ def test_deduplicate_skips_invalid_dates():
 
 
 # ── _build_regnskap_row ───────────────────────────────────────────────────────
+
 
 def test_build_regnskap_row_computes_equity_ratio():
     r = {
@@ -350,6 +384,7 @@ def test_build_regnskap_row_handles_zero_assets():
 
 # ── fetch_regnskap_keyfigures ─────────────────────────────────────────────────
 
+
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_regnskap_keyfigures_404(mock_get):
     mock_get.return_value = SimpleNamespace(status_code=404)
@@ -359,7 +394,9 @@ def test_fetch_regnskap_keyfigures_404(mock_get):
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_regnskap_keyfigures_empty_list(mock_get):
     mock_get.return_value = SimpleNamespace(
-        status_code=200, json=lambda: [], raise_for_status=lambda: None,
+        status_code=200,
+        json=lambda: [],
+        raise_for_status=lambda: None,
     )
     assert fetch_regnskap_keyfigures("111") == {}
 
@@ -370,8 +407,16 @@ def test_fetch_regnskap_keyfigures_picks_latest(mock_get):
         status_code=200,
         raise_for_status=lambda: None,
         json=lambda: [
-            {"regnskapsperiode": {"tilDato": "2023-12-31"}, "valuta": "NOK", "id": "old"},
-            {"regnskapsperiode": {"tilDato": "2024-12-31"}, "valuta": "USD", "id": "new"},
+            {
+                "regnskapsperiode": {"tilDato": "2023-12-31"},
+                "valuta": "NOK",
+                "id": "old",
+            },
+            {
+                "regnskapsperiode": {"tilDato": "2024-12-31"},
+                "valuta": "USD",
+                "id": "new",
+            },
         ],
     )
     out = fetch_regnskap_keyfigures("111")
@@ -382,6 +427,7 @@ def test_fetch_regnskap_keyfigures_picks_latest(mock_get):
 
 # ── fetch_regnskap_history ────────────────────────────────────────────────────
 
+
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_regnskap_history_404(mock_get):
     mock_get.return_value = SimpleNamespace(status_code=404)
@@ -391,7 +437,8 @@ def test_fetch_regnskap_history_404(mock_get):
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_regnskap_history_returns_sorted_years(mock_get):
     mock_get.return_value = SimpleNamespace(
-        status_code=200, raise_for_status=lambda: None,
+        status_code=200,
+        raise_for_status=lambda: None,
         json=lambda: [
             {"regnskapsperiode": {"tilDato": "2024-12-31"}, "regnskapstype": "SELSKAP"},
             {"regnskapsperiode": {"tilDato": "2022-12-31"}, "regnskapstype": "SELSKAP"},
@@ -404,27 +451,41 @@ def test_fetch_regnskap_history_returns_sorted_years(mock_get):
 
 # ── fetch_company_struktur ────────────────────────────────────────────────────
 
+
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_company_struktur_with_parent_and_subs(mock_get):
     """First call: enhet with overordnetEnhet. Second: parent enhet. Third: underenheter list."""
+
     def fake_get(url, *a, **k):
         if url.endswith("/CHILD"):
             return SimpleNamespace(ok=True, json=lambda: {"overordnetEnhet": "PARENT"})
         if url.endswith("/PARENT"):
-            return SimpleNamespace(ok=True, json=lambda: {
-                "organisasjonsnummer": "PARENT",
-                "navn": "Parent AS",
-                "organisasjonsform": {"beskrivelse": "Aksjeselskap"},
-                "forretningsadresse": {"kommune": "OSLO"},
-            })
+            return SimpleNamespace(
+                ok=True,
+                json=lambda: {
+                    "organisasjonsnummer": "PARENT",
+                    "navn": "Parent AS",
+                    "organisasjonsform": {"beskrivelse": "Aksjeselskap"},
+                    "forretningsadresse": {"kommune": "OSLO"},
+                },
+            )
         if url.endswith("/CHILD/underenheter"):
-            return SimpleNamespace(ok=True, json=lambda: {
-                "_embedded": {"underenheter": [
-                    {"organisasjonsnummer": "U1", "navn": "Sub 1", "antallAnsatte": 5,
-                     "beliggenhetsadresse": {"kommune": "BERGEN"}},
-                ]},
-                "page": {"totalElements": 1},
-            })
+            return SimpleNamespace(
+                ok=True,
+                json=lambda: {
+                    "_embedded": {
+                        "underenheter": [
+                            {
+                                "organisasjonsnummer": "U1",
+                                "navn": "Sub 1",
+                                "antallAnsatte": 5,
+                                "beliggenhetsadresse": {"kommune": "BERGEN"},
+                            },
+                        ]
+                    },
+                    "page": {"totalElements": 1},
+                },
+            )
         return SimpleNamespace(ok=False)
 
     mock_get.side_effect = fake_get
@@ -438,7 +499,8 @@ def test_fetch_company_struktur_with_parent_and_subs(mock_get):
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_company_struktur_no_parent(mock_get):
     mock_get.return_value = SimpleNamespace(
-        ok=True, json=lambda: {"_embedded": {"underenheter": []}, "page": {"totalElements": 0}},
+        ok=True,
+        json=lambda: {"_embedded": {"underenheter": []}, "page": {"totalElements": 0}},
     )
     out = fetch_company_struktur("ROOT")
     assert out["parent"] is None
@@ -455,6 +517,7 @@ def test_fetch_company_struktur_swallows_exceptions(mock_get):
 
 # ── fetch_board_members ───────────────────────────────────────────────────────
 
+
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_board_members_404(mock_get):
     mock_get.return_value = SimpleNamespace(status_code=404)
@@ -464,20 +527,26 @@ def test_fetch_board_members_404(mock_get):
 @patch("api.services.brreg_client.requests.get")
 def test_fetch_board_members_full(mock_get):
     mock_get.return_value = SimpleNamespace(
-        status_code=200, raise_for_status=lambda: None,
-        json=lambda: {"rollegrupper": [
-            {"type": {"beskrivelse": "Styre"}, "roller": [
+        status_code=200,
+        raise_for_status=lambda: None,
+        json=lambda: {
+            "rollegrupper": [
                 {
-                    "type": {"beskrivelse": "Styreleder"},
-                    "person": {
-                        "navn": {"fornavn": "Ola", "etternavn": "Nordmann"},
-                        "fodselsdato": "1970-01-01",
-                        "erDoed": False,
-                    },
-                    "fratraadt": False,
+                    "type": {"beskrivelse": "Styre"},
+                    "roller": [
+                        {
+                            "type": {"beskrivelse": "Styreleder"},
+                            "person": {
+                                "navn": {"fornavn": "Ola", "etternavn": "Nordmann"},
+                                "fodselsdato": "1970-01-01",
+                                "erDoed": False,
+                            },
+                            "fratraadt": False,
+                        },
+                    ],
                 },
-            ]},
-        ]},
+            ]
+        },
     )
     members = fetch_board_members("111")
     assert len(members) == 1

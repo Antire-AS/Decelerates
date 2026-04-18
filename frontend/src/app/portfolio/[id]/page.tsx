@@ -228,13 +228,13 @@ export default function PortfolioDetailPage({
             value={pdfOrgnr}
             onChange={(e) => setPdfOrgnr(e.target.value)}
             placeholder="Orgnr (9 siffer)"
-            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
           />
           <input
             value={pdfUrl}
             onChange={(e) => setPdfUrl(e.target.value)}
             placeholder="https://…/årsrapport.pdf"
-            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
           />
           <div className="flex gap-2">
             <input
@@ -242,7 +242,7 @@ export default function PortfolioDetailPage({
               value={pdfYear}
               onChange={(e) => setPdfYear(Number(e.target.value))}
               min={2010} max={new Date().getFullYear()}
-              className="w-24 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] text-[#2C3E50]"
+              className="w-24 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
             />
             <button
               onClick={handlePdfEnrich}

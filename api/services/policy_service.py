@@ -1,4 +1,5 @@
 """Policy register and renewal pipeline service."""
+
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
@@ -17,12 +18,12 @@ _RENEWAL_THRESHOLDS = [90, 60, 30, 14, 7]
 
 def _policy_to_dict(p: Policy) -> dict:
     return {
-        "id":                 p.id,
-        "policy_number":      p.policy_number or str(p.id),
-        "insurer":            p.insurer,
-        "product_type":       p.product_type,
-        "renewal_date":       p.renewal_date.isoformat() if p.renewal_date else "",
-        "orgnr":              p.orgnr,
+        "id": p.id,
+        "policy_number": p.policy_number or str(p.id),
+        "insurer": p.insurer,
+        "product_type": p.product_type,
+        "renewal_date": p.renewal_date.isoformat() if p.renewal_date else "",
+        "orgnr": p.orgnr,
         "annual_premium_nok": p.annual_premium_nok,
     }
 
@@ -31,21 +32,27 @@ class PolicyService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list_by_orgnr(self, orgnr: str, firm_id: int, skip: int = 0, limit: int = 100) -> list[Policy]:
+    def list_by_orgnr(
+        self, orgnr: str, firm_id: int, skip: int = 0, limit: int = 100
+    ) -> list[Policy]:
         return (
             self.db.query(Policy)
             .filter(Policy.orgnr == orgnr, Policy.firm_id == firm_id)
             .order_by(Policy.renewal_date.asc().nullslast())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
             .all()
         )
 
-    def list_by_firm(self, firm_id: int, skip: int = 0, limit: int = 100) -> list[Policy]:
+    def list_by_firm(
+        self, firm_id: int, skip: int = 0, limit: int = 100
+    ) -> list[Policy]:
         return (
             self.db.query(Policy)
             .filter(Policy.firm_id == firm_id)
             .order_by(Policy.renewal_date.asc().nullslast())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
             .all()
         )
 
@@ -63,7 +70,9 @@ class PolicyService:
             start_date=body.start_date,
             renewal_date=body.renewal_date,
             status=self._parse_status(body.status),
-            renewal_stage=self._parse_renewal_stage(body.renewal_stage) if body.renewal_stage else RenewalStage.not_started,
+            renewal_stage=self._parse_renewal_stage(body.renewal_stage)
+            if body.renewal_stage
+            else RenewalStage.not_started,
             notes=body.notes,
             created_at=now,
             updated_at=now,
@@ -102,7 +111,9 @@ class PolicyService:
             raise
         return policy
 
-    def advance_renewal_stage(self, policy_id: int, firm_id: int, new_stage: str) -> Policy:
+    def advance_renewal_stage(
+        self, policy_id: int, firm_id: int, new_stage: str
+    ) -> Policy:
         policy = self._get_or_raise(policy_id, firm_id)
         policy.renewal_stage = self._parse_renewal_stage(new_stage)
         policy.updated_at = datetime.now(timezone.utc)
@@ -137,8 +148,8 @@ class PolicyService:
                 Policy.renewal_date >= today,
                 Policy.renewal_date <= cutoff,
                 # either never notified, or last notification was at a higher threshold
-                (Policy.last_renewal_notified_days.is_(None)) |
-                (Policy.last_renewal_notified_days > threshold_days),
+                (Policy.last_renewal_notified_days.is_(None))
+                | (Policy.last_renewal_notified_days > threshold_days),
             )
             .order_by(Policy.renewal_date.asc())
             .all()
@@ -152,7 +163,7 @@ class PolicyService:
         self.db.commit()
 
     def get_renewals(self, firm_id: int, days: int = 90) -> list[Policy]:
-        today  = date.today()
+        today = date.today()
         cutoff = today + timedelta(days=days)
         return (
             self.db.query(Policy)
@@ -182,7 +193,9 @@ class PolicyService:
             for p in policies:
                 self.mark_renewal_notified(p.id, threshold)
                 log_audit(
-                    db, action="renewal_notification_sent", orgnr=p.orgnr,
+                    db,
+                    action="renewal_notification_sent",
+                    orgnr=p.orgnr,
                     actor_email=broker_email,
                     detail={"threshold_days": threshold, "policy_id": p.id},
                 )
@@ -195,7 +208,9 @@ class PolicyService:
         """Send renewal threshold emails and update last_renewal_notified_days."""
         notified, skipped = 0, 0
         for threshold in _RENEWAL_THRESHOLDS:
-            n, s = self._notify_threshold(firm_id, threshold, notif_port, broker_email, db)
+            n, s = self._notify_threshold(
+                firm_id, threshold, notif_port, broker_email, db
+            )
             notified += n
             skipped += s
         return {"notified_count": notified, "skipped_count": skipped}

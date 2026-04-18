@@ -1,4 +1,5 @@
 """Port (driven) — abstract interface for file / blob storage."""
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

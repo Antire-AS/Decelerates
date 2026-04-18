@@ -47,7 +47,7 @@ export function UsersSection() {
               <select
                 value={pendingRoles[u.id] ?? u.role}
                 onChange={(e) => setPendingRoles((p) => ({ ...p, [u.id]: e.target.value }))}
-                className="text-xs border border-[#D4C9B8] rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+                className="text-xs border border-[#D4C9B8] rounded px-1.5 py-1 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
               >
                 {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>

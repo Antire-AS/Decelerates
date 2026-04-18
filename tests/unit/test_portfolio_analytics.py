@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import date, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -25,7 +26,11 @@ def _make_policy(insurer, product_type, premium, renewal_days=None):
     p.insurer = insurer
     p.product_type = product_type
     p.annual_premium_nok = premium
-    p.renewal_date = date.today() + timedelta(days=renewal_days) if renewal_days is not None else None
+    p.renewal_date = (
+        date.today() + timedelta(days=renewal_days)
+        if renewal_days is not None
+        else None
+    )
     return p
 
 
@@ -51,6 +56,7 @@ def _svc_with_policies(portfolio_companies, policies):
 
 # ── Empty portfolio ───────────────────────────────────────────────────────────
 
+
 def test_analytics_empty_portfolio_returns_zeros():
     db = _mock_db()
     mock_portfolio = MagicMock()
@@ -64,6 +70,7 @@ def test_analytics_empty_portfolio_returns_zeros():
 
 
 # ── Premium totals ────────────────────────────────────────────────────────────
+
 
 def test_analytics_sums_premium_correctly():
     pcs = [_make_portfolio_company("111111111"), _make_portfolio_company("222222222")]
@@ -80,6 +87,7 @@ def test_analytics_sums_premium_correctly():
 
 # ── Insurer concentration ─────────────────────────────────────────────────────
 
+
 def test_analytics_insurer_concentration_sorted_by_premium():
     pcs = [_make_portfolio_company("111111111")]
     policies = [
@@ -90,7 +98,7 @@ def test_analytics_insurer_concentration_sorted_by_premium():
     svc = _svc_with_policies(pcs, policies)
     result = svc.get_analytics(1, firm_id=1)
     insurers = [r["insurer"] for r in result["insurer_concentration"]]
-    assert insurers[0] == "If"   # highest premium first
+    assert insurers[0] == "If"  # highest premium first
     assert insurers[1] == "Gjensidige"
 
 
@@ -108,6 +116,7 @@ def test_analytics_insurer_share_pct_sums_to_100():
 
 
 # ── Upcoming renewals ─────────────────────────────────────────────────────────
+
 
 def test_analytics_counts_renewals_within_90_days():
     pcs = [_make_portfolio_company("111111111")]
@@ -141,6 +150,7 @@ def test_analytics_no_renewals_when_no_renewal_date():
 
 
 # ── _insurer_concentration (pure function) ───────────────────────────────────
+
 
 def _pol(insurer, premium):
     p = MagicMock()
@@ -199,6 +209,7 @@ def test_insurer_concentration_empty_returns_empty():
 
 # ── _product_concentration (pure function) ───────────────────────────────────
 
+
 def _prod_pol(product_type, premium):
     p = MagicMock()
     p.product_type = product_type
@@ -207,7 +218,11 @@ def _prod_pol(product_type, premium):
 
 
 def test_product_concentration_groups_correctly():
-    policies = [_prod_pol("Ting", 100_000), _prod_pol("Ting", 50_000), _prod_pol("Ansvar", 80_000)]
+    policies = [
+        _prod_pol("Ting", 100_000),
+        _prod_pol("Ting", 50_000),
+        _prod_pol("Ansvar", 80_000),
+    ]
     result = _product_concentration(policies)
     types = {r["product_type"] for r in result}
     assert types == {"Ting", "Ansvar"}
@@ -242,6 +257,7 @@ def test_product_concentration_empty_returns_empty():
 
 
 # ── _rev_band (pure function) ────────────────────────────────────────────────
+
 
 def test_rev_band_none_returns_ukjent():
     assert _rev_band(None) == "Ukjent"
@@ -281,6 +297,7 @@ def test_rev_band_boundary_1bn():
 
 # ── _nace_section (pure function) ────────────────────────────────────────────
 
+
 def test_nace_section_none_returns_question_mark():
     assert _nace_section(None) == "?"
 
@@ -308,9 +325,14 @@ def test_nace_section_returns_single_letter():
 
 # ── collect_alerts (module-level function) ───────────────────────────────────
 
+
 def _hist(year, revenue=None, equity_ratio=None, antall_ansatte=None):
-    return SimpleNamespace(year=year, revenue=revenue,
-                           equity_ratio=equity_ratio, antall_ansatte=antall_ansatte)
+    return SimpleNamespace(
+        year=year,
+        revenue=revenue,
+        equity_ratio=equity_ratio,
+        antall_ansatte=antall_ansatte,
+    )
 
 
 def _db_for_alerts(orgnrs, histories):
@@ -322,11 +344,18 @@ def _db_for_alerts(orgnrs, histories):
     all_hist = []
     for o in orgnrs:
         for h in histories.get(o, []):
-            all_hist.append(SimpleNamespace(
-                orgnr=o, year=h.year, revenue=h.revenue,
-                equity_ratio=h.equity_ratio, antall_ansatte=h.antall_ansatte,
-            ))
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = all_hist
+            all_hist.append(
+                SimpleNamespace(
+                    orgnr=o,
+                    year=h.year,
+                    revenue=h.revenue,
+                    equity_ratio=h.equity_ratio,
+                    antall_ansatte=h.antall_ansatte,
+                )
+            )
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        all_hist
+    )
     return db
 
 
@@ -341,58 +370,79 @@ def test_collect_alerts_empty_with_single_year():
 
 
 def test_collect_alerts_detects_strong_revenue_growth():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, revenue=1_300_000), _hist(2023, revenue=1_000_000)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {"123456789": [_hist(2024, revenue=1_300_000), _hist(2023, revenue=1_000_000)]},
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Sterk vekst" for a in result)
 
 
 def test_collect_alerts_detects_revenue_fall():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, revenue=700_000), _hist(2023, revenue=1_000_000)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {"123456789": [_hist(2024, revenue=700_000), _hist(2023, revenue=1_000_000)]},
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Omsetningsfall" for a in result)
 
 
 def test_collect_alerts_detects_negative_equity():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, equity_ratio=-0.05), _hist(2023, equity_ratio=0.30)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {
+            "123456789": [
+                _hist(2024, equity_ratio=-0.05),
+                _hist(2023, equity_ratio=0.30),
+            ]
+        },
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Negativ EK" for a in result)
 
 
 def test_collect_alerts_detects_equity_drop():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, equity_ratio=0.20), _hist(2023, equity_ratio=0.30)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {"123456789": [_hist(2024, equity_ratio=0.20), _hist(2023, equity_ratio=0.30)]},
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Egenkapital svekket" for a in result)
 
 
 def test_collect_alerts_detects_employee_growth():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, antall_ansatte=80), _hist(2023, antall_ansatte=50)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {"123456789": [_hist(2024, antall_ansatte=80), _hist(2023, antall_ansatte=50)]},
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Ny ansattvekst" for a in result)
 
 
 def test_collect_alerts_detects_revenue_threshold_crossing():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, revenue=150_000_000), _hist(2023, revenue=80_000_000)
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {
+            "123456789": [
+                _hist(2024, revenue=150_000_000),
+                _hist(2023, revenue=80_000_000),
+            ]
+        },
+    )
     result = collect_alerts(1, db)
     assert any(a["alert_type"] == "Krysset terskel" for a in result)
 
 
 def test_collect_alerts_sorted_kritisk_before_hoy_before_moderat():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, revenue=700_000, equity_ratio=-0.05),
-        _hist(2023, revenue=1_000_000, equity_ratio=0.30),
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {
+            "123456789": [
+                _hist(2024, revenue=700_000, equity_ratio=-0.05),
+                _hist(2023, revenue=1_000_000, equity_ratio=0.30),
+            ]
+        },
+    )
     result = collect_alerts(1, db)
     order = {"Kritisk": 0, "Høy": 1, "Moderat": 2}
     severities = [order[a["severity"]] for a in result]
@@ -400,8 +450,13 @@ def test_collect_alerts_sorted_kritisk_before_hoy_before_moderat():
 
 
 def test_collect_alerts_no_false_positives_for_stable_company():
-    db = _db_for_alerts(["123456789"], {"123456789": [
-        _hist(2024, revenue=1_050_000, equity_ratio=0.35, antall_ansatte=51),
-        _hist(2023, revenue=1_000_000, equity_ratio=0.36, antall_ansatte=50),
-    ]})
+    db = _db_for_alerts(
+        ["123456789"],
+        {
+            "123456789": [
+                _hist(2024, revenue=1_050_000, equity_ratio=0.35, antall_ansatte=51),
+                _hist(2023, revenue=1_000_000, equity_ratio=0.36, antall_ansatte=50),
+            ]
+        },
+    )
     assert collect_alerts(1, db) == []

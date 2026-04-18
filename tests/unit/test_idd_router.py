@@ -4,6 +4,7 @@ Calls endpoint functions directly with mocked service + user. Verifies
 the _serialize() shape and NotFoundError → 404 conversion. The IddService
 itself has its own test suite (test_idd_service.py).
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -62,6 +63,7 @@ def _row(
 
 # ── _serialize ────────────────────────────────────────────────────────────────
 
+
 def test_serialize_returns_full_dict():
     row = _row()
     result = _serialize(row)
@@ -96,6 +98,7 @@ def test_serialize_preserves_recommended_products_list():
 
 # ── list_behovsanalyser ──────────────────────────────────────────────────────
 
+
 def test_list_for_company_returns_serialized_rows():
     svc = MagicMock()
     svc.list.return_value = [_row(id=1), _row(id=2)]
@@ -115,6 +118,7 @@ def test_list_for_company_returns_empty_when_none():
 
 # ── list_all_behovsanalyser ──────────────────────────────────────────────────
 
+
 def test_list_all_uses_firm_id_and_limit():
     svc = MagicMock()
     svc.list_all_for_firm.return_value = [_row(id=1)]
@@ -125,17 +129,23 @@ def test_list_all_uses_firm_id_and_limit():
 
 # ── create_behovsanalyse ─────────────────────────────────────────────────────
 
+
 def test_create_returns_serialized_row():
     svc = MagicMock()
     svc.create.return_value = _row(id=99)
     body = MagicMock()
     body.model_dump.return_value = {"client_name": "New AS"}
-    result = create_behovsanalyse(orgnr="123", body=body, db=MagicMock(), user=_user(), svc=svc)
+    result = create_behovsanalyse(
+        orgnr="123", body=body, db=MagicMock(), user=_user(), svc=svc
+    )
     assert result["id"] == 99
-    svc.create.assert_called_once_with("123", 1, "broker@test.no", {"client_name": "New AS"})
+    svc.create.assert_called_once_with(
+        "123", 1, "broker@test.no", {"client_name": "New AS"}
+    )
 
 
 # ── get_behovsanalyse ────────────────────────────────────────────────────────
+
 
 def test_get_returns_serialized_row():
     svc = MagicMock()
@@ -155,6 +165,7 @@ def test_get_raises_404_when_not_found():
 
 # ── delete_behovsanalyse ─────────────────────────────────────────────────────
 
+
 def test_delete_calls_service():
     svc = MagicMock()
     delete_behovsanalyse(orgnr="123", idd_id=7, db=MagicMock(), user=_user(), svc=svc)
@@ -165,16 +176,23 @@ def test_delete_raises_404_when_not_found():
     svc = MagicMock()
     svc.delete.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        delete_behovsanalyse(orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc)
+        delete_behovsanalyse(
+            orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc
+        )
     assert exc.value.status_code == 404
 
 
 # ── generate_suitability ─────────────────────────────────────────────────────
 
+
 def test_generate_suitability_returns_reasoning():
     svc = MagicMock()
-    svc.generate_suitability_reasoning.return_value = "Den anbefalte løsningen passer fordi..."
-    result = generate_suitability(orgnr="123", idd_id=7, db=MagicMock(), user=_user(), svc=svc)
+    svc.generate_suitability_reasoning.return_value = (
+        "Den anbefalte løsningen passer fordi..."
+    )
+    result = generate_suitability(
+        orgnr="123", idd_id=7, db=MagicMock(), user=_user(), svc=svc
+    )
     assert "Den anbefalte løsningen" in str(result)
 
 
@@ -182,5 +200,7 @@ def test_generate_suitability_raises_404_when_not_found():
     svc = MagicMock()
     svc.generate_suitability_reasoning.side_effect = NotFoundError("missing")
     with pytest.raises(HTTPException) as exc:
-        generate_suitability(orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc)
+        generate_suitability(
+            orgnr="123", idd_id=999, db=MagicMock(), user=_user(), svc=svc
+        )
     assert exc.value.status_code == 404

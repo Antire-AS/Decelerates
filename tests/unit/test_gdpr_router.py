@@ -4,6 +4,7 @@ Calls endpoint functions directly with mocked services + user. Verifies
 the _serialize_consent() shape and NotFoundError → 404 conversion. The
 GdprService and ConsentService have their own test suites.
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -53,6 +54,7 @@ def _consent_row(
 
 # ── _serialize_consent ────────────────────────────────────────────────────────
 
+
 def test_serialize_consent_returns_full_dict():
     row = _consent_row()
     result = _serialize_consent(row)
@@ -86,6 +88,7 @@ def test_serialize_consent_handles_null_created_at():
 
 # ── erase_company (GDPR Art. 17 right to erasure) ─────────────────────────────
 
+
 def test_erase_company_returns_service_result():
     svc = MagicMock()
     svc.erase_company.return_value = {"erased": True, "orgnr": "123456789"}
@@ -105,6 +108,7 @@ def test_erase_company_raises_404_when_not_found():
 
 # ── export_company_data (GDPR Art. 20 portability) ───────────────────────────
 
+
 def test_export_returns_service_result():
     svc = MagicMock()
     svc.export_company_data.return_value = {"orgnr": "123", "data": {"companies": []}}
@@ -123,6 +127,7 @@ def test_export_raises_404_when_not_found():
 
 # ── purge_old_deletions ──────────────────────────────────────────────────────
 
+
 def test_purge_returns_count_dict():
     svc = MagicMock()
     svc.purge_old_deletions.return_value = 7
@@ -139,11 +144,14 @@ def test_purge_zero_when_nothing_to_purge():
 
 # ── record_consent ────────────────────────────────────────────────────────────
 
+
 def test_record_consent_serializes_returned_row():
     svc = MagicMock()
     svc.record_consent.return_value = _consent_row(id=42)
     body = ConsentIn(lawful_basis="consent", purpose="insurance_advice")
-    result = record_consent(orgnr="123", body=body, db=MagicMock(), svc=svc, user=_user())
+    result = record_consent(
+        orgnr="123", body=body, db=MagicMock(), svc=svc, user=_user()
+    )
     assert result["id"] == 42
     svc.record_consent.assert_called_once_with(
         "123", 1, "broker@test.no", "consent", "insurance_advice"
@@ -151,6 +159,7 @@ def test_record_consent_serializes_returned_row():
 
 
 # ── get_active_consents ──────────────────────────────────────────────────────
+
 
 def test_get_active_consents_returns_serialized_list():
     svc = MagicMock()
@@ -174,6 +183,7 @@ def test_get_active_consents_returns_empty_when_none():
 
 # ── withdraw_consent (GDPR Art. 7.3) ──────────────────────────────────────────
 
+
 def test_withdraw_consent_returns_serialized_withdrawn_row():
     svc = MagicMock()
     svc.withdraw_consent.return_value = _consent_row(
@@ -182,7 +192,9 @@ def test_withdraw_consent_returns_serialized_withdrawn_row():
         withdrawal_reason="No longer needed",
     )
     body = ConsentWithdrawIn(reason="No longer needed")
-    result = withdraw_consent(orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user())
+    result = withdraw_consent(
+        orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user()
+    )
     assert result["id"] == 7
     assert result["withdrawal_reason"] == "No longer needed"
     svc.withdraw_consent.assert_called_once_with(1, 7, "No longer needed")
@@ -193,7 +205,14 @@ def test_withdraw_consent_raises_404_when_not_found():
     svc.withdraw_consent.side_effect = NotFoundError("missing")
     body = ConsentWithdrawIn(reason="x")
     with pytest.raises(HTTPException) as exc:
-        withdraw_consent(orgnr="123", consent_id=999, body=body, db=MagicMock(), svc=svc, user=_user())
+        withdraw_consent(
+            orgnr="123",
+            consent_id=999,
+            body=body,
+            db=MagicMock(),
+            svc=svc,
+            user=_user(),
+        )
     assert exc.value.status_code == 404
 
 
@@ -201,5 +220,7 @@ def test_withdraw_consent_accepts_null_reason():
     svc = MagicMock()
     svc.withdraw_consent.return_value = _consent_row(id=7)
     body = ConsentWithdrawIn()  # no reason
-    withdraw_consent(orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user())
+    withdraw_consent(
+        orgnr="123", consent_id=7, body=body, db=MagicMock(), svc=svc, user=_user()
+    )
     svc.withdraw_consent.assert_called_once_with(1, 7, None)

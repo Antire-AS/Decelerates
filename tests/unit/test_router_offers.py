@@ -1,4 +1,5 @@
 """Unit tests for api/routers/offers.py — list, download, delete, status update."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -56,6 +57,7 @@ def client(mock_db):
 
 # ── GET /org/{orgnr}/offers ───────────────────────────────────────────────────
 
+
 def test_list_offers_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
     resp = client.get("/org/123456789/offers")
@@ -70,7 +72,9 @@ def test_list_offers_returns_empty_list(client, mock_db):
 
 def test_list_offers_returns_offer_fields(client, mock_db):
     offer = _mock_offer(id=5, insurer_name="If")
-    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [offer]
+    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        offer
+    ]
     resp = client.get("/org/123456789/offers")
     items = resp.json()
     assert len(items) == 1
@@ -84,7 +88,8 @@ def test_list_offers_includes_parsed_flag(client, mock_db):
     offer_parsed = _mock_offer(id=1, parsed_premie="5 000 kr")
     offer_unparsed = _mock_offer(id=2, parsed_premie=None)
     mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
-        offer_parsed, offer_unparsed
+        offer_parsed,
+        offer_unparsed,
     ]
     resp = client.get("/org/123456789/offers")
     items = resp.json()
@@ -93,6 +98,7 @@ def test_list_offers_includes_parsed_flag(client, mock_db):
 
 
 # ── GET /org/{orgnr}/offers/{offer_id}/pdf ────────────────────────────────────
+
 
 def test_download_offer_pdf_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = _mock_offer()
@@ -125,9 +131,12 @@ def test_download_offer_pdf_filename_in_header(client, mock_db):
 
 # ── DELETE /org/{orgnr}/offers/{offer_id} ─────────────────────────────────────
 
+
 def test_delete_offer_returns_200(client, mock_db):
-    with patch("api.routers.offers.remove_insurance_offer", return_value=True), \
-         patch("api.routers.offers.log_audit"):
+    with (
+        patch("api.routers.offers.remove_insurance_offer", return_value=True),
+        patch("api.routers.offers.log_audit"),
+    ):
         resp = client.delete("/org/123456789/offers/1")
     assert resp.status_code == 200
     assert resp.json() == {"deleted": 1}
@@ -141,11 +150,15 @@ def test_delete_offer_returns_404_when_missing(client, mock_db):
 
 # ── PATCH /org/{orgnr}/offers/{offer_id}/status ───────────────────────────────
 
+
 def test_set_offer_status_returns_200(client, mock_db):
-    with patch("api.routers.offers.update_offer_status", return_value=True), \
-         patch("api.routers.offers.log_audit"):
-        resp = client.patch("/org/123456789/offers/1/status",
-                            json={"status": "accepted"})
+    with (
+        patch("api.routers.offers.update_offer_status", return_value=True),
+        patch("api.routers.offers.log_audit"),
+    ):
+        resp = client.patch(
+            "/org/123456789/offers/1/status", json={"status": "accepted"}
+        )
     assert resp.status_code == 200
     assert resp.json() == {"id": 1, "status": "accepted"}
 
@@ -157,8 +170,9 @@ def test_set_offer_status_returns_400_when_status_missing(client, mock_db):
 
 def test_set_offer_status_returns_404_when_offer_missing(client, mock_db):
     with patch("api.routers.offers.update_offer_status", return_value=False):
-        resp = client.patch("/org/123456789/offers/999/status",
-                            json={"status": "rejected"})
+        resp = client.patch(
+            "/org/123456789/offers/999/status", json={"status": "rejected"}
+        )
     assert resp.status_code == 404
 
 

@@ -1,4 +1,5 @@
 """Unit tests for api/services/copilot_tools.py — copilot tool handlers."""
+
 import json
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,7 @@ def db():
 
 # ── execute_tool dispatch ─────────────────────────────────────────────────────
 
+
 def test_unknown_tool_returns_error(db):
     result = execute_tool("nonexistent_tool", "{}", db, 1, "123")
     assert "Ukjent verktøy" in result
@@ -21,15 +23,18 @@ def test_unknown_tool_returns_error(db):
 
 # ── search_knowledge ──────────────────────────────────────────────────────────
 
+
 def test_search_knowledge_dispatches(db):
     """Verify search_knowledge is a registered tool that calls the handler."""
     from api.services.copilot_tools import _HANDLERS
+
     assert "search_knowledge" in _HANDLERS
 
 
 def test_search_knowledge_handler_contract():
     """The handler returns a string given mock args."""
     from api.services.copilot_tools import _handle_search_knowledge
+
     with patch("api.services.rag._retrieve_chunks", return_value=[]):
         # Even if retrieve_chunks import fails, the handler should still work
         # via exception handling
@@ -40,11 +45,21 @@ def test_search_knowledge_handler_contract():
 
 # ── coverage_gap ──────────────────────────────────────────────────────────────
 
+
 @patch("api.services.coverage_gap.analyze_coverage_gap")
 def test_coverage_gap_with_gaps(mock_gap, db):
     mock_gap.return_value = {
-        "items": [{"type": "Cyber", "status": "gap", "priority": "Høy", "reason": "IT-bransje"}],
-        "gap_count": 1, "total_count": 3, "covered_count": 2,
+        "items": [
+            {
+                "type": "Cyber",
+                "status": "gap",
+                "priority": "Høy",
+                "reason": "IT-bransje",
+            }
+        ],
+        "gap_count": 1,
+        "total_count": 3,
+        "covered_count": 2,
     }
     result = execute_tool("run_coverage_gap", "{}", db, 1, "123")
     assert "Cyber" in result
@@ -53,18 +68,26 @@ def test_coverage_gap_with_gaps(mock_gap, db):
 
 @patch("api.services.coverage_gap.analyze_coverage_gap")
 def test_coverage_gap_no_gaps(mock_gap, db):
-    mock_gap.return_value = {"items": [], "gap_count": 0, "total_count": 3, "covered_count": 3}
+    mock_gap.return_value = {
+        "items": [],
+        "gap_count": 0,
+        "total_count": 3,
+        "covered_count": 3,
+    }
     result = execute_tool("run_coverage_gap", "{}", db, 1, "123")
     assert "Ingen dekningsgap" in result
 
 
 # ── recommend_insurers ────────────────────────────────────────────────────────
 
+
 @patch("api.services.insurer_matching.recommend_insurers")
 def test_recommend_insurers_returns_list(mock_rec, db):
-    mock_rec.return_value = {"recommendations": [
-        {"insurer_name": "If", "score": 0.8, "reasoning": "Godt valg"},
-    ]}
+    mock_rec.return_value = {
+        "recommendations": [
+            {"insurer_name": "If", "score": 0.8, "reasoning": "Godt valg"},
+        ]
+    }
     result = execute_tool("recommend_insurers", "{}", db, 1, "123")
     assert "If" in result
 
@@ -77,6 +100,7 @@ def test_recommend_insurers_empty(mock_rec, db):
 
 
 # ── create_deal ───────────────────────────────────────────────────────────────
+
 
 @patch("api.services.deal_service.DealService")
 def test_create_deal_success(MockDealService, db):
@@ -98,7 +122,9 @@ def test_create_deal_no_stages(MockDealService, db):
 
 # ── log_activity ──────────────────────────────────────────────────────────────
 
+
 def test_log_activity_dispatches(db):
     """Verify log_activity is registered and callable."""
     from api.services.copilot_tools import _HANDLERS
+
     assert "log_activity" in _HANDLERS

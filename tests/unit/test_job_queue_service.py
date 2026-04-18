@@ -2,6 +2,7 @@
 
 Pure static tests — DB and handler functions are mocked.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
@@ -34,9 +35,11 @@ def _mock_job(**kwargs):
 
 # ── register_handler ──────────────────────────────────────────────────────────
 
+
 def test_register_handler_stores_function():
     def fn(db, payload):
         return None
+
     register_handler("test_register_unique", fn)
     assert _HANDLERS["test_register_unique"] is fn
     del _HANDLERS["test_register_unique"]
@@ -45,8 +48,10 @@ def test_register_handler_stores_function():
 def test_register_handler_overwrites_existing():
     def fn1(db, p):
         return None
+
     def fn2(db, p):
         return "v2"
+
     register_handler("overwrite_test", fn1)
     register_handler("overwrite_test", fn2)
     assert _HANDLERS["overwrite_test"] is fn2
@@ -54,6 +59,7 @@ def test_register_handler_overwrites_existing():
 
 
 # ── JobQueueService.enqueue ───────────────────────────────────────────────────
+
 
 def test_enqueue_adds_job_and_commits():
     db = _mock_db()
@@ -96,6 +102,7 @@ def test_enqueue_accepts_none_payload():
 
 
 # ── _execute_job ──────────────────────────────────────────────────────────────
+
 
 def test_execute_job_calls_handler_with_db_and_payload():
     handler = MagicMock()
@@ -157,6 +164,7 @@ def test_execute_job_calls_fail_job_when_handler_raises():
 
 # ── _fail_job ─────────────────────────────────────────────────────────────────
 
+
 def test_fail_job_sets_failed_status_when_max_attempts_reached():
     job = _mock_job(attempts=3, max_attempts=3)
     db = _mock_db()
@@ -202,6 +210,7 @@ def test_fail_job_commits():
 
 # ── JobQueueService.process_pending ──────────────────────────────────────────
 
+
 def test_process_pending_returns_zero_when_no_job():
     db_factory = MagicMock()
     db = _mock_db()
@@ -234,7 +243,9 @@ def test_process_pending_closes_db_on_exception():
     db = _mock_db()
     db_factory.return_value = db
 
-    with patch("api.services.job_queue_service._claim_next", side_effect=Exception("DB error")):
+    with patch(
+        "api.services.job_queue_service._claim_next", side_effect=Exception("DB error")
+    ):
         result = JobQueueService.process_pending(db_factory=db_factory)
 
     assert result == 0

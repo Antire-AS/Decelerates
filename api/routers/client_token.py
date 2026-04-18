@@ -1,4 +1,5 @@
 """Client-token endpoints — generate and resolve read-only shareable profile links."""
+
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,8 +32,13 @@ def create_client_token(
     if not db.query(Company).filter(Company.orgnr == orgnr).first():
         raise HTTPException(status_code=404, detail="Company not in database")
     row = create_token(orgnr, label or None, db)
-    log_audit(db, "create_client_token", orgnr=orgnr, actor_email=user.email,
-              detail={"label": label or None})
+    log_audit(
+        db,
+        "create_client_token",
+        orgnr=orgnr,
+        actor_email=user.email,
+        detail={"label": label or None},
+    )
     return {"token": row.token, "orgnr": orgnr, "expires_days": _TOKEN_TTL_DAYS}
 
 
@@ -45,28 +51,46 @@ def _fetch_crm_snapshot(orgnr: str, db: Session) -> dict:
         .all()
     )
     claims = (
-        db.query(Claim).filter(Claim.orgnr == orgnr)
-        .order_by(Claim.created_at.desc()).limit(10).all()
+        db.query(Claim)
+        .filter(Claim.orgnr == orgnr)
+        .order_by(Claim.created_at.desc())
+        .limit(10)
+        .all()
     )
     docs = (
-        db.query(InsuranceDocument).filter(InsuranceDocument.orgnr == orgnr)
-        .order_by(InsuranceDocument.uploaded_at.desc()).limit(10).all()
+        db.query(InsuranceDocument)
+        .filter(InsuranceDocument.orgnr == orgnr)
+        .order_by(InsuranceDocument.uploaded_at.desc())
+        .limit(10)
+        .all()
     )
     return {
         "policies": [
-            {"insurer": p.insurer, "product_type": p.product_type, "policy_number": p.policy_number,
-             "annual_premium_nok": p.annual_premium_nok,
-             "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None}
+            {
+                "insurer": p.insurer,
+                "product_type": p.product_type,
+                "policy_number": p.policy_number,
+                "annual_premium_nok": p.annual_premium_nok,
+                "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
+            }
             for p in policies
         ],
         "claims": [
-            {"claim_number": c.claim_number, "status": c.status.value,
-             "incident_date": c.incident_date.isoformat() if c.incident_date else None,
-             "description": c.description}
+            {
+                "claim_number": c.claim_number,
+                "status": c.status.value,
+                "incident_date": c.incident_date.isoformat()
+                if c.incident_date
+                else None,
+                "description": c.description,
+            }
             for c in claims
         ],
         "documents": [
-            {"title": d.title, "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None}
+            {
+                "title": d.title,
+                "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
+            }
             for d in docs
         ],
     }
@@ -90,8 +114,13 @@ def get_client_profile(
     org = profile.get("org") or {}
     risk = profile.get("risk") or {}
     actor = user.email if user else "client"
-    log_audit(db, "view_client_profile", orgnr=row.orgnr, actor_email=actor,
-              detail={"token_label": row.label})
+    log_audit(
+        db,
+        "view_client_profile",
+        orgnr=row.orgnr,
+        actor_email=actor,
+        detail={"token_label": row.label},
+    )
     crm = _fetch_crm_snapshot(row.orgnr, db)
     return {
         "orgnr": row.orgnr,
@@ -113,7 +142,11 @@ def list_client_tokens(orgnr: str, db: Session = Depends(get_db)) -> list:
     """List all active tokens for a company."""
     rows = list_active_tokens(orgnr, db)
     return [
-        {"token": r.token, "label": r.label, "expires_at": r.expires_at.isoformat(),
-         "created_at": r.created_at.isoformat()}
+        {
+            "token": r.token,
+            "label": r.label,
+            "expires_at": r.expires_at.isoformat(),
+            "created_at": r.created_at.isoformat(),
+        }
         for r in rows
     ]

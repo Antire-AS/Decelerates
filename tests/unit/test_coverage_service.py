@@ -1,4 +1,5 @@
 """Unit tests for api/services/coverage_service.py — AI coverage analysis."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +8,6 @@ import pytest
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-from api.db import CoverageAnalysis
 from api.services.coverage_service import (
     CoverageService,
     _extract_text,
@@ -27,12 +27,14 @@ def svc(db):
 
 
 class TestCreateAnalysis:
-    @patch("api.services.coverage_service._extract_text", return_value="Dekning: ansvar")
+    @patch(
+        "api.services.coverage_service._extract_text", return_value="Dekning: ansvar"
+    )
     def test_creates_pending_analysis(self, mock_extract, svc, db):
         db.commit = MagicMock()
         db.refresh = MagicMock()
 
-        result = svc.create_analysis(
+        svc.create_analysis(
             orgnr="984851006",
             firm_id=1,
             title="Ansvarsforsikring",
@@ -68,7 +70,7 @@ class TestRunAnalysis:
             "forsikringssum_nok": 5000000,
         }
 
-        result = svc.run_analysis(1)
+        svc.run_analysis(1)
         assert analysis.status == "analysed"
         assert analysis.premium_nok == 50000
         assert analysis.insurer == "If"
@@ -84,7 +86,7 @@ class TestRunAnalysis:
 
         mock_ai.return_value = None
 
-        result = svc.run_analysis(1)
+        svc.run_analysis(1)
         assert analysis.status == "error"
 
 

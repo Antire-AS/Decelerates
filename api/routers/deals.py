@@ -4,6 +4,7 @@ Plan §🟢 #9. Every endpoint declares response_model so the api-types-fresh
 CI gate locks the contract end-to-end. Audit logging happens inside the
 service so the audit trail can't be skipped by adding a new caller.
 """
+
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -34,33 +35,33 @@ def _svc(db: Session = Depends(get_db)) -> DealService:
 
 def _serialize_stage(s) -> dict:
     return {
-        "id":          s.id,
-        "firm_id":     s.firm_id,
-        "name":        s.name,
-        "kind":        s.kind.value,
+        "id": s.id,
+        "firm_id": s.firm_id,
+        "name": s.name,
+        "kind": s.kind.value,
         "order_index": s.order_index,
-        "color":       s.color,
-        "created_at":  s.created_at,
+        "color": s.color,
+        "created_at": s.created_at,
     }
 
 
 def _serialize_deal(d) -> dict:
     return {
-        "id":                   d.id,
-        "firm_id":              d.firm_id,
-        "orgnr":                d.orgnr,
-        "stage_id":             d.stage_id,
-        "owner_user_id":        d.owner_user_id,
-        "title":                d.title,
+        "id": d.id,
+        "firm_id": d.firm_id,
+        "orgnr": d.orgnr,
+        "stage_id": d.stage_id,
+        "owner_user_id": d.owner_user_id,
+        "title": d.title,
         "expected_premium_nok": d.expected_premium_nok,
-        "expected_close_date":  d.expected_close_date,
-        "source":               d.source,
-        "notes":                d.notes,
-        "created_at":           d.created_at,
-        "updated_at":           d.updated_at,
-        "won_at":               d.won_at,
-        "lost_at":              d.lost_at,
-        "lost_reason":          d.lost_reason,
+        "expected_close_date": d.expected_close_date,
+        "source": d.source,
+        "notes": d.notes,
+        "created_at": d.created_at,
+        "updated_at": d.updated_at,
+        "won_at": d.won_at,
+        "lost_at": d.lost_at,
+        "lost_reason": d.lost_reason,
     }
 
 
@@ -186,7 +187,12 @@ def move_deal_stage(
         deal = svc.move_to_stage(deal_id, user.firm_id, body.stage_id, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
-    log_audit(db, "deal.move", orgnr=deal.orgnr, detail={"deal_id": deal_id, "stage_id": body.stage_id})
+    log_audit(
+        db,
+        "deal.move",
+        orgnr=deal.orgnr,
+        detail={"deal_id": deal_id, "stage_id": body.stage_id},
+    )
     return _serialize_deal(deal)
 
 
@@ -202,7 +208,12 @@ def lose_deal(
         deal = svc.lose_deal(deal_id, user.firm_id, body.reason, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
-    log_audit(db, "deal.lose", orgnr=deal.orgnr, detail={"deal_id": deal_id, "reason": body.reason})
+    log_audit(
+        db,
+        "deal.lose",
+        orgnr=deal.orgnr,
+        detail={"deal_id": deal_id, "reason": body.reason},
+    )
     return _serialize_deal(deal)
 
 

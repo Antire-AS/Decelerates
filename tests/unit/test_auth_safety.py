@@ -27,6 +27,7 @@ def _set_env(monkeypatch, environment, auth_disabled):
 
 # ── _is_auth_disabled — pure logic ────────────────────────────────────────────
 
+
 def test_auth_cannot_be_disabled_in_production(monkeypatch):
     """The whole point of the gate: prod ignores AUTH_DISABLED entirely."""
     _set_env(monkeypatch, "production", "1")
@@ -72,6 +73,7 @@ def test_auth_disabled_rejects_invalid_values(monkeypatch):
 
 # ── get_current_user — end-to-end gate behavior ───────────────────────────────
 
+
 def test_get_current_user_returns_dev_user_when_disabled(monkeypatch):
     """Bypass mode returns the canonical dev user without touching JWT.
 
@@ -97,7 +99,9 @@ def test_get_current_user_returns_dev_user_when_disabled(monkeypatch):
     assert user.firm_id == 1
     # Confirm the user-row provisioning was actually invoked.
     fake_service.get_or_create.assert_called_once_with(
-        oid="dev-oid", email="dev@local", name="Dev User",
+        oid="dev-oid",
+        email="dev@local",
+        name="Dev User",
     )
 
 

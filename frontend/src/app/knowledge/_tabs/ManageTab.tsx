@@ -175,33 +175,36 @@ export default function ManageTab() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1">Orgnr (9 siffer)</label>
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-orgnr">Orgnr (9 siffer)</label>
             <input
+              id="manage-ingest-orgnr"
               value={ingestOrgnr}
               onChange={(e) => setIngestOrgnr(e.target.value.replace(/\D/g, "").slice(0, 9))}
               maxLength={9}
               placeholder="123456789"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1">Kildelabel</label>
+            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-source">Kildelabel</label>
             <input
+              id="manage-ingest-source"
               value={ingestSource}
               onChange={(e) => setIngestSource(e.target.value)}
               placeholder="custom_note"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
             />
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8A7F74] mb-1">Tekst å legge inn</label>
+          <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-text">Tekst å legge inn</label>
           <textarea
+            id="manage-ingest-text"
             value={ingestText}
             onChange={(e) => setIngestText(e.target.value)}
             rows={5}
             placeholder="Lim inn notater, sammendrag eller fritekst…"
-            className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5] resize-y"
+            className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-y"
           />
         </div>
         <button

@@ -1,4 +1,5 @@
 """Unit tests for api/services/risk_monitor.py — weekly BRREG refresh + risk alerts."""
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,7 @@ from api.services.risk_monitor import (
 
 # ── _fetch_brreg_data ─────────────────────────────────────────────────────────
 
+
 @patch("api.services.brreg_client.fetch_regnskap_keyfigures", return_value={"rev": 100})
 @patch("api.services.brreg_client.fetch_enhet_by_orgnr", return_value={"navn": "Test"})
 def test_fetch_brreg_success(mock_enhet, mock_regn):
@@ -24,18 +26,24 @@ def test_fetch_brreg_success(mock_enhet, mock_regn):
     assert regn["rev"] == 100
 
 
-@patch("api.services.brreg_client.fetch_enhet_by_orgnr", side_effect=Exception("timeout"))
+@patch(
+    "api.services.brreg_client.fetch_enhet_by_orgnr", side_effect=Exception("timeout")
+)
 def test_fetch_brreg_failure(mock_enhet):
     assert _fetch_brreg_data("123") is None
 
 
 # ── _update_company_fields ────────────────────────────────────────────────────
 
+
 def test_update_company_fields():
     company = SimpleNamespace(
-        risk_score=None, equity_ratio=None,
-        sum_driftsinntekter=None, sum_egenkapital=None,
-        sum_eiendeler=None, last_refreshed_at=None,
+        risk_score=None,
+        equity_ratio=None,
+        sum_driftsinntekter=None,
+        sum_egenkapital=None,
+        sum_eiendeler=None,
+        last_refreshed_at=None,
     )
     regn = {"sum_driftsinntekter": 100, "sum_egenkapital": 40, "sum_eiendeler": 200}
     _update_company_fields(company, regn, 7, 0.2)
@@ -47,9 +55,12 @@ def test_update_company_fields():
 
 def test_update_company_fields_skips_none_regn():
     company = SimpleNamespace(
-        risk_score=5, equity_ratio=0.3,
-        sum_driftsinntekter=50, sum_egenkapital=20,
-        sum_eiendeler=100, last_refreshed_at=None,
+        risk_score=5,
+        equity_ratio=0.3,
+        sum_driftsinntekter=50,
+        sum_egenkapital=20,
+        sum_eiendeler=100,
+        last_refreshed_at=None,
     )
     _update_company_fields(company, {}, 6, 0.25)
     assert company.risk_score == 6
@@ -58,14 +69,20 @@ def test_update_company_fields_skips_none_regn():
 
 # ── _refresh_company ──────────────────────────────────────────────────────────
 
+
 @patch("api.risk.derive_simple_risk")
 @patch("api.services.risk_monitor._fetch_brreg_data")
 def test_refresh_company_detects_change(mock_brreg, mock_risk):
     db = MagicMock()
     company = SimpleNamespace(
-        orgnr="123", navn="Test AS", risk_score=3,
-        equity_ratio=0.2, sum_driftsinntekter=100,
-        sum_egenkapital=40, sum_eiendeler=200, last_refreshed_at=None,
+        orgnr="123",
+        navn="Test AS",
+        risk_score=3,
+        equity_ratio=0.2,
+        sum_driftsinntekter=100,
+        sum_egenkapital=40,
+        sum_eiendeler=200,
+        last_refreshed_at=None,
     )
     db.query.return_value.filter.return_value.first.return_value = company
     mock_brreg.return_value = ({"navn": "Test AS"}, {"sum_driftsinntekter": 120})
@@ -83,9 +100,14 @@ def test_refresh_company_detects_change(mock_brreg, mock_risk):
 def test_refresh_company_no_significant_change(mock_brreg, mock_risk):
     db = MagicMock()
     company = SimpleNamespace(
-        orgnr="123", navn="Test AS", risk_score=5,
-        equity_ratio=0.2, sum_driftsinntekter=100,
-        sum_egenkapital=40, sum_eiendeler=200, last_refreshed_at=None,
+        orgnr="123",
+        navn="Test AS",
+        risk_score=5,
+        equity_ratio=0.2,
+        sum_driftsinntekter=100,
+        sum_egenkapital=40,
+        sum_eiendeler=200,
+        last_refreshed_at=None,
     )
     db.query.return_value.filter.return_value.first.return_value = company
     mock_brreg.return_value = ({}, {})
@@ -99,7 +121,8 @@ def test_refresh_company_no_significant_change(mock_brreg, mock_risk):
 def test_refresh_company_brreg_failure(mock_brreg):
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(
-        orgnr="123", risk_score=5)
+        orgnr="123", risk_score=5
+    )
     assert _refresh_company("123", db) is None
 
 
@@ -110,6 +133,7 @@ def test_refresh_company_not_found():
 
 
 # ── _notify_risk_changes ──────────────────────────────────────────────────────
+
 
 @patch("api.services.notification_inbox_service.create_notification_for_users_safe")
 def test_notify_creates_notifications(mock_notify):
@@ -125,10 +149,13 @@ def test_notify_creates_notifications(mock_notify):
     assert "økt" in first_call.kwargs.get("message", "") or "økt" in str(first_call)
     # Second call: score decreased
     second_call = mock_notify.call_args_list[1]
-    assert "redusert" in second_call.kwargs.get("message", "") or "redusert" in str(second_call)
+    assert "redusert" in second_call.kwargs.get("message", "") or "redusert" in str(
+        second_call
+    )
 
 
 # ── refresh_all_portfolios ────────────────────────────────────────────────────
+
 
 @patch("api.services.risk_monitor._notify_risk_changes")
 @patch("api.services.risk_monitor._refresh_company")

@@ -1,4 +1,5 @@
 """Commission and revenue tracking service."""
+
 from datetime import date, datetime, timedelta, timezone
 from typing import List
 
@@ -8,7 +9,6 @@ from api.db import Policy, PolicyStatus
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _calc_policy_commission(p: Policy) -> float:
@@ -32,11 +32,7 @@ class CommissionService:
 
     def get_commission_summary(self, firm_id: int) -> dict:
         """Aggregate commission metrics for the broker firm."""
-        policies = (
-            self.db.query(Policy)
-            .filter(Policy.firm_id == firm_id)
-            .all()
-        )
+        policies = self.db.query(Policy).filter(Policy.firm_id == firm_id).all()
         now = datetime.now(timezone.utc)
         ytd_total = premium_managed = new_comm = renewal_comm = 0.0
         active_count = 0
@@ -58,13 +54,13 @@ class CommissionService:
                 new_comm += comm
 
         return {
-            "total_commission_ytd":    round(ytd_total, 2),
-            "total_premium_managed":   round(premium_managed, 2),
-            "active_policy_count":     active_count,
+            "total_commission_ytd": round(ytd_total, 2),
+            "total_premium_managed": round(premium_managed, 2),
+            "active_policy_count": active_count,
             "revenue_by_product_type": {k: round(v, 2) for k, v in by_product.items()},
-            "revenue_by_insurer":      {k: round(v, 2) for k, v in by_insurer.items()},
+            "revenue_by_insurer": {k: round(v, 2) for k, v in by_insurer.items()},
             "renewal_commission_vs_new": {
-                "new":     round(new_comm, 2),
+                "new": round(new_comm, 2),
                 "renewal": round(renewal_comm, 2),
             },
         }
@@ -86,22 +82,24 @@ class CommissionService:
             total_lifetime += comm
             if p.created_at and p.created_at.year == now.year:
                 total_ytd += comm
-            policy_list.append({
-                "id":                  p.id,
-                "policy_number":       p.policy_number,
-                "product_type":        p.product_type,
-                "insurer":             p.insurer,
-                "status":              p.status.value,
-                "annual_premium_nok":  p.annual_premium_nok,
-                "commission_rate_pct": p.commission_rate_pct,
-                "commission_amount_nok": round(comm, 2),
-            })
+            policy_list.append(
+                {
+                    "id": p.id,
+                    "policy_number": p.policy_number,
+                    "product_type": p.product_type,
+                    "insurer": p.insurer,
+                    "status": p.status.value,
+                    "annual_premium_nok": p.annual_premium_nok,
+                    "commission_rate_pct": p.commission_rate_pct,
+                    "commission_amount_nok": round(comm, 2),
+                }
+            )
 
         return {
-            "orgnr":                  orgnr,
+            "orgnr": orgnr,
             "total_commission_lifetime": round(total_lifetime, 2),
-            "total_commission_ytd":   round(total_ytd, 2),
-            "policies":               policy_list,
+            "total_commission_ytd": round(total_ytd, 2),
+            "policies": policy_list,
         }
 
     def list_policies_missing_commission(self, firm_id: int) -> list[Policy]:
@@ -118,7 +116,9 @@ class CommissionService:
             .all()
         )
 
-    def get_forward_projections(self, firm_id: int, months_ahead: int = 12) -> List[dict]:
+    def get_forward_projections(
+        self, firm_id: int, months_ahead: int = 12
+    ) -> List[dict]:
         """Plan §🟢 #12 — quarterly projection of expected commission from
         ACTIVE policies whose renewal_date falls in the next `months_ahead`."""
         today = date.today()
@@ -163,6 +163,10 @@ def _empty_quarter_buckets(start: date, end: date) -> dict[str, dict]:
     while cursor <= end:
         key = _quarter_key(cursor)
         if key not in buckets:
-            buckets[key] = {"period": key, "expected_commission": 0.0, "policy_count": 0}
+            buckets[key] = {
+                "period": key,
+                "expected_commission": 0.0,
+                "policy_count": 0,
+            }
         cursor = (cursor.replace(day=1) + timedelta(days=32)).replace(day=1)
     return buckets

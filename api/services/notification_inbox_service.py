@@ -5,6 +5,7 @@ notification_service.py (which is the legacy ACS-email wrapper from the
 hexagonal Phase 1 migration). Phase 2 will collapse the two; until then
 the file naming keeps imports unambiguous.
 """
+
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -15,7 +16,6 @@ from api.domain.exceptions import NotFoundError
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class NotificationInboxService:
@@ -76,12 +76,23 @@ class NotificationInboxService:
 
     @staticmethod
     def _build_notification(
-        uid: int, firm_id: int, kind: NotificationKind,
-        title: str, message: Optional[str], link: Optional[str], orgnr: Optional[str],
+        uid: int,
+        firm_id: int,
+        kind: NotificationKind,
+        title: str,
+        message: Optional[str],
+        link: Optional[str],
+        orgnr: Optional[str],
     ) -> Notification:
         return Notification(
-            user_id=uid, firm_id=firm_id, orgnr=orgnr, kind=kind,
-            title=title, message=message, link=link, read=False,
+            user_id=uid,
+            firm_id=firm_id,
+            orgnr=orgnr,
+            kind=kind,
+            title=title,
+            message=message,
+            link=link,
+            read=False,
             created_at=datetime.now(timezone.utc),
         )
 

@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -26,6 +27,7 @@ def _mock_sla(**kwargs):
 
 
 # ── mark_signed ───────────────────────────────────────────────────────────────
+
 
 def test_mark_signed_returns_none_when_not_found():
     db = _mock_db()
@@ -89,9 +91,11 @@ def test_mark_signed_returns_updated_sla():
 
 # ── create_agreement ──────────────────────────────────────────────────────────
 
+
 def _sla_in(overrides=None):
     """Build a minimal SlaIn-like mock."""
     from types import SimpleNamespace
+
     fd = {
         "client_orgnr": "123456789",
         "client_navn": "Test AS",

@@ -12,6 +12,7 @@ from api.services.external_apis import (
 
 # ── _pick_latest_regnskap ─────────────────────────────────────────────────────
 
+
 def test_pick_latest_regnskap():
     regnskaper = [
         {"regnskapsperiode": {"tilDato": "2021-12-31"}, "aarsresultat": 100},
@@ -24,17 +25,27 @@ def test_pick_latest_regnskap():
 
 # ── _extract_resultat ─────────────────────────────────────────────────────────
 
+
 def test_extract_resultat_full():
     chosen = {
         "resultatregnskapResultat": {
             "driftsresultat": {
-                "driftsinntekter": {"salgsinntekter": 900_000, "sumDriftsinntekter": 1_000_000},
-                "driftskostnad": {"loennskostnad": 400_000, "sumDriftskostnad": 700_000},
+                "driftsinntekter": {
+                    "salgsinntekter": 900_000,
+                    "sumDriftsinntekter": 1_000_000,
+                },
+                "driftskostnad": {
+                    "loennskostnad": 400_000,
+                    "sumDriftskostnad": 700_000,
+                },
                 "driftsresultat": 300_000,
             },
             "finansresultat": {
                 "finansinntekt": {"sumFinansinntekter": 10_000},
-                "finanskostnad": {"annenRentekostnad": 5_000, "sumFinanskostnad": 5_000},
+                "finanskostnad": {
+                    "annenRentekostnad": 5_000,
+                    "sumFinanskostnad": 5_000,
+                },
                 "nettoFinans": 5_000,
             },
             "aarsresultat": 280_000,
@@ -52,6 +63,7 @@ def test_extract_resultat_full():
 
 
 # ── _extract_balanse ──────────────────────────────────────────────────────────
+
 
 def test_extract_balanse_full():
     chosen = {
@@ -81,6 +93,7 @@ def test_extract_balanse_full():
 
 # ── _extract_eiendeler ────────────────────────────────────────────────────────
 
+
 def test_extract_eiendeler_full():
     chosen = {
         "eiendeler": {
@@ -103,6 +116,7 @@ def test_extract_eiendeler_full():
 
 # ── _nace_to_section ──────────────────────────────────────────────────────────
 
+
 def test_nace_to_section_finance():
     # NACE 64.11 = Sentralbankvirksomhet → section K (64–66)
     assert _nace_to_section("64.11") == "K"
@@ -114,6 +128,7 @@ def test_nace_to_section_education():
 
 
 # ── fetch_ssb_benchmark ───────────────────────────────────────────────────────
+
 
 def test_fetch_ssb_benchmark_no_nace_returns_none():
     result = fetch_ssb_benchmark("")

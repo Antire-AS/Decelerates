@@ -1,4 +1,5 @@
 """Certificate of Insurance (Forsikringsbevis / Dekningsoversikt) PDF generation."""
+
 from datetime import date
 from typing import Any, List
 
@@ -8,7 +9,6 @@ from api.services.pdf_base import _safe, _section_title, _DARK_BLUE, _LIGHT_BLUE
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 def _fmt_nok(v: Any) -> str:
@@ -35,9 +35,13 @@ def generate_certificate_pdf(
     pdf.set_fill_color(*_DARK_BLUE)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 20)
-    pdf.cell(0, 14, "Forsikringsbevis", fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 14, "Forsikringsbevis", fill=True, align="C", new_x="LMARGIN", new_y="NEXT"
+    )
     pdf.set_font("Helvetica", "", 11)
-    pdf.cell(0, 8, "Dekningsoversikt", fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 8, "Dekningsoversikt", fill=True, align="C", new_x="LMARGIN", new_y="NEXT"
+    )
     pdf.set_text_color(0, 0, 0)
     pdf.ln(6)
 
@@ -61,7 +65,9 @@ def generate_certificate_pdf(
 
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(0, 6, f"Generert: {date.today().isoformat()}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 6, f"Generert: {date.today().isoformat()}", new_x="LMARGIN", new_y="NEXT"
+    )
     pdf.set_text_color(0, 0, 0)
     pdf.ln(6)
 
@@ -70,7 +76,14 @@ def generate_certificate_pdf(
 
     # Column widths: product, insurer, policy_nr, coverage, premium, period
     col_w = [38, 32, 28, 28, 24, 20]
-    headers = ["Produkt", "Forsikringsselskap", "Polisenr.", "Dekning", "Premie/år", "Utløper"]
+    headers = [
+        "Produkt",
+        "Forsikringsselskap",
+        "Polisenr.",
+        "Dekning",
+        "Premie/år",
+        "Utløper",
+    ]
 
     pdf.set_fill_color(*_LIGHT_BLUE)
     pdf.set_font("Helvetica", "B", 8)
@@ -99,14 +112,17 @@ def generate_certificate_pdf(
 
     if not any(p.get("status", "active") == "active" for p in policies):
         pdf.set_font("Helvetica", "I", 9)
-        pdf.cell(0, 8, "Ingen aktive forsikringer registrert.", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(
+            0, 8, "Ingen aktive forsikringer registrert.", new_x="LMARGIN", new_y="NEXT"
+        )
 
     # ── Footer disclaimer ─────────────────────────────────────────────────────
     pdf.ln(10)
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(140, 140, 140)
     pdf.multi_cell(
-        0, 5,
+        0,
+        5,
         "Dette dokumentet er en oversikt generert av forsikringsmegler og er ikke et "
         "forsikringsbevis utstedt av forsikringsselskapet. For bindende dekningsinformasjon, "
         "se de enkelte forsikringsavtalene.",

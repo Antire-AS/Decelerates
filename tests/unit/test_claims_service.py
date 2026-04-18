@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -15,38 +16,39 @@ from api.services.claims_service import ClaimsService
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_policy(**kwargs):
     p = MagicMock(spec=Policy)
-    p.id      = kwargs.get("id", 5)
+    p.id = kwargs.get("id", 5)
     p.firm_id = kwargs.get("firm_id", 10)
     return p
 
 
 def _mock_claim(**kwargs):
     c = MagicMock(spec=Claim)
-    c.id        = kwargs.get("id", 1)
-    c.orgnr     = kwargs.get("orgnr", "123456789")
-    c.firm_id   = kwargs.get("firm_id", 10)
+    c.id = kwargs.get("id", 1)
+    c.orgnr = kwargs.get("orgnr", "123456789")
+    c.firm_id = kwargs.get("firm_id", 10)
     c.policy_id = kwargs.get("policy_id", 5)
-    c.status    = kwargs.get("status", ClaimStatus.open)
+    c.status = kwargs.get("status", ClaimStatus.open)
     return c
 
 
 def _claim_in(**kwargs):
     return SimpleNamespace(
-        policy_id            = kwargs.get("policy_id", 5),
-        claim_number         = kwargs.get("claim_number", "CLM-001"),
-        incident_date        = kwargs.get("incident_date", date(2026, 1, 15)),
-        reported_date        = kwargs.get("reported_date", date(2026, 1, 20)),
-        status               = kwargs.get("status", "open"),
-        description          = kwargs.get("description", "Water damage"),
-        estimated_amount_nok = kwargs.get("estimated_amount_nok", 50_000.0),
-        insurer_contact      = kwargs.get("insurer_contact", None),
-        notes                = kwargs.get("notes", None),
+        policy_id=kwargs.get("policy_id", 5),
+        claim_number=kwargs.get("claim_number", "CLM-001"),
+        incident_date=kwargs.get("incident_date", date(2026, 1, 15)),
+        reported_date=kwargs.get("reported_date", date(2026, 1, 20)),
+        status=kwargs.get("status", "open"),
+        description=kwargs.get("description", "Water damage"),
+        estimated_amount_nok=kwargs.get("estimated_amount_nok", 50_000.0),
+        insurer_contact=kwargs.get("insurer_contact", None),
+        notes=kwargs.get("notes", None),
     )
 
 
@@ -54,26 +56,25 @@ def _db_with_policy_and_claim(policy=None, claim=None):
     """Return a mock DB that yields a policy on first query and claim on second."""
     db = _mock_db()
     policy = policy or _mock_policy()
-    claim  = claim  or _mock_claim()
+    claim = claim or _mock_claim()
     db.query.return_value.filter.return_value.first.side_effect = [policy, claim]
     return db
 
 
 # ── list_by_orgnr ─────────────────────────────────────────────────────────────
 
+
 def test_list_by_orgnr_returns_results():
     db = _mock_db()
     claims = [_mock_claim(), _mock_claim(id=2)]
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .offset.return_value.limit.return_value.all.return_value = claims
+    db.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = claims
     result = ClaimsService(db).list_by_orgnr("123456789", 10)
     assert result == claims
 
 
 def test_list_by_orgnr_default_pagination():
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value \
-        .offset.return_value.limit.return_value.all.return_value = []
+    db.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
     ClaimsService(db).list_by_orgnr("123456789", 10)
     chain = db.query.return_value.filter.return_value.order_by.return_value
     chain.offset.assert_called_once_with(0)
@@ -82,15 +83,19 @@ def test_list_by_orgnr_default_pagination():
 
 # ── list_by_policy ────────────────────────────────────────────────────────────
 
+
 def test_list_by_policy_returns_results():
     db = _mock_db()
     claims = [_mock_claim()]
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = claims
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = (
+        claims
+    )
     result = ClaimsService(db).list_by_policy(5, 10)
     assert result == claims
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+
 
 def test_create_validates_policy_exists():
     db = _mock_db()
@@ -159,6 +164,7 @@ def test_create_sets_description():
 
 # ── update ────────────────────────────────────────────────────────────────────
 
+
 def test_update_sets_field_on_claim():
     claim = _mock_claim()
     db = _mock_db()
@@ -208,6 +214,7 @@ def test_update_stamps_updated_at():
 
 # ── delete ────────────────────────────────────────────────────────────────────
 
+
 def test_delete_calls_db_delete():
     claim = _mock_claim()
     db = _mock_db()
@@ -232,6 +239,7 @@ def test_delete_raises_not_found_when_missing():
 
 
 # ── _parse_status ─────────────────────────────────────────────────────────────
+
 
 def test_parse_status_open():
     assert ClaimsService._parse_status("open") == ClaimStatus.open

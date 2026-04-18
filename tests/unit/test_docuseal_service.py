@@ -5,6 +5,7 @@ duck-typed protocol so the router can swap between them with a single
 env var change. Tests focus on the security-critical bits (HMAC webhook
 verification + config gate) and on the response-shape parsing.
 """
+
 import hashlib
 import hmac
 from unittest.mock import MagicMock, patch
@@ -46,7 +47,10 @@ def test_is_configured_requires_api_key_and_webhook_secret():
 def test_create_signing_session_raises_when_not_configured():
     with pytest.raises(RuntimeError, match="not configured"):
         DocuSealService(DocuSealConfig()).create_signing_session(
-            b"pdf", "client@x.no", "Client", "title",
+            b"pdf",
+            "client@x.no",
+            "Client",
+            "title",
         )
 
 
@@ -98,25 +102,27 @@ def test_parse_webhook_completed_maps_to_signed_status():
         "event_type": "form.completed",
         "data": {
             "submission_id": 42,
-            "completed_at":  "2026-04-08T12:00:00Z",
+            "completed_at": "2026-04-08T12:00:00Z",
             "documents": [
                 {"name": "anbefaling.pdf", "url": "https://docuseal.example/d/42.pdf"}
             ],
         },
     }
     parsed = svc.parse_webhook(payload)
-    assert parsed["session_id"]     == "42"
-    assert parsed["status"]         == "signed"
+    assert parsed["session_id"] == "42"
+    assert parsed["status"] == "signed"
     assert parsed["signed_pdf_url"] == "https://docuseal.example/d/42.pdf"
-    assert parsed["signed_at"]      == "2026-04-08T12:00:00Z"
+    assert parsed["signed_at"] == "2026-04-08T12:00:00Z"
 
 
 def test_parse_webhook_declined_maps_to_rejected_status():
     svc = DocuSealService(_full_config())
-    parsed = svc.parse_webhook({
-        "event_type": "form.declined",
-        "data": {"submission_id": 7},
-    })
+    parsed = svc.parse_webhook(
+        {
+            "event_type": "form.declined",
+            "data": {"submission_id": 7},
+        }
+    )
     assert parsed["status"] == "rejected"
 
 
@@ -145,19 +151,22 @@ def test_create_signing_session_posts_pdf_and_returns_session():
     resp = MagicMock()
     resp.json.return_value = [
         {
-            "id":            123,
+            "id": 123,
             "submission_id": 42,
-            "email":         "client@x.no",
-            "embed_src":     "https://docuseal.example/sign/abc123",
+            "email": "client@x.no",
+            "embed_src": "https://docuseal.example/sign/abc123",
         }
     ]
     resp.raise_for_status = MagicMock()
     with patch("api.services.docuseal_service.httpx.Client") as MockClient:
         MockClient.return_value.__enter__.return_value.post.return_value = resp
         result = svc.create_signing_session(
-            b"%PDF-1.4 fake", "client@x.no", "Client Name", "Anbefaling",
+            b"%PDF-1.4 fake",
+            "client@x.no",
+            "Client Name",
+            "Anbefaling",
         )
-    assert result["session_id"]  == "42"
+    assert result["session_id"] == "42"
     assert result["signing_url"] == "https://docuseal.example/sign/abc123"
 
 
@@ -172,9 +181,12 @@ def test_create_signing_session_handles_object_response_shape():
     with patch("api.services.docuseal_service.httpx.Client") as MockClient:
         MockClient.return_value.__enter__.return_value.post.return_value = resp
         result = svc.create_signing_session(
-            b"%PDF-1.4 fake", "c@x.no", "Client", "Title",
+            b"%PDF-1.4 fake",
+            "c@x.no",
+            "Client",
+            "Title",
         )
-    assert result["session_id"]  == "99"
+    assert result["session_id"] == "99"
     assert result["signing_url"] == "https://docuseal.example/sign/xyz"
 
 
@@ -182,15 +194,18 @@ def test_create_signing_session_sends_pdf_as_base64_in_documents_field():
     """Verify the PDF is base64-encoded into the `documents[].file` field
     (not multipart, not raw bytes) — DocuSeal's submission API requires base64."""
     import base64
+
     svc = DocuSealService(_full_config())
     resp = MagicMock()
     resp.json.return_value = [{"id": 1, "url": "https://x"}]
     resp.raise_for_status = MagicMock()
     captured = {}
+
     def _post(url, json=None, headers=None):  # noqa: ARG001
         captured["json"] = json
         captured["headers"] = headers
         return resp
+
     with patch("api.services.docuseal_service.httpx.Client") as MockClient:
         MockClient.return_value.__enter__.return_value.post = _post
         svc.create_signing_session(b"hello world", "x@y.no", "X", "Title")
@@ -207,6 +222,7 @@ def test_get_signing_service_defaults_to_signicat(monkeypatch):
     must keep getting Signicat."""
     monkeypatch.delenv("ESIGN_PROVIDER", raising=False)
     from api.services.signicat_service import SignicatService
+
     assert isinstance(get_signing_service(), SignicatService)
 
 

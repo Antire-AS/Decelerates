@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -14,38 +15,40 @@ from api.services.idd import IddService
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _mock_db():
     return MagicMock()
 
 
 def _mock_row(**kwargs):
     row = MagicMock(spec=IddBehovsanalyse)
-    row.id                = kwargs.get("id", 1)
-    row.orgnr             = kwargs.get("orgnr", "123456789")
-    row.firm_id           = kwargs.get("firm_id", 10)
-    row.created_by_email  = kwargs.get("created_by_email", "broker@firma.no")
-    row.client_name       = kwargs.get("client_name", "Test AS")
-    row.risk_appetite     = kwargs.get("risk_appetite", "medium")
+    row.id = kwargs.get("id", 1)
+    row.orgnr = kwargs.get("orgnr", "123456789")
+    row.firm_id = kwargs.get("firm_id", 10)
+    row.created_by_email = kwargs.get("created_by_email", "broker@firma.no")
+    row.client_name = kwargs.get("client_name", "Test AS")
+    row.risk_appetite = kwargs.get("risk_appetite", "medium")
     return row
 
 
 def _idd_data(**kwargs):
     return {
-        "client_name":           kwargs.get("client_name", "Test AS"),
-        "client_contact_name":   kwargs.get("client_contact_name", "Ola"),
-        "client_contact_email":  kwargs.get("client_contact_email", "ola@test.no"),
-        "risk_appetite":         kwargs.get("risk_appetite", "medium"),
-        "property_owned":        kwargs.get("property_owned", True),
-        "has_employees":         kwargs.get("has_employees", True),
-        "has_vehicles":          kwargs.get("has_vehicles", False),
+        "client_name": kwargs.get("client_name", "Test AS"),
+        "client_contact_name": kwargs.get("client_contact_name", "Ola"),
+        "client_contact_email": kwargs.get("client_contact_email", "ola@test.no"),
+        "risk_appetite": kwargs.get("risk_appetite", "medium"),
+        "property_owned": kwargs.get("property_owned", True),
+        "has_employees": kwargs.get("has_employees", True),
+        "has_vehicles": kwargs.get("has_vehicles", False),
         "has_professional_liability": kwargs.get("has_professional_liability", False),
-        "has_cyber_risk":        kwargs.get("has_cyber_risk", False),
-        "existing_insurance":    kwargs.get("existing_insurance", []),
-        "recommended_products":  kwargs.get("recommended_products", []),
+        "has_cyber_risk": kwargs.get("has_cyber_risk", False),
+        "existing_insurance": kwargs.get("existing_insurance", []),
+        "recommended_products": kwargs.get("recommended_products", []),
     }
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+
 
 def test_create_adds_to_db_and_commits():
     db = _mock_db()
@@ -91,7 +94,9 @@ def test_create_sets_utc_timestamp():
 
 def test_create_spreads_data_dict():
     db = _mock_db()
-    IddService(db).create("123456789", 10, "broker@firma.no", _idd_data(client_name="Acme AS"))
+    IddService(db).create(
+        "123456789", 10, "broker@firma.no", _idd_data(client_name="Acme AS")
+    )
     added = db.add.call_args[0][0]
     assert added.client_name == "Acme AS"
 
@@ -105,6 +110,7 @@ def test_create_returns_refreshed_row():
 
 
 # ── get ───────────────────────────────────────────────────────────────────────
+
 
 def test_get_returns_row_when_found():
     row = _mock_row()
@@ -130,6 +136,7 @@ def test_get_queries_idd_behovsanalyse():
 
 
 # ── delete ────────────────────────────────────────────────────────────────────
+
 
 def test_delete_calls_db_delete():
     row = _mock_row()
@@ -163,6 +170,7 @@ def test_delete_does_not_commit_when_not_found():
 
 
 # ── firm/orgnr scoping ────────────────────────────────────────────────────────
+
 
 def test_get_returns_none_for_wrong_firm():
     """Row for a different firm_id should not be returned."""

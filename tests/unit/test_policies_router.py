@@ -1,4 +1,5 @@
 """Unit tests for api/routers/policies.py — policy CRUD + renewals + certificates."""
+
 import sys
 from datetime import date
 from unittest.mock import MagicMock
@@ -68,6 +69,7 @@ def client(mock_svc, mock_notification):
 
 # ── GET /org/{orgnr}/policies ─────────────────────────────────────────────────
 
+
 def test_list_policies_returns_200(client, mock_svc):
     mock_svc.list_by_orgnr.return_value = [_policy_mock()]
     resp = client.get("/org/123456789/policies")
@@ -84,25 +86,36 @@ def test_list_policies_empty(client, mock_svc):
 
 # ── POST /org/{orgnr}/policies ────────────────────────────────────────────────
 
+
 def test_create_policy_returns_201(client, mock_svc):
     mock_svc.create.return_value = _policy_mock()
-    resp = client.post("/org/123456789/policies", json={
-        "insurer": "If", "product_type": "Eiendom",
-        "annual_premium_nok": 50_000,
-    })
+    resp = client.post(
+        "/org/123456789/policies",
+        json={
+            "insurer": "If",
+            "product_type": "Eiendom",
+            "annual_premium_nok": 50_000,
+        },
+    )
     assert resp.status_code == 201
 
 
 def test_create_policy_validation_error(client, mock_svc):
     from api.domain.exceptions import ValidationError
+
     mock_svc.create.side_effect = ValidationError("bad")
-    resp = client.post("/org/123456789/policies", json={
-        "insurer": "If", "product_type": "Eiendom",
-    })
+    resp = client.post(
+        "/org/123456789/policies",
+        json={
+            "insurer": "If",
+            "product_type": "Eiendom",
+        },
+    )
     assert resp.status_code == 422
 
 
 # ── PUT /org/{orgnr}/policies/{id} ───────────────────────────────────────────
+
 
 def test_update_policy_returns_200(client, mock_svc):
     mock_svc.update.return_value = _policy_mock()
@@ -118,6 +131,7 @@ def test_update_policy_not_found(client, mock_svc):
 
 # ── DELETE /org/{orgnr}/policies/{id} ─────────────────────────────────────────
 
+
 def test_delete_policy_returns_204(client, mock_svc):
     mock_svc.delete.return_value = None
     resp = client.delete("/org/123456789/policies/1")
@@ -125,6 +139,7 @@ def test_delete_policy_returns_204(client, mock_svc):
 
 
 # ── GET /policies ─────────────────────────────────────────────────────────────
+
 
 def test_list_all_policies(client, mock_svc):
     mock_svc.list_by_firm.return_value = [_policy_mock(), _policy_mock(id=2)]
@@ -134,6 +149,7 @@ def test_list_all_policies(client, mock_svc):
 
 
 # ── GET /renewals ─────────────────────────────────────────────────────────────
+
 
 def test_get_renewals(client, mock_svc):
     p = _policy_mock(renewal_date=date(2026, 6, 1))
@@ -146,6 +162,7 @@ def test_get_renewals(client, mock_svc):
 
 # ── POST /policies/{id}/renewal/advance ───────────────────────────────────────
 
+
 def test_advance_renewal_stage(client, mock_svc):
     mock_svc.advance_renewal_stage.return_value = _policy_mock()
     resp = client.post("/policies/1/renewal/advance", json={"stage": "quoted"})
@@ -156,5 +173,3 @@ def test_advance_renewal_not_found(client, mock_svc):
     mock_svc.advance_renewal_stage.side_effect = NotFoundError("nope")
     resp = client.post("/policies/999/renewal/advance", json={"stage": "quoted"})
     assert resp.status_code == 404
-
-

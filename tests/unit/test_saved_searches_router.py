@@ -3,6 +3,7 @@
 Calls endpoint functions directly with mocked service + db + user. The
 SavedSearchService itself has its own test suite (test_saved_search_service.py).
 """
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -36,6 +37,7 @@ def _saved_search_row(id=1, user_id=42, name="High risk Oslo"):
 
 # ── _resolve_user_id ──────────────────────────────────────────────────────────
 
+
 def test_resolve_user_id_returns_id_when_user_exists():
     db = MagicMock()
     user_row = MagicMock(id=42)
@@ -55,6 +57,7 @@ def test_resolve_user_id_raises_404_when_user_missing():
 
 # ── _serialize ────────────────────────────────────────────────────────────────
 
+
 def test_serialize_returns_dict():
     row = _saved_search_row()
     result = _serialize(row)
@@ -66,6 +69,7 @@ def test_serialize_returns_dict():
 
 
 # ── list_saved_searches ───────────────────────────────────────────────────────
+
 
 def test_list_returns_serialized_user_searches():
     db = MagicMock()
@@ -93,6 +97,7 @@ def test_list_returns_empty_when_no_searches():
 
 # ── create_saved_search ───────────────────────────────────────────────────────
 
+
 def test_create_calls_service_with_user_id():
     db = MagicMock()
     user_row = MagicMock(id=42)
@@ -111,6 +116,7 @@ def test_create_calls_service_with_user_id():
 
 
 # ── delete_saved_search ───────────────────────────────────────────────────────
+
 
 def test_delete_calls_service_with_user_id():
     db = MagicMock()

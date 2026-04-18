@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; DB queries, LLM calls,
 and PDF parsing are all mocked — no real infrastructure required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -56,6 +57,7 @@ def client(mock_db):
 
 # ── GET /org/{orgnr}/offers ──────────────────────────────────────────────────
 
+
 def test_list_offers_returns_200(client, mock_db):
     mock_query = MagicMock()
     mock_query.filter.return_value = mock_query
@@ -83,6 +85,7 @@ def test_list_offers_returns_items(client, mock_db):
 
 # ── DELETE /org/{orgnr}/offers/{offer_id} ────────────────────────────────────
 
+
 @patch("api.routers.offers.log_audit")
 @patch("api.routers.offers.remove_insurance_offer", return_value=True)
 def test_delete_offer_returns_200(mock_remove, mock_audit, client):
@@ -99,6 +102,7 @@ def test_delete_offer_returns_404(mock_remove, mock_audit, client):
 
 
 # ── GET /org/{orgnr}/offers/{offer_id}/pdf ───────────────────────────────────
+
 
 def test_download_offer_pdf_returns_pdf(client, mock_db):
     offer = _mock_offer(pdf_content=b"%PDF-real")
@@ -122,6 +126,7 @@ def test_download_offer_pdf_returns_404(client, mock_db):
 
 # ── PATCH /org/{orgnr}/offers/{offer_id}/status ─────────────────────────────
 
+
 @patch("api.routers.offers.log_audit")
 @patch("api.routers.offers.update_offer_status", return_value=True)
 def test_update_offer_status_returns_200(mock_update, mock_audit, client):
@@ -143,6 +148,7 @@ def test_update_offer_status_missing_status(client):
 
 
 # ── POST /org/{orgnr}/offers/compare-stored ──────────────────────────────────
+
 
 @patch("api.routers.offers._compare_offers_with_llm", return_value="comparison text")
 def test_compare_stored_offers_returns_200(mock_compare, client, mock_db):

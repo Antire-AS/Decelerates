@@ -1,4 +1,5 @@
 """Unit tests for api/routers/commission.py — commission tracking endpoints."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -34,9 +35,11 @@ def client(mock_svc):
 
 def test_get_summary_returns_200(client, mock_svc):
     mock_svc.get_commission_summary.return_value = {
-        "total_commission_ytd": 500_000, "total_premium_managed": 10_000_000,
+        "total_commission_ytd": 500_000,
+        "total_premium_managed": 10_000_000,
         "active_policy_count": 10,
-        "revenue_by_product_type": {}, "revenue_by_insurer": {},
+        "revenue_by_product_type": {},
+        "revenue_by_insurer": {},
         "renewal_commission_vs_new": {"new": 100_000, "renewal": 400_000},
     }
     resp = client.get("/commission/summary")
@@ -46,8 +49,10 @@ def test_get_summary_returns_200(client, mock_svc):
 
 def test_get_by_client_returns_200(client, mock_svc):
     mock_svc.get_commission_by_client.return_value = {
-        "orgnr": "123", "policies": [],
-        "total_commission_lifetime": 0, "total_commission_ytd": 0,
+        "orgnr": "123",
+        "policies": [],
+        "total_commission_lifetime": 0,
+        "total_commission_ytd": 0,
     }
     resp = client.get("/commission/by-client/123")
     assert resp.status_code == 200

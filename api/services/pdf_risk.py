@@ -1,4 +1,5 @@
 """Risk report PDF generation."""
+
 from datetime import date
 from typing import Any, Dict, Optional
 
@@ -8,9 +9,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _score_label(s: int) -> str:
     if s <= 3:
@@ -25,7 +25,7 @@ def _score_label(s: int) -> str:
 def _fmt_mnok(v: Any) -> str:
     if v is None:
         return "–"
-    return f"{v/1e6:,.1f} MNOK"
+    return f"{v / 1e6:,.1f} MNOK"
 
 
 def _risk_section_title(pdf: Any, title: str) -> None:
@@ -46,7 +46,9 @@ def _risk_row(pdf: Any, label: str, value: Any, bold_value: bool = False) -> Non
     pdf.set_font("Helvetica", "", 10)
 
 
-def _add_risk_cover(pdf: Any, navn: str, orgnr: str, today: str, score: int, lbl: str) -> None:
+def _add_risk_cover(
+    pdf: Any, navn: str, orgnr: str, today: str, score: int, lbl: str
+) -> None:
     pdf.set_font("Helvetica", "B", 22)
     pdf.set_text_color(30, 60, 120)
     pdf.ln(10)
@@ -58,7 +60,12 @@ def _add_risk_cover(pdf: Any, navn: str, orgnr: str, today: str, score: int, lbl
     pdf.set_font("Helvetica", "", 11)
     pdf.cell(0, 7, f"Orgnr: {orgnr}  |  Dato: {today}", ln=True)
     pdf.ln(6)
-    color = {"Lav": (34, 139, 34), "Moderat": (255, 140, 0), "Høy": (220, 80, 0), "Svært høy": (180, 0, 0)}.get(lbl, (0, 0, 0))
+    color = {
+        "Lav": (34, 139, 34),
+        "Moderat": (255, 140, 0),
+        "Høy": (220, 80, 0),
+        "Svært høy": (180, 0, 0),
+    }.get(lbl, (0, 0, 0))
     pdf.set_fill_color(*color)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 16)
@@ -68,9 +75,14 @@ def _add_risk_cover(pdf: Any, navn: str, orgnr: str, today: str, score: int, lbl
 
 
 def _add_risk_company_profile(
-    pdf: Any, navn: str, orgnr: str,
-    org_form: Optional[str], nace: Optional[str], nace_desc: Optional[str],
-    kommune: Optional[str], stiftelsesdato: Optional[str],
+    pdf: Any,
+    navn: str,
+    orgnr: str,
+    org_form: Optional[str],
+    nace: Optional[str],
+    nace_desc: Optional[str],
+    kommune: Optional[str],
+    stiftelsesdato: Optional[str],
 ) -> None:
     _risk_section_title(pdf, "Selskapsprofil")
     _risk_row(pdf, "Navn", navn)
@@ -83,8 +95,12 @@ def _add_risk_company_profile(
 
 
 def _add_risk_financials(
-    pdf: Any, sum_driftsinntekter: Any, sum_egenkapital: Any,
-    sum_eiendeler: Any, regn: dict, risk: dict,
+    pdf: Any,
+    sum_driftsinntekter: Any,
+    sum_egenkapital: Any,
+    sum_eiendeler: Any,
+    regn: dict,
+    risk: dict,
 ) -> None:
     _risk_section_title(pdf, "Finansielle nøkkeltall")
     _risk_row(pdf, "Omsetning", _fmt_mnok(sum_driftsinntekter))
@@ -93,7 +109,7 @@ def _add_risk_financials(
     _risk_row(pdf, "Sum eiendeler", _fmt_mnok(sum_eiendeler))
     _risk_row(pdf, "Sum gjeld", _fmt_mnok(regn.get("sum_gjeld")))
     eq = risk.get("equity_ratio")
-    _risk_row(pdf, "Egenkapitalandel", f"{eq*100:.1f}%" if eq is not None else "–")
+    _risk_row(pdf, "Egenkapitalandel", f"{eq * 100:.1f}%" if eq is not None else "–")
     _risk_row(pdf, "Antall ansatte", str(regn.get("antall_ansatte") or "–"))
     pdf.ln(6)
 
@@ -137,6 +153,7 @@ class _RiskPDF(FPDF):
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+
 def generate_risk_report_pdf(
     orgnr: str,
     navn: str,
@@ -160,8 +177,18 @@ def generate_risk_report_pdf(
     pdf.set_margins(20, 20, 20)
     pdf.add_page()
     _add_risk_cover(pdf, navn, orgnr, today, s, lbl)
-    _add_risk_company_profile(pdf, navn, orgnr, organisasjonsform_kode, naeringskode1,
-                              naeringskode1_beskrivelse, kommune, stiftelsesdato)
-    _add_risk_financials(pdf, sum_driftsinntekter, sum_egenkapital, sum_eiendeler, regn, risk)
+    _add_risk_company_profile(
+        pdf,
+        navn,
+        orgnr,
+        organisasjonsform_kode,
+        naeringskode1,
+        naeringskode1_beskrivelse,
+        kommune,
+        stiftelsesdato,
+    )
+    _add_risk_financials(
+        pdf, sum_driftsinntekter, sum_egenkapital, sum_eiendeler, regn, risk
+    )
     _add_risk_factors_table(pdf, risk, s, lbl)
     return bytes(pdf.output())

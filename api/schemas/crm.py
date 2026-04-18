@@ -1,4 +1,5 @@
 """CRM schemas — contacts, policies, claims, activities."""
+
 from datetime import date
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
@@ -32,7 +33,9 @@ class PolicyIn(BaseModel):
     start_date: Optional[date] = None
     renewal_date: Optional[date] = None
     status: Literal["active", "expired", "cancelled", "pending"] = "active"
-    renewal_stage: Optional[Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]] = None
+    renewal_stage: Optional[
+        Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]
+    ] = None
     notes: Optional[str] = None
     document_url: Optional[str] = None
     commission_rate_pct: Optional[float] = Field(None, ge=0, le=100)
@@ -49,7 +52,9 @@ class PolicyUpdate(BaseModel):
     start_date: Optional[date] = None
     renewal_date: Optional[date] = None
     status: Optional[Literal["active", "expired", "cancelled", "pending"]] = None
-    renewal_stage: Optional[Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]] = None
+    renewal_stage: Optional[
+        Literal["not_started", "ready_to_quote", "quoted", "accepted", "declined"]
+    ] = None
     notes: Optional[str] = None
     document_url: Optional[str] = None
     commission_rate_pct: Optional[float] = Field(None, ge=0, le=100)

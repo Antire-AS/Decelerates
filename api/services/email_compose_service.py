@@ -7,6 +7,7 @@ fails, we still consider the call successful — the email was delivered, the
 activity log is best-effort. The reverse (activity-without-send) never happens
 because we only write the activity AFTER the Graph 202 returns.
 """
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -17,7 +18,6 @@ from api.services.audit import log_audit
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class EmailComposeService:
@@ -36,7 +36,9 @@ class EmailComposeService:
     ) -> Activity:
         """Send the email AND log it as an Activity. Raises on Graph failures
         so the route returns a real 5xx (vs silently logging the activity)."""
-        message_id = self.email_port.send_email(to=to, subject=subject, body_html=body_html)
+        message_id = self.email_port.send_email(
+            to=to, subject=subject, body_html=body_html
+        )
         # Trim long bodies for the activity preview — full HTML is in the
         # Sent items folder of the service mailbox.
         preview = (body_html[:300] + "…") if len(body_html) > 300 else body_html

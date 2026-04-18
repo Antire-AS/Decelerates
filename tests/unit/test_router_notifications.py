@@ -1,4 +1,5 @@
 """Unit tests for api/routers/notifications.py — bell-icon HTTP layer."""
+
 import sys
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
@@ -68,9 +69,7 @@ def test_list_notifications_200(client, mock_db):
     user_row = _mock_user_row(user_id=42)
     mock_db.query.return_value.filter.return_value.first.return_value = user_row
     notifs = [_mock_notification(1), _mock_notification(2)]
-    with patch(
-        "api.routers.notifications.NotificationInboxService"
-    ) as MockSvc:
+    with patch("api.routers.notifications.NotificationInboxService") as MockSvc:
         instance = MockSvc.return_value
         instance.list_for_user.return_value = notifs
         instance.unread_count.return_value = 5

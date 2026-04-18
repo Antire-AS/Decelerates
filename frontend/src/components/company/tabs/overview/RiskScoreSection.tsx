@@ -1,7 +1,9 @@
-import { AlertTriangle } from "lucide-react";
+"use client";
+
 import RiskBadge from "@/components/company/RiskBadge";
 import type { RiskFactor } from "@/lib/api-types";
-import { Section, CATEGORY_DOTS, riskBandLabel } from "./shared";
+import { Section, CATEGORY_DOTS, riskGuidanceForLabel } from "./shared";
+import { useRiskConfig } from "@/lib/useRiskConfig";
 
 interface Props {
   score?: number;
@@ -9,7 +11,9 @@ interface Props {
 }
 
 export default function RiskScoreSection({ score, factors }: Props) {
-  const riskBand = riskBandLabel(score);
+  const { bandFor } = useRiskConfig();
+  const band = bandFor(score);
+  const guidance = riskGuidanceForLabel(band.label);
   const factorsByCategory = factors.reduce<Record<string, RiskFactor[]>>((acc, f) => {
     (acc[f.category] ??= []).push(f);
     return acc;
@@ -25,7 +29,7 @@ export default function RiskScoreSection({ score, factors }: Props) {
             <span className="text-sm text-[#8A7F74] ml-1">/ 20</span>
           </div>
         </div>
-        <p className="text-xs text-[#8A7F74]">{riskBand.guidance}</p>
+        <p className="text-xs text-[#8A7F74]">{guidance}</p>
         {/* Gradient bar 0–20 */}
         <div className="mt-2 relative h-2 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 overflow-hidden">
           {score != null && (

@@ -1,4 +1,5 @@
 """PDF background tasks — URL validation, phase-2 discovery, parallel extraction, service class."""
+
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -21,13 +22,16 @@ logger = logging.getLogger(__name__)
 _ANNUAL_REPORTS_CONTAINER = "annual-reports"
 
 
-def _upload_pdf_to_blob(pdf_url: str, orgnr: str, year: int, label: str) -> Optional[str]:
+def _upload_pdf_to_blob(
+    pdf_url: str, orgnr: str, year: int, label: str
+) -> Optional[str]:
     """Download PDF bytes from *pdf_url* and upload to Azure Blob Storage.
 
     Returns the blob URL on success, None if download or upload fails.
     Never raises — callers fall back to the external URL transparently.
     """
     from api.services.blob_storage import BlobStorageService
+
     try:
         resp = requests.get(pdf_url, timeout=60, headers={"User-Agent": _DDG_UA})
         resp.raise_for_status()
@@ -54,15 +58,20 @@ def _validate_pdf_urls(discovered: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     for item in discovered:
         url = item.get("pdf_url", "")
         try:
-            r = requests.head(url, timeout=10, allow_redirects=True,
-                              headers={"User-Agent": _DDG_UA})
+            r = requests.head(
+                url, timeout=10, allow_redirects=True, headers={"User-Agent": _DDG_UA}
+            )
             if r.status_code < 400:
                 valid.append(item)
                 logger.info("[discovery] URL OK (%s): %s", r.status_code, url)
             else:
-                logger.warning("[discovery] URL %s returned %s — skipping", url, r.status_code)
+                logger.warning(
+                    "[discovery] URL %s returned %s — skipping", url, r.status_code
+                )
         except Exception as exc:
-            logger.warning("[discovery] URL check failed for %s: %s — skipping", url, exc)
+            logger.warning(
+                "[discovery] URL check failed for %s: %s — skipping", url, exc
+            )
     return valid
 
 
@@ -73,14 +82,20 @@ def _run_phase2_discovery(orgnr: str, org: Dict[str, Any], db: Session) -> List[
     current_year = datetime.now().year
     target_years = [current_year - i for i in range(1, 6)]
 
-    logger.info("[discovery] Phase 2 starting for %s (%s), homepage=%s", navn, orgnr, hjemmeside)
+    logger.info(
+        "[discovery] Phase 2 starting for %s (%s), homepage=%s", navn, orgnr, hjemmeside
+    )
     discovered = _agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)
     if not discovered:
-        logger.info("[discovery] Agent found nothing — falling back to DuckDuckGo for %s", orgnr)
+        logger.info(
+            "[discovery] Agent found nothing — falling back to DuckDuckGo for %s", orgnr
+        )
         discovered = _discover_ir_pdfs(orgnr, navn, hjemmeside, target_years)
 
     discovered = _validate_pdf_urls(discovered)
-    logger.info("[discovery] Phase 2 validated %d PDF sources for %s", len(discovered), orgnr)
+    logger.info(
+        "[discovery] Phase 2 validated %d PDF sources for %s", len(discovered), orgnr
+    )
     for item in discovered:
         existing = (
             db.query(CompanyPdfSource)
@@ -93,14 +108,16 @@ def _run_phase2_discovery(orgnr: str, org: Dict[str, Any], db: Session) -> List[
         if not existing:
             label = item.get("label", "")
             blob_url = _upload_pdf_to_blob(item["pdf_url"], orgnr, item["year"], label)
-            db.add(CompanyPdfSource(
-                orgnr=orgnr,
-                year=item["year"],
-                pdf_url=item["pdf_url"],
-                blob_url=blob_url,
-                label=label,
-                added_at=datetime.now(timezone.utc).isoformat(),
-            ))
+            db.add(
+                CompanyPdfSource(
+                    orgnr=orgnr,
+                    year=item["year"],
+                    pdf_url=item["pdf_url"],
+                    blob_url=blob_url,
+                    label=label,
+                    added_at=datetime.now(timezone.utc).isoformat(),
+                )
+            )
     if discovered:
         db.commit()
 
@@ -114,11 +131,14 @@ def _extract_pending_sources(orgnr: str, sources: List[Any], db: Session) -> Non
     SQLAlchemy sessions are never shared across threads.
     """
     pending = [
-        src for src in sources
-        if not db.query(CompanyHistory).filter(
+        src
+        for src in sources
+        if not db.query(CompanyHistory)
+        .filter(
             CompanyHistory.orgnr == orgnr,
             CompanyHistory.year == src.year,
-        ).first()
+        )
+        .first()
     ]
 
     if not pending:
@@ -130,16 +150,24 @@ def _extract_pending_sources(orgnr: str, sources: List[Any], db: Session) -> Non
         thread_db = SessionLocal()
         try:
             effective_url = getattr(src, "blob_url", None) or src.pdf_url
-            logger.info("[extract] Extracting financials from %s (year=%s, source=%s)",
-                        effective_url, src.year, "blob" if effective_url != src.pdf_url else "external")
-            fetch_history_from_pdf(orgnr, effective_url, src.year, src.label or "", thread_db)
+            logger.info(
+                "[extract] Extracting financials from %s (year=%s, source=%s)",
+                effective_url,
+                src.year,
+                "blob" if effective_url != src.pdf_url else "external",
+            )
+            fetch_history_from_pdf(
+                orgnr, effective_url, src.year, src.label or "", thread_db
+            )
             logger.info("[extract] Done: %s year=%s", orgnr, src.year)
         except Exception as exc:
             _outcome = "error"
             logger.error("[extract] Failed for %s year=%s: %s", orgnr, src.year, exc)
         finally:
             thread_db.close()
-            pdf_extraction_duration_ms.record((time.monotonic() - _t0) * 1000, {"outcome": _outcome})
+            pdf_extraction_duration_ms.record(
+                (time.monotonic() - _t0) * 1000, {"outcome": _outcome}
+            )
             pdf_extractions.add(1, {"outcome": _outcome})
 
     with ThreadPoolExecutor(max_workers=3) as pool:
@@ -160,7 +188,9 @@ def _auto_extract_pdf_sources(
     logger.info("[bg] _auto_extract_pdf_sources started for %s", orgnr)
     db = db_factory()
     try:
-        sources = db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all()
+        sources = (
+            db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all()
+        )
 
         current_year = datetime.now().year
         target_years = set(range(current_year - 5, current_year))
@@ -169,23 +199,31 @@ def _auto_extract_pdf_sources(
         needs_discovery = len(missing) >= 3
         logger.info(
             "[bg] %s: covered=%s, missing=%s, needs_discovery=%s",
-            orgnr, sorted(covered_years), sorted(missing), needs_discovery,
+            orgnr,
+            sorted(covered_years),
+            sorted(missing),
+            needs_discovery,
         )
 
         if needs_discovery and org:
             sources = _run_phase2_discovery(orgnr, org, db)
         elif needs_discovery and not org:
-            logger.warning("[bg] %s needs discovery but org dict not provided — skipping", orgnr)
+            logger.warning(
+                "[bg] %s needs discovery but org dict not provided — skipping", orgnr
+            )
 
         _extract_pending_sources(orgnr, sources, db)
         logger.info("[bg] _auto_extract_pdf_sources done for %s", orgnr)
     except Exception as exc:
-        logger.error("[bg] _auto_extract_pdf_sources error for %s: %s", orgnr, exc, exc_info=True)
+        logger.error(
+            "[bg] _auto_extract_pdf_sources error for %s: %s", orgnr, exc, exc_info=True
+        )
     finally:
         db.close()
 
 
 # ── Service class wrapper ──────────────────────────────────────────────────────
+
 
 class PdfExtractService:
     """Thin class wrapper around module-level PDF extraction helpers."""

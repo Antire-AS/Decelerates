@@ -24,7 +24,12 @@ CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100
 
 
-def chunk_text(text: str, source: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> List[Document]:
+def chunk_text(
+    text: str,
+    source: str,
+    chunk_size: int = CHUNK_SIZE,
+    chunk_overlap: int = CHUNK_OVERLAP,
+) -> List[Document]:
     """Split *text* into overlapping chunks using LangChain's recursive splitter.
 
     Args:
@@ -85,19 +90,23 @@ def build_rag_chain(
     Returns:
         A callable chain: question_str → answer_str
     """
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", system_prompt + "\n\nKontekst fra selskapsdata:\n{context}"),
-        ("human", "{question}"),
-    ])
+    prompt_template = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt + "\n\nKontekst fra selskapsdata:\n{context}"),
+            ("human", "{question}"),
+        ]
+    )
 
     def chain(question: str) -> str:
         context_chunks = retriever_fn(question)
-        context = "\n\n---\n\n".join(context_chunks) if context_chunks else "Ingen relevant kontekst funnet."
+        context = (
+            "\n\n---\n\n".join(context_chunks)
+            if context_chunks
+            else "Ingen relevant kontekst funnet."
+        )
         messages = prompt_template.format_messages(context=context, question=question)
         # Flatten to a single string for our LLM adapter
-        formatted = "\n".join(
-            f"[{m.type.upper()}]: {m.content}" for m in messages
-        )
+        formatted = "\n".join(f"[{m.type.upper()}]: {m.content}" for m in messages)
         return llm_fn(formatted)
 
     return chain

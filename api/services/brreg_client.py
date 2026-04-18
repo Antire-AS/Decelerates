@@ -1,4 +1,5 @@
 """BRREG Enhetsregisteret + Regnskapsregisteret + board members + corporate structure."""
+
 import logging
 from typing import Optional, List, Dict, Any
 
@@ -10,6 +11,7 @@ _log = logging.getLogger(__name__)
 
 
 # ── BRREG Enhetsregisteret ────────────────────────────────────────────────────
+
 
 def _build_enhet_dict(e: dict) -> dict:
     """Extract the common fields shared by both enhet list and detail responses."""
@@ -35,19 +37,19 @@ def _build_enhet_dict(e: dict) -> dict:
 # foreign branch (UTLA). Higher score = more interesting to a broker.
 # Defaults to 0 for any code not listed below.
 _ORG_FORM_PRIORITY = {
-    "ASA":  9,   # Allmennaksjeselskap (publicly traded)
-    "AS":   8,   # Aksjeselskap (private limited)
-    "SA":   6,   # Samvirkeforetak (cooperative)
-    "ANS":  5,   # Ansvarlig selskap
-    "DA":   5,   # Delt ansvar
-    "ENK":  4,   # Enkeltpersonforetak (sole proprietor)
-    "BBL":  4,   # Boligbyggelag
-    "BRL":  4,   # Borettslag
-    "STI":  3,   # Stiftelse
-    "KS":   3,   # Kommandittselskap
-    "FLI":  1,   # Forening / lag / innretning
-    "UTLA": 0,   # Utenlandsk enhet
-    "SÆR":  2,   # Særkilt offentlig (RHF, etc)
+    "ASA": 9,  # Allmennaksjeselskap (publicly traded)
+    "AS": 8,  # Aksjeselskap (private limited)
+    "SA": 6,  # Samvirkeforetak (cooperative)
+    "ANS": 5,  # Ansvarlig selskap
+    "DA": 5,  # Delt ansvar
+    "ENK": 4,  # Enkeltpersonforetak (sole proprietor)
+    "BBL": 4,  # Boligbyggelag
+    "BRL": 4,  # Borettslag
+    "STI": 3,  # Stiftelse
+    "KS": 3,  # Kommandittselskap
+    "FLI": 1,  # Forening / lag / innretning
+    "UTLA": 0,  # Utenlandsk enhet
+    "SÆR": 2,  # Særkilt offentlig (RHF, etc)
 }
 
 
@@ -65,10 +67,10 @@ def _relevance_score(row: Dict[str, Any], query: str) -> tuple:
     q = query.upper().strip()
     org_form = (row.get("organisasjonsform_kode") or "").upper()
 
-    exact_match  = 1 if navn == q else 0
-    starts_with  = 1 if navn.startswith(q) else 0
-    word_match   = 1 if (f" {q} " in f" {navn} " or navn.startswith(f"{q} ")) else 0
-    form_score   = _ORG_FORM_PRIORITY.get(org_form, 0)
+    exact_match = 1 if navn == q else 0
+    starts_with = 1 if navn.startswith(q) else 0
+    word_match = 1 if (f" {q} " in f" {navn} " or navn.startswith(f"{q} ")) else 0
+    form_score = _ORG_FORM_PRIORITY.get(org_form, 0)
     length_score = -len(navn)  # shorter names rank higher within the same bucket
 
     return (exact_match, starts_with, word_match, form_score, length_score)
@@ -131,6 +133,7 @@ def fetch_enhet_by_orgnr(orgnr: str) -> Optional[Dict[str, Any]]:
 
 
 # ── BRREG Regnskapsregisteret ─────────────────────────────────────────────────
+
 
 def _pick_latest_regnskap(regnskaper: List[Dict[str, Any]]) -> Dict[str, Any]:
     def year_key(r: Dict[str, Any]) -> int:
@@ -202,10 +205,16 @@ def _extract_resultat(chosen: Dict[str, Any]) -> Dict[str, Any]:
         "annen_rentekostnad": finanskostnad.get("annenRentekostnad"),
         "sum_finanskostnad": finanskostnad.get("sumFinanskostnad"),
         "netto_finans": finansres.get("nettoFinans"),
-        "ordinaert_resultat_foer_skattekostnad": resultat.get("ordinaertResultatFoerSkattekostnad"),
-        "ordinaert_resultat_skattekostnad": resultat.get("ordinaertResultatSkattekostnad"),
+        "ordinaert_resultat_foer_skattekostnad": resultat.get(
+            "ordinaertResultatFoerSkattekostnad"
+        ),
+        "ordinaert_resultat_skattekostnad": resultat.get(
+            "ordinaertResultatSkattekostnad"
+        ),
         "ekstraordinaere_poster": resultat.get("ekstraordinaerePoster"),
-        "skattekostnad_ekstraord_resultat": resultat.get("skattekostnadEkstraordinaertResultat"),
+        "skattekostnad_ekstraord_resultat": resultat.get(
+            "skattekostnadEkstraordinaertResultat"
+        ),
         "aarsresultat": resultat.get("aarsresultat"),
         "totalresultat": resultat.get("totalresultat"),
     }
@@ -241,7 +250,9 @@ def _extract_eiendeler(chosen: Dict[str, Any]) -> Dict[str, Any]:
         "sum_varer": eiendeler_obj.get("sumVarer"),
         "sum_fordringer": eiendeler_obj.get("sumFordringer"),
         "sum_investeringer": eiendeler_obj.get("sumInvesteringer"),
-        "sum_bankinnskudd_og_kontanter": eiendeler_obj.get("sumBankinnskuddOgKontanter"),
+        "sum_bankinnskudd_og_kontanter": eiendeler_obj.get(
+            "sumBankinnskuddOgKontanter"
+        ),
         "goodwill": eiendeler_obj.get("goodwill"),
     }
 
@@ -313,7 +324,9 @@ def _build_regnskap_row(year: int, r: Dict[str, Any]) -> Dict[str, Any]:
         "sum_finansinntekt": res.get("sum_finansinntekt"),
         "sum_finanskostnad": res.get("sum_finanskostnad"),
         "netto_finans": res.get("netto_finans"),
-        "ordinaert_resultat_foer_skattekostnad": res.get("ordinaert_resultat_foer_skattekostnad"),
+        "ordinaert_resultat_foer_skattekostnad": res.get(
+            "ordinaert_resultat_foer_skattekostnad"
+        ),
         "ordinaert_resultat_skattekostnad": res.get("ordinaert_resultat_skattekostnad"),
         "ekstraordinaere_poster": res.get("ekstraordinaere_poster"),
         "totalresultat": res.get("totalresultat"),
@@ -344,6 +357,7 @@ def fetch_regnskap_history(orgnr: str) -> List[Dict[str, Any]]:
 
 # ── BRREG corporate structure ─────────────────────────────────────────────────
 
+
 def fetch_company_struktur(orgnr: str) -> Dict[str, Any]:
     """Fetch parent company and sub-units from BRREG open API."""
     result: Dict[str, Any] = {"parent": None, "sub_units": [], "total_sub_units": 0}
@@ -359,8 +373,10 @@ def fetch_company_struktur(orgnr: str) -> Dict[str, Any]:
                     p = p_resp.json()
                     result["parent"] = {
                         "orgnr": p.get("organisasjonsnummer"),
-                        "navn":  p.get("navn"),
-                        "organisasjonsform": (p.get("organisasjonsform") or {}).get("beskrivelse"),
+                        "navn": p.get("navn"),
+                        "organisasjonsform": (p.get("organisasjonsform") or {}).get(
+                            "beskrivelse"
+                        ),
                         "kommune": (p.get("forretningsadresse") or {}).get("kommune"),
                     }
     except Exception as exc:
@@ -371,18 +387,22 @@ def fetch_company_struktur(orgnr: str) -> Dict[str, Any]:
         if resp.ok:
             data = resp.json()
             units = (data.get("_embedded") or {}).get("underenheter", [])
-            result["total_sub_units"] = (data.get("page") or {}).get("totalElements", len(units))
+            result["total_sub_units"] = (data.get("page") or {}).get(
+                "totalElements", len(units)
+            )
             result["sub_units"] = [
                 {
-                    "orgnr":         u.get("organisasjonsnummer"),
-                    "navn":          u.get("navn"),
-                    "kommune":       (u.get("beliggenhetsadresse") or {}).get("kommune"),
+                    "orgnr": u.get("organisasjonsnummer"),
+                    "navn": u.get("navn"),
+                    "kommune": (u.get("beliggenhetsadresse") or {}).get("kommune"),
                     "antall_ansatte": u.get("antallAnsatte"),
                 }
                 for u in units[:25]
             ]
     except Exception as exc:
-        _log.warning("fetch_company_struktur(%s) sub-units lookup failed: %s", orgnr, exc)
+        _log.warning(
+            "fetch_company_struktur(%s) sub-units lookup failed: %s", orgnr, exc
+        )
 
     return result
 

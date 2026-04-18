@@ -1,4 +1,5 @@
 """Unit tests for api/routers/email_compose.py."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -40,13 +41,19 @@ def test_compose_email_success(client, mock_port):
     with MagicMock() as svc_mock:
         svc_mock.compose_and_send.return_value = activity
         from unittest.mock import patch
-        with patch("api.routers.email_compose.EmailComposeService", return_value=svc_mock):
-            resp = client.post("/email/compose", json={
-                "to": "client@example.no",
-                "subject": "Fornyelse",
-                "body_html": "<p>Hei</p>",
-                "orgnr": "123",
-            })
+
+        with patch(
+            "api.routers.email_compose.EmailComposeService", return_value=svc_mock
+        ):
+            resp = client.post(
+                "/email/compose",
+                json={
+                    "to": "client@example.no",
+                    "subject": "Fornyelse",
+                    "body_html": "<p>Hei</p>",
+                    "orgnr": "123",
+                },
+            )
     assert resp.status_code == 200
     assert resp.json()["sent"] is True
 
@@ -59,9 +66,15 @@ def test_compose_email_not_configured():
     _app.dependency_overrides[_get_email_port] = lambda: unconfigured_port
     try:
         c = TestClient(_app)
-        resp = c.post("/email/compose", json={
-            "to": "x@x.no", "subject": "X", "body_html": "<p>X</p>", "orgnr": "123",
-        })
+        resp = c.post(
+            "/email/compose",
+            json={
+                "to": "x@x.no",
+                "subject": "X",
+                "body_html": "<p>X</p>",
+                "orgnr": "123",
+            },
+        )
         assert resp.status_code == 503
         assert "ikke konfigurert" in resp.json()["detail"]
     finally:

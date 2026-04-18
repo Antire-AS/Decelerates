@@ -49,7 +49,7 @@ export default function NlQueryTab() {
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && run()}
             placeholder="F.eks. «Hvilke selskaper har negativ egenkapital?»"
-            className="flex-1 px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] placeholder-[#C4BDB4] focus:outline-none focus:ring-1 focus:ring-[#4A6FA5]"
+            className="flex-1 px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] placeholder-[#C4BDB4] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
           />
           <button
             onClick={() => run()}

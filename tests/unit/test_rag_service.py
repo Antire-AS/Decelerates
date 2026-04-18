@@ -3,6 +3,7 @@
 Pure static tests — uses MagicMock DB; no real infrastructure required.
 api.rag_chain is stubbed before import to avoid langchain dependency.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -44,6 +45,7 @@ def _mock_company(**kwargs):
 
 
 # ── _build_company_context ────────────────────────────────────────────────────
+
 
 def test_build_company_context_includes_company_name_and_orgnr():
     company = _mock_company(navn="Firma AS", orgnr="123456789")
@@ -103,8 +105,11 @@ def test_build_company_context_handles_none_equity_ratio():
 
 # ── RagService.chunk_and_store ────────────────────────────────────────────────
 
+
 @patch("api.services.rag.SearchService")
-@patch("api.services.rag.embed_chunks", return_value=[("chunk text", "source", [0.1, 0.2])])
+@patch(
+    "api.services.rag.embed_chunks", return_value=[("chunk text", "source", [0.1, 0.2])]
+)
 @patch("api.services.rag.chunk_text", return_value=["chunk text"])
 def test_chunk_and_store_returns_chunk_count(mock_chunk, mock_embed, mock_search_cls):
     mock_search_cls.return_value.is_configured.return_value = False
@@ -114,9 +119,14 @@ def test_chunk_and_store_returns_chunk_count(mock_chunk, mock_embed, mock_search
 
 
 @patch("api.services.rag.SearchService")
-@patch("api.services.rag.embed_chunks", return_value=[("c1", "s", [0.1]), ("c2", "s", [0.2])])
+@patch(
+    "api.services.rag.embed_chunks",
+    return_value=[("c1", "s", [0.1]), ("c2", "s", [0.2])],
+)
 @patch("api.services.rag.chunk_text", return_value=["c1", "c2"])
-def test_chunk_and_store_adds_one_chunk_row_per_item(mock_chunk, mock_embed, mock_search_cls):
+def test_chunk_and_store_adds_one_chunk_row_per_item(
+    mock_chunk, mock_embed, mock_search_cls
+):
     mock_search_cls.return_value.is_configured.return_value = False
     db = _mock_db()
     RagService(db).chunk_and_store("123", "src", "text")
@@ -127,7 +137,9 @@ def test_chunk_and_store_adds_one_chunk_row_per_item(mock_chunk, mock_embed, moc
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag.embed_chunks", return_value=[("chunk", "src", [0.1, 0.2])])
 @patch("api.services.rag.chunk_text", return_value=["chunk"])
-def test_chunk_and_store_indexes_to_azure_search_when_configured(mock_chunk, mock_embed, mock_search_cls):
+def test_chunk_and_store_indexes_to_azure_search_when_configured(
+    mock_chunk, mock_embed, mock_search_cls
+):
     mock_search = MagicMock()
     mock_search.is_configured.return_value = True
     mock_search_cls.return_value = mock_search
@@ -139,7 +151,9 @@ def test_chunk_and_store_indexes_to_azure_search_when_configured(mock_chunk, moc
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag.embed_chunks", return_value=[])
 @patch("api.services.rag.chunk_text", return_value=[])
-def test_chunk_and_store_returns_zero_for_empty_text(mock_chunk, mock_embed, mock_search_cls):
+def test_chunk_and_store_returns_zero_for_empty_text(
+    mock_chunk, mock_embed, mock_search_cls
+):
     mock_search_cls.return_value.is_configured.return_value = False
     db = _mock_db()
     count = RagService(db).chunk_and_store("123", "src", "")
@@ -150,7 +164,9 @@ def test_chunk_and_store_returns_zero_for_empty_text(mock_chunk, mock_embed, moc
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag.embed_chunks", return_value=[("c", "s", None)])
 @patch("api.services.rag.chunk_text", return_value=["c"])
-def test_chunk_and_store_stores_none_embedding_when_vector_is_none(mock_chunk, mock_embed, mock_search_cls):
+def test_chunk_and_store_stores_none_embedding_when_vector_is_none(
+    mock_chunk, mock_embed, mock_search_cls
+):
     mock_search_cls.return_value.is_configured.return_value = False
     db = _mock_db()
     RagService(db).chunk_and_store("123", "src", "text")
@@ -159,6 +175,7 @@ def test_chunk_and_store_stores_none_embedding_when_vector_is_none(mock_chunk, m
 
 
 # ── RagService.retrieve_chunks ────────────────────────────────────────────────
+
 
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag._embed", return_value=[0.1, 0.2])
@@ -175,19 +192,25 @@ def test_retrieve_chunks_uses_azure_search_when_configured(mock_embed, mock_sear
 
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag._embed", return_value=[0.1, 0.2])
-def test_retrieve_chunks_falls_back_to_pgvector_when_search_not_configured(mock_embed, mock_search_cls):
+def test_retrieve_chunks_falls_back_to_pgvector_when_search_not_configured(
+    mock_embed, mock_search_cls
+):
     mock_search_cls.return_value.is_configured.return_value = False
     mock_row = MagicMock()
     mock_row.chunk_text = "retrieved chunk"
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [mock_row]
+    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+        mock_row
+    ]
     result = RagService(db).retrieve_chunks("123", "question?")
     assert "retrieved chunk" in result
 
 
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag._embed", return_value=[0.1, 0.2])
-def test_retrieve_chunks_falls_back_when_search_returns_empty(mock_embed, mock_search_cls):
+def test_retrieve_chunks_falls_back_when_search_returns_empty(
+    mock_embed, mock_search_cls
+):
     mock_search = MagicMock()
     mock_search.is_configured.return_value = True
     mock_search.search_chunks.return_value = []
@@ -195,23 +218,29 @@ def test_retrieve_chunks_falls_back_when_search_returns_empty(mock_embed, mock_s
     mock_row = MagicMock()
     mock_row.chunk_text = "pgvector chunk"
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [mock_row]
+    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+        mock_row
+    ]
     result = RagService(db).retrieve_chunks("123", "question?")
     assert "pgvector chunk" in result
 
 
 # ── RagService._pgvector_retrieve ─────────────────────────────────────────────
 
+
 def test_pgvector_retrieve_without_embedding_orders_by_id():
     mock_row = MagicMock()
     mock_row.chunk_text = "fallback chunk"
     db = _mock_db()
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [mock_row]
+    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+        mock_row
+    ]
     result = RagService(db)._pgvector_retrieve("123", None, 5)
     assert result == ["fallback chunk"]
 
 
 # ── RagService.save_qa_note ───────────────────────────────────────────────────
+
 
 @patch("api.services.rag._embed", return_value=[0.1, 0.2, 0.3])
 def test_save_qa_note_adds_and_commits(mock_embed):
@@ -224,7 +253,9 @@ def test_save_qa_note_adds_and_commits(mock_embed):
 @patch("api.services.rag._embed", return_value=[0.1, 0.2])
 def test_save_qa_note_sets_fields_correctly(mock_embed):
     db = _mock_db()
-    RagService(db).save_qa_note("123456789", "What is X?", "X is Y.", session_id="sess1")
+    RagService(db).save_qa_note(
+        "123456789", "What is X?", "X is Y.", session_id="sess1"
+    )
     added = db.add.call_args[0][0]
     assert added.orgnr == "123456789"
     assert added.question == "What is X?"
@@ -249,6 +280,7 @@ def test_save_qa_note_session_id_none_when_not_provided(mock_embed):
 
 
 # ── RagService.save_to_rag ────────────────────────────────────────────────────
+
 
 @patch("api.services.rag._embed", return_value=[0.1, 0.2])
 def test_save_to_rag_adds_and_commits(mock_embed):
@@ -275,6 +307,7 @@ def test_save_to_rag_swallows_exceptions(mock_embed):
 
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────
+
 
 @patch("api.services.rag.SearchService")
 @patch("api.services.rag.embed_chunks", return_value=[])
@@ -311,6 +344,7 @@ def test_save_to_rag_wrapper_delegates(mock_embed):
 
 
 # ── clear_chat_session ────────────────────────────────────────────────────────
+
 
 def test_clear_chat_session_returns_deleted_count():
     db = _mock_db()

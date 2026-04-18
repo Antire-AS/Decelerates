@@ -1,4 +1,5 @@
 """Unit tests for the renewal notification pipeline."""
+
 from datetime import date, timedelta
 from unittest.mock import MagicMock
 
@@ -7,9 +8,16 @@ from api.db import Policy, PolicyStatus
 from api.services.policy_service import PolicyService
 
 
-def _make_policy(policy_id=1, orgnr="123456789", insurer="Gjensidige",
-                 product_type="Eiendom", renewal_date=None, premium=100_000.0,
-                 policy_number="POL-001", last_notified=None):
+def _make_policy(
+    policy_id=1,
+    orgnr="123456789",
+    insurer="Gjensidige",
+    product_type="Eiendom",
+    renewal_date=None,
+    premium=100_000.0,
+    policy_number="POL-001",
+    last_notified=None,
+):
     p = MagicMock(spec=Policy)
     p.id = policy_id
     p.orgnr = orgnr

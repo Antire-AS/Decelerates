@@ -1,4 +1,5 @@
 """Broker settings and notes CRUD service."""
+
 import re
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
@@ -110,6 +111,7 @@ class BrokerService:
     ) -> None:
         """Targeted fan-out to mentioned users only. Best-effort — never raises."""
         from api.services.notification_inbox_service import NotificationInboxService
+
         preview = text[:120] + ("…" if len(text) > 120 else "")
         try:
             NotificationInboxService(self.db).create_for_users(

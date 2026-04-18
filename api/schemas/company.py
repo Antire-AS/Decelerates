@@ -1,4 +1,5 @@
 """Company domain schemas — org profile, history, board, coordinates, benchmarks."""
+
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 

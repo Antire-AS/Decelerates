@@ -109,4 +109,3 @@ from api.services.pdf_generate import (  # noqa: F401
     generate_risk_report_pdf,
     generate_forsikringstilbud_pdf,
 )
-

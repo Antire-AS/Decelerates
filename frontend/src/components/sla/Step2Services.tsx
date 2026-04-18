@@ -27,13 +27,13 @@ export function Step2Services({ data, set, err, setErr, allLines, toggleLine, on
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-xs">Avtalestartdato</label>
-            <input type="date" value={data.start_date ?? new Date().toISOString().slice(0, 10)}
+            <label className="label-xs" htmlFor="sla-start-date">Avtalestartdato</label>
+            <input id="sla-start-date" type="date" value={data.start_date ?? new Date().toISOString().slice(0, 10)}
               onChange={(e) => set({ start_date: e.target.value })} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs">Kundeansvarlig</label>
-            <input value={data.account_manager ?? ""} onChange={(e) => set({ account_manager: e.target.value })}
+            <label className="label-xs" htmlFor="sla-account-manager">Kundeansvarlig</label>
+            <input id="sla-account-manager" value={data.account_manager ?? ""} onChange={(e) => set({ account_manager: e.target.value })}
               className="input-sm w-full" />
           </div>
         </div>
@@ -60,8 +60,8 @@ export function Step2Services({ data, set, err, setErr, allLines, toggleLine, on
             </div>
           ))}
           <div>
-            <label className="label-xs">Andre (spesifiser)</label>
-            <input value={data.other_lines ?? ""} onChange={(e) => set({ other_lines: e.target.value })}
+            <label className="label-xs" htmlFor="sla-other-lines">Andre (spesifiser)</label>
+            <input id="sla-other-lines" value={data.other_lines ?? ""} onChange={(e) => set({ other_lines: e.target.value })}
               className="input-sm w-full" />
           </div>
         </div>

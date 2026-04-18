@@ -23,16 +23,24 @@ def _get_sla_service(db: Session = Depends(get_db)) -> SlaService:
 
 
 @router.post("/sla")
-def create_sla(body: SlaIn, svc: SlaService = Depends(_get_sla_service), db: Session = Depends(get_db)) -> dict:
+def create_sla(
+    body: SlaIn,
+    svc: SlaService = Depends(_get_sla_service),
+    db: Session = Depends(get_db),
+) -> dict:
     agreement = svc.create_agreement(body)
     try:
         broker_row = db.query(BrokerSettings).filter(BrokerSettings.id == 1).first()
         broker_email = broker_row.contact_email if broker_row else None
         if broker_email:
-            NotificationService().send_sla_generated(broker_email, agreement.client_navn or "")
+            NotificationService().send_sla_generated(
+                broker_email, agreement.client_navn or ""
+            )
     except Exception as exc:
         logger.warning("SLA notification failed — %s", exc)
-    log_audit(db, "sla.create", orgnr=agreement.client_orgnr, detail={"sla_id": agreement.id})
+    log_audit(
+        db, "sla.create", orgnr=agreement.client_orgnr, detail={"sla_id": agreement.id}
+    )
     return {"id": agreement.id, "created_at": agreement.created_at}
 
 
@@ -104,7 +112,9 @@ def download_sla_pdf(sla_id: int, db: Session = Depends(get_db)):
     if not row:
         raise HTTPException(status_code=404, detail="SLA not found")
     pdf_bytes = _generate_sla_pdf(row)
-    filename = f"tjenesteavtale_{row.client_orgnr or sla_id}_{(row.created_at or '')[:10]}.pdf"
+    filename = (
+        f"tjenesteavtale_{row.client_orgnr or sla_id}_{(row.created_at or '')[:10]}.pdf"
+    )
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",

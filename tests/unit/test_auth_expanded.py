@@ -3,6 +3,7 @@
 Complements test_auth_safety.py which covers the prod-safety gate. These tests
 cover the JWT validation mechanics and the optional-user code path.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -20,6 +21,7 @@ from api.auth import (
 
 
 # ── _get_jwks ────────────────────────────────────────────────────────────────
+
 
 def test_get_jwks_fetches_and_caches(monkeypatch):
     auth_mod._jwks_cache = None  # reset cache
@@ -41,6 +43,7 @@ def test_get_jwks_fetches_and_caches(monkeypatch):
 def test_get_jwks_raises_on_http_error(monkeypatch):
     auth_mod._jwks_cache = None
     import requests as _req
+
     with patch("api.auth.requests.get", side_effect=_req.HTTPError("fail")):
         with pytest.raises(_req.HTTPError):
             _get_jwks("tenant-123")
@@ -48,6 +51,7 @@ def test_get_jwks_raises_on_http_error(monkeypatch):
 
 
 # ── _validate_token ──────────────────────────────────────────────────────────
+
 
 def test_validate_token_raises_when_tenant_id_missing(monkeypatch):
     monkeypatch.setenv("AZURE_TENANT_ID", "")
@@ -66,6 +70,7 @@ def test_validate_token_raises_when_audience_missing(monkeypatch):
 
 def test_validate_token_raises_on_no_matching_kid(monkeypatch):
     import jwt as _jwt
+
     monkeypatch.setenv("AZURE_TENANT_ID", "tenant-123")
     monkeypatch.setenv("AUTH_AUDIENCE", "aud-123")
     auth_mod._jwks_cache = None
@@ -75,7 +80,9 @@ def test_validate_token_raises_on_no_matching_kid(monkeypatch):
         mock_resp = MagicMock()
         mock_resp.json.return_value = fake_jwks
         mock_get.return_value = mock_resp
-        with patch("api.auth.jwt.get_unverified_header", return_value={"kid": "missing-kid"}):
+        with patch(
+            "api.auth.jwt.get_unverified_header", return_value={"kid": "missing-kid"}
+        ):
             with pytest.raises(_jwt.InvalidTokenError, match="No matching key"):
                 _validate_token("fake.jwt.token")
     auth_mod._jwks_cache = None
@@ -92,10 +99,12 @@ def test_validate_token_multi_tenant_skips_issuer(monkeypatch):
     mock_resp = MagicMock()
     mock_resp.json.return_value = fake_jwks
 
-    with patch("api.auth.requests.get", return_value=mock_resp), \
-         patch("api.auth.jwt.get_unverified_header", return_value={"kid": "key1"}), \
-         patch("api.auth.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="fake-key"), \
-         patch("api.auth.jwt.decode", return_value=fake_claims) as mock_decode:
+    with (
+        patch("api.auth.requests.get", return_value=mock_resp),
+        patch("api.auth.jwt.get_unverified_header", return_value={"kid": "key1"}),
+        patch("api.auth.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="fake-key"),
+        patch("api.auth.jwt.decode", return_value=fake_claims) as mock_decode,
+    ):
         result = _validate_token("token")
     # Verify that verify_iss=False was passed for multi-tenant
     decode_kwargs = mock_decode.call_args
@@ -105,6 +114,7 @@ def test_validate_token_multi_tenant_skips_issuer(monkeypatch):
 
 
 # ── get_optional_user ────────────────────────────────────────────────────────
+
 
 def test_get_optional_user_returns_dev_user_when_auth_disabled(monkeypatch):
     monkeypatch.setenv("ENVIRONMENT", "development")
@@ -143,8 +153,10 @@ def test_get_optional_user_returns_user_on_valid_token(monkeypatch):
     fake_user_row = MagicMock(firm_id=2)
     fake_svc = MagicMock()
     fake_svc.get_or_create.return_value = fake_user_row
-    with patch("api.auth._validate_token", return_value=claims), \
-         patch("api.services.user_service.UserService", return_value=fake_svc):
+    with (
+        patch("api.auth._validate_token", return_value=claims),
+        patch("api.services.user_service.UserService", return_value=fake_svc),
+    ):
         user = get_optional_user(creds=creds, db=MagicMock())
     assert user.email == "user@org.com"
     assert user.firm_id == 2

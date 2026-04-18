@@ -1,4 +1,5 @@
 """Unit tests for InsurerService — appetite matching and win/loss analysis."""
+
 from unittest.mock import MagicMock
 
 
@@ -21,8 +22,12 @@ def _make_insurer(name="Gjensidige", appetite=None):
     return ins
 
 
-def _make_submission(insurer_id=1, product_type="Eiendom", status=SubmissionStatus.quoted,
-                     premium=500_000.0):
+def _make_submission(
+    insurer_id=1,
+    product_type="Eiendom",
+    status=SubmissionStatus.quoted,
+    premium=500_000.0,
+):
     s = MagicMock(spec=Submission)
     s.insurer_id = insurer_id
     s.product_type = product_type
@@ -77,8 +82,8 @@ class TestGetWinLossSummary:
         ins_q = MagicMock()
         ins_q.all.return_value = [insurer]
 
-
         call_count = [0]
+
         def side_effect(model):
             call_count[0] += 1
             q = MagicMock()
@@ -89,6 +94,7 @@ class TestGetWinLossSummary:
             else:
                 q.all.return_value = [insurer]
             return q
+
         db.query.side_effect = side_effect
         return InsurerService(db)
 
@@ -138,6 +144,7 @@ class TestDraftSubmissionEmail:
 
         def _query(model):
             from api.db import Submission, Insurer as InsurerModel, Company
+
             m = MagicMock()
             if model is Submission:
                 m.filter.return_value.first.return_value = sub
@@ -165,7 +172,10 @@ class TestDraftSubmissionEmail:
 
         db = self._make_db(sub, insurer)
 
-        with patch("api.services.llm._llm_answer_raw", return_value="Kjære Tryg, vi ønsker å søke..."):
+        with patch(
+            "api.services.llm._llm_answer_raw",
+            return_value="Kjære Tryg, vi ønsker å søke...",
+        ):
             svc = InsurerService(db)
             result = svc.draft_submission_email(firm_id=1, submission_id=42)
 
@@ -185,6 +195,8 @@ class TestDraftSubmissionEmail:
         db = self._make_db(sub, insurer)
 
         with patch("api.services.llm._llm_answer_raw", return_value=None):
-            result = InsurerService(db).draft_submission_email(firm_id=1, submission_id=1)
+            result = InsurerService(db).draft_submission_email(
+                firm_id=1, submission_id=1
+            )
 
         assert result == ""

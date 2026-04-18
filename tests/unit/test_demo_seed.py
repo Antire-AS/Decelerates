@@ -1,4 +1,5 @@
 """Unit tests for api/services/demo_seed.py — fictional company seeding."""
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
@@ -37,11 +38,13 @@ def test_seed_pipeline_stages_skips_if_exist():
 def test_seed_full_demo_returns_summary(*mocks):
     db = MagicMock()
     # Mock all the per-company helpers
-    with patch("api.services.demo_seed._seed_company_row", return_value=True), \
-         patch("api.services.demo_seed._seed_history_rows", return_value=5), \
-         patch("api.services.demo_seed._seed_primary_policy", return_value=(1, True)), \
-         patch("api.services.demo_seed._seed_demo_claim", return_value=True), \
-         patch("api.services.demo_seed._seed_demo_activity", return_value=True):
+    with (
+        patch("api.services.demo_seed._seed_company_row", return_value=True),
+        patch("api.services.demo_seed._seed_history_rows", return_value=5),
+        patch("api.services.demo_seed._seed_primary_policy", return_value=(1, True)),
+        patch("api.services.demo_seed._seed_demo_claim", return_value=True),
+        patch("api.services.demo_seed._seed_demo_activity", return_value=True),
+    ):
         result = seed_full_demo(db)
     assert "message" in result
     assert result["companies_created"] > 0

@@ -8,6 +8,7 @@ The cache state in `_SSB_CACHE` and `_NB_RATE_CACHE` is module-global, so
 each test that exercises a cache-aware code path resets the relevant dict
 to avoid leaking state across tests.
 """
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -35,25 +36,37 @@ def _reset_caches():
 
 # ── fetch_koordinater ─────────────────────────────────────────────────────────
 
+
 @patch("api.services.geo_stats_client.requests.get")
 def test_fetch_koordinater_full(mock_get):
     mock_get.return_value = SimpleNamespace(
         status_code=200,
-        json=lambda: {"adresser": [{
-            "representasjonspunkt": {"lat": 59.9, "lon": 10.7},
-            "adressetekst": "Storgata 1, 0150 OSLO",
-        }]},
+        json=lambda: {
+            "adresser": [
+                {
+                    "representasjonspunkt": {"lat": 59.9, "lon": 10.7},
+                    "adressetekst": "Storgata 1, 0150 OSLO",
+                }
+            ]
+        },
     )
-    out = fetch_koordinater({
-        "adresse": ["Storgata 1"], "postnummer": "0150", "kommunenummer": "0301",
-    })
+    out = fetch_koordinater(
+        {
+            "adresse": ["Storgata 1"],
+            "postnummer": "0150",
+            "kommunenummer": "0301",
+        }
+    )
     assert out == {"lat": 59.9, "lon": 10.7, "adressetekst": "Storgata 1, 0150 OSLO"}
 
 
 def test_fetch_koordinater_no_address():
     """Empty input returns None without hitting the network."""
     assert fetch_koordinater({}) is None
-    assert fetch_koordinater({"adresse": [], "postnummer": "", "kommunenummer": ""}) is None
+    assert (
+        fetch_koordinater({"adresse": [], "postnummer": "", "kommunenummer": ""})
+        is None
+    )
 
 
 @patch("api.services.geo_stats_client.requests.get")
@@ -65,7 +78,8 @@ def test_fetch_koordinater_404(mock_get):
 @patch("api.services.geo_stats_client.requests.get")
 def test_fetch_koordinater_empty_results(mock_get):
     mock_get.return_value = SimpleNamespace(
-        status_code=200, json=lambda: {"adresser": []},
+        status_code=200,
+        json=lambda: {"adresser": []},
     )
     assert fetch_koordinater({"adresse": ["Bogus"]}) is None
 
@@ -74,17 +88,22 @@ def test_fetch_koordinater_empty_results(mock_get):
 def test_fetch_koordinater_missing_lat_lon(mock_get):
     mock_get.return_value = SimpleNamespace(
         status_code=200,
-        json=lambda: {"adresser": [{"representasjonspunkt": {"lat": None, "lon": None}}]},
+        json=lambda: {
+            "adresser": [{"representasjonspunkt": {"lat": None, "lon": None}}]
+        },
     )
     assert fetch_koordinater({"adresse": ["X"]}) is None
 
 
-@patch("api.services.geo_stats_client.requests.get", side_effect=Exception("network down"))
+@patch(
+    "api.services.geo_stats_client.requests.get", side_effect=Exception("network down")
+)
 def test_fetch_koordinater_swallows_exceptions(mock_get):
     assert fetch_koordinater({"adresse": ["X"]}) is None
 
 
 # ── _nace_to_section ──────────────────────────────────────────────────────────
+
 
 def test_nace_to_section_known_codes():
     """64 (banking) → K, 62 (programming) → J, 71 (engineering) → M."""
@@ -105,6 +124,7 @@ def test_nace_to_section_out_of_range():
 
 
 # ── fetch_ssb_benchmark — fallback path (no live SSB) ─────────────────────────
+
 
 @patch("api.services.geo_stats_client._fetch_ssb_live", return_value=None)
 def test_fetch_ssb_benchmark_unknown_nace(mock_live):
@@ -127,7 +147,10 @@ def test_fetch_ssb_benchmark_static_fallback(mock_live):
 def test_fetch_ssb_benchmark_live_success(mock_live):
     """When live SSB returns data, it overrides the static range."""
     mock_live.return_value = {
-        "eq_ratio": 0.20, "margin": 0.05, "year": "2024", "table": "12813",
+        "eq_ratio": 0.20,
+        "margin": 0.05,
+        "year": "2024",
+        "table": "12813",
     }
     out = fetch_ssb_benchmark("64.190")
     assert out["live"] is True
@@ -138,6 +161,7 @@ def test_fetch_ssb_benchmark_live_success(mock_live):
 
 
 # ── _fetch_ssb_live ───────────────────────────────────────────────────────────
+
 
 @patch("api.services.geo_stats_client.requests.post")
 def test_fetch_ssb_live_success(mock_post):
@@ -161,8 +185,10 @@ def test_fetch_ssb_live_uses_cache(mock_post):
     """Second call within TTL skips the network."""
     mock_post.return_value = SimpleNamespace(
         ok=True,
-        json=lambda: {"value": [10.0, 3.0],
-                      "dimension": {"Tid": {"category": {"label": {"a": "2024"}}}}},
+        json=lambda: {
+            "value": [10.0, 3.0],
+            "dimension": {"Tid": {"category": {"label": {"a": "2024"}}}},
+        },
     )
     _fetch_ssb_live("K")
     _fetch_ssb_live("K")
@@ -174,10 +200,13 @@ def test_fetch_ssb_live_falls_back_through_tables(mock_post):
     """If table 12813 fails, retries with table 12814."""
     mock_post.side_effect = [
         SimpleNamespace(ok=False),  # 12813 fails
-        SimpleNamespace(ok=True, json=lambda: {
-            "value": [11.0, 3.0],
-            "dimension": {"Tid": {"category": {"label": {"a": "2024"}}}},
-        }),
+        SimpleNamespace(
+            ok=True,
+            json=lambda: {
+                "value": [11.0, 3.0],
+                "dimension": {"Tid": {"category": {"label": {"a": "2024"}}}},
+            },
+        ),
     ]
     out = _fetch_ssb_live("K")
     assert out is not None
@@ -211,6 +240,7 @@ def test_fetch_ssb_live_value_with_none(mock_post):
 
 # ── fetch_norgesbank_rate ─────────────────────────────────────────────────────
 
+
 def test_norgesbank_rate_nok_is_one():
     """NOK → NOK is the trivial identity case, no network call."""
     assert fetch_norgesbank_rate("NOK") == 1.0
@@ -225,9 +255,11 @@ def test_norgesbank_rate_empty_currency():
 def test_norgesbank_rate_eur(mock_get):
     mock_get.return_value = SimpleNamespace(
         ok=True,
-        json=lambda: {"data": {"dataSets": [{"series": {
-            "0:0:0": {"observations": {"0": [11.45]}}
-        }}]}},
+        json=lambda: {
+            "data": {
+                "dataSets": [{"series": {"0:0:0": {"observations": {"0": [11.45]}}}}]
+            }
+        },
     )
     assert fetch_norgesbank_rate("EUR") == 11.45
 
@@ -236,9 +268,11 @@ def test_norgesbank_rate_eur(mock_get):
 def test_norgesbank_rate_uses_cache(mock_get):
     mock_get.return_value = SimpleNamespace(
         ok=True,
-        json=lambda: {"data": {"dataSets": [{"series": {
-            "0:0:0": {"observations": {"0": [11.45]}}
-        }}]}},
+        json=lambda: {
+            "data": {
+                "dataSets": [{"series": {"0:0:0": {"observations": {"0": [11.45]}}}}]
+            }
+        },
     )
     fetch_norgesbank_rate("EUR")
     fetch_norgesbank_rate("EUR")

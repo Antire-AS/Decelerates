@@ -1,4 +1,5 @@
 """Shared PDF infrastructure — colour constants, _safe(), _section_title()."""
+
 from typing import Any
 import logging
 
@@ -6,12 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 # ── Forsikringstilbud colour palette ─────────────────────────────────────────
-_DARK_BLUE  = (20,  50, 120)
-_MID_BLUE   = (50,  90, 170)
+_DARK_BLUE = (20, 50, 120)
+_MID_BLUE = (50, 90, 170)
 _LIGHT_BLUE = (220, 230, 250)
-_MUST_RED   = (200,  50,  50)
-_REC_ORG    = (220, 100,  30)
-_OPT_GRY    = (100, 100, 100)
+_MUST_RED = (200, 50, 50)
+_REC_ORG = (220, 100, 30)
+_OPT_GRY = (100, 100, 100)
 
 
 def _safe(s: Any) -> str:
@@ -20,11 +21,16 @@ def _safe(s: Any) -> str:
         return ""
     return (
         str(s)
-        .replace("\u2013", "-").replace("\u2014", "-")
-        .replace("\u2018", "'").replace("\u2019", "'")
-        .replace("\u201c", '"').replace("\u201d", '"')
-        .replace("\u2026", "...").replace("\u00b0", " ")
-        .encode("latin-1", errors="replace").decode("latin-1")
+        .replace("\u2013", "-")
+        .replace("\u2014", "-")
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .replace("\u2026", "...")
+        .replace("\u00b0", " ")
+        .encode("latin-1", errors="replace")
+        .decode("latin-1")
     )
 
 

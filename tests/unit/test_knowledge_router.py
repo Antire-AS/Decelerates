@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; all LLM and DB calls are
 mocked — no real database, AI providers, or network required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -39,7 +40,10 @@ def mock_db():
 def client(mock_db):
     _app.dependency_overrides[get_db] = lambda: mock_db
     _app.dependency_overrides[get_current_user] = lambda: CurrentUser(
-        email="test@local", name="Test User", oid="test-oid", firm_id=1,
+        email="test@local",
+        name="Test User",
+        oid="test-oid",
+        firm_id=1,
     )
     yield TestClient(_app)
     _app.dependency_overrides.clear()
@@ -47,15 +51,20 @@ def client(mock_db):
 
 # -- POST /org/{orgnr}/chat (mode=rag) ----------------------------------------
 
+
 @patch("api.routers.knowledge._chunk_and_store", return_value=1)
 @patch("api.routers.knowledge.save_qa_note", return_value=42)
 @patch("api.routers.knowledge._answer_with_rag_or_notes", return_value="Test answer")
 @patch("api.routers.knowledge._auto_ingest_company_data")
-def test_org_chat_rag_mode(mock_ingest, mock_answer, mock_save, mock_chunk, client, mock_db):
+def test_org_chat_rag_mode(
+    mock_ingest, mock_answer, mock_save, mock_chunk, client, mock_db
+):
     db_obj = MagicMock()
     db_obj.orgnr = "123456789"
     mock_db.query.return_value.filter.return_value.first.return_value = db_obj
-    resp = client.post("/org/123456789/chat?mode=rag", json={"question": "What is revenue?"})
+    resp = client.post(
+        "/org/123456789/chat?mode=rag", json={"question": "What is revenue?"}
+    )
     assert resp.status_code == 200
     assert resp.json()["answer"] == "Test answer"
 
@@ -79,13 +88,17 @@ def test_org_chat_404_when_company_missing(client, mock_db):
 
 # -- POST /org/{orgnr}/chat (mode=agent) --------------------------------------
 
+
 @patch("api.routers.knowledge.save_qa_note", return_value=1)
 @patch("api.routers.knowledge._chat_agent_mode")
 def test_org_chat_agent_mode(mock_agent, mock_save, client, mock_db):
     mock_db.query.return_value.filter.return_value.first.return_value = MagicMock()
     mock_agent.return_value = {
-        "orgnr": "123", "question": "hi", "answer": "agent reply",
-        "session_id": "s1", "tool_calls": [],
+        "orgnr": "123",
+        "question": "hi",
+        "answer": "agent reply",
+        "session_id": "s1",
+        "tool_calls": [],
     }
     resp = client.post("/org/123/chat?mode=agent", json={"question": "hi"})
     assert resp.status_code == 200
@@ -93,6 +106,7 @@ def test_org_chat_agent_mode(mock_agent, mock_save, client, mock_db):
 
 
 # -- DELETE /org/{orgnr}/chat --------------------------------------------------
+
 
 @patch("api.routers.knowledge._clear_chat_session", return_value=3)
 def test_delete_chat_session(mock_clear, client, mock_db):
@@ -104,6 +118,7 @@ def test_delete_chat_session(mock_clear, client, mock_db):
 
 # -- GET /org/{orgnr}/chat (history) ------------------------------------------
 
+
 def test_get_chat_history_empty(client, mock_db):
     mock_db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
     resp = client.get("/org/123/chat")
@@ -112,6 +127,7 @@ def test_get_chat_history_empty(client, mock_db):
 
 
 # -- POST /knowledge/chat -----------------------------------------------------
+
 
 @patch("api.routers.knowledge._llm_answer_raw", return_value="knowledge reply")
 @patch("api.routers.knowledge._retrieve_knowledge_chunks")

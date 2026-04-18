@@ -1,4 +1,5 @@
 """Tests for api/services/pdf_sla.py — SLA agreement PDF generation."""
+
 import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -36,23 +37,34 @@ def _agreement(**overrides):
         account_manager="Ola Nordmann",
         start_date="2026-01-01",
         created_at="2026-01-01T12:00:00",
-        broker_snapshot={"firm_name": "Megler AS", "orgnr": "111222333",
-                         "address": "Meglerveien 2", "contact_email": "m@m.no",
-                         "contact_phone": "99887766"},
-        form_data={"kyc_signatory": "Kari", "kyc_id_type": "Pass",
-                   "kyc_id_ref": "NO123", "kyc_firmadato": "2026-01-01",
-                   "other_lines": "Spesial"},
+        broker_snapshot={
+            "firm_name": "Megler AS",
+            "orgnr": "111222333",
+            "address": "Meglerveien 2",
+            "contact_email": "m@m.no",
+            "contact_phone": "99887766",
+        },
+        form_data={
+            "kyc_signatory": "Kari",
+            "kyc_id_type": "Pass",
+            "kyc_id_ref": "NO123",
+            "kyc_firmadato": "2026-01-01",
+            "other_lines": "Spesial",
+        },
         insurance_lines=["Eiendom", "Ansvar"],
-        fee_structure={"lines": [
-            {"line": "Eiendom", "type": "provisjon", "rate": "15"},
-            {"line": "Ansvar", "type": "fast", "rate": "25000"},
-        ]},
+        fee_structure={
+            "lines": [
+                {"line": "Eiendom", "type": "provisjon", "rate": "15"},
+                {"line": "Ansvar", "type": "fast", "rate": "25000"},
+            ]
+        },
     )
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
 
 
 # ── Page builder tests ───────────────────────────────────────────────────────
+
 
 def test_add_cover_page():
     pdf = _pdf()
@@ -63,7 +75,12 @@ def test_add_cover_page():
 
 def test_add_section_oppdrag():
     pdf = _pdf()
-    broker = {"orgnr": "111", "address": "Adr", "contact_email": "e", "contact_phone": "p"}
+    broker = {
+        "orgnr": "111",
+        "address": "Adr",
+        "contact_email": "e",
+        "contact_phone": "p",
+    }
     _add_section_oppdrag(pdf, _agreement(), broker, "Megler AS")
     pdf.add_page.assert_called_once()
     assert pdf.multi_cell.called
@@ -114,7 +131,12 @@ def test_add_standardvilkar():
 
 def test_add_vedlegg_e():
     pdf = _pdf()
-    form = {"kyc_signatory": "Kari", "kyc_id_type": "Pass", "kyc_id_ref": "123", "kyc_firmadato": "2026-01-01"}
+    form = {
+        "kyc_signatory": "Kari",
+        "kyc_id_type": "Pass",
+        "kyc_id_ref": "123",
+        "kyc_firmadato": "2026-01-01",
+    }
     _add_vedlegg_e(pdf, form)
     pdf.add_page.assert_called_once()
     assert pdf.multi_cell.called
@@ -134,6 +156,7 @@ def test_add_signature_page():
 
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
+
 
 @patch("api.services.pdf_sla.FPDF")
 def test_generate_sla_pdf_returns_bytes(mock_fpdf_cls):

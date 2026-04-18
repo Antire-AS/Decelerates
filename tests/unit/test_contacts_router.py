@@ -3,6 +3,7 @@
 Uses a minimal FastAPI app with the router mounted; ContactsService is injected
 as a MagicMock — no real DB required.
 """
+
 import sys
 from unittest.mock import MagicMock
 
@@ -24,7 +25,9 @@ from api.routers.contacts import router, _svc
 _app = FastAPI()
 _app.include_router(router)
 
-_FAKE_USER = CurrentUser(email="test@local", name="Test User", oid="test-oid", firm_id=1)
+_FAKE_USER = CurrentUser(
+    email="test@local", name="Test User", oid="test-oid", firm_id=1
+)
 
 
 def _mock_contact(**kw):
@@ -62,6 +65,7 @@ def client(mock_db, mock_contacts_svc):
 
 # ── GET /org/{orgnr}/contacts ────────────────────────────────────────────────
 
+
 def test_list_contacts_returns_200(client, mock_contacts_svc):
     mock_contacts_svc.list_contacts.return_value = []
     resp = client.get("/org/123456789/contacts")
@@ -80,6 +84,7 @@ def test_list_contacts_returns_items(client, mock_contacts_svc):
 
 # ── POST /org/{orgnr}/contacts ───────────────────────────────────────────────
 
+
 def test_create_contact_returns_201(client, mock_contacts_svc):
     mock_contacts_svc.create_contact.return_value = _mock_contact(id=10)
     resp = client.post(
@@ -92,8 +97,11 @@ def test_create_contact_returns_201(client, mock_contacts_svc):
 
 # ── PUT /org/{orgnr}/contacts/{contact_id} ───────────────────────────────────
 
+
 def test_update_contact_returns_200(client, mock_contacts_svc):
-    mock_contacts_svc.update_contact.return_value = _mock_contact(id=3, name="Updated Name")
+    mock_contacts_svc.update_contact.return_value = _mock_contact(
+        id=3, name="Updated Name"
+    )
     resp = client.put(
         "/org/123456789/contacts/3",
         json={"name": "Updated Name"},
@@ -112,6 +120,7 @@ def test_update_contact_returns_404(client, mock_contacts_svc):
 
 
 # ── DELETE /org/{orgnr}/contacts/{contact_id} ────────────────────────────────
+
 
 def test_delete_contact_returns_204(client, mock_contacts_svc):
     mock_contacts_svc.delete_contact.return_value = None

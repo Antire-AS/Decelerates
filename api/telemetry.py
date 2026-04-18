@@ -5,6 +5,7 @@ When APPLICATIONINSIGHTS_CONNECTION_STRING is set and configure_azure_monitor() 
 (in api/main.py), these are exported to Azure Monitor. Otherwise they are no-ops — unit
 tests and local dev without App Insights require no extra setup.
 """
+
 from opentelemetry import metrics
 
 _meter = metrics.get_meter("broker-accelerator", "1.0.0")

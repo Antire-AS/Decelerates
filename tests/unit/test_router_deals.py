@@ -3,6 +3,7 @@
 Mocks DealService + auth so we exercise the wiring (status codes, response
 shapes, validation) without touching the real service or DB.
 """
+
 import sys
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -105,7 +106,9 @@ def test_list_stages_scoped_to_user_firm(client, mock_svc):
 
 def test_create_stage_201(client, mock_svc):
     mock_svc.create_stage.return_value = _mock_stage(stage_id=99)
-    resp = client.post("/pipeline/stages", json={"name": "Lead", "kind": "lead", "order_index": 0})
+    resp = client.post(
+        "/pipeline/stages", json={"name": "Lead", "kind": "lead", "order_index": 0}
+    )
     assert resp.status_code == 201
     assert resp.json()["id"] == 99
 
@@ -130,7 +133,9 @@ def test_delete_stage_204(client, mock_svc):
 
 
 def test_delete_stage_409_when_deals_remain(client, mock_svc):
-    mock_svc.delete_stage.side_effect = NotFoundError("Stage 5 still has 3 deal(s) — reassign")
+    mock_svc.delete_stage.side_effect = NotFoundError(
+        "Stage 5 still has 3 deal(s) — reassign"
+    )
     resp = client.delete("/pipeline/stages/5")
     assert resp.status_code == 409
 
@@ -155,12 +160,19 @@ def test_list_deals_passes_query_filters(client, mock_svc):
     mock_svc.list_deals.return_value = []
     client.get("/deals?stage_id=3&owner_user_id=7&orgnr=987654321")
     args = mock_svc.list_deals.call_args.kwargs
-    assert args == {"firm_id": 10, "stage_id": 3, "owner_user_id": 7, "orgnr": "987654321"}
+    assert args == {
+        "firm_id": 10,
+        "stage_id": 3,
+        "owner_user_id": 7,
+        "orgnr": "987654321",
+    }
 
 
 def test_create_deal_201(client, mock_svc):
     mock_svc.create_deal.return_value = _mock_deal(deal_id=42)
-    resp = client.post("/deals", json={"orgnr": "123456789", "stage_id": 1, "title": "Q3"})
+    resp = client.post(
+        "/deals", json={"orgnr": "123456789", "stage_id": 1, "title": "Q3"}
+    )
     assert resp.status_code == 201
     assert resp.json()["id"] == 42
 

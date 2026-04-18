@@ -1,4 +1,5 @@
 """Unit tests for api/routers/admin_router.py — admin CRUD, dashboard, notifications."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -47,6 +48,7 @@ def client(mock_db, mock_svc, mock_notification):
 
 # ── DELETE /admin/reset ───────────────────────────────────────────────────────
 
+
 def test_admin_reset_returns_200(client, mock_svc):
     mock_svc.reset.return_value = {"deleted_companies": 5}
     resp = client.delete("/admin/reset")
@@ -62,6 +64,7 @@ def test_admin_reset_returns_service_result(client, mock_svc):
 
 # ── POST /admin/demo ──────────────────────────────────────────────────────────
 
+
 def test_admin_demo_returns_200(client, mock_svc):
     mock_svc.seed_demo.return_value = {"seeded": 8}
     resp = client.post("/admin/demo")
@@ -70,6 +73,7 @@ def test_admin_demo_returns_200(client, mock_svc):
 
 
 # ── POST /admin/seed-norway-top100 ────────────────────────────────────────────
+
 
 def test_admin_seed_norway_top100_returns_200(client, mock_svc):
     mock_svc.seed_norway_top100.return_value = {"seeded": 100}
@@ -80,6 +84,7 @@ def test_admin_seed_norway_top100_returns_200(client, mock_svc):
 
 # ── POST /admin/seed-crm-demo ─────────────────────────────────────────────────
 
+
 def test_seed_crm_demo_returns_200(client, mock_svc):
     mock_svc.seed_crm_demo.return_value = {"policies": 10, "claims": 3}
     resp = client.post("/admin/seed-crm-demo")
@@ -88,6 +93,7 @@ def test_seed_crm_demo_returns_200(client, mock_svc):
 
 
 # ── GET /dashboard ────────────────────────────────────────────────────────────
+
 
 def test_get_dashboard_returns_200(client, mock_db):
     # All DB query chains return empty lists / 0
@@ -130,7 +136,10 @@ def test_get_dashboard_zero_metrics_on_empty_db(client, mock_db):
 
 # ── POST /admin/portfolio-digest ─────────────────────────────────────────────
 
-def test_portfolio_digest_returns_422_when_no_broker_email(client, mock_db, mock_notification):
+
+def test_portfolio_digest_returns_422_when_no_broker_email(
+    client, mock_db, mock_notification
+):
     mock_db.query.return_value.first.return_value = None
     resp = client.post("/admin/portfolio-digest")
     assert resp.status_code == 422
@@ -160,6 +169,7 @@ def test_portfolio_digest_sends_to_broker_email(client, mock_db, mock_notificati
     # 4. Portfolio.filter.all → []
     # 5. Policy.filter.order_by.all → []
     call_count = [0]
+
     def _query_se(model):
         q = MagicMock()
         call_count[0] += 1
@@ -185,7 +195,10 @@ def test_portfolio_digest_sends_to_broker_email(client, mock_db, mock_notificati
 
 # ── POST /admin/activity-reminders ────────────────────────────────────────────
 
-def test_activity_reminders_returns_422_when_no_broker_email(client, mock_db, mock_notification):
+
+def test_activity_reminders_returns_422_when_no_broker_email(
+    client, mock_db, mock_notification
+):
     mock_db.query.return_value.first.return_value = None
     resp = client.post("/admin/activity-reminders")
     assert resp.status_code == 422
@@ -211,6 +224,7 @@ def test_activity_reminders_returns_no_send_when_no_activities(
     firm.id = 1
 
     call_count = [0]
+
     def _query_se(model):
         q = MagicMock()
         call_count[0] += 1

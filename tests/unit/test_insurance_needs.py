@@ -2,17 +2,24 @@
 
 Pure static tests — no DB, no network, no API keys.
 """
-from api.services.insurance_needs import estimate_insurance_needs, _nace_section, _mnok, _estimate_premium
+
+from api.services.insurance_needs import (
+    estimate_insurance_needs,
+    _nace_section,
+    _mnok,
+    _estimate_premium,
+)
 
 
 # ── _nace_section ─────────────────────────────────────────────────────────────
 
+
 def test_nace_section_it():
-    assert _nace_section("62") == "J"   # IT services
+    assert _nace_section("62") == "J"  # IT services
 
 
 def test_nace_section_finance():
-    assert _nace_section("64") == "K"   # Financial services
+    assert _nace_section("64") == "K"  # Financial services
 
 
 def test_nace_section_construction():
@@ -41,6 +48,7 @@ def test_nace_section_decimal_code():
 
 # ── _mnok ─────────────────────────────────────────────────────────────────────
 
+
 def test_mnok_rounds_to_100k():
     assert _mnok(1_234_567) == 1_200_000
 
@@ -50,6 +58,7 @@ def test_mnok_exact():
 
 
 # ── estimate_insurance_needs — Yrkesskadeforsikring ──────────────────────────
+
 
 def test_yrkesskade_triggered_when_employees():
     needs = estimate_insurance_needs({"antall_ansatte": 10}, {})
@@ -74,13 +83,13 @@ def test_yrkesskade_coverage_from_lonnskostnad():
     regn = {"lonnskostnad": 4_000_000}
     needs = estimate_insurance_needs(org, regn)
     n = next(x for x in needs if x["type"] == "Yrkesskadeforsikring")
-    assert n["estimated_coverage_nok"] == 60_000_000   # 4M × 15
+    assert n["estimated_coverage_nok"] == 60_000_000  # 4M × 15
 
 
 def test_yrkesskade_coverage_fallback_headcount():
     needs = estimate_insurance_needs({"antall_ansatte": 2}, {})
     n = next(x for x in needs if x["type"] == "Yrkesskadeforsikring")
-    assert n["estimated_coverage_nok"] == 18_000_000   # 2 × 600k × 15
+    assert n["estimated_coverage_nok"] == 18_000_000  # 2 × 600k × 15
 
 
 def test_yrkesskade_coverage_minimum_5mnok():
@@ -91,6 +100,7 @@ def test_yrkesskade_coverage_minimum_5mnok():
 
 
 # ── Ansvarsforsikring ─────────────────────────────────────────────────────────
+
 
 def test_ansvarsforsikring_always_present():
     needs = estimate_insurance_needs({}, {})
@@ -107,10 +117,11 @@ def test_ansvarsforsikring_minimum_5mnok():
 def test_ansvarsforsikring_scales_with_revenue():
     needs = estimate_insurance_needs({}, {"sum_driftsinntekter": 200_000_000})
     n = next(x for x in needs if x["type"] == "Ansvarsforsikring")
-    assert n["estimated_coverage_nok"] == 100_000_000   # 200M × 0.5
+    assert n["estimated_coverage_nok"] == 100_000_000  # 200M × 0.5
 
 
 # ── Eiendomsforsikring ────────────────────────────────────────────────────────
+
 
 def test_eiendom_triggered_above_5mnok_assets():
     needs = estimate_insurance_needs({}, {"sum_eiendeler": 10_000_000})
@@ -131,6 +142,7 @@ def test_eiendom_coverage_80pct_of_assets():
 
 
 # ── Styreansvarsforsikring ────────────────────────────────────────────────────
+
 
 def test_dao_triggered_for_as():
     needs = estimate_insurance_needs({"organisasjonsform_kode": "AS"}, {})
@@ -158,6 +170,7 @@ def test_dao_minimum_2mnok():
 
 # ── Cyberforsikring ───────────────────────────────────────────────────────────
 
+
 def test_cyber_triggered_for_it_section():
     needs = estimate_insurance_needs({"naeringskode1": "62"}, {})  # J
     types = [n["type"] for n in needs]
@@ -178,6 +191,7 @@ def test_cyber_not_triggered_for_construction():
 
 # ── Transportforsikring ───────────────────────────────────────────────────────
 
+
 def test_transport_triggered_for_manufacturing():
     needs = estimate_insurance_needs({"naeringskode1": "25"}, {})  # C
     types = [n["type"] for n in needs]
@@ -191,6 +205,7 @@ def test_transport_triggered_for_wholesale():
 
 
 # ── Nøkkelpersonforsikring ────────────────────────────────────────────────────
+
 
 def test_nokkelperson_triggered_small_high_revenue():
     org = {"antall_ansatte": 10, "naeringskode1": "62"}
@@ -209,12 +224,15 @@ def test_nokkelperson_not_triggered_large_company():
 
 
 def test_nokkelperson_not_triggered_low_revenue():
-    needs = estimate_insurance_needs({"antall_ansatte": 5}, {"sum_driftsinntekter": 1_000_000})
+    needs = estimate_insurance_needs(
+        {"antall_ansatte": 5}, {"sum_driftsinntekter": 1_000_000}
+    )
     types = [n["type"] for n in needs]
     assert "Nøkkelpersonforsikring" not in types
 
 
 # ── Kredittforsikring ─────────────────────────────────────────────────────────
+
 
 def test_kreditt_triggered_for_wholesale():
     needs = estimate_insurance_needs({"naeringskode1": "46"}, {})  # G
@@ -229,16 +247,20 @@ def test_kreditt_triggered_large_revenue():
 
 
 def test_kreditt_not_triggered_small_non_trade():
-    needs = estimate_insurance_needs({"naeringskode1": "41"}, {"sum_driftsinntekter": 5_000_000})
+    needs = estimate_insurance_needs(
+        {"naeringskode1": "41"}, {"sum_driftsinntekter": 5_000_000}
+    )
     types = [n["type"] for n in needs]
     assert "Kredittforsikring" not in types
 
 
 # ── Priority ordering ─────────────────────────────────────────────────────────
 
+
 def test_kritisk_before_anbefalt_before_vurder():
     org = {
-        "antall_ansatte": 10, "organisasjonsform_kode": "AS",
+        "antall_ansatte": 10,
+        "organisasjonsform_kode": "AS",
         "naeringskode1": "46",  # G — triggers transport + kreditt (Vurder)
     }
     regn = {"sum_driftsinntekter": 100_000_000, "sum_eiendeler": 20_000_000}
@@ -249,6 +271,7 @@ def test_kritisk_before_anbefalt_before_vurder():
 
 
 # ── Premium estimates ────────────────────────────────────────────────────────
+
 
 def test_premium_has_low_mid_high():
     p = _estimate_premium("Ansvarsforsikring", 10_000_000, "J", 50, 100_000_000)
@@ -277,6 +300,7 @@ def test_each_need_has_premium():
 
 
 # ── Full profile — DNB-like company ──────────────────────────────────────────
+
 
 def test_full_financial_company():
     org = {

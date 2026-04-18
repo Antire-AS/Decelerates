@@ -5,6 +5,7 @@ Requires TEST_DATABASE_URL. Auth is bypassed via dependency override.
 Run:
     TEST_DATABASE_URL=postgresql://... uv run python -m pytest tests/integration/test_knowledge.py -v
 """
+
 import os
 from datetime import datetime, timezone
 from unittest.mock import patch
@@ -33,9 +34,13 @@ def auth_client(test_db):
 
     app.dependency_overrides[get_db] = lambda: test_db
     app.dependency_overrides[get_current_user] = resolve_user_factory(
-        "knowledge@firm.no", "oid-40", _FIRM_ID,
+        "knowledge@firm.no",
+        "oid-40",
+        _FIRM_ID,
     )
-    yield AuthClient(TestClient(app), make_user("knowledge@firm.no", "oid-40", _FIRM_ID))
+    yield AuthClient(
+        TestClient(app), make_user("knowledge@firm.no", "oid-40", _FIRM_ID)
+    )
     app.dependency_overrides.clear()
 
 
@@ -45,19 +50,24 @@ def seed_data(test_db):
     from api.db import BrokerFirm, Company
 
     if not test_db.query(BrokerFirm).filter(BrokerFirm.id == _FIRM_ID).first():
-        test_db.add(BrokerFirm(
-            id=_FIRM_ID, name="Knowledge Test Firma AS",
-            created_at=datetime.now(timezone.utc),
-        ))
+        test_db.add(
+            BrokerFirm(
+                id=_FIRM_ID,
+                name="Knowledge Test Firma AS",
+                created_at=datetime.now(timezone.utc),
+            )
+        )
 
     if not test_db.query(Company).filter(Company.orgnr == _ORGNR).first():
-        test_db.add(Company(
-            orgnr=_ORGNR,
-            navn="Kunnskapstest AS",
-            organisasjonsform_kode="AS",
-            naeringskode1="62.010",
-            kommune="Oslo",
-        ))
+        test_db.add(
+            Company(
+                orgnr=_ORGNR,
+                navn="Kunnskapstest AS",
+                organisasjonsform_kode="AS",
+                naeringskode1="62.010",
+                kommune="Oslo",
+            )
+        )
 
     test_db.commit()
 
@@ -66,15 +76,14 @@ def seed_data(test_db):
 
 
 class TestIngestKnowledge:
-
     def test_ingest_returns_chunk_count(self, auth_client):
         with patch("api.routers.knowledge._embed", return_value=None):
             resp = auth_client.post(
                 f"/org/{_ORGNR}/ingest-knowledge",
                 json={
                     "text": "Selskapet har høy risiko innen cybersikkerhet. "
-                            "De mangler grunnleggende sikkerhetstiltak og har "
-                            "ikke oppdatert sine systemer på flere år.",
+                    "De mangler grunnleggende sikkerhetstiltak og har "
+                    "ikke oppdatert sine systemer på flere år.",
                     "source": "test_note",
                 },
             )
@@ -106,7 +115,9 @@ class TestIngestKnowledge:
 
         chunks = (
             test_db.query(CompanyChunk)
-            .filter(CompanyChunk.orgnr == _ORGNR, CompanyChunk.source == "persistence_test")
+            .filter(
+                CompanyChunk.orgnr == _ORGNR, CompanyChunk.source == "persistence_test"
+            )
             .all()
         )
         assert len(chunks) >= 1
@@ -117,13 +128,15 @@ class TestIngestKnowledge:
 
 
 class TestKnowledgeSearch:
-
     def test_search_returns_list(self, auth_client):
         # First ingest something so there's data to find
         with patch("api.routers.knowledge._embed", return_value=None):
             auth_client.post(
                 f"/org/{_ORGNR}/ingest-knowledge",
-                json={"text": "Eiendomsforsikring dekker skader pa bygninger.", "source": "search_seed"},
+                json={
+                    "text": "Eiendomsforsikring dekker skader pa bygninger.",
+                    "source": "search_seed",
+                },
             )
 
         with patch("api.routers.knowledge._embed", return_value=None):
@@ -148,7 +161,6 @@ class TestKnowledgeSearch:
 
 
 class TestKnowledgeChat:
-
     def test_chat_with_no_indexed_knowledge(self, auth_client):
         """When no knowledge chunks exist, the endpoint returns a helpful message."""
         with patch("api.routers.knowledge._embed", return_value=None):
@@ -172,7 +184,7 @@ class TestKnowledgeChat:
                 f"/org/{KNOWLEDGE_ORG}/ingest-knowledge",
                 json={
                     "text": "Forsikringsavtaleloven regulerer forholdet mellom "
-                            "forsikringsselskap og forsikringstaker.",
+                    "forsikringsselskap og forsikringstaker.",
                     "source": "regulation::FAL",
                 },
             )

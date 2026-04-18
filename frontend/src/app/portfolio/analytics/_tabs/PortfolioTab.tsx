@@ -11,8 +11,10 @@ import {
   type PortfolioItem, type PortfolioRiskRow,
 } from "@/lib/api";
 import { fmtMnok, MetricCard } from "./_shared";
+import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
 
 export default function PortfolioTab() {
+  const { bandFor } = useRiskConfig();
   const { data: portfolios, isLoading: loadingPortfolios } = useSWR<PortfolioItem[]>("portfolios-fin", getPortfolios);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -115,7 +117,7 @@ export default function PortfolioTab() {
                     <td className="py-2 text-right text-[#8A7F74]">{r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}</td>
                     <td className="py-2 text-right">
                       {r.risk_score != null ? (
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.risk_score <= 3 ? "bg-green-100 text-green-700" : r.risk_score <= 7 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${bandTailwindClass(bandFor(r.risk_score).label)}`}>
                           {r.risk_score}
                         </span>
                       ) : "–"}

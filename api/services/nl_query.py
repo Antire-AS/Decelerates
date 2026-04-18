@@ -5,6 +5,7 @@ to convert a plain-English/Norwegian question into a read-only SELECT query
 against the financial database, then executes it and returns structured
 results.
 """
+
 import logging
 import re
 
@@ -88,12 +89,20 @@ class NlQueryService:
         """Convert question to SQL, execute, return results + the generated SQL."""
         sql = _generate_sql(question)
         if not sql:
-            return {"error": "Kunne ikke generere SQL (ingen AI-nøkkel konfigurert)", "sql": None, "rows": []}
+            return {
+                "error": "Kunne ikke generere SQL (ingen AI-nøkkel konfigurert)",
+                "sql": None,
+                "rows": [],
+            }
 
         # Safety: only allow SELECT
         if not _SAFE_SQL.match(sql) or _UNSAFE.search(sql):
             log.warning("nl_query: unsafe SQL blocked: %s", sql[:200])
-            return {"error": "Generert SQL er ikke tillatt (kun SELECT).", "sql": sql, "rows": []}
+            return {
+                "error": "Generert SQL er ikke tillatt (kun SELECT).",
+                "sql": sql,
+                "rows": [],
+            }
 
         try:
             result = self.db.execute(text(sql))

@@ -1,11 +1,11 @@
 """Unit tests for api/services/pdf_base.py — shared PDF utilities."""
+
 import sys
 from unittest.mock import MagicMock
 
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-import pytest
 
 from api.services.pdf_base import (
     _safe,

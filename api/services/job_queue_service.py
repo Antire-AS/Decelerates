@@ -7,6 +7,7 @@ Usage:
     # Worker loop (run from main.py on startup)
     JobQueueService.process_pending(db_factory=SessionLocal)
 """
+
 import logging
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -98,7 +99,9 @@ def _execute_job(db: Session, job: JobQueue) -> None:
         job.status = "done"
         job.finished_at = datetime.now(timezone.utc)
         db.commit()
-        logger.info("Job %d (%s) completed in attempt %d", job.id, job.job_type, job.attempts)
+        logger.info(
+            "Job %d (%s) completed in attempt %d", job.id, job.job_type, job.attempts
+        )
     except Exception as exc:
         _fail_job(db, job, str(exc))
 
@@ -108,4 +111,6 @@ def _fail_job(db: Session, job: JobQueue, error: str) -> None:
     job.status = "failed" if job.attempts >= job.max_attempts else "pending"
     job.finished_at = datetime.now(timezone.utc) if job.status == "failed" else None
     db.commit()
-    logger.warning("Job %d (%s) failed (attempt %d): %s", job.id, job.job_type, job.attempts, error)
+    logger.warning(
+        "Job %d (%s) failed (attempt %d): %s", job.id, job.job_type, job.attempts, error
+    )

@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+
+echo "=== Antire pre-push checks ==="
+
+# 1. Ruff lint + format check
+echo "[1/4] ruff check..."
+uv run ruff check api/ tests/ scripts/
+
+echo "[2/4] ruff format --check..."
+uv run ruff format --check api/ tests/ scripts/
+
+# 3. Pyright type check
+echo "[3/4] pyright..."
+uv run --with pyright pyright
+
+# 4. Unit tests (fast, no DB required)
+echo "[4/4] pytest unit..."
+uv run python -m pytest tests/unit -v --tb=short -q
+
+echo ""
+echo "=== All pre-push checks passed ==="

@@ -1,4 +1,5 @@
 """Unit tests for api/routers/financials.py — PDF history, sources, extraction status."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -36,6 +37,7 @@ def client(mock_db):
 
 # ── GET /org/{orgnr}/history ──────────────────────────────────────────────────
 
+
 def test_get_org_history_returns_200(client):
     with patch("api.routers.financials._get_full_history", return_value=[]):
         resp = client.get("/org/123456789/history")
@@ -56,41 +58,60 @@ def test_get_org_history_returns_years(client):
 
 # ── POST /org/{orgnr}/pdf-history ─────────────────────────────────────────────
 
+
 def test_add_pdf_history_returns_200(client):
     row = {"year": 2023, "sum_driftsinntekter": 500_000}
-    with patch("api.routers.financials.upsert_pdf_source"), \
-         patch("api.routers.financials.fetch_history_from_pdf", return_value=row):
-        resp = client.post("/org/123456789/pdf-history",
-                           json={"pdf_url": "https://example.com/r.pdf", "year": 2023})
+    with (
+        patch("api.routers.financials.upsert_pdf_source"),
+        patch("api.routers.financials.fetch_history_from_pdf", return_value=row),
+    ):
+        resp = client.post(
+            "/org/123456789/pdf-history",
+            json={"pdf_url": "https://example.com/r.pdf", "year": 2023},
+        )
     assert resp.status_code == 200
     assert resp.json()["orgnr"] == "123456789"
 
 
 def test_add_pdf_history_returns_502_on_pdf_error(client):
-    with patch("api.routers.financials.upsert_pdf_source"), \
-         patch("api.routers.financials.fetch_history_from_pdf",
-               side_effect=PdfExtractionError("parse failed")):
-        resp = client.post("/org/123456789/pdf-history",
-                           json={"pdf_url": "https://example.com/r.pdf", "year": 2023})
+    with (
+        patch("api.routers.financials.upsert_pdf_source"),
+        patch(
+            "api.routers.financials.fetch_history_from_pdf",
+            side_effect=PdfExtractionError("parse failed"),
+        ),
+    ):
+        resp = client.post(
+            "/org/123456789/pdf-history",
+            json={"pdf_url": "https://example.com/r.pdf", "year": 2023},
+        )
     assert resp.status_code == 502
 
 
 def test_add_pdf_history_returns_502_on_generic_error(client):
-    with patch("api.routers.financials.upsert_pdf_source"), \
-         patch("api.routers.financials.fetch_history_from_pdf",
-               side_effect=Exception("unexpected")):
-        resp = client.post("/org/123456789/pdf-history",
-                           json={"pdf_url": "https://example.com/r.pdf", "year": 2023})
+    with (
+        patch("api.routers.financials.upsert_pdf_source"),
+        patch(
+            "api.routers.financials.fetch_history_from_pdf",
+            side_effect=Exception("unexpected"),
+        ),
+    ):
+        resp = client.post(
+            "/org/123456789/pdf-history",
+            json={"pdf_url": "https://example.com/r.pdf", "year": 2023},
+        )
     assert resp.status_code == 502
 
 
 def test_add_pdf_history_returns_422_when_missing_year(client):
-    resp = client.post("/org/123456789/pdf-history",
-                       json={"pdf_url": "https://example.com/r.pdf"})
+    resp = client.post(
+        "/org/123456789/pdf-history", json={"pdf_url": "https://example.com/r.pdf"}
+    )
     assert resp.status_code == 422
 
 
 # ── GET /org/{orgnr}/pdf-sources ──────────────────────────────────────────────
+
 
 def test_get_pdf_sources_returns_200(client, mock_db):
     mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
@@ -104,7 +125,9 @@ def test_get_pdf_sources_returns_source_list(client, mock_db):
     src.pdf_url = "https://example.com/r.pdf"
     src.label = "Årsrapport 2023"
     src.added_at = "2026-01-01T00:00:00"
-    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [src]
+    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        src
+    ]
     resp = client.get("/org/123456789/pdf-sources")
     sources = resp.json()["sources"]
     assert len(sources) == 1
@@ -112,6 +135,7 @@ def test_get_pdf_sources_returns_source_list(client, mock_db):
 
 
 # ── GET /org/{orgnr}/extraction-status ───────────────────────────────────────
+
 
 def test_extraction_status_no_sources(client, mock_db):
     # No CompanyPdfSource rows → status "no_sources"
@@ -129,6 +153,7 @@ def test_extraction_status_done_when_all_extracted(client, mock_db):
 
     def _query_side_effect(model):
         from api.db import CompanyPdfSource
+
         q = MagicMock()
         if model is CompanyPdfSource:
             q.filter.return_value.all.return_value = [src]
@@ -143,6 +168,7 @@ def test_extraction_status_done_when_all_extracted(client, mock_db):
 
 # ── DELETE /org/{orgnr}/history ───────────────────────────────────────────────
 
+
 def test_reset_history_returns_200(client):
     with patch("api.routers.financials.delete_history_year", return_value=5):
         resp = client.delete("/org/123456789/history")
@@ -151,6 +177,7 @@ def test_reset_history_returns_200(client):
 
 
 # ── POST /financials/query ────────────────────────────────────────────────────
+
 
 def test_nl_query_returns_400_when_empty_question(client):
     resp = client.post("/financials/query", json={"question": "  "})
@@ -174,6 +201,7 @@ def test_nl_query_returns_result(client):
 # implementation returned `{years_analyzed: int, navn: str}` which FastAPI
 # silently stripped because neither field is in the schema — see plan §🟡 #6.
 
+
 def test_financial_commentary_returns_years_list(client, mock_db):
     company = MagicMock()
     company.navn = "Test AS"
@@ -183,8 +211,10 @@ def test_financial_commentary_returns_years_list(client, mock_db):
         {"year": 2024, "sum_driftsinntekter": 1_500_000},
         {"year": 2023, "sum_driftsinntekter": 1_200_000},
     ]
-    with patch("api.routers.financials._get_full_history", return_value=history), \
-         patch("api.services.llm._llm_answer_raw", return_value="Lav risiko."):
+    with (
+        patch("api.routers.financials._get_full_history", return_value=history),
+        patch("api.services.llm._llm_answer_raw", return_value="Lav risiko."),
+    ):
         resp = client.get("/org/123456789/financial-commentary")
     assert resp.status_code == 200
     body = resp.json()

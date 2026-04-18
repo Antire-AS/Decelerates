@@ -4,6 +4,7 @@ Reads existing InsuranceDocuments from the DB, extracts text via pdfplumber,
 adjusts key numbers by ±5–15%, replaces company names with fictional ones,
 and saves the result as a new InsuranceDocument tagged 'demo'.
 """
+
 import io
 import logging
 import random
@@ -30,8 +31,14 @@ _DEMO_NAMES = [
 
 # Fictional org numbers (valid format but not real)
 _DEMO_ORGNRS = [
-    "112233445", "223344556", "334455667", "445566778",
-    "556677889", "667788990", "778899001", "889900112",
+    "112233445",
+    "223344556",
+    "334455667",
+    "445566778",
+    "556677889",
+    "667788990",
+    "778899001",
+    "889900112",
 ]
 
 
@@ -39,7 +46,9 @@ def _adjust_number(match: re.Match) -> str:
     """Shift a numeric string by ±5–15% while keeping format."""
     raw = match.group(0)
     # Strip formatting characters and parse
-    cleaned = raw.replace("\xa0", "").replace(" ", "").replace(",", ".").replace(".", "")
+    cleaned = (
+        raw.replace("\xa0", "").replace(" ", "").replace(",", ".").replace(".", "")
+    )
     try:
         value = int(cleaned)
     except ValueError:
@@ -54,7 +63,9 @@ def _adjust_number(match: re.Match) -> str:
     return str(new_value)
 
 
-def _anonymise_text(text: str, original_name: str, demo_name: str, demo_orgnr: str) -> str:
+def _anonymise_text(
+    text: str, original_name: str, demo_name: str, demo_orgnr: str
+) -> str:
     """Replace company name, orgnr, and nudge financial numbers."""
     # Replace company name (case-insensitive)
     if original_name:
@@ -69,6 +80,7 @@ def _anonymise_text(text: str, original_name: str, demo_name: str, demo_orgnr: s
 def _text_to_pdf(text: str, title: str) -> bytes:
     """Convert plain text to a simple PDF using fpdf2."""
     from fpdf import FPDF
+
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -87,6 +99,7 @@ def _text_to_pdf(text: str, title: str) -> bytes:
 def _extract_pdf_text(pdf_bytes: bytes) -> str:
     """Extract all text from PDF bytes using pdfplumber."""
     import pdfplumber
+
     try:
         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
             return "\n".join(p.extract_text() or "" for p in pdf.pages[:30])
@@ -95,67 +108,84 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
         return ""
 
 
+class DemoDocumentsService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def seed_demo_documents(self, max_source_docs: int = 5) -> dict:
+        """Read real InsuranceDocuments, anonymise them, save as demo copies.
+
+        Skips documents already tagged 'demo'. Returns counts.
+        """
+        existing_demo = {
+            d.title
+            for d in self.db.query(InsuranceDocument.title)
+            .filter(InsuranceDocument.tags.like("%demo%"))
+            .all()
+        }
+
+        sources = (
+            self.db.query(InsuranceDocument)
+            .filter(~InsuranceDocument.tags.like("%demo%"))
+            .limit(max_source_docs)
+            .all()
+        )
+
+        if not sources:
+            return {
+                "created": 0,
+                "skipped": 0,
+                "reason": "No source documents found in DB",
+            }
+
+        created, skipped = 0, 0
+        for i, src in enumerate(sources):
+            demo_title = f"[Demo] {src.title}"
+            if demo_title in existing_demo:
+                skipped += 1
+                continue
+
+            demo_name = _DEMO_NAMES[i % len(_DEMO_NAMES)]
+            demo_orgnr = _DEMO_ORGNRS[i % len(_DEMO_ORGNRS)]
+
+            text = _extract_pdf_text(src.pdf_content)
+            if not text.strip():
+                skipped += 1
+                _log.warning("demo_docs: no text extracted from doc id=%s", src.id)
+                continue
+
+            anonymised = _anonymise_text(text, src.orgnr or "", demo_name, demo_orgnr)
+            try:
+                pdf_bytes = _text_to_pdf(anonymised, demo_title)
+            except Exception as exc:
+                _log.warning(
+                    "demo_docs: PDF generation failed for %s: %s", src.title, exc
+                )
+                skipped += 1
+                continue
+
+            now = datetime.now(timezone.utc).isoformat()
+            self.db.add(
+                InsuranceDocument(
+                    title=demo_title,
+                    category=src.category,
+                    insurer=src.insurer,
+                    year=src.year,
+                    period=src.period,
+                    orgnr=demo_orgnr,
+                    filename=f"demo_{src.filename}",
+                    pdf_content=pdf_bytes,
+                    extracted_text=anonymised,
+                    uploaded_at=now,
+                    tags="demo",
+                )
+            )
+            created += 1
+
+        self.db.commit()
+        return {"created": created, "skipped": skipped}
+
+
+# Backward compat
 def seed_demo_documents(db: Session, max_source_docs: int = 5) -> dict:
-    """Read real InsuranceDocuments, anonymise them, save as demo copies.
-
-    Skips documents already tagged 'demo'. Returns counts.
-    """
-    existing_demo = {
-        d.title for d in
-        db.query(InsuranceDocument.title)
-        .filter(InsuranceDocument.tags.like("%demo%"))
-        .all()
-    }
-
-    sources = (
-        db.query(InsuranceDocument)
-        .filter(~InsuranceDocument.tags.like("%demo%"))
-        .limit(max_source_docs)
-        .all()
-    )
-
-    if not sources:
-        return {"created": 0, "skipped": 0, "reason": "No source documents found in DB"}
-
-    created, skipped = 0, 0
-    for i, src in enumerate(sources):
-        demo_title = f"[Demo] {src.title}"
-        if demo_title in existing_demo:
-            skipped += 1
-            continue
-
-        demo_name = _DEMO_NAMES[i % len(_DEMO_NAMES)]
-        demo_orgnr = _DEMO_ORGNRS[i % len(_DEMO_ORGNRS)]
-
-        text = _extract_pdf_text(src.pdf_content)
-        if not text.strip():
-            skipped += 1
-            _log.warning("demo_docs: no text extracted from doc id=%s", src.id)
-            continue
-
-        anonymised = _anonymise_text(text, src.orgnr or "", demo_name, demo_orgnr)
-        try:
-            pdf_bytes = _text_to_pdf(anonymised, demo_title)
-        except Exception as exc:
-            _log.warning("demo_docs: PDF generation failed for %s: %s", src.title, exc)
-            skipped += 1
-            continue
-
-        now = datetime.now(timezone.utc).isoformat()
-        db.add(InsuranceDocument(
-            title=demo_title,
-            category=src.category,
-            insurer=src.insurer,
-            year=src.year,
-            period=src.period,
-            orgnr=demo_orgnr,
-            filename=f"demo_{src.filename}",
-            pdf_content=pdf_bytes,
-            extracted_text=anonymised,
-            uploaded_at=now,
-            tags="demo",
-        ))
-        created += 1
-
-    db.commit()
-    return {"created": created, "skipped": skipped}
+    return DemoDocumentsService(db).seed_demo_documents(max_source_docs)

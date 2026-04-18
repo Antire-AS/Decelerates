@@ -1,4 +1,5 @@
 """Commission and revenue tracking endpoints."""
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -58,13 +59,13 @@ def list_policies_missing_commission(
     policies = svc.list_policies_missing_commission(user.firm_id)
     return [
         {
-            "id":             p.id,
-            "orgnr":          p.orgnr,
-            "policy_number":  p.policy_number,
-            "product_type":   p.product_type,
-            "insurer":        p.insurer,
+            "id": p.id,
+            "orgnr": p.orgnr,
+            "policy_number": p.policy_number,
+            "product_type": p.product_type,
+            "insurer": p.insurer,
             "annual_premium_nok": p.annual_premium_nok,
-            "renewal_date":   p.renewal_date.isoformat() if p.renewal_date else None,
+            "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
         }
         for p in policies
     ]

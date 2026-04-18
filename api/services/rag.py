@@ -1,4 +1,5 @@
 """RAG helpers — chunking, embedding, retrieval, and context building."""
+
 import logging
 from datetime import datetime, timezone
 from typing import List
@@ -45,7 +46,9 @@ def _build_company_context(db_obj: Company, relevant_notes: List) -> str:
         if raw.get("antall_ansatte") is not None:
             lines.append(f"  Employees: {raw.get('antall_ansatte')}")
         if raw.get("sum_langsiktig_gjeld") is not None:
-            lines.append(f"  Long-term debt: {_fmt_nok(raw.get('sum_langsiktig_gjeld'))}")
+            lines.append(
+                f"  Long-term debt: {_fmt_nok(raw.get('sum_langsiktig_gjeld'))}"
+            )
 
     if relevant_notes:
         lines.append("\nRelevant analyst notes (retrieved by semantic similarity):")
@@ -116,7 +119,9 @@ class RagService:
             )
         return [r.chunk_text for r in rows]
 
-    def save_qa_note(self, orgnr: str, question: str, answer: str, session_id: str | None = None) -> int:
+    def save_qa_note(
+        self, orgnr: str, question: str, answer: str, session_id: str | None = None
+    ) -> int:
         """Persist a Q&A pair as a CompanyNote with embedding. Returns the note ID."""
         emb = _embed(f"{question} {answer}")
         note = CompanyNote(
@@ -149,21 +154,28 @@ class RagService:
             self.db.add(note)
             self.db.commit()
         except Exception as exc:
-            logger.warning("save_to_rag failed for orgnr=%s label=%r: %s", orgnr, label, exc)
+            logger.warning(
+                "save_to_rag failed for orgnr=%s label=%r: %s", orgnr, label, exc
+            )
             self.db.rollback()
 
 
 # ── Module-level backward-compat wrappers ─────────────────────────────────────
 
+
 def _chunk_and_store(orgnr: str, source: str, text: str, db: Session) -> int:
     return RagService(db).chunk_and_store(orgnr, source, text)
 
 
-def _retrieve_chunks(orgnr: str, question: str, db: Session, limit: int = 5) -> list[str]:
+def _retrieve_chunks(
+    orgnr: str, question: str, db: Session, limit: int = 5
+) -> list[str]:
     return RagService(db).retrieve_chunks(orgnr, question, limit)
 
 
-def save_qa_note(orgnr: str, question: str, answer: str, db: Session, session_id: str | None = None) -> int:
+def save_qa_note(
+    orgnr: str, question: str, answer: str, db: Session, session_id: str | None = None
+) -> int:
     return RagService(db).save_qa_note(orgnr, question, answer, session_id)
 
 

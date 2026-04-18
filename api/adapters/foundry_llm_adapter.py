@@ -12,6 +12,7 @@ shapes:
   version supports ``dimensions`` for ``text-embedding-3-*`` models, which
   we need to match the existing pgvector(512) column.
 """
+
 import logging
 from dataclasses import dataclass
 from typing import List, Optional
@@ -26,11 +27,13 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class FoundryConfig:
-    base_url: Optional[str] = None              # AZURE_FOUNDRY_BASE_URL  (chat path)
-    api_key: Optional[str] = None               # AZURE_FOUNDRY_API_KEY
-    default_text_model: str = "gpt-5.4-mini"    # AZURE_FOUNDRY_MODEL
-    embedding_deployment: str = "text-embedding-3-small"  # AZURE_FOUNDRY_EMBEDDING_DEPLOYMENT
-    embedding_dimensions: int = 512             # must match pgvector column dim
+    base_url: Optional[str] = None  # AZURE_FOUNDRY_BASE_URL  (chat path)
+    api_key: Optional[str] = None  # AZURE_FOUNDRY_API_KEY
+    default_text_model: str = "gpt-5.4-mini"  # AZURE_FOUNDRY_MODEL
+    embedding_deployment: str = (
+        "text-embedding-3-small"  # AZURE_FOUNDRY_EMBEDDING_DEPLOYMENT
+    )
+    embedding_dimensions: int = 512  # must match pgvector column dim
     embedding_api_version: str = "2024-02-01"
 
 
@@ -56,6 +59,7 @@ class FoundryLlmAdapter(LlmPort):
     def _get_chat_client(self):
         if self._chat_client is None:
             from openai import OpenAI
+
             self._chat_client = OpenAI(
                 base_url=self._config.base_url,
                 api_key=self._config.api_key,
@@ -102,7 +106,10 @@ class FoundryLlmAdapter(LlmPort):
             resp = requests.post(
                 url,
                 json=payload,
-                headers={"api-key": self._config.api_key, "Content-Type": "application/json"},
+                headers={
+                    "api-key": self._config.api_key,
+                    "Content-Type": "application/json",
+                },
                 timeout=30,
             )
             resp.raise_for_status()

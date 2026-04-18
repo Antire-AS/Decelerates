@@ -2,6 +2,7 @@
 
 Pure logic tests — uses MagicMock DB; no infrastructure required.
 """
+
 import re
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,7 @@ from api.services.demo_documents import (
 
 
 # ── _adjust_number ────────────────────────────────────────────────────────────
+
 
 def _match(pattern: str, text: str):
     """Return the first re.Match for pattern in text."""
@@ -60,6 +62,7 @@ def test_adjust_number_preserves_nbsp_separator():
 
 
 # ── _anonymise_text ───────────────────────────────────────────────────────────
+
 
 def test_anonymise_replaces_company_name():
     text = "Equinor ASA er et stort selskap. Equinor ASA har mange ansatte."
@@ -110,9 +113,17 @@ def test_anonymise_does_not_corrupt_plain_text():
 
 # ── seed_demo_documents ───────────────────────────────────────────────────────
 
-def _make_doc(id=1, title="Rapport 2023", orgnr="923609016",
-              category="annual", insurer="If", year=2023, period="2023",
-              filename="rapport.pdf"):
+
+def _make_doc(
+    id=1,
+    title="Rapport 2023",
+    orgnr="923609016",
+    category="annual",
+    insurer="If",
+    year=2023,
+    period="2023",
+    filename="rapport.pdf",
+):
     doc = MagicMock()
     doc.id = id
     doc.title = title
@@ -183,6 +194,7 @@ def test_seed_creates_demo_document():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -190,7 +202,10 @@ def test_seed_creates_demo_document():
 
     db.query.side_effect = _query_side
 
-    with patch("api.services.demo_documents._extract_pdf_text", return_value="Equinor text 45000000"):
+    with patch(
+        "api.services.demo_documents._extract_pdf_text",
+        return_value="Equinor text 45000000",
+    ):
         with patch("api.services.demo_documents._text_to_pdf", return_value=b"%PDF"):
             result = seed_demo_documents(db)
 
@@ -218,6 +233,7 @@ def test_seed_skips_existing_demo():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -247,6 +263,7 @@ def test_seed_skips_doc_with_no_text():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -276,6 +293,7 @@ def test_seed_skips_doc_when_pdf_generation_fails():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -283,8 +301,13 @@ def test_seed_skips_doc_when_pdf_generation_fails():
 
     db.query.side_effect = _query_side
 
-    with patch("api.services.demo_documents._extract_pdf_text", return_value="some text"):
-        with patch("api.services.demo_documents._text_to_pdf", side_effect=RuntimeError("fpdf error")):
+    with patch(
+        "api.services.demo_documents._extract_pdf_text", return_value="some text"
+    ):
+        with patch(
+            "api.services.demo_documents._text_to_pdf",
+            side_effect=RuntimeError("fpdf error"),
+        ):
             result = seed_demo_documents(db)
 
     assert result["skipped"] == 1
@@ -305,6 +328,7 @@ def test_seed_demo_doc_has_demo_tag():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -312,7 +336,9 @@ def test_seed_demo_doc_has_demo_tag():
 
     db.query.side_effect = _query_side
 
-    with patch("api.services.demo_documents._extract_pdf_text", return_value="text 1000000 kr"):
+    with patch(
+        "api.services.demo_documents._extract_pdf_text", return_value="text 1000000 kr"
+    ):
         with patch("api.services.demo_documents._text_to_pdf", return_value=b"%PDF"):
             seed_demo_documents(db)
 
@@ -335,6 +361,7 @@ def test_seed_demo_doc_uses_fictional_orgnr():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -342,7 +369,9 @@ def test_seed_demo_doc_uses_fictional_orgnr():
 
     db.query.side_effect = _query_side
 
-    with patch("api.services.demo_documents._extract_pdf_text", return_value="some text"):
+    with patch(
+        "api.services.demo_documents._extract_pdf_text", return_value="some text"
+    ):
         with patch("api.services.demo_documents._text_to_pdf", return_value=b"%PDF"):
             seed_demo_documents(db)
 
@@ -364,6 +393,7 @@ def test_seed_demo_filename_prefixed():
     sources_query.all.return_value = [src]
 
     call_count = 0
+
     def _query_side(model):
         nonlocal call_count
         call_count += 1
@@ -371,7 +401,9 @@ def test_seed_demo_filename_prefixed():
 
     db.query.side_effect = _query_side
 
-    with patch("api.services.demo_documents._extract_pdf_text", return_value="some text"):
+    with patch(
+        "api.services.demo_documents._extract_pdf_text", return_value="some text"
+    ):
         with patch("api.services.demo_documents._text_to_pdf", return_value=b"%PDF"):
             seed_demo_documents(db)
 

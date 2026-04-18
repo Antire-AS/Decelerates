@@ -2,6 +2,7 @@
 
 Pure static tests — uses MagicMock DB; no infrastructure required.
 """
+
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
@@ -36,11 +37,13 @@ def _make_token_row(orgnr="123456789", days_left=15):
 
 # ── _TOKEN_TTL_DAYS ───────────────────────────────────────────────────────────
 
+
 def test_ttl_days_is_30():
     assert _TOKEN_TTL_DAYS == 30
 
 
 # ── create_token ──────────────────────────────────────────────────────────────
+
 
 def test_create_token_calls_add_and_commit():
     db = _mock_db()
@@ -108,6 +111,7 @@ def test_create_token_each_call_unique():
 
 # ── get_or_create_active_token ────────────────────────────────────────────────
 
+
 def test_get_or_create_returns_existing_when_found():
     existing = _make_token_row()
     db = _mock_db(existing_token=existing)
@@ -132,6 +136,7 @@ def test_get_or_create_creates_with_correct_orgnr():
 
 
 # ── list_active_tokens ────────────────────────────────────────────────────────
+
 
 def test_list_active_tokens_returns_list():
     existing = _make_token_row()

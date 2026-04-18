@@ -50,6 +50,15 @@
 
   .input-sm {
     @apply w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white
-           focus:outline-none focus:ring-1 focus:ring-[#4A6FA5];
+           focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5];
+  }
+
+  .skip-to-content {
+    @apply sr-only;
+  }
+  .skip-to-content:focus {
+    @apply not-sr-only fixed top-2 left-2 z-[100] bg-[#2C3E50] text-white
+           px-4 py-2 rounded-lg text-sm font-medium shadow-lg outline-none
+           ring-2 ring-[#C5D8F0];
   }
 }

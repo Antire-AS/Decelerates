@@ -30,7 +30,9 @@ def get_org_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
 
 
 @router.post("/org/{orgnr}/pdf-history", response_model=PdfHistoryOut)
-def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(get_db)) -> dict:
+def add_pdf_history(
+    orgnr: str, body: PdfHistoryRequest, db: Session = Depends(get_db)
+) -> dict:
     """Add a PDF annual report URL for an org, extract financials, store in DB."""
     upsert_pdf_source(orgnr, body.year, body.pdf_url, body.label, db)
     try:
@@ -39,7 +41,12 @@ def add_pdf_history(orgnr: str, body: PdfHistoryRequest, db: Session = Depends(g
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"PDF extraction failed: {e}")
-    log_audit(db, "financials.add_pdf", orgnr=orgnr, detail={"year": body.year, "pdf_url": body.pdf_url})
+    log_audit(
+        db,
+        "financials.add_pdf",
+        orgnr=orgnr,
+        detail={"year": body.year, "pdf_url": body.pdf_url},
+    )
     return {"orgnr": orgnr, "extracted": row}
 
 
@@ -55,7 +62,12 @@ def get_pdf_sources(orgnr: str, db: Session = Depends(get_db)) -> dict:
     return {
         "orgnr": orgnr,
         "sources": [
-            {"year": s.year, "pdf_url": s.pdf_url, "label": s.label, "added_at": s.added_at}
+            {
+                "year": s.year,
+                "pdf_url": s.pdf_url,
+                "label": s.label,
+                "added_at": s.added_at,
+            }
             for s in sources
         ],
     }
@@ -66,7 +78,8 @@ def get_extraction_status(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Return whether background PDF extraction has data, is pending, or is complete."""
     sources = db.query(CompanyPdfSource).filter(CompanyPdfSource.orgnr == orgnr).all()
     extracted_years = {
-        r.year for r in db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all()
+        r.year
+        for r in db.query(CompanyHistory).filter(CompanyHistory.orgnr == orgnr).all()
     }
     source_years = {s.year for s in sources}
     pending_years = sorted(source_years - extracted_years)
@@ -101,7 +114,9 @@ def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
 
 @router.get("/org/{orgnr}/financial-commentary", response_model=FinancialCommentaryOut)
 @limiter.limit("10/minute")
-def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends(get_db)) -> dict:
+def get_financial_commentary(
+    request: Request, orgnr: str, db: Session = Depends(get_db)
+) -> dict:
     """Generate an AI commentary on a company's multi-year financial trend."""
     from api.services.llm import _llm_answer_raw
     from api.db import Company
@@ -109,7 +124,9 @@ def get_financial_commentary(request: Request, orgnr: str, db: Session = Depends
     company = db.query(Company).filter(Company.orgnr == orgnr).first()
     history = _get_full_history(orgnr, db)
     if not history:
-        raise HTTPException(status_code=404, detail="No financial history found for this company")
+        raise HTTPException(
+            status_code=404, detail="No financial history found for this company"
+        )
 
     navn = company.navn if company else orgnr
     sorted_history = sorted(history, key=lambda x: x.get("year", 0))
@@ -154,6 +171,7 @@ def nl_query(request: Request, body: dict, db: Session = Depends(get_db)) -> dic
     if not question:
         raise HTTPException(status_code=400, detail="question is required")
     from api.services.nl_query import run_nl_query
+
     result = run_nl_query(question, db)
     log_audit(db, "financials.query", detail={"question": question[:200]})
     return result

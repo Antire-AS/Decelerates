@@ -3,6 +3,7 @@
 Mocked DB; covers fan-out, mark-read ownership scoping, mark-all-read,
 and the best-effort cron wrapper that must never raise.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 

@@ -3,11 +3,13 @@
 These complement the 54 tests in test_risk.py (which cover derive_simple_risk).
 Pure logic — no DB, no network.
 """
+
 import pytest
 from api.risk import build_risk_summary, derive_simple_risk
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _org(**kwargs):
     base = {
@@ -43,8 +45,14 @@ def _risk(**kwargs):
     base = {
         "score": 2,
         "reasons": ["Aksjeselskap (AS/ASA)"],
-        "factors": [{"label": "Aksjeselskap (AS/ASA)", "points": 1,
-                     "category": "Selskapsstatus", "detail": ""}],
+        "factors": [
+            {
+                "label": "Aksjeselskap (AS/ASA)",
+                "points": 1,
+                "category": "Selskapsstatus",
+                "detail": "",
+            }
+        ],
         "equity_ratio": 0.25,
     }
     base.update(kwargs)
@@ -58,6 +66,7 @@ def _pep(**kwargs):
 
 
 # ── build_risk_summary — field mapping ────────────────────────────────────────
+
 
 def test_build_risk_summary_includes_orgnr():
     result = build_risk_summary(_org(), _regn(), _risk(), _pep())
@@ -97,8 +106,10 @@ def test_build_risk_summary_equity_ratio_from_risk():
 
 def test_build_risk_summary_includes_financial_fields():
     result = build_risk_summary(
-        _org(), _regn(sum_driftsinntekter=100_000_000, aarsresultat=-5_000_000),
-        _risk(), _pep()
+        _org(),
+        _regn(sum_driftsinntekter=100_000_000, aarsresultat=-5_000_000),
+        _risk(),
+        _pep(),
     )
     assert result["omsetning"] == 100_000_000
     assert result["aarsresultat"] == -5_000_000
@@ -131,6 +142,7 @@ def test_build_risk_summary_municipality():
 
 # ── build_risk_summary — None / empty inputs ──────────────────────────────────
 
+
 def test_build_risk_summary_none_risk_returns_none_score():
     result = build_risk_summary(_org(), _regn(), None, _pep())
     assert result["risk_score"] is None
@@ -156,18 +168,19 @@ def test_build_risk_summary_empty_risk_dict():
 
 # ── derive_simple_risk — edge cases not covered in test_risk.py ───────────────
 
+
 def test_derive_simple_risk_zero_score_for_clean_company():
     """A healthy Norwegian AS with good financials should have a low score."""
     org = {
         "organisasjonsform_kode": "NUF",  # not AS — no AS points
         "land": "NOR",
-        "naeringskode1": "62.010",        # IT — moderate sector
+        "naeringskode1": "62.010",  # IT — moderate sector
     }
     regn = {
         "sum_driftsinntekter": 5_000_000,  # below 10M — no size risk
         "sum_egenkapital": 2_000_000,
-        "sum_eiendeler": 8_000_000,        # 25% equity ratio
-        "aarsresultat": 500_000,           # positive
+        "sum_eiendeler": 8_000_000,  # 25% equity ratio
+        "aarsresultat": 500_000,  # positive
     }
     result = derive_simple_risk(org, regn)
     # Only sector risk expected (IT is MED_RISK_NACE → 1 point)
@@ -218,14 +231,18 @@ def test_derive_simple_risk_bankruptcy_flag_adds_5_points():
 def test_derive_simple_risk_avvikling_adds_3_points():
     org = _org(under_avvikling=True)
     result = derive_simple_risk(org, _regn())
-    points = sum(f["points"] for f in result["factors"] if "avvikling" in f["label"].lower())
+    points = sum(
+        f["points"] for f in result["factors"] if "avvikling" in f["label"].lower()
+    )
     assert points == 3
 
 
 def test_derive_simple_risk_very_negative_equity_adds_4_points():
     regn = _regn(sum_egenkapital=-50_000_000, sum_eiendeler=100_000_000)
     result = derive_simple_risk({}, regn)
-    equity_factors = [f for f in result["factors"] if "egenkapital" in f["label"].lower()]
+    equity_factors = [
+        f for f in result["factors"] if "egenkapital" in f["label"].lower()
+    ]
     total_equity_points = sum(f["points"] for f in equity_factors)
     assert total_equity_points >= 4
 
@@ -238,6 +255,6 @@ def test_derive_simple_risk_high_employee_count():
 
 
 def test_derive_simple_risk_pep_hit_adds_2_points():
-    result_no_pep  = derive_simple_risk(_org(), _regn(), pep=None)
+    result_no_pep = derive_simple_risk(_org(), _regn(), pep=None)
     result_pep_hit = derive_simple_risk(_org(), _regn(), pep={"hit_count": 1})
     assert result_pep_hit["score"] == result_no_pep["score"] + 2

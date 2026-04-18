@@ -1,4 +1,5 @@
 """Tests for api/services/pdf_offer.py — forsikringstilbud PDF generation."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -38,6 +39,7 @@ def _pdf():
 
 # ── Pure function tests ──────────────────────────────────────────────────────
 
+
 def test_priority_color_maa():
     assert _priority_color("Må ha") == (200, 50, 50)
 
@@ -56,13 +58,17 @@ def test_priority_color_none():
 
 # ── LLM-backed extraction ───────────────────────────────────────────────────
 
+
 def test_extract_offer_summary_empty_text():
     result = _extract_offer_summary("Gjensidige", "")
     assert result["selskap"] == "Gjensidige"
     assert result["premie"] == "–"
 
 
-@patch("api.services.pdf_offer._parse_json_from_llm_response", return_value={"premie": "50000 kr"})
+@patch(
+    "api.services.pdf_offer._parse_json_from_llm_response",
+    return_value={"premie": "50000 kr"},
+)
 @patch("api.services.pdf_offer._llm_answer_raw", return_value='{"premie": "50000 kr"}')
 def test_extract_offer_summary_with_llm(mock_llm, mock_parse):
     result = _extract_offer_summary("If", "Premie totalt 50 000 kr per ar")
@@ -81,67 +87,156 @@ def test_extract_offer_summary_llm_fails(mock_llm, mock_parse):
 
 # ── Builder functions (MagicMock pdf) ────────────────────────────────────────
 
+
 def test_build_tilbud_broker_header():
     pdf = _pdf()
-    _build_tilbud_broker_header(pdf, "Megler AS", "Ola N", "ola@m.no", "12345678", _DARK_BLUE)
+    _build_tilbud_broker_header(
+        pdf, "Megler AS", "Ola N", "ola@m.no", "12345678", _DARK_BLUE
+    )
     assert pdf.set_font.called
     assert pdf.cell.called
 
 
 def test_build_tilbud_broker_header_no_contact():
     pdf = _pdf()
-    _build_tilbud_broker_header(pdf, "Megler AS", "", "ola@m.no", "12345678", _DARK_BLUE)
+    _build_tilbud_broker_header(
+        pdf, "Megler AS", "", "ola@m.no", "12345678", _DARK_BLUE
+    )
     assert pdf.set_fill_color.called
 
 
 def test_build_client_company_info():
     pdf = _pdf()
-    _build_client_company_info(pdf, "Test AS", "123456789", "AS", "62.010", "IT", "Oslo", _DARK_BLUE, _LIGHT_BLUE)
+    _build_client_company_info(
+        pdf,
+        "Test AS",
+        "123456789",
+        "AS",
+        "62.010",
+        "IT",
+        "Oslo",
+        _DARK_BLUE,
+        _LIGHT_BLUE,
+    )
     assert pdf.rect.called
 
 
 def test_build_client_summary_and_premium_with_sammendrag():
     pdf = _pdf()
-    _build_client_summary_and_premium(pdf, "01.01.2026", "31.01.2026", 3, "Sammendrag", "100 000 kr", _DARK_BLUE, _MID_BLUE)
+    _build_client_summary_and_premium(
+        pdf,
+        "01.01.2026",
+        "31.01.2026",
+        3,
+        "Sammendrag",
+        "100 000 kr",
+        _DARK_BLUE,
+        _MID_BLUE,
+    )
     assert pdf.multi_cell.called
 
 
 def test_build_client_summary_and_premium_no_sammendrag():
     pdf = _pdf()
-    _build_client_summary_and_premium(pdf, "01.01.2026", "31.01.2026", 0, "", "0 kr", _DARK_BLUE, _MID_BLUE)
+    _build_client_summary_and_premium(
+        pdf, "01.01.2026", "31.01.2026", 0, "", "0 kr", _DARK_BLUE, _MID_BLUE
+    )
     assert pdf.cell.called
 
 
 def test_build_tilbud_client_box():
     pdf = _pdf()
-    _build_tilbud_client_box(pdf, "A", "1", None, None, None, None, "d", "v", 1, "", "1 kr", _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE)
+    _build_tilbud_client_box(
+        pdf,
+        "A",
+        "1",
+        None,
+        None,
+        None,
+        None,
+        "d",
+        "v",
+        1,
+        "",
+        "1 kr",
+        _DARK_BLUE,
+        _MID_BLUE,
+        _LIGHT_BLUE,
+    )
     assert pdf.cell.called
 
 
 def test_build_tilbud_forside():
     pdf = _pdf()
-    recs = [{"type": "Ansvar", "prioritet": "Må ha", "anbefalt_sum": "1M", "begrunnelse": "x"}]
-    _build_tilbud_forside(pdf, "N", "1", None, None, None, None, "B", "C", "e", "p", "d", "v", recs, "", "1kr", _DARK_BLUE, _MID_BLUE, _LIGHT_BLUE)
+    recs = [
+        {
+            "type": "Ansvar",
+            "prioritet": "Må ha",
+            "anbefalt_sum": "1M",
+            "begrunnelse": "x",
+        }
+    ]
+    _build_tilbud_forside(
+        pdf,
+        "N",
+        "1",
+        None,
+        None,
+        None,
+        None,
+        "B",
+        "C",
+        "e",
+        "p",
+        "d",
+        "v",
+        recs,
+        "",
+        "1kr",
+        _DARK_BLUE,
+        _MID_BLUE,
+        _LIGHT_BLUE,
+    )
     pdf.add_page.assert_called_once()
 
 
 def test_build_offers_comparison_table():
     pdf = _pdf()
-    summaries = [{"selskap": "If", "premie": "50k", "dekning": "Alt", "egenandel": "10k", "vilkaar": "Ingen"}]
+    summaries = [
+        {
+            "selskap": "If",
+            "premie": "50k",
+            "dekning": "Alt",
+            "egenandel": "10k",
+            "vilkaar": "Ingen",
+        }
+    ]
     _build_offers_comparison_table(pdf, summaries, "01.01.2026", _DARK_BLUE)
     assert pdf.cell.called
 
 
 def test_build_offers_strengths_section():
     pdf = _pdf()
-    summaries = [{"selskap": "Gjensidige", "styrker": "God pris", "svakheter": "Lav dekning"}]
+    summaries = [
+        {"selskap": "Gjensidige", "styrker": "God pris", "svakheter": "Lav dekning"}
+    ]
     _build_offers_strengths_section(pdf, summaries, _DARK_BLUE, _MID_BLUE)
     assert pdf.multi_cell.called
 
 
 def test_build_tilbud_offers_page():
     pdf = _pdf()
-    summaries = [{"selskap": "X", "premie": "1", "dekning": "2", "egenandel": "3", "vilkaar": "4", "styrker": "a", "svakheter": "b"}]
+    summaries = [
+        {
+            "selskap": "X",
+            "premie": "1",
+            "dekning": "2",
+            "egenandel": "3",
+            "vilkaar": "4",
+            "styrker": "a",
+            "svakheter": "b",
+        }
+    ]
     _build_tilbud_offers_page(pdf, summaries, "01.01.2026", _DARK_BLUE, _MID_BLUE)
     pdf.add_page.assert_called_once()
 
@@ -154,7 +249,14 @@ def test_build_coverage_table_header():
 
 def test_build_coverage_table_rows():
     pdf = _pdf()
-    recs = [{"type": "Brann", "prioritet": "Anbefalt", "anbefalt_sum": "500k", "begrunnelse": "Viktig"}]
+    recs = [
+        {
+            "type": "Brann",
+            "prioritet": "Anbefalt",
+            "anbefalt_sum": "500k",
+            "begrunnelse": "Viktig",
+        }
+    ]
     _build_coverage_table_rows(pdf, recs, _priority_color)
     assert pdf.cell.called
 
@@ -167,8 +269,12 @@ def test_build_coverage_table_total():
 
 def test_build_tilbud_coverage_table():
     pdf = _pdf()
-    recs = [{"type": "X", "prioritet": "Må ha", "anbefalt_sum": "1", "begrunnelse": "y"}]
-    _build_tilbud_coverage_table(pdf, "N", "1", recs, "100k", "d", _DARK_BLUE, _priority_color)
+    recs = [
+        {"type": "X", "prioritet": "Må ha", "anbefalt_sum": "1", "begrunnelse": "y"}
+    ]
+    _build_tilbud_coverage_table(
+        pdf, "N", "1", recs, "100k", "d", _DARK_BLUE, _priority_color
+    )
     pdf.add_page.assert_called_once()
 
 
@@ -188,7 +294,12 @@ def test_build_detail_content():
 
 def test_build_tilbud_coverage_detail():
     pdf = _pdf()
-    rec = {"type": "T", "prioritet": "Anbefalt", "anbefalt_sum": "1", "begrunnelse": "b"}
+    rec = {
+        "type": "T",
+        "prioritet": "Anbefalt",
+        "anbefalt_sum": "1",
+        "begrunnelse": "b",
+    }
     _build_tilbud_coverage_detail(pdf, rec, _MID_BLUE, _priority_color)
     pdf.add_page.assert_called_once()
 
@@ -207,6 +318,7 @@ def test_build_tilbud_terms_page():
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
 
+
 @patch("api.services.pdf_offer.FPDF")
 def test_generate_forsikringstilbud_pdf_returns_bytes(mock_fpdf_cls):
     mock_pdf = MagicMock()
@@ -215,12 +327,26 @@ def test_generate_forsikringstilbud_pdf_returns_bytes(mock_fpdf_cls):
     mock_fpdf_cls.return_value = mock_pdf
 
     result = generate_forsikringstilbud_pdf(
-        orgnr="123456789", navn="Test AS",
-        organisasjonsform_kode="AS", naeringskode1="62.010",
-        naeringskode1_beskrivelse="IT", kommune="Oslo",
-        broker_name="Megler", broker_contact="Ola", broker_email="o@m.no",
-        broker_phone="123", anbefalinger=[{"type": "A", "prioritet": "Må ha", "anbefalt_sum": "1M", "begrunnelse": "x"}],
-        total_premie="50 000 kr", sammendrag="Oppsummering",
+        orgnr="123456789",
+        navn="Test AS",
+        organisasjonsform_kode="AS",
+        naeringskode1="62.010",
+        naeringskode1_beskrivelse="IT",
+        kommune="Oslo",
+        broker_name="Megler",
+        broker_contact="Ola",
+        broker_email="o@m.no",
+        broker_phone="123",
+        anbefalinger=[
+            {
+                "type": "A",
+                "prioritet": "Må ha",
+                "anbefalt_sum": "1M",
+                "begrunnelse": "x",
+            }
+        ],
+        total_premie="50 000 kr",
+        sammendrag="Oppsummering",
         offer_summaries=[],
     )
     assert isinstance(result, bytes)
@@ -234,10 +360,29 @@ def test_generate_forsikringstilbud_pdf_with_offers(mock_fpdf_cls):
     mock_fpdf_cls.return_value = mock_pdf
 
     result = generate_forsikringstilbud_pdf(
-        orgnr="123", navn="X", organisasjonsform_kode=None,
-        naeringskode1=None, naeringskode1_beskrivelse=None, kommune=None,
-        broker_name="B", broker_contact="", broker_email="", broker_phone="",
-        anbefalinger=[], total_premie="0", sammendrag="",
-        offer_summaries=[{"selskap": "If", "premie": "1", "dekning": "2", "egenandel": "3", "vilkaar": "4", "styrker": "a", "svakheter": "b"}],
+        orgnr="123",
+        navn="X",
+        organisasjonsform_kode=None,
+        naeringskode1=None,
+        naeringskode1_beskrivelse=None,
+        kommune=None,
+        broker_name="B",
+        broker_contact="",
+        broker_email="",
+        broker_phone="",
+        anbefalinger=[],
+        total_premie="0",
+        sammendrag="",
+        offer_summaries=[
+            {
+                "selskap": "If",
+                "premie": "1",
+                "dekning": "2",
+                "egenandel": "3",
+                "vilkaar": "4",
+                "styrker": "a",
+                "svakheter": "b",
+            }
+        ],
     )
     assert isinstance(result, bytes)

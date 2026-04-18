@@ -1,4 +1,5 @@
 """Tests for api/services/pdf_risk.py — risk report PDF generation."""
+
 import sys
 from unittest.mock import MagicMock
 
@@ -25,6 +26,7 @@ def _pdf():
 
 
 # ── Pure function tests ──────────────────────────────────────────────────────
+
 
 def test_score_label_lav():
     assert _score_label(0) == "Lav"
@@ -64,6 +66,7 @@ def test_fmt_mnok_zero():
 
 # ── Builder tests ────────────────────────────────────────────────────────────
 
+
 def test_risk_section_title():
     pdf = _pdf()
     _risk_section_title(pdf, "Test Section")
@@ -98,7 +101,9 @@ def test_add_risk_cover_high():
 
 def test_add_risk_company_profile():
     pdf = _pdf()
-    _add_risk_company_profile(pdf, "A AS", "123", "AS", "62", "IT", "Oslo", "2020-01-01")
+    _add_risk_company_profile(
+        pdf, "A AS", "123", "AS", "62", "IT", "Oslo", "2020-01-01"
+    )
     assert pdf.cell.called
 
 
@@ -124,15 +129,18 @@ def test_add_risk_financials_nulls():
 
 def test_add_risk_factors_table():
     pdf = _pdf()
-    risk = {"factors": [
-        {"label": "Negativ EK", "category": "Finansiell", "points": 3},
-        {"label": "Ung bedrift", "category": "Alder", "points": 1},
-    ]}
+    risk = {
+        "factors": [
+            {"label": "Negativ EK", "category": "Finansiell", "points": 3},
+            {"label": "Ung bedrift", "category": "Alder", "points": 1},
+        ]
+    }
     _add_risk_factors_table(pdf, risk, 4, "Moderat")
     assert pdf.cell.called
 
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
+
 
 def test_generate_risk_report_pdf_returns_bytes():
     """Test with real FPDF since _RiskPDF subclass makes mocking complex."""
@@ -143,14 +151,18 @@ def test_generate_risk_report_pdf_returns_bytes():
     }
     regn = {"aarsresultat": 1_000_000, "sum_gjeld": 5_000_000, "antall_ansatte": 10}
     result = generate_risk_report_pdf(
-        orgnr="123456789", navn="Test AS",
-        organisasjonsform_kode="AS", kommune="Oslo",
-        naeringskode1="62.010", naeringskode1_beskrivelse="IT",
+        orgnr="123456789",
+        navn="Test AS",
+        organisasjonsform_kode="AS",
+        kommune="Oslo",
+        naeringskode1="62.010",
+        naeringskode1_beskrivelse="IT",
         stiftelsesdato="2020-01-01",
-        sum_driftsinntekter=50_000_000, sum_egenkapital=15_000_000,
-        sum_eiendeler=40_000_000, regn=regn, risk=risk,
+        sum_driftsinntekter=50_000_000,
+        sum_egenkapital=15_000_000,
+        sum_eiendeler=40_000_000,
+        regn=regn,
+        risk=risk,
     )
     assert isinstance(result, bytes)
     assert len(result) > 0
-
-

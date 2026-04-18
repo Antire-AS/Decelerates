@@ -1,4 +1,5 @@
 """Recommendation letter endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -22,15 +23,15 @@ def _get_svc(db: Session = Depends(get_db)) -> RecommendationService:
 
 def _serialize(row: Recommendation) -> dict:
     return {
-        "id":                  row.id,
-        "orgnr":               row.orgnr,
-        "created_by_email":    row.created_by_email,
-        "created_at":          row.created_at.isoformat() if row.created_at else None,
-        "idd_id":              row.idd_id,
-        "submission_ids":      row.submission_ids or [],
+        "id": row.id,
+        "orgnr": row.orgnr,
+        "created_by_email": row.created_by_email,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "idd_id": row.idd_id,
+        "submission_ids": row.submission_ids or [],
         "recommended_insurer": row.recommended_insurer,
-        "rationale_text":      row.rationale_text,
-        "has_pdf":             row.pdf_content is not None,
+        "rationale_text": row.rationale_text,
+        "has_pdf": row.pdf_content is not None,
     }
 
 
@@ -39,8 +40,8 @@ def _get_broker(db: Session) -> dict:
     if not row:
         return {}
     return {
-        "firm_name":     row.firm_name,
-        "contact_name":  row.contact_name,
+        "firm_name": row.firm_name,
+        "contact_name": row.contact_name,
         "contact_email": row.contact_email,
         "contact_phone": row.contact_phone,
     }
@@ -91,7 +92,12 @@ def create_recommendation(
         idd_id=body.idd_id,
         rationale_override=body.rationale_text,
     )
-    log_audit(db, "recommendation.create", orgnr=orgnr, detail={"rec_id": row.id, "insurer": body.recommended_insurer})
+    log_audit(
+        db,
+        "recommendation.create",
+        orgnr=orgnr,
+        detail={"rec_id": row.id, "insurer": body.recommended_insurer},
+    )
     return _serialize(row)
 
 
@@ -117,21 +123,26 @@ def get_recommendation_pdf(
 
         submission_dicts = []
         if row.submission_ids:
-            subs = db.query(Submission).filter(Submission.id.in_(row.submission_ids)).all()
+            subs = (
+                db.query(Submission).filter(Submission.id.in_(row.submission_ids)).all()
+            )
             from api.db import Insurer
+
             insurer_map = {
                 i.id: i.name
-                for i in db.query(Insurer).filter(
-                    Insurer.id.in_([s.insurer_id for s in subs])
-                ).all()
+                for i in db.query(Insurer)
+                .filter(Insurer.id.in_([s.insurer_id for s in subs]))
+                .all()
             }
             submission_dicts = [
                 {
-                    "insurer_name":        insurer_map.get(s.insurer_id, "–"),
-                    "product_type":        s.product_type,
+                    "insurer_name": insurer_map.get(s.insurer_id, "–"),
+                    "product_type": s.product_type,
                     "premium_offered_nok": s.premium_offered_nok,
-                    "status":              s.status.value if s.status else "pending",
-                    "requested_at":        s.requested_at.isoformat() if s.requested_at else None,
+                    "status": s.status.value if s.status else "pending",
+                    "requested_at": s.requested_at.isoformat()
+                    if s.requested_at
+                    else None,
                 }
                 for s in subs
             ]
@@ -171,7 +182,10 @@ def delete_recommendation(
 
 
 def _resolve_signable_recommendation(
-    svc: RecommendationService, orgnr: str, firm_id: int, rec_id: int,
+    svc: RecommendationService,
+    orgnr: str,
+    firm_id: int,
+    rec_id: int,
 ) -> Recommendation:
     """Fetch a recommendation that's ready to sign — must exist and have a PDF.
     Extracted so the route handler stays under 40 lines."""
@@ -218,5 +232,10 @@ def sign_recommendation(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Signicat feilet: {exc}")
     svc.attach_signing_session(rec_id, session["session_id"])
-    log_audit(db, "recommendation.sign", orgnr=orgnr, detail={"rec_id": rec_id, "session_id": session["session_id"]})
+    log_audit(
+        db,
+        "recommendation.sign",
+        orgnr=orgnr,
+        detail={"rec_id": rec_id, "session_id": session["session_id"]},
+    )
     return session

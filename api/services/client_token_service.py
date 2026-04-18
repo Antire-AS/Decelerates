@@ -1,4 +1,5 @@
 """Client token service — create and look up shareable profile tokens."""
+
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -31,7 +32,9 @@ class ClientTokenService:
         self.db.refresh(row)
         return row
 
-    def get_or_create_active(self, orgnr: str, label: Optional[str] = None) -> ClientToken:
+    def get_or_create_active(
+        self, orgnr: str, label: Optional[str] = None
+    ) -> ClientToken:
         now = datetime.now(timezone.utc)
         existing = (
             self.db.query(ClientToken)
@@ -55,8 +58,10 @@ class ClientTokenService:
 def create_token(orgnr: str, label, db: Session) -> ClientToken:
     return ClientTokenService(db).create_token(orgnr, label)
 
+
 def get_or_create_active_token(orgnr: str, label, db: Session) -> ClientToken:
     return ClientTokenService(db).get_or_create_active(orgnr, label)
+
 
 def list_active_tokens(orgnr: str, db: Session) -> list[ClientToken]:
     return ClientTokenService(db).list_active(orgnr)

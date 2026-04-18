@@ -4,6 +4,7 @@ Source key format (used for citations in the UI):
   Videos:  video::{display_name}::{start_seconds}::{chapter_title}
   Docs:    doc::{doc_id}::{title}::{insurer}::{year}
 """
+
 import logging
 
 from sqlalchemy.orm import Session
@@ -19,9 +20,9 @@ _VIDEOS_CONTAINER = "transksrt"
 # Display names for each sections JSON prefix (mirrors _VIDEO_SECTIONS_MAP in videos.py)
 _VIDEO_DISPLAY_NAMES = {
     "ffsformidler": "Forsikringsformidling i praksis",
-    "ffskunde":     "Moete med kunden, behovsanalyse og raadgivning",
-    "ffslære":      "Forsikringsmeglerrollen – hva kan vi laere?",
-    "ffspraktisk":  "Praktisk forsikringsraadgivning",
+    "ffskunde": "Møte med kunden, behovsanalyse og rådgivning",
+    "ffslære": "Forsikringsmeglerrollen – hva kan vi lære?",
+    "ffspraktisk": "Praktisk forsikringsrådgivning",
 }
 
 
@@ -40,7 +41,7 @@ def _split_text(text: str) -> list[str]:
         return [text]
     parts, start = [], 0
     while start < len(text):
-        parts.append(text[start:start + _CHUNK_SIZE])
+        parts.append(text[start : start + _CHUNK_SIZE])
         start += _CHUNK_SIZE - _CHUNK_OVERLAP
     return parts
 
@@ -79,7 +80,11 @@ class KnowledgeIndexService:
 
     def clear_knowledge(self) -> int:
         """Delete all knowledge chunks. Returns count deleted."""
-        rows = self.db.query(CompanyChunk).filter(CompanyChunk.orgnr == KNOWLEDGE_ORG).all()
+        rows = (
+            self.db.query(CompanyChunk)
+            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
+            .all()
+        )
         count = len(rows)
         for r in rows:
             self.db.delete(r)
@@ -90,7 +95,11 @@ class KnowledgeIndexService:
     def index_insurance_documents(self) -> int:
         """One chunk per insurance document (header + full extracted text). Returns new chunk count."""
         total = 0
-        docs = self.db.query(InsuranceDocument).filter(InsuranceDocument.extracted_text.isnot(None)).all()
+        docs = (
+            self.db.query(InsuranceDocument)
+            .filter(InsuranceDocument.extracted_text.isnot(None))
+            .all()
+        )
         for doc in docs:
             source = f"doc::{doc.id}::{doc.title or '-'}::{doc.insurer or '-'}::{doc.year or '-'}"
             if _source_exists(source, self.db):
@@ -99,8 +108,7 @@ class KnowledgeIndexService:
                 f"Dokument: {doc.title}\n"
                 f"Forsikringsselskap: {doc.insurer or '-'}\n"
                 f"År: {doc.year or '-'}\n"
-                f"Kategori: {doc.category or '-'}\n\n"
-                + doc.extracted_text
+                f"Kategori: {doc.category or '-'}\n\n" + doc.extracted_text
             )
             _store_chunk(KNOWLEDGE_ORG, source, text[:3000], self.db)
             total += 1
@@ -117,18 +125,27 @@ class KnowledgeIndexService:
         try:
             all_blobs = set(svc.list_blobs(_VIDEOS_CONTAINER))
             json_blobs = [
-                b for b in all_blobs
+                b
+                for b in all_blobs
                 if b.endswith("_sections.json") or b.endswith("_timeline.json")
             ]
             for blob_name in json_blobs:
                 # Derive display name from blob file stem (e.g. "ffsformidler_sections.json")
-                stem = blob_name.rsplit("/", 1)[-1].replace("_sections.json", "").replace("_timeline.json", "")
-                display_name = _VIDEO_DISPLAY_NAMES.get(stem, stem.replace("_", " ").title())
+                stem = (
+                    blob_name.rsplit("/", 1)[-1]
+                    .replace("_sections.json", "")
+                    .replace("_timeline.json", "")
+                )
+                display_name = _VIDEO_DISPLAY_NAMES.get(
+                    stem, stem.replace("_", " ").title()
+                )
 
                 data = svc.download_json(_VIDEOS_CONTAINER, blob_name)
                 if not data:
                     continue
-                sections = data if isinstance(data, list) else (data.get("sections") or [])
+                sections = (
+                    data if isinstance(data, list) else (data.get("sections") or [])
+                )
 
                 for sec in sections:
                     chapter_title = (sec.get("title") or "").strip()
@@ -141,15 +158,17 @@ class KnowledgeIndexService:
                         continue
 
                     # Build self-describing chunk: header + description + transcript lines
-                    header = "\n".join([
-                        f"Video: {display_name}",
-                        f"Kapittel: {chapter_title}",
-                        f"Tid: {_fmt_time(start_s)}",
-                    ])
+                    header = "\n".join(
+                        [
+                            f"Video: {display_name}",
+                            f"Kapittel: {chapter_title}",
+                            f"Tid: {_fmt_time(start_s)}",
+                        ]
+                    )
                     body_lines = []
                     if sec.get("description"):
                         body_lines.append(sec["description"])
-                    for entry in (sec.get("entries") or []):
+                    for entry in sec.get("entries") or []:
                         t = (entry.get("text") or "").strip()
                         if t:
                             body_lines.append(t)
@@ -161,7 +180,9 @@ class KnowledgeIndexService:
                     # Split long sections into sub-chunks; first chunk gets base source key
                     for i, part in enumerate(_split_text(body)):
                         chunk_source = source if i == 0 else f"{source}::{i + 1}"
-                        _store_chunk(KNOWLEDGE_ORG, chunk_source, f"{header}\n\n{part}", self.db)
+                        _store_chunk(
+                            KNOWLEDGE_ORG, chunk_source, f"{header}\n\n{part}", self.db
+                        )
                         total += 1
 
             logger.info("Knowledge index: %d new video section chunks", total)
@@ -181,10 +202,18 @@ class KnowledgeIndexService:
     def get_stats(self) -> dict:
         """Return counts of indexed chunks per source type. Field names match
         KnowledgeStatsOut and the frontend api.ts contract — do not rename."""
-        rows = self.db.query(CompanyChunk).filter(CompanyChunk.orgnr == KNOWLEDGE_ORG).all()
+        rows = (
+            self.db.query(CompanyChunk)
+            .filter(CompanyChunk.orgnr == KNOWLEDGE_ORG)
+            .all()
+        )
         doc_count = sum(1 for r in rows if r.source.startswith("doc::"))
         video_count = sum(1 for r in rows if r.source.startswith("video::"))
-        return {"total_chunks": len(rows), "doc_chunks": doc_count, "video_chunks": video_count}
+        return {
+            "total_chunks": len(rows),
+            "doc_chunks": doc_count,
+            "video_chunks": video_count,
+        }
 
 
 # Backward compat

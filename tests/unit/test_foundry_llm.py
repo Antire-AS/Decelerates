@@ -3,6 +3,7 @@
 Tests FoundryLlmAdapter directly with mocked OpenAI client and HTTP calls.
 No real Azure AI Foundry or network required.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -11,13 +12,20 @@ from unittest.mock import MagicMock, patch
 sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
-from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter, _derive_azure_host
+from api.adapters.foundry_llm_adapter import (
+    FoundryConfig,
+    FoundryLlmAdapter,
+    _derive_azure_host,
+)
 
 
 # -- is_configured / embeddings_configured ------------------------------------
 
+
 def test_is_configured_true_when_both_set():
-    cfg = FoundryConfig(base_url="https://host/api/projects/p/openai/v1", api_key="real-key")
+    cfg = FoundryConfig(
+        base_url="https://host/api/projects/p/openai/v1", api_key="real-key"
+    )
     assert FoundryLlmAdapter(cfg).is_configured() is True
 
 
@@ -38,11 +46,16 @@ def test_embeddings_configured_requires_deployment():
 
 # -- _derive_azure_host --------------------------------------------------------
 
+
 def test_derive_azure_host_strips_path():
-    assert _derive_azure_host("https://my-host.openai.azure.com/api/proj/openai/v1") == "https://my-host.openai.azure.com"
+    assert (
+        _derive_azure_host("https://my-host.openai.azure.com/api/proj/openai/v1")
+        == "https://my-host.openai.azure.com"
+    )
 
 
 # -- chat() --------------------------------------------------------------------
+
 
 def test_chat_returns_none_when_not_configured():
     cfg = FoundryConfig(base_url=None, api_key=None)
@@ -79,6 +92,7 @@ def test_chat_returns_none_on_exception(mock_openai_cls):
 
 # -- embed() -------------------------------------------------------------------
 
+
 @patch("api.adapters.foundry_llm_adapter.requests")
 def test_embed_success(mock_requests):
     mock_resp = MagicMock()
@@ -86,7 +100,9 @@ def test_embed_success(mock_requests):
     mock_resp.raise_for_status = MagicMock()
     mock_requests.post.return_value = mock_resp
 
-    cfg = FoundryConfig(base_url="https://host.com/api/projects/p/openai/v1", api_key="key")
+    cfg = FoundryConfig(
+        base_url="https://host.com/api/projects/p/openai/v1", api_key="key"
+    )
     result = FoundryLlmAdapter(cfg).embed("test text")
     assert result == [0.1, 0.2, 0.3]
     mock_requests.post.assert_called_once()
@@ -95,7 +111,9 @@ def test_embed_success(mock_requests):
 @patch("api.adapters.foundry_llm_adapter.requests")
 def test_embed_returns_none_on_error(mock_requests):
     mock_requests.post.side_effect = ConnectionError("no network")
-    cfg = FoundryConfig(base_url="https://host.com/api/projects/p/openai/v1", api_key="key")
+    cfg = FoundryConfig(
+        base_url="https://host.com/api/projects/p/openai/v1", api_key="key"
+    )
     assert FoundryLlmAdapter(cfg).embed("text") is None
 
 

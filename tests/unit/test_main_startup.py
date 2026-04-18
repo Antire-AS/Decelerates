@@ -4,6 +4,7 @@ Tests _stamp_existing_db_if_needed, _run_migrations_with_lock, and
 admin_router helpers (_has_mp4_faststart, _debug_db_status).
 All DB and Alembic calls are mocked.
 """
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -23,8 +24,10 @@ def test_stamp_skipped_when_alembic_version_table_exists():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         _stamp_existing_db_if_needed(cfg)
     mock_cmd.stamp.assert_not_called()
 
@@ -39,8 +42,10 @@ def test_stamp_called_when_no_version_table_but_companies_exist():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         _stamp_existing_db_if_needed(cfg)
     mock_cmd.stamp.assert_called_once_with(cfg, "4fa17f9b251a")
 
@@ -55,8 +60,10 @@ def test_stamp_skipped_when_no_version_table_and_no_companies():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         _stamp_existing_db_if_needed(cfg)
     mock_cmd.stamp.assert_not_called()
 
@@ -71,8 +78,10 @@ def test_migrations_run_with_lock_acquired():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         _run_migrations_with_lock(cfg)
     mock_cmd.upgrade.assert_called_once_with(cfg, "head")
     assert mock_conn.execute.call_count == 2
@@ -88,8 +97,10 @@ def test_migrations_run_without_lock_when_lock_unavailable():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         _run_migrations_with_lock(cfg)
     mock_cmd.upgrade.assert_called_once_with(cfg, "head")
     assert mock_conn.execute.call_count == 1
@@ -105,8 +116,10 @@ def test_migrations_release_lock_even_on_failure():
     mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
     cfg = MagicMock()
-    with patch("api.db.engine", mock_engine), \
-         patch("api.main.alembic_command") as mock_cmd:
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+    ):
         mock_cmd.upgrade.side_effect = RuntimeError("migration failed")
         with pytest.raises(RuntimeError, match="migration failed"):
             _run_migrations_with_lock(cfg)
@@ -115,23 +128,27 @@ def test_migrations_release_lock_even_on_failure():
 
 def test_has_mp4_faststart_moov_before_mdat():
     from api.routers.debug import _has_mp4_faststart
+
     data = (16).to_bytes(4, "big") + b"moov" + b"\x00" * 8
     assert _has_mp4_faststart(data) is True
 
 
 def test_has_mp4_faststart_mdat_before_moov():
     from api.routers.debug import _has_mp4_faststart
+
     data = (16).to_bytes(4, "big") + b"mdat" + b"\x00" * 8
     assert _has_mp4_faststart(data) is False
 
 
 def test_has_mp4_faststart_inconclusive_on_short_data():
     from api.routers.debug import _has_mp4_faststart
+
     assert _has_mp4_faststart(b"\x00\x00") is None
 
 
 def test_has_mp4_faststart_handles_ftyp_then_moov():
     from api.routers.debug import _has_mp4_faststart
+
     ftyp = (16).to_bytes(4, "big") + b"ftyp" + b"\x00" * 8
     moov = (16).to_bytes(4, "big") + b"moov" + b"\x00" * 8
     assert _has_mp4_faststart(ftyp + moov) is True
@@ -171,8 +188,14 @@ def test_debug_db_status_handles_exception():
 
 def test_build_coverage_gap_email_renders_html():
     from api.routers.cron import _build_coverage_gap_email
+
     gaps = [
-        {"orgnr": "123", "navn": "TestCo", "gap_count": 2, "gaps": [{"type": "ansvar"}, {"type": "eiendom"}]},
+        {
+            "orgnr": "123",
+            "navn": "TestCo",
+            "gap_count": 2,
+            "gaps": [{"type": "ansvar"}, {"type": "eiendom"}],
+        },
     ]
     result = _build_coverage_gap_email(gaps)
     assert "TestCo" in result
@@ -182,6 +205,7 @@ def test_build_coverage_gap_email_renders_html():
 
 def test_build_coverage_gap_email_multiple_companies():
     from api.routers.cron import _build_coverage_gap_email
+
     gaps = [
         {"orgnr": "1", "navn": "A", "gap_count": 1, "gaps": [{"type": "x"}]},
         {"orgnr": "2", "navn": "B", "gap_count": 1, "gaps": [{"type": "y"}]},
@@ -193,6 +217,7 @@ def test_build_coverage_gap_email_multiple_companies():
 def test_activity_to_dict_serializes():
     from api.routers.cron import _activity_to_dict
     from datetime import date
+
     a = MagicMock()
     a.orgnr = "999100101"
     a.subject = "Ring kunden"

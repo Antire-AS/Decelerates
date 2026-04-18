@@ -1,4 +1,5 @@
 """PDF history — DB upsert and merged history retrieval."""
+
 import logging
 from typing import Any, Dict, List
 
@@ -33,7 +34,11 @@ class PdfHistoryService:
         self.db = db
 
     def fetch_history_from_pdf(
-        self, orgnr: str, pdf_url: str, year: int, label: str,
+        self,
+        orgnr: str,
+        pdf_url: str,
+        year: int,
+        label: str,
     ) -> Dict[str, Any]:
         """Parse financials from PDF and upsert into company_history."""
         parsed = _parse_financials_from_pdf(pdf_url, orgnr, year)
@@ -79,19 +84,21 @@ class PdfHistoryService:
         by_year: Dict[int, Dict[str, Any]] = {}
         for row in db_rows:
             base = dict(row.raw) if row.raw else {}
-            base.update({
-                "year": row.year,
-                "source": row.source,
-                "currency": row.currency or "NOK",
-                "revenue": row.revenue,
-                "net_result": row.net_result,
-                "equity": row.equity,
-                "total_assets": row.total_assets,
-                "equity_ratio": row.equity_ratio,
-                "short_term_debt": row.short_term_debt,
-                "long_term_debt": row.long_term_debt,
-                "antall_ansatte": row.antall_ansatte,
-            })
+            base.update(
+                {
+                    "year": row.year,
+                    "source": row.source,
+                    "currency": row.currency or "NOK",
+                    "revenue": row.revenue,
+                    "net_result": row.net_result,
+                    "equity": row.equity,
+                    "total_assets": row.total_assets,
+                    "equity_ratio": row.equity_ratio,
+                    "short_term_debt": row.short_term_debt,
+                    "long_term_debt": row.long_term_debt,
+                    "antall_ansatte": row.antall_ansatte,
+                }
+            )
             by_year[row.year] = base
 
         try:
@@ -109,7 +116,11 @@ class PdfHistoryService:
 
 # Backward compat
 def fetch_history_from_pdf(
-    orgnr: str, pdf_url: str, year: int, label: str, db: Session,
+    orgnr: str,
+    pdf_url: str,
+    year: int,
+    label: str,
+    db: Session,
 ) -> Dict[str, Any]:
     return PdfHistoryService(db).fetch_history_from_pdf(orgnr, pdf_url, year, label)
 

@@ -1,4 +1,5 @@
 """Audit logging helper — records key broker actions for compliance."""
+
 import json
 import logging
 from datetime import datetime, timedelta, timezone
@@ -37,7 +38,9 @@ class AuditService:
             self.db.add(entry)
             self.db.commit()
         except Exception as exc:
-            logger.error("audit log write failed (action=%s orgnr=%s) — %s", action, orgnr, exc)
+            logger.error(
+                "audit log write failed (action=%s orgnr=%s) — %s", action, orgnr, exc
+            )
             self.db.rollback()
 
     def purge_old(self) -> int:
@@ -57,22 +60,30 @@ class AuditService:
         q = self.db.query(AuditLog.action, func.count(AuditLog.id).label("count"))
         if firm_id is not None:
             orgnrs = [
-                r.orgnr for r in self.db.query(Policy.orgnr).filter(Policy.firm_id == firm_id).distinct()
+                r.orgnr
+                for r in self.db.query(Policy.orgnr)
+                .filter(Policy.firm_id == firm_id)
+                .distinct()
             ]
             if orgnrs:
                 q = q.filter(AuditLog.orgnr.in_(orgnrs))
 
-        rows = q.group_by(AuditLog.action).order_by(func.count(AuditLog.id).desc()).all()
+        rows = (
+            q.group_by(AuditLog.action).order_by(func.count(AuditLog.id).desc()).all()
+        )
         return {"by_action": {r.action: r.count for r in rows}}
 
 
 # ── Backward-compat module-level functions ──────────────────────────────────
 
+
 def log_audit(db: Session, action: str, orgnr=None, actor_email=None, detail=None):
     AuditService(db).log(action, orgnr=orgnr, actor_email=actor_email, detail=detail)
 
+
 def purge_old_audit_logs(db: Session) -> int:
     return AuditService(db).purge_old()
+
 
 def get_audit_summary(db: Session, firm_id=None) -> dict:
     return AuditService(db).get_summary(firm_id)

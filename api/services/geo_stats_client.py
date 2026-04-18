@@ -1,4 +1,5 @@
 """Kartverket geocoding, SSB industry benchmarks, and Norges Bank exchange rates."""
+
 import logging
 import threading
 from datetime import datetime, timezone
@@ -12,6 +13,7 @@ _log = logging.getLogger(__name__)
 
 
 # ── Kartverket ────────────────────────────────────────────────────────────────
+
 
 def fetch_koordinater(org: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     adresse_lines = org.get("adresse") or []
@@ -56,6 +58,7 @@ def fetch_koordinater(org: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 # ── SSB industry benchmarks ───────────────────────────────────────────────────
 
+
 def _nace_to_section(nace_code: str) -> Optional[str]:
     if not nace_code:
         return None
@@ -86,15 +89,25 @@ def _fetch_ssb_live(section: str) -> Optional[Dict[str, Any]]:
         try:
             payload = {
                 "query": [
-                    {"code": "Næring",        "selection": {"filter": "item", "values": [section]}},
-                    {"code": "ContentsCode",  "selection": {"filter": "item", "values": ["Egenkapitalprosent", "Driftsmargin"]}},
-                    {"code": "Tid",           "selection": {"filter": "top",  "values": ["1"]}},
+                    {
+                        "code": "Næring",
+                        "selection": {"filter": "item", "values": [section]},
+                    },
+                    {
+                        "code": "ContentsCode",
+                        "selection": {
+                            "filter": "item",
+                            "values": ["Egenkapitalprosent", "Driftsmargin"],
+                        },
+                    },
+                    {"code": "Tid", "selection": {"filter": "top", "values": ["1"]}},
                 ],
                 "response": {"format": "json-stat2"},
             }
             resp = requests.post(
                 f"https://data.ssb.no/api/v0/no/table/{table_id}",
-                json=payload, timeout=8,
+                json=payload,
+                timeout=8,
             )
             if not resp.ok:
                 continue
@@ -102,20 +115,28 @@ def _fetch_ssb_live(section: str) -> Optional[Dict[str, Any]]:
             values = data.get("value") or []
             if len(values) >= 2 and values[0] is not None and values[1] is not None:
                 tid_labels = list(
-                    ((data.get("dimension") or {}).get("Tid", {}).get("category", {}).get("label") or {}).values()
+                    (
+                        (data.get("dimension") or {})
+                        .get("Tid", {})
+                        .get("category", {})
+                        .get("label")
+                        or {}
+                    ).values()
                 )
                 year = tid_labels[-1] if tid_labels else "?"
                 result: Dict[str, Any] = {
                     "eq_ratio": float(values[0]) / 100,
-                    "margin":   float(values[1]) / 100,
-                    "year":     year,
-                    "table":    table_id,
+                    "margin": float(values[1]) / 100,
+                    "year": year,
+                    "table": table_id,
                 }
                 with _SSB_CACHE_LOCK:
                     _SSB_CACHE[section] = {"data": result, "ts": now}
                 return result
         except Exception as exc:
-            _log.warning("_fetch_ssb_live(%s, table=%s) failed: %s", section, table_id, exc)
+            _log.warning(
+                "_fetch_ssb_live(%s, table=%s) failed: %s", section, table_id, exc
+            )
             continue
 
     with _SSB_CACHE_LOCK:

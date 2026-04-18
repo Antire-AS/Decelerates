@@ -4,6 +4,7 @@ Replaces the 4-5 hours a broker spends manually reading vilkårstekster.
 Extracts structured coverage details: what's covered, deductibles, limits,
 exclusions, waiting periods.
 """
+
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -97,7 +98,9 @@ class CoverageService:
                 analysis.coverage_data = result
                 analysis.premium_nok = _safe_float(result.get("premie_nok"))
                 analysis.deductible_nok = _safe_float(result.get("egenandel_nok"))
-                analysis.coverage_sum_nok = _safe_float(result.get("forsikringssum_nok"))
+                analysis.coverage_sum_nok = _safe_float(
+                    result.get("forsikringssum_nok")
+                )
                 if not analysis.insurer and result.get("forsikringsgiver"):
                     analysis.insurer = result["forsikringsgiver"]
                 if not analysis.product_type and result.get("forsikringstype"):
@@ -116,7 +119,9 @@ class CoverageService:
     def list_for_company(self, orgnr: str, firm_id: int) -> list:
         return (
             self.db.query(CoverageAnalysis)
-            .filter(CoverageAnalysis.orgnr == orgnr, CoverageAnalysis.firm_id == firm_id)
+            .filter(
+                CoverageAnalysis.orgnr == orgnr, CoverageAnalysis.firm_id == firm_id
+            )
             .order_by(CoverageAnalysis.created_at.desc())
             .all()
         )
@@ -124,7 +129,9 @@ class CoverageService:
     def get(self, analysis_id: int, firm_id: int) -> Optional[CoverageAnalysis]:
         return (
             self.db.query(CoverageAnalysis)
-            .filter(CoverageAnalysis.id == analysis_id, CoverageAnalysis.firm_id == firm_id)
+            .filter(
+                CoverageAnalysis.id == analysis_id, CoverageAnalysis.firm_id == firm_id
+            )
             .first()
         )
 
@@ -141,6 +148,7 @@ def _extract_text(pdf_bytes: bytes) -> Optional[str]:
     """Extract text from PDF using pdfplumber."""
     try:
         import io
+
         pages = []
         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
             for page in pdf.pages[:40]:

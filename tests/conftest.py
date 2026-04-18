@@ -7,6 +7,7 @@ The google.genai stub is set up so that both:
   patch("google.genai.Client")               (used in test_llm.py)
 refer to the SAME mock object, making patches work correctly.
 """
+
 import os
 import sys
 from unittest.mock import MagicMock
@@ -76,10 +77,19 @@ _azure_search_indexes_stub.SearchIndexClient = MagicMock
 sys.modules.setdefault("azure.search.documents.indexes", _azure_search_indexes_stub)
 
 _azure_search_indexes_models_stub = MagicMock()
-for _cls in ("SearchIndex", "SimpleField", "SearchableField", "SearchField",
-             "VectorSearch", "HnswAlgorithmConfiguration", "VectorSearchProfile"):
+for _cls in (
+    "SearchIndex",
+    "SimpleField",
+    "SearchableField",
+    "SearchField",
+    "VectorSearch",
+    "HnswAlgorithmConfiguration",
+    "VectorSearchProfile",
+):
     setattr(_azure_search_indexes_models_stub, _cls, MagicMock)
-sys.modules.setdefault("azure.search.documents.indexes.models", _azure_search_indexes_models_stub)
+sys.modules.setdefault(
+    "azure.search.documents.indexes.models", _azure_search_indexes_models_stub
+)
 
 # azure.communication.email — notification_service.py
 _azure_comm_email_stub = MagicMock()

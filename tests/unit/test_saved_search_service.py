@@ -2,6 +2,7 @@
 
 Pure mock-based tests — no real DB session needed.
 """
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -27,6 +28,7 @@ def _mock_query_chain(return_value):
 
 # ── list_for_user ─────────────────────────────────────────────────────────────
 
+
 def test_list_for_user_returns_query_results():
     db = _mock_db()
     expected = [MagicMock(id=1), MagicMock(id=2)]
@@ -50,6 +52,7 @@ def test_list_for_user_returns_empty_when_none_exist():
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+
 
 def test_create_persists_and_returns_row():
     db = _mock_db()
@@ -78,6 +81,7 @@ def test_create_rolls_back_on_commit_failure():
 
 
 # ── delete ────────────────────────────────────────────────────────────────────
+
 
 def test_delete_removes_row_when_found():
     db = _mock_db()

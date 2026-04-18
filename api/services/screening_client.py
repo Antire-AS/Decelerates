@@ -1,4 +1,5 @@
 """PEP / sanctions screening, Finanstilsynet licences, and Løsøreregisteret."""
+
 import logging
 from typing import Optional, List, Dict, Any
 
@@ -10,6 +11,7 @@ _log = logging.getLogger(__name__)
 
 
 # ── PEP / Sanctions ───────────────────────────────────────────────────────────
+
 
 def pep_screen_name(name: str) -> Optional[Dict[str, Any]]:
     if not name:
@@ -42,6 +44,7 @@ def pep_screen_name(name: str) -> Optional[Dict[str, Any]]:
 
 
 # ── Finanstilsynet ────────────────────────────────────────────────────────────
+
 
 def fetch_finanstilsynet_licenses(orgnr: str) -> List[Dict[str, Any]]:
     params = {"organizationNumber": orgnr, "pageSize": 100, "pageIndex": 0}
@@ -81,6 +84,7 @@ def fetch_finanstilsynet_licenses(orgnr: str) -> List[Dict[str, Any]]:
 
 # ── Løsøreregisteret ─────────────────────────────────────────────────────────
 
+
 def fetch_losore(orgnr: str) -> Dict[str, Any]:
     url = f"https://losoreregisteret.brreg.no/registerinfo/api/v2/rettsstiftelse/orgnr/{orgnr}"
     try:
@@ -94,12 +98,16 @@ def fetch_losore(orgnr: str) -> Dict[str, Any]:
         count = data.get("antallRettsstiftelser", 0)
         pledges = []
         for r in (data.get("rettsstiftelse") or [])[:10]:
-            pledges.append({
-                "dokumentnummer": r.get("dokumentnummer"),
-                "type": r.get("typeBeskrivelse"),
-                "status": r.get("statusBeskrivelse"),
-                "dato": r.get("innkomsttidspunkt", "")[:10] if r.get("innkomsttidspunkt") else None,
-            })
+            pledges.append(
+                {
+                    "dokumentnummer": r.get("dokumentnummer"),
+                    "type": r.get("typeBeskrivelse"),
+                    "status": r.get("statusBeskrivelse"),
+                    "dato": r.get("innkomsttidspunkt", "")[:10]
+                    if r.get("innkomsttidspunkt")
+                    else None,
+                }
+            )
         return {"auth_required": False, "count": count, "pledges": pledges}
     except Exception as exc:
         _log.warning("fetch_losore(%s) failed: %s", orgnr, exc)

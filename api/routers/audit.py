@@ -1,4 +1,5 @@
 """Audit log endpoints — read-only access to the broker action trail."""
+
 import csv
 import io
 from datetime import date, datetime, time
@@ -42,12 +43,12 @@ def _apply_filters(
 
 def _serialize(r: AuditLog) -> dict:
     return {
-        "id":          r.id,
-        "orgnr":       r.orgnr,
-        "action":      r.action,
+        "id": r.id,
+        "orgnr": r.orgnr,
+        "action": r.action,
         "actor_email": r.actor_email,
-        "detail":      r.detail,
-        "created_at":  r.created_at,
+        "detail": r.detail,
+        "created_at": r.created_at,
     }
 
 
@@ -65,8 +66,11 @@ def export_audit_csv(
     """Export audit log as UTF-8 CSV (BOM for Excel compatibility)."""
     q = _apply_filters(
         db.query(AuditLog).order_by(AuditLog.created_at.desc()),
-        orgnr=orgnr, action=action, actor_email=actor_email,
-        from_date=from_date, to_date=to_date,
+        orgnr=orgnr,
+        action=action,
+        actor_email=actor_email,
+        from_date=from_date,
+        to_date=to_date,
     )
     rows = q.limit(limit).all()
 
@@ -75,14 +79,16 @@ def export_audit_csv(
     writer = csv.DictWriter(buf, fieldnames=fields)
     writer.writeheader()
     for r in rows:
-        writer.writerow({
-            "id": r.id,
-            "created_at": r.created_at.isoformat(),
-            "orgnr": r.orgnr or "",
-            "action": r.action,
-            "actor_email": r.actor_email or "",
-            "detail": r.detail or "",
-        })
+        writer.writerow(
+            {
+                "id": r.id,
+                "created_at": r.created_at.isoformat(),
+                "orgnr": r.orgnr or "",
+                "action": r.action,
+                "actor_email": r.actor_email or "",
+                "detail": r.detail or "",
+            }
+        )
 
     filename = f"audit_{date.today()}.csv"
     content = buf.getvalue().encode("utf-8-sig")
@@ -107,8 +113,14 @@ def get_audit_log(
 ) -> dict:
     """Paginated audit entries for a specific company (newest first)."""
     return _query_audit_page(
-        db, orgnr=orgnr, action=action, actor_email=actor_email,
-        from_date=from_date, to_date=to_date, limit=limit, offset=offset,
+        db,
+        orgnr=orgnr,
+        action=action,
+        actor_email=actor_email,
+        from_date=from_date,
+        to_date=to_date,
+        limit=limit,
+        offset=offset,
     )
 
 
@@ -126,8 +138,14 @@ def get_audit_log_global(
 ) -> dict:
     """Paginated audit entries across all companies (newest first)."""
     return _query_audit_page(
-        db, orgnr=orgnr, action=action, actor_email=actor_email,
-        from_date=from_date, to_date=to_date, limit=limit, offset=offset,
+        db,
+        orgnr=orgnr,
+        action=action,
+        actor_email=actor_email,
+        from_date=from_date,
+        to_date=to_date,
+        limit=limit,
+        offset=offset,
     )
 
 
@@ -144,15 +162,18 @@ def _query_audit_page(
 ) -> dict:
     base = _apply_filters(
         db.query(AuditLog),
-        orgnr=orgnr, action=action, actor_email=actor_email,
-        from_date=from_date, to_date=to_date,
+        orgnr=orgnr,
+        action=action,
+        actor_email=actor_email,
+        from_date=from_date,
+        to_date=to_date,
     )
     total = base.count()
     rows = base.order_by(AuditLog.created_at.desc()).offset(offset).limit(limit).all()
     return {
-        "items":    [_serialize(r) for r in rows],
-        "total":    total,
-        "offset":   offset,
-        "limit":    limit,
+        "items": [_serialize(r) for r in rows],
+        "total": total,
+        "offset": offset,
+        "limit": limit,
         "has_more": (offset + len(rows)) < total,
     }

@@ -2,6 +2,7 @@
 
 All Azure SDK calls are mocked; conftest.py already stubs azure.storage.blob.
 """
+
 import os
 from unittest.mock import MagicMock, patch
 
@@ -21,6 +22,7 @@ def _unconfigured():
 
 # ── is_configured ─────────────────────────────────────────────────────────────
 
+
 def test_is_configured_true_when_endpoint_set():
     assert _adapter().is_configured() is True
 
@@ -30,6 +32,7 @@ def test_is_configured_false_when_no_endpoint():
 
 
 # ── upload ────────────────────────────────────────────────────────────────────
+
 
 def test_upload_returns_none_when_not_configured():
     assert _unconfigured().upload("container", "blob.pdf", b"data") is None
@@ -53,6 +56,7 @@ def test_upload_returns_none_on_exception():
 
 # ── download ──────────────────────────────────────────────────────────────────
 
+
 def test_download_returns_none_when_not_configured():
     assert _unconfigured().download("container", "blob.pdf") is None
 
@@ -73,6 +77,7 @@ def test_download_returns_none_on_exception():
 
 # ── delete ────────────────────────────────────────────────────────────────────
 
+
 def test_delete_returns_false_when_not_configured():
     assert _unconfigured().delete("container", "blob.pdf") is False
 
@@ -85,11 +90,14 @@ def test_delete_returns_true_on_success():
 
 def test_delete_returns_false_on_exception():
     adapter = _adapter()
-    adapter._client.get_blob_client.return_value.delete_blob.side_effect = Exception("not found")
+    adapter._client.get_blob_client.return_value.delete_blob.side_effect = Exception(
+        "not found"
+    )
     assert adapter.delete("container", "blob.pdf") is False
 
 
 # ── list_blobs ────────────────────────────────────────────────────────────────
+
 
 def test_list_blobs_returns_empty_when_not_configured():
     assert _unconfigured().list_blobs("container") == []
@@ -110,6 +118,7 @@ def test_list_blobs_returns_empty_on_exception():
 
 
 # ── download_json ─────────────────────────────────────────────────────────────
+
 
 def test_download_json_returns_none_when_download_fails():
     adapter = _adapter()
@@ -139,6 +148,7 @@ def test_download_json_parses_list():
 
 # ── get_blob_size ─────────────────────────────────────────────────────────────
 
+
 def test_get_blob_size_returns_none_when_not_configured():
     assert _unconfigured().get_blob_size("container", "file.pdf") is None
 
@@ -147,7 +157,9 @@ def test_get_blob_size_returns_size():
     adapter = _adapter()
     props = MagicMock()
     props.size = 1_048_576
-    adapter._client.get_blob_client.return_value.get_blob_properties.return_value = props
+    adapter._client.get_blob_client.return_value.get_blob_properties.return_value = (
+        props
+    )
     assert adapter.get_blob_size("container", "file.pdf") == 1_048_576
 
 
@@ -158,6 +170,7 @@ def test_get_blob_size_returns_none_on_exception():
 
 
 # ── stream_range ──────────────────────────────────────────────────────────────
+
 
 def test_stream_range_returns_none_when_not_configured():
     assert _unconfigured().stream_range("container", "video.mp4") is None
@@ -195,8 +208,11 @@ def test_stream_range_returns_none_on_exception():
 
 # ── BlobStorageService wrapper ────────────────────────────────────────────────
 
+
 def test_blob_storage_service_reads_endpoint_from_env():
-    with patch.dict(os.environ, {"AZURE_BLOB_ENDPOINT": "https://sttest.blob.core.windows.net"}):
+    with patch.dict(
+        os.environ, {"AZURE_BLOB_ENDPOINT": "https://sttest.blob.core.windows.net"}
+    ):
         svc = BlobStorageService()
     assert svc.is_configured() is True
 
