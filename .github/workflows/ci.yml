@@ -69,6 +69,7 @@ jobs:
 
   ruff:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-ruff-formating.yml@v0.19.0
+    secrets: inherit
 
   # Inlined pyright — reusable-pyright-type-checker.yml@v0.19.0 still runs
   # setup-deploy-key unconditionally, which crashes on repos without a
@@ -96,6 +97,7 @@ jobs:
 
   duplication:
     uses: Antire-AS/antire-reusable-actions/.github/workflows/reusable-duplicate-code-detection.yml@v0.19.0
+    secrets: inherit
     with:
       ignore-patterns: "**/__pycache__/**,**/.venv/**,**/node_modules/**,**/.git/**,uv.lock,**/.next/**,**/video/node_modules/**"
 
