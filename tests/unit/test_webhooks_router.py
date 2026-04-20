@@ -68,3 +68,44 @@ def test_webhook_valid_signature(MockService, client):
     )
     assert resp.status_code == 200
     assert resp.json()["received"] is True
+
+
+# ── Tender-mail webhook — shared-secret verification ─────────────────────────
+
+
+from fastapi import HTTPException
+
+from api.routers.webhooks import _verify_mail_webhook_secret
+
+
+def test_verify_mail_secret_passes_when_env_matches(monkeypatch):
+    monkeypatch.setenv("MAIL_WEBHOOK_SECRET", "s3cret-42")
+    _verify_mail_webhook_secret("s3cret-42")  # no raise
+
+
+def test_verify_mail_secret_503_when_env_unset(monkeypatch):
+    monkeypatch.delenv("MAIL_WEBHOOK_SECRET", raising=False)
+    with pytest.raises(HTTPException) as exc:
+        _verify_mail_webhook_secret("anything")
+    assert exc.value.status_code == 503
+
+
+def test_verify_mail_secret_503_when_env_blank(monkeypatch):
+    monkeypatch.setenv("MAIL_WEBHOOK_SECRET", "   ")
+    with pytest.raises(HTTPException) as exc:
+        _verify_mail_webhook_secret("anything")
+    assert exc.value.status_code == 503
+
+
+def test_verify_mail_secret_401_when_header_missing(monkeypatch):
+    monkeypatch.setenv("MAIL_WEBHOOK_SECRET", "s3cret")
+    with pytest.raises(HTTPException) as exc:
+        _verify_mail_webhook_secret("")
+    assert exc.value.status_code == 401
+
+
+def test_verify_mail_secret_401_when_header_wrong(monkeypatch):
+    monkeypatch.setenv("MAIL_WEBHOOK_SECRET", "s3cret")
+    with pytest.raises(HTTPException) as exc:
+        _verify_mail_webhook_secret("wrong-value")
+    assert exc.value.status_code == 401

@@ -14,3 +14,4 @@ cf-proxy/.wrangler/
 /services/
 /domain/
 .worktrees/
+.coverage
