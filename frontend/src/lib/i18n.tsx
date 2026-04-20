@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import translations from "@/../translations.json";
@@ -13,6 +14,7 @@ type Lang = "no" | "en";
 type Translations = Record<string, { no?: string; en?: string }>;
 
 const _t = translations as Translations;
+const STORAGE_KEY = "app-lang";
 
 interface I18nContextValue {
   lang: Lang;
@@ -26,8 +28,32 @@ const I18nContext = createContext<I18nContextValue>({
   T: (k) => k,
 });
 
+function loadInitial(): Lang {
+  if (typeof window === "undefined") return "no";
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw === "no" || raw === "en") return raw;
+  } catch {
+    /* ignored */
+  }
+  return "no";
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("no");
+  const [lang, setLangState] = useState<Lang>(() => loadInitial());
+
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, l);
+    } catch {
+      /* ignored */
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const T = useCallback(
     (key: string): string => {
