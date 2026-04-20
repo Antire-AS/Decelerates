@@ -376,3 +376,19 @@ def refresh_portfolio_risk(
     from api.services.risk_monitor import refresh_all_portfolios
 
     return refresh_all_portfolios(user.firm_id, db)
+
+
+@router.post("/admin/tender-reminders")
+def send_tender_reminders(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """Send purring emails to tender recipients at the 7d + 2d-before-deadline marks.
+
+    Wired to a daily GitHub Actions cron at 08:00 UTC. Idempotent enough for
+    safety — if the scheduler fires twice in a day, a recipient might get two
+    reminders, which is annoying but not dangerous.
+    """
+    from api.services.tender_reminders import send_deadline_reminders
+
+    return send_deadline_reminders(db)

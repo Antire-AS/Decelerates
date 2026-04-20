@@ -154,6 +154,47 @@ class _RiskPDF(FPDF):
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
+def _add_whiteboard_focus(
+    pdf: Any,
+    items: list[dict] | None,
+    notes: Optional[str],
+    ai_summary: Optional[str],
+) -> None:
+    """Append a 'Meglerens fokuspunkter' section with the broker's whiteboard content."""
+    if not items and not (notes or "").strip() and not (ai_summary or "").strip():
+        return
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, "Meglerens fokuspunkter", ln=True)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.ln(2)
+    if items:
+        for item in items:
+            label = str(item.get("label") or "").strip()
+            value = str(item.get("value") or "").strip()
+            tab = str(item.get("source_tab") or "").strip()
+            if not label or not value:
+                continue
+            suffix = f"  (fra {tab})" if tab else ""
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(0, 6, f"• {label}", ln=True)
+            pdf.set_font("Helvetica", "", 10)
+            pdf.multi_cell(0, 5, f"  {value}{suffix}")
+            pdf.ln(1)
+    if notes and notes.strip():
+        pdf.ln(3)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.cell(0, 7, "Notater", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.multi_cell(0, 5, notes.strip())
+    if ai_summary and ai_summary.strip():
+        pdf.ln(3)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.cell(0, 7, "AI-sparring", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.multi_cell(0, 5, ai_summary.strip())
+
+
 def generate_risk_report_pdf(
     orgnr: str,
     navn: str,
@@ -167,8 +208,16 @@ def generate_risk_report_pdf(
     sum_eiendeler: Optional[float],
     regn: Dict[str, Any],
     risk: Dict[str, Any],
+    whiteboard_items: list[dict] | None = None,
+    whiteboard_notes: Optional[str] = None,
+    whiteboard_ai_summary: Optional[str] = None,
 ) -> bytes:
-    """Build and return PDF bytes for a risk assessment report."""
+    """Build and return PDF bytes for a risk assessment report.
+
+    Optionally appends a "Meglerens fokuspunkter" section with the broker's
+    whiteboard items + notes + AI summary — passed in by the caller when
+    the PDF is generated from a route that has access to a user_oid.
+    """
     today = date.today().strftime("%d.%m.%Y")
     s = risk["score"]
     lbl = _score_label(s)
@@ -191,4 +240,7 @@ def generate_risk_report_pdf(
         pdf, sum_driftsinntekter, sum_egenkapital, sum_eiendeler, regn, risk
     )
     _add_risk_factors_table(pdf, risk, s, lbl)
+    _add_whiteboard_focus(
+        pdf, whiteboard_items, whiteboard_notes, whiteboard_ai_summary
+    )
     return bytes(pdf.output())
