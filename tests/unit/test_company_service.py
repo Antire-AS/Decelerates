@@ -77,7 +77,7 @@ def test_fetch_financials_fallback_to_history(mock_regn):
     return_value={"sum_driftsinntekter": 1000},
 )
 @patch(
-    "api.services.company.fetch_enhet_by_orgnr",
+    "api.services.caching.cached_fetch_enhet",
     return_value={"orgnr": "123", "navn": "Test"},
 )
 def test_fetch_org_profile_success(mock_enhet, mock_regn, mock_pep):
@@ -96,7 +96,7 @@ def test_fetch_org_profile_success(mock_enhet, mock_regn, mock_pep):
     assert result["regnskap"]["sum_driftsinntekter"] == 1000
 
 
-@patch("api.services.company.fetch_enhet_by_orgnr", return_value=None)
+@patch("api.services.caching.cached_fetch_enhet", return_value=None)
 def test_fetch_org_profile_not_found(mock_enhet):
     db = MagicMock()
     result = fetch_org_profile("000", db)
