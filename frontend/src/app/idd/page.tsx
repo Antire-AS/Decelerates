@@ -7,9 +7,11 @@ import useSWR from "swr";
 import { FileText, Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle, ChevronRight } from "lucide-react";
 import { getOrgIdd, getAllIdd, createOrgIdd, deleteOrgIdd, type IddBehovsanalyse } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useT } from "@/lib/i18n";
 
 function RequiredMark() {
-  return <span className="text-red-500 ml-0.5" aria-label="Påkrevd felt">*</span>;
+  const T = useT();
+  return <span className="text-red-500 ml-0.5" aria-label={T("Påkrevd felt")}>*</span>;
 }
 
 const PRODUCTS = [
@@ -31,6 +33,7 @@ function fmt(n: number | undefined | null) {
 }
 
 function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => void }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const date = row.created_at ? new Date(row.created_at).toLocaleDateString("nb-NO") : "–";
 
@@ -42,14 +45,14 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
             {row.client_name || row.orgnr}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Utarbeidet {date} · {row.created_by_email ?? ""}
+            {T("Utarbeidet")} {date} · {row.created_by_email ?? ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen((v) => !v)}
             className="text-xs text-primary hover:underline flex items-center gap-1">
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {open ? "Skjul" : "Vis"}
+            {open ? T("Skjul") : T("Vis")}
           </button>
           <button onClick={onDelete}
             className="text-red-400 hover:text-red-600">
@@ -62,20 +65,20 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
         <div className="mt-4 space-y-3 text-sm">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Kontaktperson</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{T("Kontaktperson")}</p>
               <p className="text-foreground">{row.client_contact_name || "–"}</p>
               {row.client_contact_email && (
                 <p className="text-xs text-muted-foreground">{row.client_contact_email}</p>
               )}
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Risikoappetitt</p>
-              <p className="text-foreground capitalize">{row.risk_appetite || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{T("Risikoappetitt")}</p>
+              <p className="text-foreground capitalize">{row.risk_appetite ? T(row.risk_appetite) : "–"}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-xs text-muted-foreground font-medium mb-1.5">Risikoforhold</p>
+            <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Risikoforhold")}</p>
             <div className="flex flex-wrap gap-2">
               {[
                 ["Eiendom", row.property_owned],
@@ -88,7 +91,7 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
                   className={`text-xs px-2 py-0.5 rounded-full ${
                     val ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
                   }`}>
-                  {String(label)}
+                  {T(String(label))}
                 </span>
               ))}
             </div>
@@ -96,11 +99,11 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
 
           {(row.recommended_products ?? []).length > 0 && (
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1.5">Anbefalte produkter</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Anbefalte produkter")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {row.recommended_products!.map((p) => (
                   <span key={p} className="text-xs bg-accent text-primary border border-border px-2 py-0.5 rounded-full">
-                    {p}
+                    {T(p)}
                   </span>
                 ))}
               </div>
@@ -109,28 +112,28 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
 
           {row.advisor_notes && (
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Rådgivers notater</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{T("Rådgivers notater")}</p>
               <p className="text-xs text-foreground bg-muted rounded-lg p-2">{row.advisor_notes}</p>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-0.5">Vederlagsgrunnlag</p>
-              <p className="text-foreground capitalize">{row.fee_basis || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-0.5">{T("Vederlagsgrunnlag")}</p>
+              <p className="text-foreground capitalize">{row.fee_basis ? T(row.fee_basis) : "–"}</p>
               {row.fee_amount_nok != null && (
                 <p className="text-xs text-muted-foreground">kr {fmt(row.fee_amount_nok)}</p>
               )}
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-0.5">Egnethetsvurdering</p>
+              <p className="text-xs text-muted-foreground font-medium mb-0.5">{T("Egnethetsvurdering")}</p>
               <p className="text-xs text-foreground">{row.suitability_basis || "–"}</p>
             </div>
           </div>
 
           {(row.existing_insurance ?? []).length > 0 && (
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1.5">Eksisterende forsikringer</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Eksisterende forsikringer")}</p>
               <div className="space-y-1">
                 {row.existing_insurance!.map((e, i) => (
                   <div key={i} className="flex justify-between text-xs">
@@ -148,6 +151,7 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
 }
 
 function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void }) {
+  const T = useT();
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -200,23 +204,31 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
   if (ok) return (
     <div className="broker-card flex items-center gap-2 text-green-700">
       <CheckCircle className="w-4 h-4" />
-      <span className="text-sm font-medium">Behovsanalyse lagret.</span>
+      <span className="text-sm font-medium">{T("Behovsanalyse lagret.")}</span>
     </div>
   );
 
+  const fields: [string, string, boolean][] = [
+    ["client_name", T("Selskapsnavn"), false],
+    ["client_contact_name", T("Kontaktperson"), true],
+    ["client_contact_email", T("E-post kontakt"), false],
+    ["annual_revenue_nok", T("Omsetning (NOK)"), false],
+  ];
+
+  const riskFields: [string, string][] = [
+    ["property_owned", T("Eier eiendom")],
+    ["has_employees", T("Har ansatte")],
+    ["has_vehicles", T("Har kjøretøy")],
+    ["has_professional_liability", T("Profesjonsansvar")],
+    ["has_cyber_risk", T("Cyberrisiko")],
+  ];
+
   return (
     <div className="broker-card space-y-4">
-      <h3 className="text-sm font-semibold text-foreground">Ny behovsanalyse</h3>
+      <h3 className="text-sm font-semibold text-foreground">{T("Ny behovsanalyse")}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {(
-          [
-            ["client_name", "Selskapsnavn", false],
-            ["client_contact_name", "Kontaktperson", true],
-            ["client_contact_email", "E-post kontakt", false],
-            ["annual_revenue_nok", "Omsetning (NOK)", false],
-          ] as const
-        ).map(([key, label, required]) => (
+        {fields.map(([key, label, required]) => (
           <div key={key}>
             <label className="text-xs text-muted-foreground font-medium" htmlFor={`idd-${key}`}>
               {label}
@@ -232,7 +244,7 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
             />
             {key === "client_contact_name" && (
               <p id="idd-client_contact_name-hint" className="text-[10px] text-muted-foreground mt-0.5">
-                Navn på kontaktperson hos kunden.
+                {T("Navn på kontaktperson hos kunden.")}
               </p>
             )}
           </div>
@@ -241,27 +253,27 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-risk-appetite">Risikoappetitt</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-risk-appetite">{T("Risikoappetitt")}</label>
           <select id="idd-risk-appetite" value={form.risk_appetite}
             onChange={(e) => setForm((f) => ({ ...f, risk_appetite: e.target.value }))}
             className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-            <option value="lav">Lav</option>
-            <option value="middels">Middels</option>
-            <option value="høy">Høy</option>
+            <option value="lav">{T("lav")}</option>
+            <option value="middels">{T("middels")}</option>
+            <option value="høy">{T("høy")}</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-basis">Vederlagsgrunnlag</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-basis">{T("Vederlagsgrunnlag")}</label>
           <select id="idd-fee-basis" value={form.fee_basis}
             onChange={(e) => setForm((f) => ({ ...f, fee_basis: e.target.value }))}
             className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-            <option value="provisjon">Provisjon</option>
-            <option value="honorar">Honorar</option>
-            <option value="begge">Begge</option>
+            <option value="provisjon">{T("provisjon")}</option>
+            <option value="honorar">{T("honorar")}</option>
+            <option value="begge">{T("begge")}</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-amount">Honorar (NOK)</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-amount">{T("Honorar (NOK)")}</label>
           <input id="idd-fee-amount" value={form.fee_amount_nok}
             onChange={(e) => setForm((f) => ({ ...f, fee_amount_nok: e.target.value }))}
             placeholder="0"
@@ -270,15 +282,9 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       </div>
 
       <div>
-        <p className="text-xs text-muted-foreground font-medium mb-1.5">Risikoforhold</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Risikoforhold")}</p>
         <div className="flex flex-wrap gap-2">
-          {[
-            ["property_owned", "Eier eiendom"],
-            ["has_employees", "Har ansatte"],
-            ["has_vehicles", "Har kjøretøy"],
-            ["has_professional_liability", "Profesjonsansvar"],
-            ["has_cyber_risk", "Cyberrisiko"],
-          ].map(([key, label]) => (
+          {riskFields.map(([key, label]) => (
             <button key={key}
               onClick={() => setForm((f) => ({ ...f, [key]: !(f as Record<string, unknown>)[key] }))}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
@@ -291,7 +297,7 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       </div>
 
       <div>
-        <p className="text-xs text-muted-foreground font-medium mb-1.5">Anbefalte produkter</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Anbefalte produkter")}</p>
         <div className="flex flex-wrap gap-2">
           {PRODUCTS.map((p) => (
             <button key={p} onClick={() => toggleProduct(p)}
@@ -299,29 +305,29 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
                 form.recommended_products.includes(p)
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card text-muted-foreground border-border hover:border-primary"
-              }`}>{p}</button>
+              }`}>{T(p)}</button>
           ))}
         </div>
       </div>
 
       <div>
         <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-suitability-basis">
-          Egnethetsvurdering (IDD § 7-7)<RequiredMark />
+          {T("Egnethetsvurdering (IDD § 7-7)")}<RequiredMark />
         </label>
         <textarea id="idd-suitability-basis" value={form.suitability_basis}
           onChange={(e) => setForm((f) => ({ ...f, suitability_basis: e.target.value }))}
           rows={2}
           required
           aria-describedby="idd-suitability-basis-hint"
-          placeholder="Begrunn hvorfor anbefalte produkter er egnet for kunden…"
+          placeholder={T("Begrunn hvorfor anbefalte produkter er egnet for kunden…")}
           className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none" />
         <p id="idd-suitability-basis-hint" className="text-[10px] text-muted-foreground mt-0.5">
-          Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.
+          {T("Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.")}
         </p>
       </div>
 
       <div>
-        <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-advisor-notes">Rådgivers notater</label>
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-advisor-notes">{T("Rådgivers notater")}</label>
         <textarea id="idd-advisor-notes" value={form.advisor_notes}
           onChange={(e) => setForm((f) => ({ ...f, advisor_notes: e.target.value }))}
           rows={2}
@@ -333,13 +339,14 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
       <button onClick={submit} disabled={loading}
         className="px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50 flex items-center gap-2">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-        Lagre behovsanalyse
+        {T("Lagre behovsanalyse")}
       </button>
     </div>
   );
 }
 
 function IddContent() {
+  const T = useT();
   const searchParams = useSearchParams();
   const orgnr = searchParams.get("orgnr") ?? "";
   const [showForm, setShowForm] = useState(false);
@@ -369,7 +376,7 @@ function IddContent() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">IDD Behovsanalyse</h1>
+          <h1 className="text-2xl font-bold text-foreground">{T("IDD Behovsanalyse")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Forsikringsformidlingsloven §§ 5-4, 7-1 til 7-10 · Finanstilsynet rundskriv 9/2019
           </p>
@@ -378,7 +385,7 @@ function IddContent() {
           <button onClick={() => setShowForm((v) => !v)}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80">
             <Plus className="w-4 h-4" />
-            Ny analyse
+            {T("Ny analyse")}
           </button>
         )}
       </div>
@@ -391,14 +398,13 @@ function IddContent() {
             <div className="broker-card text-center py-10">
               <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
-                Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en
-                behovsanalyse fra CRM-fanen.
+                {T("Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en behovsanalyse fra CRM-fanen.")}
               </p>
             </div>
           ) : (
             <div className="broker-card divide-y divide-border">
               <p className="text-xs text-muted-foreground pb-2 font-medium">
-                {allRows.length} behovsanalyser i alle selskaper · Klikk for å se detaljer
+                {allRows.length} {T("behovsanalyser i alle selskaper · Klikk for å se detaljer")}
               </p>
               {allRows.map((r) => {
                 const date = r.created_at ? new Date(r.created_at).toLocaleDateString("nb-NO") : "–";
@@ -413,8 +419,8 @@ function IddContent() {
                         {r.client_name || r.orgnr}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Orgnr {r.orgnr} · utarbeidet {date}
-                        {r.recommended_products?.length ? ` · ${r.recommended_products.length} produkter` : ""}
+                        {T("Orgnr")} {r.orgnr} · {T("utarbeidet")} {date}
+                        {r.recommended_products?.length ? ` · ${r.recommended_products.length} ${T("produkter")}` : ""}
                       </p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -436,7 +442,7 @@ function IddContent() {
             <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
           ) : !rows?.length ? (
             <div className="broker-card text-center py-10 text-sm text-muted-foreground">
-              Ingen behovsanalyser registrert for dette selskapet ennå.
+              {T("Ingen behovsanalyser registrert for dette selskapet ennå.")}
             </div>
           ) : (
             <div className="space-y-3">
@@ -449,7 +455,7 @@ function IddContent() {
           {/* IDD compliance reference */}
           <details className="broker-card">
             <summary className="text-sm font-semibold text-foreground cursor-pointer">
-              IDD-krav — lovgrunnlag
+              {T("IDD-krav — lovgrunnlag")}
             </summary>
             <div className="mt-3 space-y-2 text-xs text-muted-foreground">
               <p><strong className="text-foreground">§ 5-4</strong> — Plikt til å yte god rådgivning basert på kundens behov og situasjon.</p>
@@ -464,9 +470,9 @@ function IddContent() {
       <ConfirmDialog
         open={deleteId !== null}
         onOpenChange={(o) => { if (!o) setDeleteId(null); }}
-        title="Slette behovsanalyse?"
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={T("Slette behovsanalyse?")}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={() => {
           if (deleteId !== null) performDelete(deleteId);

@@ -670,5 +670,689 @@
   "Sider": {
     "no": "Sider",
     "en": "Pages"
+  },
+  "Steg": {
+    "no": "Steg",
+    "en": "Step"
+  },
+  "av": {
+    "no": "av",
+    "en": "of"
+  },
+  "Neste": {
+    "no": "Neste",
+    "en": "Next"
+  },
+  "Tilbake": {
+    "no": "Tilbake",
+    "en": "Back"
+  },
+  "Klientdetaljer": {
+    "no": "Klientdetaljer",
+    "en": "Client details"
+  },
+  "Klientnavn er påkrevd.": {
+    "no": "Klientnavn er påkrevd.",
+    "en": "Client name is required."
+  },
+  "Org.nr": {
+    "no": "Org.nr",
+    "en": "Org.no"
+  },
+  "9 siffer": {
+    "no": "9 siffer",
+    "en": "9 digits"
+  },
+  "Slå opp": {
+    "no": "Slå opp",
+    "en": "Look up"
+  },
+  "Klientnavn": {
+    "no": "Klientnavn",
+    "en": "Client name"
+  },
+  "Adresse": {
+    "no": "Adresse",
+    "en": "Address"
+  },
+  "Kontaktperson (navn + e-post)": {
+    "no": "Kontaktperson (navn + e-post)",
+    "en": "Contact person (name + email)"
+  },
+  "Tjenester (Vedlegg A)": {
+    "no": "Tjenester (Vedlegg A)",
+    "en": "Services (Appendix A)"
+  },
+  "Velg minst én forsikringslinje.": {
+    "no": "Velg minst én forsikringslinje.",
+    "en": "Select at least one insurance line."
+  },
+  "Avtalestartdato": {
+    "no": "Avtalestartdato",
+    "en": "Agreement start date"
+  },
+  "Kundeansvarlig": {
+    "no": "Kundeansvarlig",
+    "en": "Account manager"
+  },
+  "Forsikringslinjer som megleres:": {
+    "no": "Forsikringslinjer som megleres:",
+    "en": "Insurance lines to be brokered:"
+  },
+  "Andre (spesifiser)": {
+    "no": "Andre (spesifiser)",
+    "en": "Other (specify)"
+  },
+  "Skadeforsikringer": {
+    "no": "Skadeforsikringer",
+    "en": "Property & casualty"
+  },
+  "Financial Lines": {
+    "no": "Financial Lines",
+    "en": "Financial Lines"
+  },
+  "Personforsikringer": {
+    "no": "Personforsikringer",
+    "en": "Personal insurance"
+  },
+  "Pensjonsforsikringer": {
+    "no": "Pensjonsforsikringer",
+    "en": "Pension insurance"
+  },
+  "Spesialdekning": {
+    "no": "Spesialdekning",
+    "en": "Specialty coverage"
+  },
+  "Ting / Avbrudd": {
+    "no": "Ting / Avbrudd",
+    "en": "Property / Business interruption"
+  },
+  "Bedrift-/Produktansvar": {
+    "no": "Bedrift-/Produktansvar",
+    "en": "General / Product liability"
+  },
+  "Transport": {
+    "no": "Transport",
+    "en": "Cargo"
+  },
+  "Motorvogn": {
+    "no": "Motorvogn",
+    "en": "Motor vehicle"
+  },
+  "Prosjektforsikring": {
+    "no": "Prosjektforsikring",
+    "en": "Project insurance"
+  },
+  "Styreansvar (D&O)": {
+    "no": "Styreansvar (D&O)",
+    "en": "Directors & Officers (D&O)"
+  },
+  "Kriminalitetsforsikring": {
+    "no": "Kriminalitetsforsikring",
+    "en": "Crime insurance"
+  },
+  "Profesjonsansvar": {
+    "no": "Profesjonsansvar",
+    "en": "Professional liability"
+  },
+  "Cyber": {
+    "no": "Cyber",
+    "en": "Cyber"
+  },
+  "Spesialforsikring": {
+    "no": "Spesialforsikring",
+    "en": "Specialty insurance"
+  },
+  "Yrkesskade": {
+    "no": "Yrkesskade",
+    "en": "Workers' compensation"
+  },
+  "Ulykke": {
+    "no": "Ulykke",
+    "en": "Accident"
+  },
+  "Gruppeliv": {
+    "no": "Gruppeliv",
+    "en": "Group life"
+  },
+  "Sykdom": {
+    "no": "Sykdom",
+    "en": "Illness"
+  },
+  "Reise": {
+    "no": "Reise",
+    "en": "Travel"
+  },
+  "Helseforsikring": {
+    "no": "Helseforsikring",
+    "en": "Health insurance"
+  },
+  "Ytelsespensjon": {
+    "no": "Ytelsespensjon",
+    "en": "Defined benefit pension"
+  },
+  "Innskuddspensjon": {
+    "no": "Innskuddspensjon",
+    "en": "Defined contribution pension"
+  },
+  "Lederpensjon": {
+    "no": "Lederpensjon",
+    "en": "Executive pension"
+  },
+  "Reassuranse": {
+    "no": "Reassuranse",
+    "en": "Reinsurance"
+  },
+  "Marine": {
+    "no": "Marine",
+    "en": "Marine"
+  },
+  "Energi": {
+    "no": "Energi",
+    "en": "Energy"
+  },
+  "Garanti": {
+    "no": "Garanti",
+    "en": "Guarantee"
+  },
+  "Honorar (Vedlegg B)": {
+    "no": "Honorar (Vedlegg B)",
+    "en": "Fees (Appendix B)"
+  },
+  "Honorartype": {
+    "no": "Honorartype",
+    "en": "Fee type"
+  },
+  "Provisjon (%)": {
+    "no": "Provisjon (%)",
+    "en": "Commission (%)"
+  },
+  "Fast honorar (NOK/år)": {
+    "no": "Fast honorar (NOK/år)",
+    "en": "Fixed fee (NOK/year)"
+  },
+  "Ikke avklart": {
+    "no": "Ikke avklart",
+    "en": "Not determined"
+  },
+  "Sats (%)": {
+    "no": "Sats (%)",
+    "en": "Rate (%)"
+  },
+  "Beløp (NOK/år)": {
+    "no": "Beløp (NOK/år)",
+    "en": "Amount (NOK/year)"
+  },
+  "Vilkår og KYC": {
+    "no": "Vilkår og KYC",
+    "en": "Terms and KYC"
+  },
+  "Fyll ut alle KYC-felt og bekreft vilkårene.": {
+    "no": "Fyll ut alle KYC-felt og bekreft vilkårene.",
+    "en": "Fill in all KYC fields and confirm the terms."
+  },
+  "Type legitimasjon": {
+    "no": "Type legitimasjon",
+    "en": "Type of ID"
+  },
+  "Pass": {
+    "no": "Pass",
+    "en": "Passport"
+  },
+  "Nasjonalt ID-kort": {
+    "no": "Nasjonalt ID-kort",
+    "en": "National ID card"
+  },
+  "Bankkort med bilde": {
+    "no": "Bankkort med bilde",
+    "en": "Bank card with photo"
+  },
+  "Annet": {
+    "no": "Annet",
+    "en": "Other"
+  },
+  "Dokumentreferanse / ID-nummer": {
+    "no": "Dokumentreferanse / ID-nummer",
+    "en": "Document reference / ID number"
+  },
+  "Signatarens navn": {
+    "no": "Signatarens navn",
+    "en": "Signatory's name"
+  },
+  "Firmaattest dato": {
+    "no": "Firmaattest dato",
+    "en": "Certificate of registration date"
+  },
+  "Kunden bekrefter å ha lest og forstått vilkårene.": {
+    "no": "Kunden bekrefter å ha lest og forstått vilkårene.",
+    "en": "The client confirms having read and understood the terms."
+  },
+  "Kunden bekrefter at kundekontroll (KYC/AML) er gjennomført og legitimasjon er fremlagt.": {
+    "no": "Kunden bekrefter at kundekontroll (KYC/AML) er gjennomført og legitimasjon er fremlagt.",
+    "en": "The client confirms that customer due diligence (KYC/AML) has been completed and identification has been presented."
+  },
+  "Oppslag feilet.": {
+    "no": "Oppslag feilet.",
+    "en": "Lookup failed."
+  },
+  "Gjennomgang og generering": {
+    "no": "Gjennomgang og generering",
+    "en": "Review and generate"
+  },
+  "Klient": {
+    "no": "Klient",
+    "en": "Client"
+  },
+  "Startdato": {
+    "no": "Startdato",
+    "en": "Start date"
+  },
+  "Forsikringslinjer": {
+    "no": "Forsikringslinjer",
+    "en": "Insurance lines"
+  },
+  "Honorar": {
+    "no": "Honorar",
+    "en": "Fee"
+  },
+  "år": {
+    "no": "år",
+    "en": "year"
+  },
+  "KYC": {
+    "no": "KYC",
+    "en": "KYC"
+  },
+  "Avtale": {
+    "no": "Avtale",
+    "en": "Agreement"
+  },
+  "opprettet. PDF lastes ned automatisk.": {
+    "no": "opprettet. PDF lastes ned automatisk.",
+    "en": "created. PDF is downloading automatically."
+  },
+  "Opprett avtale og last ned PDF": {
+    "no": "Opprett avtale og last ned PDF",
+    "en": "Create agreement and download PDF"
+  },
+  "Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.": {
+    "no": "Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.",
+    "en": "No agreements yet. Create one in the «New agreement» tab."
+  },
+  "Mine avtaler": {
+    "no": "Mine avtaler",
+    "en": "My agreements"
+  },
+  "Start": {
+    "no": "Start",
+    "en": "Start"
+  },
+  "Opprettet": {
+    "no": "Opprettet",
+    "en": "Created"
+  },
+  "Signert": {
+    "no": "Signert",
+    "en": "Signed"
+  },
+  "Signer": {
+    "no": "Signer",
+    "en": "Sign"
+  },
+  "PDF": {
+    "no": "PDF",
+    "en": "PDF"
+  },
+  "Firmanavn er påkrevd.": {
+    "no": "Firmanavn er påkrevd.",
+    "en": "Firm name is required."
+  },
+  "Innstillinger lagret.": {
+    "no": "Innstillinger lagret.",
+    "en": "Settings saved."
+  },
+  "Feil": {
+    "no": "Feil",
+    "en": "Error"
+  },
+  "Meglerinnstillinger": {
+    "no": "Meglerinnstillinger",
+    "en": "Broker settings"
+  },
+  "Disse opplysningene trykkes på alle avtaler du oppretter.": {
+    "no": "Disse opplysningene trykkes på alle avtaler du oppretter.",
+    "en": "This information is printed on every agreement you create."
+  },
+  "Firmanavn": {
+    "no": "Firmanavn",
+    "en": "Firm name"
+  },
+  "Kontaktperson": {
+    "no": "Kontaktperson",
+    "en": "Contact person"
+  },
+  "E-post": {
+    "no": "E-post",
+    "en": "Email"
+  },
+  "Telefon": {
+    "no": "Telefon",
+    "en": "Phone"
+  },
+  "Lagrer…": {
+    "no": "Lagrer…",
+    "en": "Saving…"
+  },
+  "Lagre innstillinger": {
+    "no": "Lagre innstillinger",
+    "en": "Save settings"
+  },
+  "Avtaler": {
+    "no": "Avtaler",
+    "en": "Agreements"
+  },
+  "SLA-avtaler og meglermandat med kunder": {
+    "no": "SLA-avtaler og meglermandat med kunder",
+    "en": "Service agreements and broker mandates with clients"
+  },
+  "Ny avtale": {
+    "no": "Ny avtale",
+    "en": "New agreement"
+  },
+  "Påkrevd felt": {
+    "no": "Påkrevd felt",
+    "en": "Required field"
+  },
+  "Utarbeidet": {
+    "no": "Utarbeidet",
+    "en": "Prepared"
+  },
+  "Skjul": {
+    "no": "Skjul",
+    "en": "Hide"
+  },
+  "Vis": {
+    "no": "Vis",
+    "en": "Show"
+  },
+  "Risikoappetitt": {
+    "no": "Risikoappetitt",
+    "en": "Risk appetite"
+  },
+  "Risikoforhold": {
+    "no": "Risikoforhold",
+    "en": "Risk factors"
+  },
+  "Eiendom": {
+    "no": "Eiendom",
+    "en": "Property"
+  },
+  "Ansatte": {
+    "no": "Ansatte",
+    "en": "Employees"
+  },
+  "Kjøretøy": {
+    "no": "Kjøretøy",
+    "en": "Vehicles"
+  },
+  "Anbefalte produkter": {
+    "no": "Anbefalte produkter",
+    "en": "Recommended products"
+  },
+  "Rådgivers notater": {
+    "no": "Rådgivers notater",
+    "en": "Advisor notes"
+  },
+  "Vederlagsgrunnlag": {
+    "no": "Vederlagsgrunnlag",
+    "en": "Fee basis"
+  },
+  "Egnethetsvurdering": {
+    "no": "Egnethetsvurdering",
+    "en": "Suitability assessment"
+  },
+  "Eksisterende forsikringer": {
+    "no": "Eksisterende forsikringer",
+    "en": "Existing insurance"
+  },
+  "Behovsanalyse lagret.": {
+    "no": "Behovsanalyse lagret.",
+    "en": "Needs analysis saved."
+  },
+  "Selskapsnavn": {
+    "no": "Selskapsnavn",
+    "en": "Company name"
+  },
+  "E-post kontakt": {
+    "no": "E-post kontakt",
+    "en": "Contact email"
+  },
+  "Omsetning (NOK)": {
+    "no": "Omsetning (NOK)",
+    "en": "Revenue (NOK)"
+  },
+  "Navn på kontaktperson hos kunden.": {
+    "no": "Navn på kontaktperson hos kunden.",
+    "en": "Name of the primary contact at the client."
+  },
+  "lav": {
+    "no": "lav",
+    "en": "low"
+  },
+  "middels": {
+    "no": "middels",
+    "en": "medium"
+  },
+  "høy": {
+    "no": "høy",
+    "en": "high"
+  },
+  "provisjon": {
+    "no": "provisjon",
+    "en": "commission"
+  },
+  "honorar": {
+    "no": "honorar",
+    "en": "fee"
+  },
+  "begge": {
+    "no": "begge",
+    "en": "both"
+  },
+  "Honorar (NOK)": {
+    "no": "Honorar (NOK)",
+    "en": "Fee (NOK)"
+  },
+  "Eier eiendom": {
+    "no": "Eier eiendom",
+    "en": "Owns property"
+  },
+  "Har ansatte": {
+    "no": "Har ansatte",
+    "en": "Has employees"
+  },
+  "Har kjøretøy": {
+    "no": "Har kjøretøy",
+    "en": "Has vehicles"
+  },
+  "Cyberrisiko": {
+    "no": "Cyberrisiko",
+    "en": "Cyber risk"
+  },
+  "Ny behovsanalyse": {
+    "no": "Ny behovsanalyse",
+    "en": "New needs analysis"
+  },
+  "Egnethetsvurdering (IDD § 7-7)": {
+    "no": "Egnethetsvurdering (IDD § 7-7)",
+    "en": "Suitability assessment (IDD § 7-7)"
+  },
+  "Begrunn hvorfor anbefalte produkter er egnet for kunden…": {
+    "no": "Begrunn hvorfor anbefalte produkter er egnet for kunden…",
+    "en": "Explain why the recommended products are suitable for the client…"
+  },
+  "Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.": {
+    "no": "Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.",
+    "en": "Required by law: briefly explain why the products are suitable for this client."
+  },
+  "Lagre behovsanalyse": {
+    "no": "Lagre behovsanalyse",
+    "en": "Save needs analysis"
+  },
+  "IDD Behovsanalyse": {
+    "no": "IDD Behovsanalyse",
+    "en": "IDD needs analysis"
+  },
+  "Ny analyse": {
+    "no": "Ny analyse",
+    "en": "New analysis"
+  },
+  "Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en behovsanalyse fra CRM-fanen.": {
+    "no": "Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en behovsanalyse fra CRM-fanen.",
+    "en": "No needs analyses registered yet. Open a company from Company search and create one from the CRM tab."
+  },
+  "behovsanalyser i alle selskaper · Klikk for å se detaljer": {
+    "no": "behovsanalyser i alle selskaper · Klikk for å se detaljer",
+    "en": "needs analyses across all companies · Click to view details"
+  },
+  "Orgnr": {
+    "no": "Orgnr",
+    "en": "Org.no"
+  },
+  "utarbeidet": {
+    "no": "utarbeidet",
+    "en": "prepared"
+  },
+  "produkter": {
+    "no": "produkter",
+    "en": "products"
+  },
+  "Ingen behovsanalyser registrert for dette selskapet ennå.": {
+    "no": "Ingen behovsanalyser registrert for dette selskapet ennå.",
+    "en": "No needs analyses registered for this company yet."
+  },
+  "IDD-krav — lovgrunnlag": {
+    "no": "IDD-krav — lovgrunnlag",
+    "en": "IDD requirements — legal basis"
+  },
+  "Slette behovsanalyse?": {
+    "no": "Slette behovsanalyse?",
+    "en": "Delete needs analysis?"
+  },
+  "Handlingen kan ikke angres.": {
+    "no": "Handlingen kan ikke angres.",
+    "en": "This action cannot be undone."
+  },
+  "Slett": {
+    "no": "Slett",
+    "en": "Delete"
+  },
+  "Motorvognforsikring": {
+    "no": "Motorvognforsikring",
+    "en": "Motor vehicle insurance"
+  },
+  "Næringseiendom": {
+    "no": "Næringseiendom",
+    "en": "Commercial property"
+  },
+  "Ansvarsforsikring": {
+    "no": "Ansvarsforsikring",
+    "en": "Liability insurance"
+  },
+  "Yrkesskadeforsikring": {
+    "no": "Yrkesskadeforsikring",
+    "en": "Workers' compensation insurance"
+  },
+  "Reiseforsikring": {
+    "no": "Reiseforsikring",
+    "en": "Travel insurance"
+  },
+  "Personforsikring": {
+    "no": "Personforsikring",
+    "en": "Personal insurance"
+  },
+  "Cyberforsikring": {
+    "no": "Cyberforsikring",
+    "en": "Cyber insurance"
+  },
+  "Styreansvarsforsikring": {
+    "no": "Styreansvarsforsikring",
+    "en": "Directors & Officers insurance"
+  },
+  "Varetransportforsikring": {
+    "no": "Varetransportforsikring",
+    "en": "Cargo transport insurance"
+  },
+  "Avbruddsforsikring": {
+    "no": "Avbruddsforsikring",
+    "en": "Business interruption insurance"
+  },
+  "Navn": {
+    "no": "Navn",
+    "en": "Name"
+  },
+  "f.eks. If Skadeforsikring": {
+    "no": "f.eks. If Skadeforsikring",
+    "en": "e.g. If Skadeforsikring"
+  },
+  "Produktappetitt": {
+    "no": "Produktappetitt",
+    "en": "Product appetite"
+  },
+  "Notater": {
+    "no": "Notater",
+    "en": "Notes"
+  },
+  "Avbryt": {
+    "no": "Avbryt",
+    "en": "Cancel"
+  },
+  "Lagre": {
+    "no": "Lagre",
+    "en": "Save"
+  },
+  "Kontakt": {
+    "no": "Kontakt",
+    "en": "Contact"
+  },
+  "Forsikringsselskaper": {
+    "no": "Forsikringsselskaper",
+    "en": "Insurers"
+  },
+  "Administrer forsikringsselskaper og deres produktappetitt": {
+    "no": "Administrer forsikringsselskaper og deres produktappetitt",
+    "en": "Manage insurers and their product appetite"
+  },
+  "Legg til": {
+    "no": "Legg til",
+    "en": "Add"
+  },
+  "Nytt forsikringsselskap": {
+    "no": "Nytt forsikringsselskap",
+    "en": "New insurer"
+  },
+  "Søk etter selskap…": {
+    "no": "Søk etter selskap…",
+    "en": "Search for insurer…"
+  },
+  "Laster…": {
+    "no": "Laster…",
+    "en": "Loading…"
+  },
+  "Ingen treff": {
+    "no": "Ingen treff",
+    "en": "No matches"
+  },
+  "Ingen forsikringsselskaper lagt til ennå": {
+    "no": "Ingen forsikringsselskaper lagt til ennå",
+    "en": "No insurers added yet"
+  },
+  "selskap": {
+    "no": "selskap",
+    "en": "company"
+  },
+  "selskaper": {
+    "no": "selskaper",
+    "en": "companies"
   }
 }

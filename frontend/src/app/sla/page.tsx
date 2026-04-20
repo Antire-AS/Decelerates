@@ -15,10 +15,12 @@ import { Step1ClientDetails } from "@/components/sla/Step1ClientDetails";
 import { Step2Services } from "@/components/sla/Step2Services";
 import { Step3Fees } from "@/components/sla/Step3Fees";
 import { Step4TermsKyc } from "@/components/sla/Step4TermsKyc";
+import { useT } from "@/lib/i18n";
 
 // ── New Agreement Wizard ──────────────────────────────────────────────────────
 
 function NewAgreementWizard() {
+  const T = useT();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<SlaData>({});
   const [err, setErr] = useState<string | null>(null);
@@ -68,7 +70,7 @@ function NewAgreementWizard() {
         client_navn: String(org.navn ?? ""),
         client_adresse: [streetLines, org.poststed].filter(Boolean).join(", "),
       });
-    } catch { setErr("Oppslag feilet."); }
+    } catch { setErr(T("Oppslag feilet.")); }
     finally { setLookupLoading(false); }
   }
 
@@ -121,26 +123,26 @@ function NewAgreementWizard() {
 
       {step === 5 && (
         <>
-          <StepHeader step={5} total={total} label="Gjennomgang og generering" />
+          <StepHeader step={5} total={total} label={T("Gjennomgang og generering")} />
           <div className="space-y-3">
             <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
               <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-xs text-muted-foreground">Klient</span><p className="font-medium">{data.client_navn}</p></div>
-                <div><span className="text-xs text-muted-foreground">Org.nr</span><p className="font-medium">{data.client_orgnr ?? "—"}</p></div>
-                <div><span className="text-xs text-muted-foreground">Startdato</span><p>{data.start_date}</p></div>
-                <div><span className="text-xs text-muted-foreground">Kundeansvarlig</span><p>{data.account_manager ?? "—"}</p></div>
+                <div><span className="text-xs text-muted-foreground">{T("Klient")}</span><p className="font-medium">{data.client_navn}</p></div>
+                <div><span className="text-xs text-muted-foreground">{T("Org.nr")}</span><p className="font-medium">{data.client_orgnr ?? "—"}</p></div>
+                <div><span className="text-xs text-muted-foreground">{T("Startdato")}</span><p>{data.start_date}</p></div>
+                <div><span className="text-xs text-muted-foreground">{T("Kundeansvarlig")}</span><p>{data.account_manager ?? "—"}</p></div>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground">Forsikringslinjer</span>
+                <span className="text-xs text-muted-foreground">{T("Forsikringslinjer")}</span>
                 <p className="text-xs mt-0.5">{allLines.join(" · ") || "—"}</p>
               </div>
               {data.fee_structure?.lines && data.fee_structure.lines.length > 0 && (
                 <div>
-                  <span className="text-xs text-muted-foreground">Honorar</span>
+                  <span className="text-xs text-muted-foreground">{T("Honorar")}</span>
                   <div className="mt-1 space-y-0.5">
                     {data.fee_structure.lines.map((f) => (
                       <p key={f.line} className="text-xs">
-                        {f.line}: {f.type === "provisjon" ? `${f.rate ?? "—"}%` : f.type === "fast" ? `NOK ${f.rate?.toLocaleString("nb-NO") ?? "—"}/år` : "Ikke avklart"}
+                        {f.line}: {f.type === "provisjon" ? `${f.rate ?? "—"}%` : f.type === "fast" ? `NOK ${f.rate?.toLocaleString("nb-NO") ?? "—"}/${T("år")}` : T("Ikke avklart")}
                       </p>
                     ))}
                   </div>
@@ -148,14 +150,14 @@ function NewAgreementWizard() {
               )}
               {data.kyc_signatory && (
                 <div>
-                  <span className="text-xs text-muted-foreground">KYC</span>
+                  <span className="text-xs text-muted-foreground">{T("KYC")}</span>
                   <p className="text-xs">{data.kyc_signatory} — {data.kyc_id_type} {data.kyc_id_ref}</p>
                 </div>
               )}
             </div>
             {createdId && (
               <div className="flex items-center gap-2 text-xs text-green-700">
-                <CheckCircle2 className="w-4 h-4" /> Avtale #{createdId} opprettet. PDF lastes ned automatisk.
+                <CheckCircle2 className="w-4 h-4" /> {T("Avtale")} #{createdId} {T("opprettet. PDF lastes ned automatisk.")}
               </div>
             )}
             {err && <p className="text-xs text-red-600">{err}</p>}
@@ -163,7 +165,7 @@ function NewAgreementWizard() {
           <NavButtons
             onBack={() => setStep(4)}
             onNext={handleGenerate}
-            nextLabel="Opprett avtale og last ned PDF"
+            nextLabel={T("Opprett avtale og last ned PDF")}
             loading={generating}
           />
         </>
@@ -175,6 +177,7 @@ function NewAgreementWizard() {
 // ── My Agreements ─────────────────────────────────────────────────────────────
 
 function AgreementsList() {
+  const T = useT();
   const { data: agreements, isLoading, mutate } = useSWR<SlaAgreement[]>("sla-agreements", getSlaAgreements);
   const [signingId, setSigningId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
@@ -200,13 +203,13 @@ function AgreementsList() {
   if (isLoading) return <div className="broker-card"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
   if (!agreements?.length) return (
     <div className="broker-card text-center py-12">
-      <p className="text-sm text-muted-foreground">Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.</p>
+      <p className="text-sm text-muted-foreground">{T("Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.")}</p>
     </div>
   );
 
   return (
     <div className="broker-card">
-      <h2 className="text-sm font-semibold text-foreground mb-3">Mine avtaler ({agreements.length})</h2>
+      <h2 className="text-sm font-semibold text-foreground mb-3">{T("Mine avtaler")} ({agreements.length})</h2>
       {err && <p className="text-xs text-red-600 mb-2">{err}</p>}
       <div className="divide-y divide-border">
         {agreements.map((a) => {
@@ -217,12 +220,12 @@ function AgreementsList() {
                 <p className="text-sm font-semibold text-foreground">{a.client_name || a.client_orgnr}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {a.client_orgnr}
-                  {aExt.start_date && ` · Start: ${aExt.start_date}`}
-                  {` · Opprettet: ${new Date(a.created_at).toLocaleDateString("nb-NO")}`}
+                  {aExt.start_date && ` · ${T("Start")}: ${aExt.start_date}`}
+                  {` · ${T("Opprettet")}: ${new Date(a.created_at).toLocaleDateString("nb-NO")}`}
                 </p>
                 {aExt.signed_at && (
                   <p className="text-xs text-green-700 mt-0.5">
-                    ✓ Signert {new Date(aExt.signed_at).toLocaleDateString("nb-NO")}
+                    ✓ {T("Signert")} {new Date(aExt.signed_at).toLocaleDateString("nb-NO")}
                   </p>
                 )}
               </div>
@@ -230,13 +233,13 @@ function AgreementsList() {
                 {!aExt.signed_at && (
                   <button onClick={() => handleSign(a.id)} disabled={signingId === a.id}
                     className="px-2.5 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-                    {signingId === a.id ? "…" : "Signer"}
+                    {signingId === a.id ? "…" : T("Signer")}
                   </button>
                 )}
                 <button onClick={() => handleDownload(a)} disabled={downloadingId === a.id}
                   className="flex items-center gap-1 px-2.5 py-1 text-xs rounded border border-border text-foreground hover:bg-muted disabled:opacity-50">
                   {downloadingId === a.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                  PDF
+                  {T("PDF")}
                 </button>
               </div>
             </div>
@@ -250,6 +253,7 @@ function AgreementsList() {
 // ── Broker Settings ───────────────────────────────────────────────────────────
 
 function BrokerSettingsForm() {
+  const T = useT();
   const { data: saved, isLoading, mutate } = useSWR("broker-settings", getBrokerSettings);
   const [form, setForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -260,7 +264,7 @@ function BrokerSettingsForm() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!val("firm_name").trim()) { setMsg("Firmanavn er påkrevd."); return; }
+    if (!val("firm_name").trim()) { setMsg(T("Firmanavn er påkrevd.")); return; }
     setSaving(true); setMsg(null);
     try {
       await saveBrokerSettings({
@@ -271,9 +275,9 @@ function BrokerSettingsForm() {
         contact_email: val("contact_email"),
         contact_phone: val("contact_phone"),
       });
-      setMsg("Innstillinger lagret.");
+      setMsg(T("Innstillinger lagret."));
       mutate();
-    } catch (e) { setMsg(`Feil: ${String(e)}`); }
+    } catch (e) { setMsg(`${T("Feil")}: ${String(e)}`); }
     finally { setSaving(false); }
   }
 
@@ -281,40 +285,40 @@ function BrokerSettingsForm() {
 
   return (
     <div className="broker-card max-w-lg">
-      <h2 className="text-sm font-semibold text-foreground mb-1">Meglerinnstillinger</h2>
-      <p className="text-xs text-muted-foreground mb-4">Disse opplysningene trykkes på alle avtaler du oppretter.</p>
+      <h2 className="text-sm font-semibold text-foreground mb-1">{T("Meglerinnstillinger")}</h2>
+      <p className="text-xs text-muted-foreground mb-4">{T("Disse opplysningene trykkes på alle avtaler du oppretter.")}</p>
       <form onSubmit={handleSave} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <label className="label-xs" htmlFor="broker-firm-name">Firmanavn *</label>
+            <label className="label-xs" htmlFor="broker-firm-name">{T("Firmanavn")} *</label>
             <input id="broker-firm-name" value={val("firm_name")} onChange={(e) => set("firm_name", e.target.value)} required className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs" htmlFor="broker-orgnr">Org.nr</label>
+            <label className="label-xs" htmlFor="broker-orgnr">{T("Org.nr")}</label>
             <input id="broker-orgnr" value={val("orgnr")} onChange={(e) => set("orgnr", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs" htmlFor="broker-contact-name">Kontaktperson</label>
+            <label className="label-xs" htmlFor="broker-contact-name">{T("Kontaktperson")}</label>
             <input id="broker-contact-name" value={val("contact_name")} onChange={(e) => set("contact_name", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs" htmlFor="broker-contact-email">E-post</label>
+            <label className="label-xs" htmlFor="broker-contact-email">{T("E-post")}</label>
             <input id="broker-contact-email" type="email" value={val("contact_email")} onChange={(e) => set("contact_email", e.target.value)} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs" htmlFor="broker-contact-phone">Telefon</label>
+            <label className="label-xs" htmlFor="broker-contact-phone">{T("Telefon")}</label>
             <input id="broker-contact-phone" value={val("contact_phone")} onChange={(e) => set("contact_phone", e.target.value)} className="input-sm w-full" />
           </div>
           <div className="col-span-2">
-            <label className="label-xs" htmlFor="broker-address">Adresse</label>
+            <label className="label-xs" htmlFor="broker-address">{T("Adresse")}</label>
             <textarea id="broker-address" value={val("address")} onChange={(e) => set("address", e.target.value)} rows={2}
               className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
           </div>
         </div>
-        {msg && <p className={`text-xs ${msg.startsWith("Feil") ? "text-red-600" : "text-green-700"}`}>{msg}</p>}
+        {msg && <p className={`text-xs ${msg.startsWith(T("Feil")) ? "text-red-600" : "text-green-700"}`}>{msg}</p>}
         <button type="submit" disabled={saving}
           className="px-4 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-          {saving ? "Lagrer…" : "Lagre innstillinger"}
+          {saving ? T("Lagrer…") : T("Lagre innstillinger")}
         </button>
       </form>
     </div>
@@ -324,6 +328,7 @@ function BrokerSettingsForm() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SlaPage() {
+  const T = useT();
   const [tab, setTab] = useState<"ny" | "mine" | "innstillinger">("ny");
 
   const TAB = (t: typeof tab, label: string) => (
@@ -338,13 +343,13 @@ export default function SlaPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Avtaler</h1>
-        <p className="text-sm text-muted-foreground mt-1">SLA-avtaler og meglermandat med kunder</p>
+        <h1 className="text-2xl font-bold text-foreground">{T("Avtaler")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{T("SLA-avtaler og meglermandat med kunder")}</p>
       </div>
       <div className="flex gap-2">
-        {TAB("ny", "Ny avtale")}
-        {TAB("mine", "Mine avtaler")}
-        {TAB("innstillinger", "Meglerinnstillinger")}
+        {TAB("ny", T("Ny avtale"))}
+        {TAB("mine", T("Mine avtaler"))}
+        {TAB("innstillinger", T("Meglerinnstillinger"))}
       </div>
       {tab === "ny" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
