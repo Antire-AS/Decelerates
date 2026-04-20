@@ -5,6 +5,7 @@ import { ShieldCheck, ShieldAlert, ShieldQuestion, AlertTriangle, ChevronDown, C
 import { useState } from "react";
 import { getOrgCoverageGap, type CoverageGapItem } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 const PRIORITY_COLORS: Record<string, string> = {
   Kritisk:  "text-red-600 bg-red-50 border-red-200",
@@ -13,6 +14,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 function GapRow({ item }: { item: CoverageGapItem }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const covered = item.status === "covered";
 
@@ -42,12 +44,12 @@ function GapRow({ item }: { item: CoverageGapItem }) {
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {covered && item.actual_coverage_nok != null && (
               <span className="text-xs text-foreground">
-                Dekning: {fmtNok(item.actual_coverage_nok)}
+                {T("Dekning")}: {fmtNok(item.actual_coverage_nok)}
               </span>
             )}
             {item.estimated_coverage_nok != null && (
               <span className="text-xs text-muted-foreground">
-                Anbefalt: {fmtNok(item.estimated_coverage_nok)}
+                {T("Anbefalt")}: {fmtNok(item.estimated_coverage_nok)}
               </span>
             )}
             {item.coverage_note && (
@@ -72,11 +74,11 @@ function GapRow({ item }: { item: CoverageGapItem }) {
         <div className="mt-2 ml-8 text-xs text-muted-foreground leading-relaxed">
           <p>{item.reason}</p>
           {covered && item.actual_policy_number && (
-            <p className="mt-1 text-foreground">Polisenr: {item.actual_policy_number}</p>
+            <p className="mt-1 text-foreground">{T("Polisenr")}: {item.actual_policy_number}</p>
           )}
           {!covered && (
             <p className="mt-1 text-red-600 font-medium">
-              Ingen aktiv polise dekker dette behovet.
+              {T("Ingen aktiv polise dekker dette behovet.")}
             </p>
           )}
         </div>
@@ -86,6 +88,7 @@ function GapRow({ item }: { item: CoverageGapItem }) {
 }
 
 export default function CoverageGapSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
   const { data, isLoading } = useSWR(
     `coverage-gap-${orgnr}`,
     () => getOrgCoverageGap(orgnr),
@@ -97,7 +100,7 @@ export default function CoverageGapSection({ orgnr }: { orgnr: string }) {
       <div className="broker-card">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <ShieldQuestion className="w-4 h-4 animate-pulse" />
-          Analyserer dekningsgap…
+          {T("Analyserer dekningsgap…")}
         </div>
       </div>
     );
@@ -122,17 +125,17 @@ export default function CoverageGapSection({ orgnr }: { orgnr: string }) {
           className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
           <ShieldCheck className="w-4 h-4 text-primary" />
-          Dekningstatus
+          {T("Dekningstatus")}
           {open ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
         </button>
 
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
-            {data.covered_count}/{data.total_count} dekket
+            {data.covered_count}/{data.total_count} {T("dekket")}
           </span>
           {data.gap_count > 0 && (
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-              {data.gap_count} gap
+              {data.gap_count} {T("gap")}
             </span>
           )}
         </div>

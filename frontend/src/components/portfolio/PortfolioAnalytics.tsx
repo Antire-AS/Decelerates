@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from "recharts";
+import { useT } from "@/lib/i18n";
 
 interface IndustryRow {
   name: string;
@@ -24,16 +25,17 @@ interface Props {
 }
 
 export function PortfolioAnalytics({ industryData, top15Risk, analyticsTab, setAnalyticsTab }: Props) {
+  const T = useT();
   return (
     <div className="broker-card">
       <div className="flex items-center gap-2 mb-3">
         <button onClick={() => setAnalyticsTab("industry")}
           className={`text-xs px-2.5 py-1 rounded-lg ${analyticsTab === "industry" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>
-          Bransje
+          {T("Bransje")}
         </button>
         <button onClick={() => setAnalyticsTab("top-risk")}
           className={`text-xs px-2.5 py-1 rounded-lg ${analyticsTab === "top-risk" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>
-          Top 15 risiko
+          {T("Top 15 risiko")}
         </button>
       </div>
       {analyticsTab === "top-risk" && (
@@ -43,7 +45,7 @@ export function PortfolioAnalytics({ industryData, top15Risk, analyticsTab, setA
             <XAxis type="number" tick={{ fontSize: 10 }} domain={[0, 100]} />
             <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9 }} />
             <Tooltip formatter={(v: number) => [`${v} / 100`]} />
-            <Bar dataKey="score" name="Risikoscore" fill="#C0392B" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="score" name={T("Risikoscore")} fill="#C0392B" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -53,8 +55,8 @@ export function PortfolioAnalytics({ industryData, top15Risk, analyticsTab, setA
             <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 10 }} />
             <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9 }} />
-            <Tooltip formatter={(v: number) => [`${v} selskaper`]} />
-            <Bar dataKey="count" name="Selskaper" fill="#4A6FA5" radius={[0, 4, 4, 0]} />
+            <Tooltip formatter={(v: number) => [`${v} ${T("selskaper")}`]} />
+            <Bar dataKey="count" name={T("Selskaper")} fill="#4A6FA5" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}

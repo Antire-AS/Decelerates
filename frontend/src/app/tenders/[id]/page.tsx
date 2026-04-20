@@ -23,22 +23,24 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
-const STATUS_BADGE: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
-  draft: { label: "Utkast", cls: "bg-gray-100 text-gray-700", icon: FileText },
-  sent: { label: "Sendt", cls: "bg-blue-50 text-blue-700", icon: Send },
-  closed: { label: "Lukket", cls: "bg-yellow-50 text-yellow-700", icon: Clock },
-  analysed: { label: "Analysert", cls: "bg-green-50 text-green-700", icon: BarChart2 },
+const STATUS_BADGE: Record<string, { labelKey: string; cls: string; icon: typeof Clock }> = {
+  draft: { labelKey: "Utkast", cls: "bg-gray-100 text-gray-700", icon: FileText },
+  sent: { labelKey: "Sendt", cls: "bg-blue-50 text-blue-700", icon: Send },
+  closed: { labelKey: "Lukket", cls: "bg-yellow-50 text-yellow-700", icon: Clock },
+  analysed: { labelKey: "Analysert", cls: "bg-green-50 text-green-700", icon: BarChart2 },
 };
 
-const RECIPIENT_STATUS: Record<string, { label: string; cls: string }> = {
-  pending: { label: "Venter", cls: "text-gray-500" },
-  sent: { label: "Sendt", cls: "text-blue-600" },
-  received: { label: "Svar mottatt", cls: "text-green-600" },
-  declined: { label: "Avslått", cls: "text-red-500" },
+const RECIPIENT_STATUS: Record<string, { labelKey: string; cls: string }> = {
+  pending: { labelKey: "Venter", cls: "text-gray-500" },
+  sent: { labelKey: "Sendt", cls: "text-blue-600" },
+  received: { labelKey: "Svar mottatt", cls: "text-green-600" },
+  declined: { labelKey: "Avslått", cls: "text-red-500" },
 };
 
 export default function TenderDetailPage() {
+  const T = useT();
   const { id } = useParams<{ id: string }>();
   const { data: tender, mutate } = useSWR<Tender>(`tender-${id}`, () => getTender(Number(id)));
   const [sending, setSending] = useState(false);
@@ -64,7 +66,7 @@ export default function TenderDetailPage() {
       await sendTender(Number(id));
       mutate();
     } catch {
-      toast.error("Kunne ikke sende anbudsforespørsler");
+      toast.error(T("Kunne ikke sende anbudsforespørsler"));
     } finally {
       setSending(false);
     }
@@ -80,7 +82,7 @@ export default function TenderDetailPage() {
       setUploadInsurer("");
       mutate();
     } catch {
-      toast.error("Kunne ikke laste opp tilbud");
+      toast.error(T("Kunne ikke laste opp tilbud"));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -93,7 +95,7 @@ export default function TenderDetailPage() {
       await analyseTender(Number(id));
       mutate();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Analyse feilet");
+      toast.error(err instanceof Error ? err.message : T("Analyse feilet"));
     } finally {
       setAnalysing(false);
     }
@@ -128,7 +130,7 @@ export default function TenderDetailPage() {
       {/* Header */}
       <Link href="/tenders" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" />
-        Tilbake til anbud
+        {T("Tilbake til anbud")}
       </Link>
 
       <div className="flex items-start justify-between mb-6">
@@ -137,12 +139,12 @@ export default function TenderDetailPage() {
             <h1 className="text-2xl font-bold text-foreground">{tender.title}</h1>
             <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${s.cls}`}>
               <StatusIcon className="w-3 h-3" />
-              {s.label}
+              {T(s.labelKey)}
             </span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             {tender.product_types.join(", ")}
-            {tender.deadline && ` · Frist: ${tender.deadline}`}
+            {tender.deadline && ` · ${T("Frist")}: ${tender.deadline}`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -153,7 +155,7 @@ export default function TenderDetailPage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50"
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Send til selskaper
+              {T("Send til selskaper")}
             </button>
           )}
           {tender.status === "sent" && (
@@ -162,7 +164,7 @@ export default function TenderDetailPage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-brand-warning text-white text-sm rounded-lg hover:bg-brand-warning/90"
             >
               <Clock className="w-4 h-4" />
-              Lukk anbud
+              {T("Lukk anbud")}
             </button>
           )}
           {tender.offers.length >= 2 && tender.status !== "draft" && (
@@ -172,7 +174,7 @@ export default function TenderDetailPage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50"
             >
               {analysing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart2 className="w-4 h-4" />}
-              Analyser tilbud
+              {T("Analyser tilbud")}
             </button>
           )}
         </div>
@@ -181,7 +183,7 @@ export default function TenderDetailPage() {
       {/* Notes */}
       {tender.notes && (
         <div className="broker-card mb-4">
-          <h3 className="text-sm font-semibold text-foreground mb-1">Kravspesifikasjon</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-1">{T("Kravspesifikasjon")}</h3>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tender.notes}</p>
         </div>
       )}
@@ -190,10 +192,10 @@ export default function TenderDetailPage() {
         {/* Recipients */}
         <div className="broker-card">
           <h3 className="text-sm font-semibold text-foreground mb-3">
-            Mottakere ({tender.recipients.length})
+            {T("Mottakere")} ({tender.recipients.length})
           </h3>
           {tender.recipients.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Ingen mottakere lagt til.</p>
+            <p className="text-sm text-muted-foreground">{T("Ingen mottakere lagt til.")}</p>
           ) : (
             <div className="space-y-2">
               {tender.recipients.map((r) => {
@@ -206,7 +208,7 @@ export default function TenderDetailPage() {
                         <span className="text-xs text-muted-foreground ml-2">{r.insurer_email}</span>
                       )}
                     </div>
-                    <span className={`text-xs font-medium ${rs.cls}`}>{rs.label}</span>
+                    <span className={`text-xs font-medium ${rs.cls}`}>{T(rs.labelKey)}</span>
                   </div>
                 );
               })}
@@ -217,7 +219,7 @@ export default function TenderDetailPage() {
         {/* Upload offer */}
         <div className="broker-card">
           <h3 className="text-sm font-semibold text-foreground mb-3">
-            Last opp tilbud ({tender.offers.length})
+            {T("Last opp tilbud")} ({tender.offers.length})
           </h3>
           <div className="space-y-3">
             <select
@@ -225,11 +227,11 @@ export default function TenderDetailPage() {
               value={uploadInsurer}
               onChange={(e) => setUploadInsurer(e.target.value)}
             >
-              <option value="">Velg forsikringsselskap...</option>
+              <option value="">{T("Velg forsikringsselskap...")}</option>
               {tender.recipients.map((r) => (
                 <option key={r.id} value={r.insurer_name}>{r.insurer_name}</option>
               ))}
-              <option value="_custom">Annet selskap...</option>
+              <option value="_custom">{T("Annet selskap...")}</option>
             </select>
             <input
               ref={fileRef}
@@ -242,7 +244,7 @@ export default function TenderDetailPage() {
             {uploading && (
               <p className="text-xs text-primary flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                Laster opp og analyserer...
+                {T("Laster opp og analyserer...")}
               </p>
             )}
           </div>
@@ -297,16 +299,17 @@ interface AnalysisSectionProps {
 }
 
 function AnalysisSection({ analysis }: AnalysisSectionProps) {
+  const T = useT();
   return (
     <div className="broker-card">
       <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
         <BarChart2 className="w-4 h-4 text-primary" />
-        AI-sammenligning
+        {T("AI-sammenligning")}
       </h3>
 
       {analysis.anbefaling && (
         <div className="bg-brand-success/10 border border-green-200 rounded-lg p-4 mb-4">
-          <h4 className="text-sm font-semibold text-green-800 mb-1">Anbefaling</h4>
+          <h4 className="text-sm font-semibold text-green-800 mb-1">{T("Anbefaling")}</h4>
           <p className="text-sm text-green-700">
             <strong>{analysis.anbefaling.forsikringsgiver}</strong>
             {" — "}
@@ -321,7 +324,7 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
 
       {analysis.nøkkelforskjeller && analysis.nøkkelforskjeller.length > 0 && (
         <div className="mb-4">
-          <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-2">Nøkkelforskjeller</h4>
+          <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-2">{T("Nøkkelforskjeller")}</h4>
           <ul className="space-y-1">
             {analysis.nøkkelforskjeller.map((d, i) => (
               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -346,11 +349,11 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="bg-background">
-                      <th className="text-left p-2 text-xs text-muted-foreground font-medium">Felt</th>
+                      <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Felt")}</th>
                       {columns.map((col) => (
                         <th key={col} className="text-left p-2 text-xs text-muted-foreground font-medium">{col}</th>
                       ))}
-                      <th className="text-left p-2 text-xs text-muted-foreground font-medium">Kommentar</th>
+                      <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Kommentar")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -365,7 +368,7 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
                           <td className="p-2 text-muted-foreground text-xs">
                             {f.kommentar}
                             {isLow && (
-                              <span className="ml-1 text-yellow-600 font-medium">(lav konfidens)</span>
+                              <span className="ml-1 text-yellow-600 font-medium">({T("lav konfidens")})</span>
                             )}
                           </td>
                         </tr>

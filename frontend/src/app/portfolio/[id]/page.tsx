@@ -23,6 +23,7 @@ import { PortfolioConcentration } from "@/components/portfolio/PortfolioConcentr
 import { PortfolioChat } from "@/components/portfolio/PortfolioChat";
 import { PortfolioIngest } from "@/components/portfolio/PortfolioIngest";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useT } from "@/lib/i18n";
 
 const PortfolioMap = dynamic(
   () => import("@/components/portfolio/PortfolioMap"),
@@ -34,6 +35,7 @@ export default function PortfolioDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const T = useT();
   const { id } = use(params);
   const portfolioId = Number(id);
 
@@ -131,13 +133,13 @@ export default function PortfolioDetailPage({
   if (!portfolio) {
     return (
       <div className="broker-card text-center py-10 max-w-md mx-auto mt-12">
-        <p className="text-sm font-semibold text-foreground">Portefølje ikke funnet</p>
-        <p className="text-xs text-muted-foreground mt-1">ID {portfolioId} eksisterer ikke eller er slettet.</p>
+        <p className="text-sm font-semibold text-foreground">{T("Portefølje ikke funnet")}</p>
+        <p className="text-xs text-muted-foreground mt-1">{T("ID {id} eksisterer ikke eller er slettet.").replace("{id}", String(portfolioId))}</p>
         <Link
           href="/portfolio"
           className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1"
         >
-          <ArrowLeft className="w-3 h-3" /> Tilbake til porteføljer
+          <ArrowLeft className="w-3 h-3" /> {T("Tilbake til porteføljer")}
         </Link>
       </div>
     );
@@ -152,7 +154,7 @@ export default function PortfolioDetailPage({
             href="/portfolio"
             className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mb-2"
           >
-            <ArrowLeft className="w-3 h-3" /> Alle porteføljer
+            <ArrowLeft className="w-3 h-3" /> {T("Alle porteføljer")}
           </Link>
           <h1 className="text-2xl font-bold text-foreground">{portfolio.name}</h1>
           {portfolio.description && (
@@ -167,7 +169,7 @@ export default function PortfolioDetailPage({
           {pdfDownloading
             ? <Loader2 className="w-4 h-4 animate-spin" />
             : <Download className="w-4 h-4" />}
-          Last ned PDF-rapport
+          {T("Last ned PDF-rapport")}
         </button>
       </div>
 
@@ -181,7 +183,7 @@ export default function PortfolioDetailPage({
       {/* ── Concentration ── */}
       {concentration && (
         <div className="broker-card">
-          <h2 className="text-sm font-semibold text-foreground mb-3">Konsentrasjon</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">{T("Konsentrasjon")}</h2>
           <PortfolioConcentration concentration={concentration} />
         </div>
       )}
@@ -193,8 +195,7 @@ export default function PortfolioDetailPage({
         </div>
       ) : risk.length === 0 ? (
         <div className="broker-card text-center py-10 text-sm text-muted-foreground">
-          Ingen selskaper i denne porteføljen ennå.{" "}
-          Legg til selskaper via selskapsprofilen (CRM-fanen → Portefølje).
+          {T("Ingen selskaper i denne porteføljen ennå. Legg til selskaper via selskapsprofilen (CRM-fanen → Portefølje).")}
         </div>
       ) : (
         <div className="broker-card">
@@ -210,7 +211,7 @@ export default function PortfolioDetailPage({
       {/* ── Geographic map ── */}
       {risk && risk.length > 0 && (
         <div className="broker-card">
-          <h2 className="text-sm font-semibold text-foreground mb-3">Geografisk oversikt</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">{T("Geografisk oversikt")}</h2>
           <ErrorBoundary>
             <PortfolioMap rows={risk} />
           </ErrorBoundary>
@@ -219,15 +220,15 @@ export default function PortfolioDetailPage({
 
       {/* ── PDF enrichment ── */}
       <div className="broker-card space-y-3">
-        <p className="text-xs font-semibold text-foreground">Legg til årsrapport-PDF manuelt</p>
+        <p className="text-xs font-semibold text-foreground">{T("Legg til årsrapport-PDF manuelt")}</p>
         <p className="text-xs text-muted-foreground">
-          Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.
+          {T("Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.")}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <input
             value={pdfOrgnr}
             onChange={(e) => setPdfOrgnr(e.target.value)}
-            placeholder="Orgnr (9 siffer)"
+            placeholder={T("Orgnr (9 siffer)")}
             className="px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
           />
           <input
@@ -250,7 +251,7 @@ export default function PortfolioDetailPage({
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-              Legg til
+              {T("Legg til")}
             </button>
           </div>
         </div>

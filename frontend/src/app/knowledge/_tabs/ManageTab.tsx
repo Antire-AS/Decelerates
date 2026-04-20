@@ -9,8 +9,10 @@ import {
   knowledgeIndex, knowledgeSeedRegulations,
   getKnowledgeStats, knowledgeIngest,
 } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 export default function ManageTab() {
+  const T = useT();
   const { data: stats, mutate: mutateStats } = useSWR("knowledge-stats", getKnowledgeStats);
 
   const [indexLoading, setIndexLoading]   = useState(false);
@@ -34,17 +36,17 @@ export default function ManageTab() {
     setIngestOk(null);
     const orgnr = ingestOrgnr.trim();
     if (!/^\d{9}$/.test(orgnr)) {
-      setIngestErr("Skriv inn et gyldig 9-sifret orgnr.");
+      setIngestErr(T("Skriv inn et gyldig 9-sifret orgnr."));
       return;
     }
     if (!ingestText.trim()) {
-      setIngestErr("Teksten kan ikke være tom.");
+      setIngestErr(T("Teksten kan ikke være tom."));
       return;
     }
     setIngestLoading(true);
     try {
       const r = await knowledgeIngest(orgnr, ingestText.trim(), ingestSource.trim() || "custom_note");
-      setIngestOk(`Lagret ${r.chunks_stored} biter for orgnr ${r.orgnr}.`);
+      setIngestOk(`${T("Lagret")} ${r.chunks_stored} ${T("biter for orgnr")} ${r.orgnr}.`);
       setIngestText("");
       mutateStats();
     } catch (e) {
@@ -59,9 +61,9 @@ export default function ManageTab() {
     try {
       const r = await knowledgeIndex(force);
       setIndexResult(
-        `Indeksering fullført — ${r.total_new_chunks} nye chunks ` +
-        `(${r.docs_chunks} dokumenter, ${r.video_chunks} videoer)` +
-        (r.cleared_chunks != null ? `, slettet ${r.cleared_chunks}` : ""),
+        `${T("Indeksering fullført")} — ${r.total_new_chunks} ${T("nye chunks")} ` +
+        `(${r.docs_chunks} ${T("dokumenter")}, ${r.video_chunks} ${T("videoer")})` +
+        (r.cleared_chunks != null ? `, ${T("slettet")} ${r.cleared_chunks}` : ""),
       );
       mutateStats();
     } catch (e) { setIndexErr(String(e)); }
@@ -90,7 +92,7 @@ export default function ManageTab() {
           <div key={label} className="broker-card text-center">
             <div className="flex justify-center text-primary mb-1">{icon}</div>
             <p className="text-xl font-bold text-foreground">{value ?? "–"}</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-xs text-muted-foreground">{T(label)}</p>
           </div>
         ))}
       </div>
@@ -98,11 +100,10 @@ export default function ManageTab() {
       {/* Index documents */}
       <div className="broker-card space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <RefreshCw className="w-4 h-4" /> Indekser dokumenter og videoer
+          <RefreshCw className="w-4 h-4" /> {T("Indekser dokumenter og videoer")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Henter alle dokumenter og videoer fra databasen og bygger vektorsøkeindeksen på nytt.
-          Bruk &ldquo;Tving&rdquo; for å slette eksisterende indeks og starte fra scratch.
+          {T("Henter alle dokumenter og videoer fra databasen og bygger vektorsøkeindeksen på nytt. Bruk \"Tving\" for å slette eksisterende indeks og starte fra scratch.")}
         </p>
         <div className="flex gap-2 flex-wrap">
           <button
@@ -111,7 +112,7 @@ export default function ManageTab() {
             className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
           >
             {indexLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-            Indekser (inkrementelt)
+            {T("Indekser (inkrementelt)")}
           </button>
           <button
             onClick={() => handleIndex(true)}
@@ -119,7 +120,7 @@ export default function ManageTab() {
             className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 disabled:opacity-50 flex items-center gap-1.5"
           >
             {indexLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-            Tving full re-indeksering
+            {T("Tving full re-indeksering")}
           </button>
         </div>
         {indexErr    && <p className="text-xs text-red-600">{indexErr}</p>}
@@ -129,11 +130,10 @@ export default function ManageTab() {
       {/* Seed regulations */}
       <div className="broker-card space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4" /> Seed norske forsikringsreguleringer
+          <Sparkles className="w-4 h-4" /> {T("Seed norske forsikringsreguleringer")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Legger til forhåndsdefinererte norske forsikrings- og finansreguleringer i kunnskapsbasen
-          (GDPR, IDD, Solvens II, m.fl.). Allerede eksisterende oppføringer hoppes over.
+          {T("Legger til forhåndsdefinererte norske forsikrings- og finansreguleringer i kunnskapsbasen (GDPR, IDD, Solvens II, m.fl.). Allerede eksisterende oppføringer hoppes over.")}
         </p>
         <button
           onClick={handleSeedRegulations}
@@ -141,7 +141,7 @@ export default function ManageTab() {
           className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
         >
           {seedLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-          Seed reguleringer
+          {T("Seed reguleringer")}
         </button>
         {seedErr && <p className="text-xs text-red-600">{seedErr}</p>}
         {seedResult && (
@@ -156,7 +156,7 @@ export default function ManageTab() {
                     : item.status === "exists" ? "bg-muted text-muted-foreground"
                     : "bg-red-100 text-red-600"
                   }`}>
-                    {item.status === "seeded" ? "Lagt til" : item.status === "exists" ? "Finnes" : item.status}
+                    {item.status === "seeded" ? T("Lagt til") : item.status === "exists" ? T("Finnes") : item.status}
                   </span>
                 </div>
               </div>
@@ -168,14 +168,14 @@ export default function ManageTab() {
       {/* Custom knowledge ingest form */}
       <div className="broker-card space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <Plus className="w-4 h-4" /> Legg til egendefinert tekst
+          <Plus className="w-4 h-4" /> {T("Legg til egendefinert tekst")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Teksten blir delt opp i biter og embeddet for bruk i AI-chat. Knyttes til et orgnr.
+          {T("Teksten blir delt opp i biter og embeddet for bruk i AI-chat. Knyttes til et orgnr.")}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-orgnr">Orgnr (9 siffer)</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-orgnr">{T("Orgnr (9 siffer)")}</label>
             <input
               id="manage-ingest-orgnr"
               value={ingestOrgnr}
@@ -186,7 +186,7 @@ export default function ManageTab() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-source">Kildelabel</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-source">{T("Kildelabel")}</label>
             <input
               id="manage-ingest-source"
               value={ingestSource}
@@ -197,13 +197,13 @@ export default function ManageTab() {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-text">Tekst å legge inn</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-text">{T("Tekst å legge inn")}</label>
           <textarea
             id="manage-ingest-text"
             value={ingestText}
             onChange={(e) => setIngestText(e.target.value)}
             rows={5}
-            placeholder="Lim inn notater, sammendrag eller fritekst…"
+            placeholder={T("Lim inn notater, sammendrag eller fritekst…")}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
           />
         </div>
@@ -213,7 +213,7 @@ export default function ManageTab() {
           className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
         >
           {ingestLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-          Lagre i kunnskapsbase
+          {T("Lagre i kunnskapsbase")}
         </button>
         {ingestErr && <p className="text-xs text-red-600">{ingestErr}</p>}
         {ingestOk  && <p className="text-xs text-green-700">{ingestOk}</p>}

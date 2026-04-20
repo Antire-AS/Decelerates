@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import useSWR from "swr";
 import { getVideos, uploadVideo } from "@/lib/api";
 import { Upload, Play, Loader2, Video, BookOpen, Clock } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface Chapter {
   title: string;
@@ -51,6 +52,7 @@ function parseChapters(sections: unknown): Chapter[] {
 }
 
 export default function VideosPanel() {
+  const T = useT();
   const { data: rawVideos, isLoading, mutate } = useSWR<unknown[]>("videos", getVideos);
   const videos = (rawVideos ?? []) as VideoItem[];
 
@@ -73,7 +75,7 @@ export default function VideosPanel() {
       await uploadVideo(file);
       await mutate();
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Opplasting feilet");
+      setUploadError(err instanceof Error ? err.message : T("Opplasting feilet"));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -92,8 +94,8 @@ export default function VideosPanel() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Kursvideoer</h1>
-          <p className="text-sm text-muted-foreground mt-1">Opplærings- og presentasjonsvideoer for meglere</p>
+          <h1 className="text-2xl font-bold text-foreground">{T("Kursvideoer")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{T("Opplærings- og presentasjonsvideoer for meglere")}</p>
         </div>
         <div className="flex gap-2">
           <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
@@ -102,7 +104,7 @@ export default function VideosPanel() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted"
           >
             <Upload className="w-4 h-4" />
-            Last opp video
+            {T("Last opp video")}
           </button>
         </div>
       </div>
@@ -110,7 +112,7 @@ export default function VideosPanel() {
       {/* Upload panel */}
       {showUpload && (
         <div className="broker-card space-y-3">
-          <p className="text-sm font-medium text-foreground">Last opp ny video</p>
+          <p className="text-sm font-medium text-foreground">{T("Last opp ny video")}</p>
           {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
           <button
             onClick={() => fileRef.current?.click()}
@@ -118,7 +120,7 @@ export default function VideosPanel() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? "Laster opp…" : "Velg fil"}
+            {uploading ? T("Laster opp…") : T("Velg fil")}
           </button>
         </div>
       )}
@@ -132,7 +134,7 @@ export default function VideosPanel() {
       {!isLoading && videos.length === 0 && (
         <div className="broker-card text-center py-16">
           <Video className="w-10 h-10 text-muted mx-auto mb-3" />
-          <p className="text-sm font-medium text-foreground">Ingen videoer lastet opp ennå</p>
+          <p className="text-sm font-medium text-foreground">{T("Ingen videoer lastet opp ennå")}</p>
         </div>
       )}
 
@@ -168,10 +170,10 @@ export default function VideosPanel() {
                       {chs.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                           <BookOpen className="w-3 h-3" />
-                          {chs.length} kapitler
+                          {chs.length} {T("kapitler")}
                         </p>
                       )}
-                      {isActive && <p className="text-xs text-primary mt-0.5 font-medium">▶ Spiller nå</p>}
+                      {isActive && <p className="text-xs text-primary mt-0.5 font-medium">▶ {T("Spiller nå")}</p>}
                     </div>
                   </div>
                 </button>
@@ -187,7 +189,7 @@ export default function VideosPanel() {
                 {activeVideo ? displayName(activeVideo, activeIdx) : ""}
               </h2>
               {activeVideo?.subtitle_url && (
-                <p className="text-xs text-muted-foreground mt-0.5">Undertekster tilgjengelig</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{T("Undertekster tilgjengelig")}</p>
               )}
             </div>
 
@@ -220,7 +222,7 @@ export default function VideosPanel() {
               <div className="broker-card">
                 <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4" />
-                  Kapitler ({chapters.length})
+                  {T("Kapitler")} ({chapters.length})
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {chapters.map((ch, i) => (

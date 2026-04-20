@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/lib/i18n";
+
 interface ConcentrationItem {
   label: string;
   count: number;
@@ -16,11 +18,12 @@ interface Props {
 }
 
 export function PortfolioConcentration({ concentration }: Props) {
+  const T = useT();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {(["industry", "geography", "size"] as const).map((key) => {
         const items = concentration[key] ?? [];
-        const labels: Record<string, string> = { industry: "Bransje", geography: "Geografi", size: "Størrelse" };
+        const labels: Record<string, string> = { industry: T("Bransje"), geography: T("Geografi"), size: T("Størrelse") };
         return (
           <div key={key}>
             <p className="text-xs font-semibold text-foreground mb-1">{labels[key]}</p>

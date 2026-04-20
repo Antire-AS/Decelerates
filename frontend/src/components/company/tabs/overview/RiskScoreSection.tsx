@@ -4,6 +4,7 @@ import RiskBadge from "@/components/company/RiskBadge";
 import type { RiskFactor } from "@/lib/api-types";
 import { Section, CATEGORY_DOTS, riskGuidanceForLabel } from "./shared";
 import { useRiskConfig } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   score?: number;
@@ -11,9 +12,10 @@ interface Props {
 }
 
 export default function RiskScoreSection({ score, factors }: Props) {
+  const T = useT();
   const { bandFor } = useRiskConfig();
   const band = bandFor(score);
-  const guidance = riskGuidanceForLabel(band.label);
+  const guidance = T(riskGuidanceForLabel(band.label));
   const factorsByCategory = factors.reduce<Record<string, RiskFactor[]>>((acc, f) => {
     (acc[f.category] ??= []).push(f);
     return acc;
@@ -21,7 +23,7 @@ export default function RiskScoreSection({ score, factors }: Props) {
 
   return (
     <>
-      <Section title="Risikoscore">
+      <Section title={T("Risikoscore")}>
         <div className="flex items-center gap-3 mb-2">
           <RiskBadge score={score} />
           <div>
@@ -40,12 +42,12 @@ export default function RiskScoreSection({ score, factors }: Props) {
           )}
         </div>
         <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
-          <span>0 Lav</span><span>10 Moderat</span><span>20 Svært høy</span>
+          <span>0 {T("Lav")}</span><span>10 {T("Moderat")}</span><span>20 {T("Svært høy")}</span>
         </div>
       </Section>
 
       {factors.length > 0 && (
-        <Section title="Risikofaktorer">
+        <Section title={T("Risikofaktorer")}>
           {Object.entries(factorsByCategory).map(([cat, items]) => (
             <div key={cat} className="mb-2 last:mb-0">
               <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">

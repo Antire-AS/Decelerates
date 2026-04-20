@@ -6,6 +6,7 @@ import { knowledgeChat } from "@/lib/api";
 import {
   readableSource, extractMarkdownTables, tableToCsv, downloadCsv, renderMarkdownWithTables,
 } from "./_shared";
+import { useT } from "@/lib/i18n";
 
 const COMPARISON_PROMPTS: Array<{ label: string; prompt: string }> = [
   {
@@ -42,6 +43,7 @@ interface AnalyseResult {
 }
 
 export default function AnalyseTab() {
+  const T = useT();
   const [result, setResult]   = useState<AnalyseResult | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
@@ -65,11 +67,10 @@ export default function AnalyseTab() {
     <div className="space-y-4">
       <div className="broker-card space-y-2">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <BarChart3 className="w-4 h-4" /> AI-genererte sammenligninger og tabeller
+          <BarChart3 className="w-4 h-4" /> {T("AI-genererte sammenligninger og tabeller")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen.
-          Tabeller kan lastes ned som CSV.
+          {T("Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen. Tabeller kan lastes ned som CSV.")}
         </p>
       </div>
 
@@ -81,7 +82,7 @@ export default function AnalyseTab() {
             disabled={loading !== null}
             className="px-4 py-3 text-left text-sm rounded-lg border border-border hover:border-primary hover:bg-accent disabled:opacity-50 transition-colors text-foreground font-medium flex items-center justify-between gap-2"
           >
-            <span>{label}</span>
+            <span>{T(label)}</span>
             {loading === label && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary flex-shrink-0" />}
           </button>
         ))}
@@ -94,12 +95,12 @@ export default function AnalyseTab() {
       {result && (
         <div className="broker-card space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-sm font-semibold text-foreground">{result.label}</h4>
+            <h4 className="text-sm font-semibold text-foreground">{T(result.label)}</h4>
             <button
               onClick={() => setResult(null)}
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
-              <Trash2 className="w-3 h-3" /> Tøm
+              <Trash2 className="w-3 h-3" /> {T("Tøm")}
             </button>
           </div>
 
@@ -114,7 +115,7 @@ export default function AnalyseTab() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border text-primary bg-accent hover:bg-accent"
                 >
                   <Download className="w-3 h-3" />
-                  Last ned tabell {i + 1} (CSV)
+                  {T("Last ned tabell")} {i + 1} (CSV)
                 </button>
               ))}
             </div>
@@ -123,7 +124,7 @@ export default function AnalyseTab() {
           {result.sources && result.sources.length > 0 && (
             <details className="pt-2 border-t border-border">
               <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                Kilder ({result.sources.length})
+                {T("Kilder")} ({result.sources.length})
               </summary>
               <div className="mt-2 space-y-1">
                 {result.sources.map((src, i) => (

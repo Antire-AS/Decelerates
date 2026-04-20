@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { HistoryRow } from "@/lib/api";
 import { fmt, fmtMnok } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function FinancialsHistoryTable({ history, expandedYear, setExpandedYear }: Props) {
+  const T = useT();
   const sorted = [...history].sort((a, b) => a.year - b.year);
 
   type YearMeta = {
@@ -71,23 +73,23 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
   if (sorted.length < 2) return null;
 
   return (
-    <Section title="Historikk per år — klikk rad for detaljer">
+    <Section title={T("Historikk per år — klikk rad for detaljer")}>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-muted-foreground border-b border-border">
-              <th className="text-left pb-1.5 font-medium">År</th>
-              <th className="text-right pb-1.5 font-medium">Omsetning</th>
-              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Rev YoY</th>
-              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">Driftsresultat</th>
-              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">Dr.margin</th>
-              <th className="text-right pb-1.5 font-medium">Nettoresultat</th>
-              <th className="text-right pb-1.5 font-medium hidden sm:table-cell">Margin</th>
-              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Margin Δ</th>
-              <th className="text-right pb-1.5 font-medium">Egenkapital</th>
-              <th className="text-right pb-1.5 font-medium">EK-andel</th>
-              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">EK Δ</th>
-              <th className="text-right pb-1.5 font-medium hidden md:table-cell">Ansatte</th>
+              <th className="text-left pb-1.5 font-medium">{T("År")}</th>
+              <th className="text-right pb-1.5 font-medium">{T("Omsetning")}</th>
+              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">{T("Rev YoY")}</th>
+              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">{T("Driftsresultat")}</th>
+              <th className="text-right pb-1.5 font-medium hidden xl:table-cell">{T("Dr.margin")}</th>
+              <th className="text-right pb-1.5 font-medium">{T("Nettoresultat")}</th>
+              <th className="text-right pb-1.5 font-medium hidden sm:table-cell">{T("Margin")}</th>
+              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">{T("Margin Δ")}</th>
+              <th className="text-right pb-1.5 font-medium">{T("Egenkapital")}</th>
+              <th className="text-right pb-1.5 font-medium">{T("EK-andel")}</th>
+              <th className="text-right pb-1.5 font-medium hidden lg:table-cell">{T("EK Δ")}</th>
+              <th className="text-right pb-1.5 font-medium hidden md:table-cell">{T("Ansatte")}</th>
               <th className="w-6 pb-1.5"></th>
             </tr>
           </thead>
@@ -145,27 +147,27 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                       <td colSpan={13} className="py-3 px-2">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs font-semibold text-foreground mb-2">Resultatregnskap</p>
+                            <p className="text-xs font-semibold text-foreground mb-2">{T("Resultatregnskap")}</p>
                             {([
-                              ["Salgsinntekter", r.salgsinntekter],
-                              ["Sum driftsinntekter", r.sumDriftsinntekter],
-                              ["Varekostnad", r.kostnadSolgtVare],
-                              ["Lønnskostnad", r.lonnskostnad],
-                              ["Avskrivninger", r.avskrivningDriftslosore],
-                              ["Andre driftskostnader", r.annenDriftskostnad],
-                              ["Sum driftskostnader", r.sumDriftskostnader],
-                              ["Driftsresultat", r.driftsresultat],
-                              ["Finansinntekter", r.sumFinansinntekter],
-                              ["Finanskostnader", r.sumFinanskostnader],
-                              ["Netto finans", r.nettoFinans ?? (
+                              [T("Salgsinntekter"), r.salgsinntekter],
+                              [T("Sum driftsinntekter"), r.sumDriftsinntekter],
+                              [T("Varekostnad"), r.kostnadSolgtVare],
+                              [T("Lønnskostnad"), r.lonnskostnad],
+                              [T("Avskrivninger"), r.avskrivningDriftslosore],
+                              [T("Andre driftskostnader"), r.annenDriftskostnad],
+                              [T("Sum driftskostnader"), r.sumDriftskostnader],
+                              [T("Driftsresultat"), r.driftsresultat],
+                              [T("Finansinntekter"), r.sumFinansinntekter],
+                              [T("Finanskostnader"), r.sumFinanskostnader],
+                              [T("Netto finans"), r.nettoFinans ?? (
                                 r.sumFinansinntekter != null && r.sumFinanskostnader != null
                                   ? (r.sumFinansinntekter as number) - (r.sumFinanskostnader as number)
                                   : null
                               )],
-                              ["Resultat før skatt", r.ordinaertResultatForSkattekostnad],
-                              ["Skattekostnad", r.skattekostnadOrdOgEkstraordinaerAktivitet],
-                              ["Årsresultat", r.arsresultat],
-                              ["Totalresultat", r.totalresultat],
+                              [T("Resultat før skatt"), r.ordinaertResultatForSkattekostnad],
+                              [T("Skattekostnad"), r.skattekostnadOrdOgEkstraordinaerAktivitet],
+                              [T("Årsresultat"), r.arsresultat],
+                              [T("Totalresultat"), r.totalresultat],
                             ] as [string, unknown][]).map(([label, val]) => val != null ? (
                               <div key={label} className="flex justify-between text-xs py-0.5 border-b border-border">
                                 <span className="text-muted-foreground">{label}</span>
@@ -176,23 +178,23 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                             ) : null)}
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-foreground mb-2">Balanse</p>
+                            <p className="text-xs font-semibold text-foreground mb-2">{T("Balanse")}</p>
                             {([
-                              ["Varer", r.sumVarer],
-                              ["Fordringer", r.sumFordringer],
-                              ["Investeringer", r.sumInvesteringer],
-                              ["Bankinnskudd", r.bankinnskuddOgKontanter],
-                              ["Omløpsmidler", r.sumOmlopsmidler],
-                              ["Goodwill", r.goodwill],
-                              ["Anleggsmidler", r.sumAnleggsmidler],
-                              ["Sum eiendeler", r.sumEiendeler],
-                              ["Innbetalt egenkapital", r.sumInnskuttEgenkapital],
-                              ["Opptjent egenkapital", r.sumOpptjentEgenkapital],
-                              ["Egenkapital", r.sumEgenkapital],
-                              ["Langsiktig gjeld", r.sumLangsiktigGjeld],
-                              ["Kortsiktig gjeld", r.sumKortsiktigGjeld],
-                              ["Sum gjeld", r.sumGjeld],
-                              ["Sum gjeld + EK", r.sumGjeldOgEgenkapital],
+                              [T("Varer"), r.sumVarer],
+                              [T("Fordringer"), r.sumFordringer],
+                              [T("Investeringer"), r.sumInvesteringer],
+                              [T("Bankinnskudd"), r.bankinnskuddOgKontanter],
+                              [T("Omløpsmidler"), r.sumOmlopsmidler],
+                              [T("Goodwill"), r.goodwill],
+                              [T("Anleggsmidler"), r.sumAnleggsmidler],
+                              [T("Sum eiendeler"), r.sumEiendeler],
+                              [T("Innbetalt egenkapital"), r.sumInnskuttEgenkapital],
+                              [T("Opptjent egenkapital"), r.sumOpptjentEgenkapital],
+                              [T("Egenkapital"), r.sumEgenkapital],
+                              [T("Langsiktig gjeld"), r.sumLangsiktigGjeld],
+                              [T("Kortsiktig gjeld"), r.sumKortsiktigGjeld],
+                              [T("Sum gjeld"), r.sumGjeld],
+                              [T("Sum gjeld + EK"), r.sumGjeldOgEgenkapital],
                             ] as [string, unknown][]).map(([label, val]) => val != null ? (
                               <div key={label} className="flex justify-between text-xs py-0.5 border-b border-border">
                                 <span className="text-muted-foreground">{label}</span>

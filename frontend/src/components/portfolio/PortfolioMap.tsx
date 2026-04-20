@@ -8,6 +8,7 @@ import Link from "next/link";
 import type { PortfolioRiskRow } from "@/lib/api";
 import { apiBaseUrl } from "@/lib/api-utils";
 import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 // Fix default marker icons broken by webpack
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export default function PortfolioMap({ rows }: Props) {
+  const T = useT();
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const [loading, setLoading] = useState(true);
   const { bands, bandFor } = useRiskConfig();
@@ -73,7 +75,7 @@ export default function PortfolioMap({ rows }: Props) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48 text-xs text-muted-foreground">
-        Henter koordinater…
+        {T("Henter koordinater…")}
       </div>
     );
   }
@@ -87,7 +89,7 @@ export default function PortfolioMap({ rows }: Props) {
   // Build legend entries from live band config (+ unknown entry)
   const legendEntries = [
     ...bands.map((b) => ({ label: b.label, color: b.color })),
-    { label: "Ukjent", color: UNKNOWN_BAND.color },
+    { label: T("Ukjent"), color: UNKNOWN_BAND.color },
   ];
 
   return (
@@ -117,12 +119,12 @@ export default function PortfolioMap({ rows }: Props) {
             <Popup>
               <div className="text-xs space-y-1 min-w-[120px]">
                 <p className="font-semibold text-foreground">{m.navn ?? m.orgnr}</p>
-                <p className="text-muted-foreground">Risikoscore: {m.risk_score ?? "–"}</p>
+                <p className="text-muted-foreground">{T("Risikoscore")}: {m.risk_score ?? "–"}</p>
                 <Link
                   href={`/search/${m.orgnr}`}
                   className="text-primary underline"
                 >
-                  Åpne profil →
+                  {T("Åpne profil")} →
                 </Link>
               </div>
             </Popup>
@@ -130,7 +132,7 @@ export default function PortfolioMap({ rows }: Props) {
         ))}
       </MapContainer>
 
-      <p className="text-xs text-muted-foreground">{markers.length} av {rows.length} selskaper har adressedata</p>
+      <p className="text-xs text-muted-foreground">{markers.length} {T("av")} {rows.length} {T("selskaper har adressedata")}</p>
     </div>
   );
 }

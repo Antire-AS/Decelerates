@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { chatWithOrg } from "@/lib/api";
 import { Loader2, Send, Bot, User, Trash2, Wrench, Sparkles } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface ToolCall { tool: string; args: string; result: string }
 
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgName?: string }) {
+  const T = useT();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,10 +65,10 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
         <div>
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Bot className="w-4 h-4" />
-            AI-chat om {orgName ?? orgnr}
+            {T("AI-chat om")} {orgName ?? orgnr}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Stilt spørsmål basert på årsrapporter, tilbud og regnskapsdata
+            {T("Stilt spørsmål basert på årsrapporter, tilbud og regnskapsdata")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -79,7 +81,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
             }`}
           >
             {agentMode ? <Sparkles className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
-            {agentMode ? "Agent" : "RAG"}
+            {agentMode ? T("Agent") : T("RAG")}
           </button>
           {messages.length > 0 && (
             <button
@@ -87,7 +89,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Tøm
+              {T("Tøm")}
             </button>
           )}
         </div>
@@ -99,13 +101,13 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
           <div className="text-center py-8">
             <Bot className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">
-              Still et spørsmål om {orgName ?? orgnr} for å komme i gang
+              {T("Still et spørsmål om")} {orgName ?? orgnr} {T("for å komme i gang")}
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-3">
               {[
-                "Hva er selskapets største risikoer?",
-                "Oppsummer finansiell utvikling siste 3 år",
-                "Hvilke forsikringer anbefales?",
+                T("Hva er selskapets største risikoer?"),
+                T("Oppsummer finansiell utvikling siste 3 år"),
+                T("Hvilke forsikringer anbefales?"),
               ].map((s) => (
                 <button
                   key={s}
@@ -177,7 +179,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Still et spørsmål… (Enter for å sende)"
+          placeholder={T("Still et spørsmål… (Enter for å sende)")}
           rows={2}
           className="flex-1 text-sm border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
         />

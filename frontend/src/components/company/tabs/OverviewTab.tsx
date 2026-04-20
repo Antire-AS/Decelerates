@@ -14,6 +14,7 @@ import type {
 } from "@/lib/api";
 import { fmtMnok } from "@/lib/format";
 import { getOrgPeerBenchmark } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { Section, KV } from "./overview/shared";
 import RiskScoreSection from "./overview/RiskScoreSection";
 import BoardSection from "./overview/BoardSection";
@@ -46,6 +47,7 @@ export default function OverviewTab({
   orgnr, org, regn, history, risk, pep,
   koordinaterData, roles, licenses, bankruptcy, benchmark, struktur,
 }: OverviewTabProps) {
+  const T = useT();
   const { data: peerData } = useSWR(`peer-${orgnr}`, () => getOrgPeerBenchmark(orgnr).catch(() => null));
 
   const latestRow = history?.length ? [...history].sort((a, b) => b.year - a.year)[0] : null;
@@ -70,7 +72,7 @@ export default function OverviewTab({
   const isKonkurs = !!(bk.konkurs || bk.under_konkursbehandling);
   const isAvvikling = !!(bk.under_avvikling ?? bk.underAvvikling);
   const isBankrupt = isKonkurs || isAvvikling;
-  const bankruptLabel = isKonkurs ? "Konkurs / under konkursbehandling" : isAvvikling ? "Under avvikling" : "";
+  const bankruptLabel = isKonkurs ? T("Konkurs / under konkursbehandling") : isAvvikling ? T("Under avvikling") : "";
 
   const factors = (risk.factors ?? []) as RiskFactor[];
 
@@ -89,11 +91,11 @@ export default function OverviewTab({
       {/* Top 2-column: Company info + Risk */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <div className="space-y-4">
-          <Section title="Selskapsinfo">
+          <Section title={T("Selskapsinfo")}>
             {Object.entries({
-              "Org.nr": org.orgnr, "Org.form": org.organisasjonsform,
-              "Kommune": org.kommune, "Land": org.land,
-              "Bransje": org.naeringskode1_beskrivelse, "Stiftelsesdato": org.stiftelsesdato,
+              [T("Org.nr")]: org.orgnr, [T("Org.form")]: org.organisasjonsform,
+              [T("Kommune")]: org.kommune, [T("Land")]: org.land,
+              [T("Bransje")]: org.naeringskode1_beskrivelse, [T("Stiftelsesdato")]: org.stiftelsesdato,
             }).map(([k, v]) => {
               if (!v) return null;
               return (
@@ -112,7 +114,7 @@ export default function OverviewTab({
             )}
           </Section>
           {coords && (
-            <Section title="Lokasjon">
+            <Section title={T("Lokasjon")}>
               <CompanyMap lat={coords.lat} lon={coords.lon} />
             </Section>
           )}
@@ -121,22 +123,22 @@ export default function OverviewTab({
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
           {finansData && (
-            <Section title={finansData._year ? `Nøkkeltall (${finansData._year})` : "Nøkkeltall"}>
-              <KV label="Omsetning" value={finansData.sumDriftsinntekter} />
-              <KV label="Resultat" value={finansData.arsresultat} />
-              <KV label="Egenkapital" value={finansData.sumEgenkapital} />
+            <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")}>
+              <KV label={T("Omsetning")} value={finansData.sumDriftsinntekter} />
+              <KV label={T("Resultat")} value={finansData.arsresultat} />
+              <KV label={T("Egenkapital")} value={finansData.sumEgenkapital} />
             </Section>
           )}
           {pep && (() => {
             const hits = (pep as { hits?: unknown[] })?.hits ?? [];
             if (hits.length === 0) return null;
             return (
-              <Section title="PEP / sanksjonssjekk">
-                <p className="text-xs text-red-600 font-medium mb-1">{hits.length} treff i OpenSanctions</p>
+              <Section title={T("PEP / sanksjonssjekk")}>
+                <p className="text-xs text-red-600 font-medium mb-1">{hits.length} {T("treff i OpenSanctions")}</p>
                 {(hits as Record<string, unknown>[]).slice(0, 5).map((h, i) => (
                   <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 flex-shrink-0" />
-                    <span>{String(h.name ?? h.caption ?? "Treff")}</span>
+                    <span>{String(h.name ?? h.caption ?? T("Treff"))}</span>
                   </div>
                 ))}
               </Section>
@@ -155,16 +157,16 @@ export default function OverviewTab({
           const fmtPct = (v: unknown) => `${(Number(v) * 100).toFixed(0)} %`;
           const fmtRange = (lo: unknown, hi: unknown) => `${fmtPct(lo)} – ${fmtPct(hi)}`;
           const rows: { label: string; value: string }[] = [];
-          if (b.industry) rows.push({ label: "Bransje", value: String(b.industry) });
+          if (b.industry) rows.push({ label: T("Bransje"), value: String(b.industry) });
           if (b.typical_equity_ratio_min != null && b.typical_equity_ratio_max != null)
-            rows.push({ label: "Typisk egenkapitalandel", value: fmtRange(b.typical_equity_ratio_min, b.typical_equity_ratio_max) });
+            rows.push({ label: T("Typisk egenkapitalandel"), value: fmtRange(b.typical_equity_ratio_min, b.typical_equity_ratio_max) });
           if (b.typical_profit_margin_min != null && b.typical_profit_margin_max != null)
-            rows.push({ label: "Typisk resultatmargin", value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max) });
+            rows.push({ label: T("Typisk resultatmargin"), value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max) });
           return (
-            <Section title="SSB-bransjesammenligning">
+            <Section title={T("SSB-bransjesammenligning")}>
               <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>Typiske nøkkeltall for bransjen{b.live === true ? " (live SSB)" : ""}</span>
+                <span>{T("Typiske nøkkeltall for bransjen")}{b.live === true ? ` ${T("(live SSB)")}` : ""}</span>
               </div>
               {rows.map((row) => (
                 <div key={row.label} className="flex justify-between text-sm">
@@ -177,16 +179,16 @@ export default function OverviewTab({
         })()}
 
         {peerData && peerData.peer_count > 0 && (
-          <Section title="Bransje-benchmark (peer-sammenligning)">
+          <Section title={T("Bransje-benchmark (peer-sammenligning)")}>
             <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
               <BarChart3 className="w-3.5 h-3.5" />
-              <span>NACE {peerData.nace_section || "–"} · {peerData.peer_count} peers · {peerData.source === "db_peers" ? "database" : "SSB"}</span>
+              <span>NACE {peerData.nace_section || "–"} · {peerData.peer_count} {T("peers")} · {peerData.source === "db_peers" ? T("database") : "SSB"}</span>
             </div>
             <div className="space-y-2">
               {(["equity_ratio", "revenue", "risk_score"] as const).map((k) => {
                 const m = peerData.metrics[k];
                 if (!m || (m.company == null && m.peer_avg == null)) return null;
-                const label = k === "equity_ratio" ? "Egenkapitalandel" : k === "revenue" ? "Omsetning" : "Risikoscore";
+                const label = k === "equity_ratio" ? T("Egenkapitalandel") : k === "revenue" ? T("Omsetning") : T("Risikoscore");
                 const fmtVal = (v: number | null | undefined) => {
                   if (v == null) return "–";
                   if (k === "equity_ratio") return `${(v * 100).toFixed(1)}%`;
