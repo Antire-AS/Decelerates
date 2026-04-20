@@ -23,6 +23,7 @@ import {
 import { KanbanColumn } from "@/components/pipeline/KanbanColumn";
 import { NewDealModal } from "@/components/pipeline/NewDealModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useT } from "@/lib/i18n";
 
 /**
  * Plan §🟢 #9 — kanban deal pipeline.
@@ -33,6 +34,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
  * immediately; the SWR mutate at the end reconciles with the server truth.
  */
 export default function PipelinePage() {
+  const T = useT();
   const { data: stages = [], error: stagesErr, isLoading: stagesLoading } = useSWR<PipelineStageOut[]>(
     "pipeline-stages",
     () => getPipelineStages(),
@@ -154,7 +156,7 @@ export default function PipelinePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
+        <h1 className="text-2xl font-bold text-foreground">{T("Pipeline")}</h1>
         <button
           onClick={() => {
             setModalStageId(stages[0]?.id ?? null);
@@ -163,25 +165,24 @@ export default function PipelinePage() {
           disabled={stages.length === 0}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          <Plus className="w-3.5 h-3.5" /> Ny deal
+          <Plus className="w-3.5 h-3.5" /> {T("Ny deal")}
         </button>
       </div>
 
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" /> Laster pipeline…
+          <Loader2 className="w-4 h-4 animate-spin" /> {T("Laster pipeline…")}
         </div>
       )}
 
       {hasError && (
-        <p className="text-sm text-red-600">Kunne ikke laste pipeline. Sjekk at API-en kjører.</p>
+        <p className="text-sm text-red-600">{T("Kunne ikke laste pipeline. Sjekk at API-en kjører.")}</p>
       )}
 
       {!isLoading && stages.length === 0 && (
         <div className="broker-card">
           <p className="text-sm text-muted-foreground">
-            Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes
-            automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.
+            {T("Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.")}
           </p>
         </div>
       )}
@@ -218,9 +219,9 @@ export default function PipelinePage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
-        title={pendingDelete ? `Slett deal "${pendingDelete.title ?? pendingDelete.orgnr}"?` : ""}
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={pendingDelete ? `${T("Slett deal")} "${pendingDelete.title ?? pendingDelete.orgnr}"?` : ""}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={() => {
           if (pendingDelete) performDeleteDeal(pendingDelete);

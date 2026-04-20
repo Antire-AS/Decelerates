@@ -21,12 +21,13 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useT } from "@/lib/i18n";
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  draft: { label: "Utkast", color: "bg-gray-100 text-gray-700" },
-  sent: { label: "Sendt", color: "bg-blue-50 text-blue-700" },
-  closed: { label: "Lukket", color: "bg-yellow-50 text-yellow-700" },
-  analysed: { label: "Analysert", color: "bg-green-50 text-green-700" },
+const STATUS_KEYS: Record<string, { labelKey: string; color: string }> = {
+  draft: { labelKey: "Utkast", color: "bg-gray-100 text-gray-700" },
+  sent: { labelKey: "Sendt", color: "bg-blue-50 text-blue-700" },
+  closed: { labelKey: "Lukket", color: "bg-yellow-50 text-yellow-700" },
+  analysed: { labelKey: "Analysert", color: "bg-green-50 text-green-700" },
 };
 
 const PRODUCT_OPTIONS = [
@@ -43,6 +44,7 @@ const PRODUCT_OPTIONS = [
 ];
 
 export default function TendersPage() {
+  const T = useT();
   const { data: tenders, mutate } = useSWR<TenderListItem[]>("tenders", () => getTenders());
   const { data: insurers } = useSWR<Insurer[]>("insurers", getInsurers);
   const [showNew, setShowNew] = useState(false);
@@ -52,15 +54,15 @@ export default function TendersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Anbud</h1>
-          <p className="text-sm text-muted-foreground">Opprett og administrer anbudsforespørsler til forsikringsselskaper</p>
+          <h1 className="text-2xl font-bold text-foreground">{T("Anbud")}</h1>
+          <p className="text-sm text-muted-foreground">{T("Opprett og administrer anbudsforespørsler til forsikringsselskaper")}</p>
         </div>
         <button
           onClick={() => setShowNew(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80"
         >
           <Plus className="w-4 h-4" />
-          Nytt anbud
+          {T("Nytt anbud")}
         </button>
       </div>
 
@@ -68,12 +70,12 @@ export default function TendersPage() {
       {!tenders?.length ? (
         <div className="broker-card text-center py-12">
           <FileText className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">Ingen anbud ennå. Opprett ditt første anbud.</p>
+          <p className="text-muted-foreground">{T("Ingen anbud ennå. Opprett ditt første anbud.")}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {tenders.map((t) => {
-            const s = STATUS_LABELS[t.status] || STATUS_LABELS.draft;
+            const s = STATUS_KEYS[t.status] || STATUS_KEYS.draft;
             return (
               <Link
                 key={t.id}
@@ -84,7 +86,7 @@ export default function TendersPage() {
                   <div className="flex items-center gap-3 mb-1">
                     <h3 className="font-semibold text-foreground">{t.title}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.color}`}>
-                      {s.label}
+                      {T(s.labelKey)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -92,7 +94,7 @@ export default function TendersPage() {
                     {t.deadline && (
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        Frist: {t.deadline}
+                        {T("Frist")}: {t.deadline}
                       </span>
                     )}
                   </div>
@@ -100,11 +102,11 @@ export default function TendersPage() {
                 <div className="flex items-center gap-6 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Send className="w-3.5 h-3.5" />
-                    {t.recipient_count} selskaper
+                    {t.recipient_count} {T("selskaper")}
                   </span>
                   <span className="flex items-center gap-1">
                     <FileText className="w-3.5 h-3.5" />
-                    {t.offer_count} tilbud
+                    {t.offer_count} {T("tilbud")}
                   </span>
                   <button
                     onClick={(e) => {
@@ -112,7 +114,7 @@ export default function TendersPage() {
                       setDeleteId(t.id);
                     }}
                     className="p-1.5 hover:bg-red-50 rounded text-muted-foreground hover:text-red-500"
-                    aria-label="Slett anbud"
+                    aria-label={T("Slett anbud")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -138,9 +140,9 @@ export default function TendersPage() {
       <ConfirmDialog
         open={deleteId !== null}
         onOpenChange={(o) => { if (!o) setDeleteId(null); }}
-        title="Slett dette anbudet?"
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={T("Slett dette anbudet?")}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={() => {
           if (deleteId !== null) {
@@ -161,6 +163,7 @@ function NewTenderModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const T = useT();
   const [orgnr, setOrgnr] = useState("");
   const [title, setTitle] = useState("");
   const [products, setProducts] = useState<string[]>([]);
@@ -200,7 +203,7 @@ function NewTenderModal({
       });
       onCreated();
     } catch {
-      toast.error("Kunne ikke opprette anbud");
+      toast.error(T("Kunne ikke opprette anbud"));
     } finally {
       setSaving(false);
     }
@@ -210,7 +213,7 @@ function NewTenderModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="bg-primary px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-white font-semibold">Nytt anbud</h2>
+          <h2 className="text-white font-semibold">{T("Nytt anbud")}</h2>
           <button onClick={onClose} className="text-white/50 hover:text-white">
             <X className="w-5 h-5" />
           </button>
@@ -219,11 +222,11 @@ function NewTenderModal({
         <div className="p-6 space-y-5">
           {/* Company */}
           <div>
-            <label className="label-xs" htmlFor="tender-orgnr">Organisasjonsnummer</label>
+            <label className="label-xs" htmlFor="tender-orgnr">{T("Organisasjonsnummer")}</label>
             <input
               id="tender-orgnr"
               className="input-sm w-full"
-              placeholder="F.eks. 984851006"
+              placeholder={T("F.eks. 984851006")}
               value={orgnr}
               onChange={(e) => setOrgnr(e.target.value)}
             />
@@ -231,11 +234,11 @@ function NewTenderModal({
 
           {/* Title */}
           <div>
-            <label className="label-xs" htmlFor="tender-title">Tittel</label>
+            <label className="label-xs" htmlFor="tender-title">{T("Tittel")}</label>
             <input
               id="tender-title"
               className="input-sm w-full"
-              placeholder="F.eks. Totalforsikring 2026"
+              placeholder={T("F.eks. Totalforsikring 2026")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -243,7 +246,7 @@ function NewTenderModal({
 
           {/* Products */}
           <div>
-            <p className="label-xs">Produkttyper</p>
+            <p className="label-xs">{T("Produkttyper")}</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {PRODUCT_OPTIONS.map((p) => (
                 <button
@@ -255,7 +258,7 @@ function NewTenderModal({
                       : "bg-card text-muted-foreground border-border hover:border-primary"
                   }`}
                 >
-                  {p}
+                  {T(p)}
                 </button>
               ))}
             </div>
@@ -263,7 +266,7 @@ function NewTenderModal({
 
           {/* Deadline */}
           <div>
-            <label className="label-xs" htmlFor="tender-deadline">Anbudsfrist</label>
+            <label className="label-xs" htmlFor="tender-deadline">{T("Anbudsfrist")}</label>
             <input
               id="tender-deadline"
               type="date"
@@ -275,7 +278,7 @@ function NewTenderModal({
 
           {/* Recipients from insurer directory */}
           <div>
-            <p className="label-xs">Forsikringsselskaper (mottakere)</p>
+            <p className="label-xs">{T("Forsikringsselskaper (mottakere)")}</p>
             {recipients.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-1 mb-2">
                 {recipients.map((r) => (
@@ -308,11 +311,11 @@ function NewTenderModal({
 
           {/* Notes */}
           <div>
-            <label className="label-xs" htmlFor="tender-notes">Kravspesifikasjon / notater</label>
+            <label className="label-xs" htmlFor="tender-notes">{T("Kravspesifikasjon / notater")}</label>
             <textarea
               id="tender-notes"
               className="input-sm w-full h-24 resize-none"
-              placeholder="Beskriv krav, spesielle behov, osv."
+              placeholder={T("Beskriv krav, spesielle behov, osv.")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -320,14 +323,14 @@ function NewTenderModal({
 
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={onClose} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
-              Avbryt
+              {T("Avbryt")}
             </button>
             <button
               onClick={handleCreate}
               disabled={!orgnr || !title || !products.length || saving}
               className="px-6 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50"
             >
-              {saving ? "Oppretter..." : "Opprett anbud"}
+              {saving ? T("Oppretter...") : T("Opprett anbud")}
             </button>
           </div>
         </div>

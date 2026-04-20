@@ -6,6 +6,7 @@ import { getAuditLog, type AuditLogEntryOut, type AuditLogPageOut } from "@/lib/
 import { Loader2, RefreshCw, Download, ChevronDown, ChevronRight } from "lucide-react";
 import { downloadCsv } from "@/lib/csv-export";
 import { SectionHeader } from "./shared";
+import { useT } from "@/lib/i18n";
 
 /**
  * Browse-and-filter audit log — plan §🟢 #13.
@@ -15,6 +16,7 @@ import { SectionHeader } from "./shared";
  * filters refetches the right page automatically.
  */
 export function AuditLogSection() {
+  const T = useT();
   const [limit, setLimit]               = useState(50);
   const [offset, setOffset]             = useState(0);
   const [orgnr, setOrgnr]               = useState("");
@@ -74,14 +76,14 @@ export function AuditLogSection() {
   return (
     <div className="broker-card">
       <div className="flex items-center justify-between mb-3">
-        <SectionHeader title="Aktivitetslogg" subtitle="Compliance gate — Finanstilsynet evidence trail. Hvem har brukt applikasjonen og hvilke handlinger de har utført." />
+        <SectionHeader title={T("Aktivitetslogg")} subtitle={T("Compliance gate — Finanstilsynet evidence trail. Hvem har brukt applikasjonen og hvilke handlinger de har utført.")} />
         <div className="flex items-center gap-2">
           <select
             value={limit}
             onChange={(e) => { setLimit(Number(e.target.value)); setOffset(0); }}
             className="text-xs border border-border rounded px-2 py-1 bg-card focus:outline-none"
           >
-            {[10, 25, 50, 100, 200].map((v) => <option key={v} value={v}>{v} rader</option>)}
+            {[10, 25, 50, 100, 200].map((v) => <option key={v} value={v}>{v} {T("rader")}</option>)}
           </select>
           <button onClick={() => mutate()} className="text-muted-foreground hover:text-foreground">
             <RefreshCw className="w-4 h-4" />
@@ -94,19 +96,19 @@ export function AuditLogSection() {
         <input
           value={orgnr}
           onChange={(e) => { setOrgnr(e.target.value); setOffset(0); }}
-          placeholder="Orgnr"
+          placeholder={T("Orgnr")}
           className="text-xs border border-border rounded px-2 py-1.5 bg-card"
         />
         <input
           value={action}
           onChange={(e) => { setAction(e.target.value); setOffset(0); }}
-          placeholder="Handling (f.eks. policy.create)"
+          placeholder={T("Handling (f.eks. policy.create)")}
           className="text-xs border border-border rounded px-2 py-1.5 bg-card"
         />
         <input
           value={actorEmail}
           onChange={(e) => { setActorEmail(e.target.value); setOffset(0); }}
-          placeholder="Bruker e-post"
+          placeholder={T("Bruker e-post")}
           className="text-xs border border-border rounded px-2 py-1.5 bg-card"
         />
         <input
@@ -124,19 +126,19 @@ export function AuditLogSection() {
       </div>
       {hasFilters && (
         <button onClick={clearFilters} className="text-xs text-primary hover:underline mb-2">
-          Fjern filter
+          {T("Fjern filter")}
         </button>
       )}
 
       {data && total > 0 && (
         <p className="text-xs text-muted-foreground mb-2">
-          Viser {offset + 1}–{offset + items.length} av {total}
+          {T("Viser")} {offset + 1}–{offset + items.length} {T("av")} {total}
         </p>
       )}
 
       {isLoading && <Loader2 className="w-5 h-5 animate-spin text-primary" />}
       {!isLoading && !items.length && (
-        <p className="text-xs text-muted-foreground">Ingen aktivitet matcher filteret.</p>
+        <p className="text-xs text-muted-foreground">{T("Ingen aktivitet matcher filteret.")}</p>
       )}
       {items.length > 0 && (
         <>
@@ -146,7 +148,7 @@ export function AuditLogSection() {
                 <tr className="border-b border-border">
                   <th className="text-left py-2 pr-3 text-muted-foreground font-semibold w-6"></th>
                   {["Tidspunkt", "Bruker", "Handling", "Orgnr"].map((h) => (
-                    <th key={h} className="text-left py-2 pr-3 text-muted-foreground font-semibold whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left py-2 pr-3 text-muted-foreground font-semibold whitespace-nowrap">{T(h)}</th>
                   ))}
                 </tr>
               </thead>
@@ -190,7 +192,7 @@ export function AuditLogSection() {
               onClick={handleDownload}
               className="flex items-center gap-1.5 text-xs text-primary hover:underline"
             >
-              <Download className="w-3 h-3" /> Eksporter CSV (denne siden)
+              <Download className="w-3 h-3" /> {T("Eksporter CSV (denne siden)")}
             </button>
             <div className="flex items-center gap-2">
               <button
@@ -198,14 +200,14 @@ export function AuditLogSection() {
                 disabled={offset === 0}
                 className="text-xs px-2 py-1 rounded border border-border disabled:opacity-40"
               >
-                Forrige
+                {T("Forrige")}
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={!hasMore}
                 className="text-xs px-2 py-1 rounded border border-border disabled:opacity-40"
               >
-                Neste
+                {T("Neste")}
               </button>
             </div>
           </div>

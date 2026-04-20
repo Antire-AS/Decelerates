@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import type { DealOut, PipelineStageOut } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
 import { DealCard } from "./DealCard";
+import { useT } from "@/lib/i18n";
 
 /**
  * One kanban column = one PipelineStage. Drop target for cards being dragged
@@ -24,6 +25,7 @@ export function KanbanColumn({
   onAddDeal: (stageId: number) => void;
   onDeleteDeal: (deal: DealOut) => void;
 }) {
+  const T = useT();
   const { setNodeRef, isOver } = useDroppable({
     id: `stage-${stage.id}`,
     data: { stageId: stage.id },
@@ -42,13 +44,13 @@ export function KanbanColumn({
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{stage.name}</p>
           <p className="text-[10px] text-muted-foreground">
-            {deals.length} deal{deals.length === 1 ? "" : "s"}
+            {deals.length} {deals.length === 1 ? T("deal") : T("deals")}
             {total > 0 && ` · ${fmtNok(total)}`}
           </p>
         </div>
         <button
           onClick={() => onAddDeal(stage.id)}
-          aria-label={`Legg til deal i ${stage.name}`}
+          aria-label={`${T("Legg til deal i")} ${stage.name}`}
           className="text-muted-foreground hover:text-foreground flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
@@ -63,7 +65,7 @@ export function KanbanColumn({
       >
         {deals.length === 0 ? (
           <p className="text-[10px] text-muted-foreground text-center py-6">
-            Slipp en deal her, eller klikk + over.
+            {T("Slipp en deal her, eller klikk + over.")}
           </p>
         ) : (
           deals.map((d) => (
