@@ -169,6 +169,84 @@ async def add_recipient(
     }
 
 
+# ── Insurer portal (token-based, no auth required) ───────────────────────────
+
+
+@router.get("/tenders/portal/{access_token}")
+def portal_get_tender(
+    access_token: str, svc: TenderService = Depends(_svc), db: Session = Depends(get_db)
+) -> dict:
+    """Read-only tender view for the insurer portal.
+
+    Returns what the invited insurer needs to quote: tender title, product list,
+    deadline, broker's notes, and the client company name. No broker login
+    required — just the unique access token issued when the recipient was added.
+    """
+    recipient = svc.get_recipient_by_token(access_token)
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Ugyldig lenke")
+    tender = svc.db.query(
+        __import__("api.models.tender", fromlist=["Tender"]).Tender
+    ).get(recipient.tender_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    from api.db import Company
+
+    company = db.query(Company).filter(Company.orgnr == tender.orgnr).first()
+    return {
+        "insurer_name": recipient.insurer_name,
+        "status": recipient.status.value
+        if hasattr(recipient.status, "value")
+        else recipient.status,
+        "tender": {
+            "title": tender.title,
+            "orgnr": tender.orgnr,
+            "company_name": company.navn if company else tender.orgnr,
+            "product_types": tender.product_types,
+            "deadline": tender.deadline.isoformat() if tender.deadline else None,
+            "notes": tender.notes,
+        },
+    }
+
+
+@router.post("/tenders/portal/{access_token}/upload", response_model=TenderOfferOut)
+@limiter.limit("5/minute")
+async def portal_upload_offer(
+    request: Request,
+    access_token: str,
+    file: UploadFile = File(...),
+    svc: TenderService = Depends(_svc),
+):
+    """Insurer uploads their quote via the portal link. No auth required."""
+    if file.content_type and file.content_type != "application/pdf":
+        raise HTTPException(status_code=415, detail="Kun PDF-filer er støttet")
+    raw = await file.read()
+    if len(raw) > _MAX_PDF_BYTES:
+        raise HTTPException(status_code=413, detail="Fil for stor (maks 50 MB)")
+    try:
+        offer = svc.upload_offer_by_token(
+            access_token=access_token,
+            filename=file.filename or "tilbud.pdf",
+            pdf_content=raw,
+        )
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Ugyldig lenke")
+    # Best-effort structured extraction; don't fail the upload if it errors.
+    try:
+        svc.extract_offer(offer.id)
+    except Exception as exc:
+        logger.warning("Portal offer extraction failed for %d: %s", offer.id, exc)
+    return {
+        "id": offer.id,
+        "tender_id": offer.tender_id,
+        "recipient_id": offer.recipient_id,
+        "insurer_name": offer.insurer_name,
+        "filename": offer.filename,
+        "extracted_data": offer.extracted_data,
+        "uploaded_at": offer.uploaded_at,
+    }
+
+
 @router.post("/tenders/{tender_id}/offers", response_model=TenderOfferOut)
 @limiter.limit("10/minute")
 async def upload_offer(
