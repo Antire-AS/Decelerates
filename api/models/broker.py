@@ -109,3 +109,32 @@ class UserChatMessage(Base):
             "created_at",
         ),
     )
+
+
+class CompanyWhiteboard(Base):
+    """Per-user, per-company focus whiteboard.
+
+    Lightweight workspace where a broker collects key facts from oversikt /
+    økonomi / forsikring tabs into one place, plus freeform notes and an
+    AI summary. One row per (user_oid, orgnr) — upserts overwrite rather
+    than append. Version history is out of scope for MVP.
+    """
+
+    __tablename__ = "company_whiteboards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    orgnr = Column(String(9), nullable=False, index=True)
+    user_oid = Column(String(64), nullable=False, index=True)
+    # items: list of {id, label, value, source_tab}
+    items = Column(JSON, nullable=False, default=list)
+    notes = Column(Text, nullable=True)
+    ai_summary = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        Index("ix_company_whiteboards_orgnr_user", "orgnr", "user_oid", unique=True),
+    )
