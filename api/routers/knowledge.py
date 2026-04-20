@@ -2,12 +2,12 @@ import json
 import logging
 import uuid
 
-from fastapi import APIRouter, Query, HTTPException, Depends, Request
-
-logger = logging.getLogger(__name__)
+from fastapi import APIRouter, Query, HTTPException, Depends, Request, UploadFile, File
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
+
+logger = logging.getLogger(__name__)
 from api.db import Company, CompanyNote, CompanyChunk, CompanyHistory, InsuranceOffer
 from api.domain.exceptions import LlmUnavailableError, QuotaError
 from api.services import (
@@ -414,13 +414,89 @@ def _build_knowledge_prompt(question: str, context: str, history_block: str) -> 
     return "\n\n".join(parts)
 
 
-def _knowledge_no_chunks_response(question: str) -> dict:
+_INSURANCE_HINT_KEYWORDS = (
+    "forsikring",
+    "dekning",
+    "egenandel",
+    "premie",
+    "ansvar",
+    "yrkesskade",
+    "bygning",
+    "risiko",
+    "gdpr",
+    "anbud",
+    "tilbud",
+    "polise",
+    "vilkår",
+    "bransje",
+    "skade",
+    "pensjon",
+    "verdi",
+    "kunde",
+)
+
+
+def _seems_insurance_related(question: str) -> bool:
+    """Cheap keyword check — only broaden the fallback for in-domain questions."""
+    q = question.lower()
+    return any(kw in q for kw in _INSURANCE_HINT_KEYWORDS)
+
+
+def _knowledge_general_fallback(question: str, history_block: str) -> str | None:
+    """Answer using the LLM's general knowledge when RAG has no chunks.
+
+    Only runs if the question looks insurance-adjacent. The answer is
+    prefixed with a disclaimer so the broker knows it's not sourced from
+    the indexed knowledge base.
+    """
+    if not _seems_insurance_related(question):
+        return None
+    parts = [
+        f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}",
+        "Viktig: Kunnskapsbasen har ingen relevante kilder for dette spørsmålet. "
+        "Svar kort (maks 120 ord) basert på generell forsikringskunnskap. "
+        "Start svaret med 'Basert på generell forsikringskunnskap — ikke indeksert kildemateriale:'.",
+    ]
+    if history_block:
+        parts.append(history_block)
+    parts.append(f"[SPØRSMÅL]: {question}")
+    prompt = "\n\n".join(parts)
+    try:
+        return _llm_answer_raw(prompt)
+    except Exception:
+        return None
+
+
+def _knowledge_no_chunks_response(question: str, fallback: str | None = None) -> dict:
+    answer = (
+        fallback
+        if fallback
+        else (
+            "Ingen kunnskap er indeksert ennå, eller ingen relevante kilder for dette spørsmålet. "
+            "Gå til Administrer-fanen og klikk 'Indekser kunnskap' hvis basen er tom, "
+            "eller prøv å omformulere spørsmålet."
+        )
+    )
     return {
         "question": question,
-        "answer": "Ingen kunnskap er indeksert ennå, eller ingen relevante kilder for dette spørsmålet. Gå til Administrer-fanen og klikk 'Indekser kunnskap' hvis basen er tom, eller prøv å omformulere spørsmålet.",
+        "answer": answer,
         "sources": [],
         "source_snippets": {},
     }
+
+
+def _handle_no_chunks(db: Session, user_oid: str, question: str) -> dict:
+    """Build the no-chunks response (with optional general-knowledge fallback)."""
+    history_svc = ChatHistoryService(db)
+    history_block = format_history_for_prompt(
+        history_svc.load_history(user_oid, orgnr=None, limit_turns=10)
+    )
+    fallback = _knowledge_general_fallback(question, history_block)
+    if fallback:
+        history_svc.append_turn(
+            user_oid, orgnr=None, question=question, answer=fallback
+        )
+    return _knowledge_no_chunks_response(question, fallback=fallback)
 
 
 @router.post("/knowledge/chat", response_model=KnowledgeChatOut)
@@ -434,7 +510,7 @@ def chat_knowledge(
     """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
     chunks = _retrieve_knowledge_chunks(body.question, db)
     if not chunks:
-        return _knowledge_no_chunks_response(body.question)
+        return _handle_no_chunks(db, user.oid, body.question)
 
     context = "\n\n---\n\n".join(
         f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks
@@ -462,6 +538,57 @@ def chat_knowledge(
         "answer": answer,
         "sources": sources,
         "source_snippets": source_snippets,
+    }
+
+
+async def _read_pdf_upload(file: UploadFile, max_bytes: int) -> bytes:
+    if file.content_type and file.content_type != "application/pdf":
+        raise HTTPException(status_code=415, detail="Kun PDF-filer er støttet")
+    pdf_bytes = await file.read()
+    if len(pdf_bytes) > max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail="Filen er for stor (maks 20 MB for hurtig-opplasting)",
+        )
+    return pdf_bytes
+
+
+@router.post("/knowledge/quick-upload")
+@limiter.limit("10/minute")
+async def knowledge_quick_upload(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """One-click PDF upload + index for the knowledge chat attach button."""
+    from api.services.documents import store_insurance_document
+    from api.services.knowledge_index import index_all
+
+    pdf_bytes = await _read_pdf_upload(file, max_bytes=20 * 1024 * 1024)
+    safe_name = (file.filename or "chat-upload.pdf").replace("/", "_")
+    doc = store_insurance_document(
+        pdf_bytes=pdf_bytes,
+        filename=safe_name,
+        title=safe_name.rsplit(".", 1)[0],
+        category="chat-upload",
+        insurer="",
+        year=None,
+        period="aktiv",
+        orgnr=None,
+        tags="chat-upload",
+    )
+    index_result = index_all(db)
+    log_audit(
+        db,
+        "knowledge.quick_upload",
+        detail={"doc_id": doc.id, "filename": safe_name},
+    )
+    return {
+        "doc_id": doc.id,
+        "filename": safe_name,
+        "chunks_indexed": index_result.get("docs_chunks", 0)
+        + index_result.get("video_chunks", 0),
     }
 
 
