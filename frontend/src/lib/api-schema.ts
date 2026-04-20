@@ -2393,6 +2393,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/whiteboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Whiteboard */
+        get: operations["get_whiteboard_org__orgnr__whiteboard_get"];
+        /** Save Whiteboard */
+        put: operations["save_whiteboard_org__orgnr__whiteboard_put"];
+        post?: never;
+        /** Delete Whiteboard */
+        delete: operations["delete_whiteboard_org__orgnr__whiteboard_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/org/{orgnr}/whiteboard/ai-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Whiteboard Ai Summary */
+        post: operations["generate_whiteboard_ai_summary_org__orgnr__whiteboard_ai_summary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ping": {
         parameters: {
             query?: never;
@@ -5020,6 +5056,24 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WhiteboardIn */
+        WhiteboardIn: {
+            /** Items */
+            items: components["schemas"]["WhiteboardItem"][];
+            /** Notes */
+            notes?: string | null;
+        };
+        /** WhiteboardItem */
+        WhiteboardItem: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Source Tab */
+            source_tab?: string | null;
+            /** Value */
+            value: string;
         };
     };
     responses: never;
@@ -9688,6 +9742,142 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_whiteboard_org__orgnr__whiteboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_whiteboard_org__orgnr__whiteboard_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhiteboardIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_whiteboard_org__orgnr__whiteboard_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_whiteboard_ai_summary_org__orgnr__whiteboard_ai_summary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -28,6 +28,7 @@ const CoverageSection = dynamic(() => import("@/components/company/CoverageSecti
 import PremiumBenchmark from "@/components/company/PremiumBenchmark";
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
+import WhiteboardTab from "@/components/company/WhiteboardTab";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -42,7 +43,7 @@ export default function OrgProfilePage({
   const { orgnr } = use(params);
   const T = useT();
 
-  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat">(
+  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat" | "fokus">(
     "oversikt",
   );
 
@@ -214,6 +215,7 @@ export default function OrgProfilePage({
           <TabsTrigger value="crm"        className={triggerCls}>{T("CRM")}</TabsTrigger>
           <TabsTrigger value="notater"    className={triggerCls}>{T("Notater")}</TabsTrigger>
           <TabsTrigger value="chat"       className={triggerCls}>{T("Chat")}</TabsTrigger>
+          <TabsTrigger value="fokus"      className={triggerCls}>{T("Fokus")}</TabsTrigger>
         </TabsList>
 
         {/* ── Oversikt ─────────────────────────────────────────────────── */}
@@ -322,7 +324,77 @@ export default function OrgProfilePage({
         <TabsContent value="chat" className="mt-0 focus-visible:ring-0">
           <OrgChatSection orgnr={orgnr} orgName={String(org.navn ?? orgnr)} />
         </TabsContent>
+
+        {/* ── Fokus-whiteboard ─────────────────────────────────────────── */}
+        <TabsContent value="fokus" className="mt-0 focus-visible:ring-0">
+          <WhiteboardTab
+            orgnr={orgnr}
+            orgName={String(org.navn ?? orgnr)}
+            suggestedFacts={buildSuggestedFacts({
+              org,
+              regn,
+              risk,
+              benchmark,
+            })}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );
+}
+
+/**
+ * Pull one-line summary facts from the various data sources the page has
+ * already loaded, so the Fokus tab can offer them as one-click "add to
+ * whiteboard" chips instead of forcing the broker to retype each value.
+ */
+function buildSuggestedFacts({
+  org,
+  regn,
+  risk,
+  benchmark,
+}: {
+  org: Record<string, unknown>;
+  regn: Record<string, unknown>;
+  risk: { score?: number };
+  benchmark: Record<string, unknown> | null | undefined;
+}): { label: string; value: string; source_tab: string }[] {
+  const facts: { label: string; value: string; source_tab: string }[] = [];
+  if (org?.navn) facts.push({ label: "Selskap", value: String(org.navn), source_tab: "Oversikt" });
+  if (org?.naeringskode1_beskrivelse) {
+    facts.push({
+      label: "Bransje",
+      value: String(org.naeringskode1_beskrivelse),
+      source_tab: "Oversikt",
+    });
+  }
+  if (typeof risk?.score === "number") {
+    facts.push({ label: "Risikoscore", value: `${risk.score}/20`, source_tab: "Oversikt" });
+  }
+  const rev = regn?.sumDriftsinntekter ?? regn?.sum_driftsinntekter;
+  if (typeof rev === "number") {
+    facts.push({
+      label: "Omsetning",
+      value: `${(rev / 1_000_000).toFixed(1)} MNOK`,
+      source_tab: "Økonomi",
+    });
+  }
+  const eq = regn?.sumEgenkapital ?? regn?.sum_egenkapital;
+  if (typeof eq === "number") {
+    facts.push({
+      label: "Egenkapital",
+      value: `${(eq / 1_000_000).toFixed(1)} MNOK`,
+      source_tab: "Økonomi",
+    });
+  }
+  const benchmarkObj = (benchmark ?? {}) as Record<string, unknown>;
+  const bench = benchmarkObj.benchmark as Record<string, unknown> | undefined;
+  if (bench && typeof bench.industry === "string") {
+    facts.push({
+      label: "Bransje-sammenligning",
+      value: bench.industry as string,
+      source_tab: "Oversikt",
+    });
+  }
+  return facts;
 }
