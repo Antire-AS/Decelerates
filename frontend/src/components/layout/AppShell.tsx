@@ -29,6 +29,7 @@ import {
 import OnboardingTour from "./OnboardingTour";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { A11yPanel } from "@/components/a11y/a11y-panel";
 import { CommandPalette } from "@/components/command-palette";
 
 // IA cleanup (2026-04):
@@ -206,6 +207,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="ml-auto flex items-center gap-1">
             <NotificationBell />
+            <A11yPanel />
             <ThemeToggle />
             {mobileOpen && (
               <button
@@ -235,6 +237,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
           </button>
           <NotificationBell />
+          <A11yPanel />
           <ThemeToggle />
         </header>
 

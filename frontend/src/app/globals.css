@@ -125,3 +125,48 @@
            ring-2 ring-ring;
   }
 }
+
+/* A11y preferences — font scale */
+html {
+  --font-scale: 1;
+}
+html[data-font-scale="large"]   { --font-scale: 1.125; }
+html[data-font-scale="xlarge"]  { --font-scale: 1.25; }
+
+body {
+  font-size: calc(1rem * var(--font-scale));
+}
+
+/* A11y preferences — reduced motion override */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* A11y preferences — high contrast */
+html[data-high-contrast="true"] {
+  --background:      0 0% 100%;
+  --foreground:      210 29% 10%;
+  --muted-foreground: 210 29% 20%;
+  --border:          210 29% 40%;
+}
+html[data-high-contrast="true"].dark {
+  --background:      0 0% 4%;
+  --foreground:      0 0% 98%;
+  --muted-foreground: 0 0% 90%;
+  --border:          0 0% 60%;
+}
+
+/* Also honor OS-level prefers-reduced-motion even without the toggle */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
