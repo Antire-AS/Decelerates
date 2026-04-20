@@ -105,7 +105,7 @@ export default function PortfolioPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/portfolio/analytics"
-            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-border text-primary bg-accent hover:bg-accent">
             <BarChart2 className="w-3 h-3" />
             Analyse
           </Link>
@@ -135,7 +135,7 @@ export default function PortfolioPage() {
             <button
               onClick={handleCreatePortfolio}
               disabled={creating || !newPortfolioName.trim()}
-              className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1"
+              className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
             >
               {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
               Opprett
@@ -153,15 +153,15 @@ export default function PortfolioPage() {
               <Link
                 key={p.id}
                 href={`/portfolio/${p.id}`}
-                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border hover:bg-[#F9F7F4] hover:border-[#C5D8F0] transition-colors group"
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border hover:bg-muted hover:border-border transition-colors group"
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground group-hover:text-[#4A6FA5]">{p.name}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary">{p.name}</p>
                   {p.description && (
                     <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
                   )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#C4BDB4] group-hover:text-[#4A6FA5]" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
               </Link>
             ))}
           </div>
@@ -186,7 +186,7 @@ export default function PortfolioPage() {
               const count = companies.filter((c) => band(c.risk_score) === i).length;
               return (
                 <div key={b.label}
-                  className="broker-card cursor-pointer hover:bg-[#F9F7F4]"
+                  className="broker-card cursor-pointer hover:bg-muted"
                   onClick={() => setRiskFilter(riskFilter === i ? null : i)}>
                   <p className="text-xs font-medium mb-1" style={{ color: b.color }}>{b.label}</p>
                   <p className="text-2xl font-bold text-foreground">{count}</p>
@@ -248,10 +248,10 @@ export default function PortfolioPage() {
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Søk selskap…"
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-input rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-input rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
               {riskFilter !== null && (
                 <button onClick={() => setRiskFilter(null)}
-                  className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-[#DDD8D3]">
+                  className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-muted">
                   Nullstill filter ×
                 </button>
               )}
@@ -270,11 +270,11 @@ export default function PortfolioPage() {
                     <th className="text-right pb-2 font-medium">Risiko</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EDE8E3]">
+                <tbody className="divide-y divide-border">
                   {filtered.map((c) => (
-                    <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
+                    <tr key={c.orgnr} className="hover:bg-muted">
                       <td className="py-2">
-                        <Link href={`/search/${c.orgnr}`} className="font-medium text-[#4A6FA5] hover:underline">
+                        <Link href={`/search/${c.orgnr}`} className="font-medium text-primary hover:underline">
                           {c.navn ?? c.orgnr}
                         </Link>
                         <span className="block text-xs text-muted-foreground font-normal">{c.orgnr}</span>

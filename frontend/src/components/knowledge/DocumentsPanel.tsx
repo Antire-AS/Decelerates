@@ -155,11 +155,11 @@ export default function DocumentsPanel() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Dokumenter</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">Forsikringsdokumenter og tilbud lastet opp for kundene</p>
+          <h1 className="text-2xl font-bold text-foreground">Dokumenter</h1>
+          <p className="text-sm text-muted-foreground mt-1">Forsikringsdokumenter og tilbud lastet opp for kundene</p>
         </div>
         <button onClick={() => setUploadOpen((o) => !o)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] flex-shrink-0">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex-shrink-0">
           <Upload className="w-4 h-4" /> Last opp
         </button>
       </div>
@@ -167,12 +167,12 @@ export default function DocumentsPanel() {
       {/* Upload panel */}
       {uploadOpen && (
         <div className="broker-card space-y-3">
-          <p className="text-sm font-semibold text-[#2C3E50]">Last opp dokument</p>
+          <p className="text-sm font-semibold text-foreground">Last opp dokument</p>
           <div>
             <label className="label-xs" htmlFor="doc-upload-file">PDF-fil *</label>
             <input id="doc-upload-file" type="file" accept=".pdf"
               onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-xs text-[#8A7F74] file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-[#2C3E50] file:text-white hover:file:bg-[#3d5166] cursor-pointer mt-0.5" />
+              className="block w-full text-xs text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer mt-0.5" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -189,12 +189,12 @@ export default function DocumentsPanel() {
           {uploadErr && <p className="text-xs text-red-600">{uploadErr}</p>}
           <div className="flex gap-2">
             <button onClick={handleUpload} disabled={uploading || !uploadFile}
-              className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
+              className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
               {uploading && <Loader2 className="w-3 h-3 animate-spin" />}
               {uploading ? "Laster opp…" : "Last opp"}
             </button>
             <button type="button" onClick={() => setUploadOpen(false)}
-              className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]">Avbryt</button>
+              className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground">Avbryt</button>
           </div>
         </div>
       )}
@@ -205,37 +205,37 @@ export default function DocumentsPanel() {
           <input type="text" value={orgnrFilter} onChange={(e) => setOrgnrFilter(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && setAppliedFilter(orgnrFilter.trim() || undefined)}
             placeholder="Filtrer på org.nr"
-            className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50]" />
+            className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary" />
           <button onClick={() => setAppliedFilter(orgnrFilter.trim() || undefined)}
-            className="px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166]">Søk</button>
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Søk</button>
           {appliedFilter && (
             <button onClick={() => { setOrgnrFilter(""); setAppliedFilter(undefined); }}
-              className="px-4 py-2 rounded-lg bg-[#EDE8E3] text-[#8A7F74] text-sm font-medium hover:bg-[#DDD8D3]">Nullstill</button>
+              className="px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm font-medium hover:bg-muted">Nullstill</button>
           )}
         </div>
 
         {selectedIds.size === 2 && (
           <div className="flex items-center gap-3">
             <button onClick={handleCompare} disabled={comparing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {comparing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
               AI-sammenlign valgte (2)
             </button>
             <button onClick={() => { setSelectedIds(new Set()); setCompareResult(null); }}
-              className="text-xs text-[#8A7F74] hover:text-[#2C3E50]">Fjern valg</button>
+              className="text-xs text-muted-foreground hover:text-foreground">Fjern valg</button>
           </div>
         )}
-        {selectedIds.size === 1 && <p className="text-xs text-[#8A7F74]">Velg ett dokument til for å sammenligne</p>}
+        {selectedIds.size === 1 && <p className="text-xs text-muted-foreground">Velg ett dokument til for å sammenligne</p>}
       </div>
 
       {/* Compare result */}
       {(compareResult || compareErr) && (
         <div className="broker-card">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#4A6FA5]" /> AI-sammenligning
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-primary" /> AI-sammenligning
             </p>
-            <button onClick={() => setCompareResult(null)} className="text-xs text-[#8A7F74] hover:text-[#2C3E50]">Lukk</button>
+            <button onClick={() => setCompareResult(null)} className="text-xs text-muted-foreground hover:text-foreground">Lukk</button>
           </div>
           {compareErr && <p className="text-xs text-red-600">{compareErr}</p>}
           {compareResult && <OfferComparisonTable result={compareResult} />}
@@ -246,30 +246,30 @@ export default function DocumentsPanel() {
       {chatDocId != null && (
         <div className="broker-card space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-[#4A6FA5]" /> Chat — {chatDocName}
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <MessageSquare className="w-4 h-4 text-primary" /> Chat — {chatDocName}
             </p>
             <button onClick={() => { setChatDocId(null); setChatAnswer(null); }}
-              className="text-xs text-[#8A7F74] hover:text-[#2C3E50]">Lukk</button>
+              className="text-xs text-muted-foreground hover:text-foreground">Lukk</button>
           </div>
           <div className="flex gap-2">
             <input type="text" value={chatQuestion} onChange={(e) => setChatQuestion(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleChat()}
               placeholder="Still et spørsmål om dokumentet…"
-              className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50]" />
+              className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary" />
             <button onClick={handleChat} disabled={chatLoading || !chatQuestion.trim()}
-              className="px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
               {chatLoading && <Loader2 className="w-4 h-4 animate-spin" />} Send
             </button>
           </div>
-          {chatAnswer && <div className="bg-[#F9F7F4] rounded-lg p-3"><p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{chatAnswer}</p></div>}
+          {chatAnswer && <div className="bg-muted rounded-lg p-3"><p className="text-xs text-foreground whitespace-pre-wrap">{chatAnswer}</p></div>}
         </div>
       )}
 
       {/* Loading skeleton */}
       {isLoading && (
         <div className="broker-card space-y-3">
-          {[...Array(5)].map((_, i) => <div key={i} className="h-8 rounded animate-pulse bg-[#EDE8E3]" />)}
+          {[...Array(5)].map((_, i) => <div key={i} className="h-8 rounded animate-pulse bg-muted" />)}
         </div>
       )}
 
@@ -277,53 +277,53 @@ export default function DocumentsPanel() {
       {!isLoading && documents && documents.length > 0 && (
         <div className="space-y-2">
           {documents.map((doc) => (
-            <div key={doc.id} className={`broker-card transition-colors ${selectedIds.has(doc.id) ? "ring-1 ring-[#4A6FA5]" : ""}`}>
+            <div key={doc.id} className={`broker-card transition-colors ${selectedIds.has(doc.id) ? "ring-1 ring-ring" : ""}`}>
               {/* Document row */}
               <div className="flex items-start gap-3">
                 <input type="checkbox" checked={selectedIds.has(doc.id)} onChange={() => toggleSelect(doc.id)}
                   disabled={!selectedIds.has(doc.id) && selectedIds.size >= 2}
-                  className="mt-1 rounded border-[#D4C9B8] cursor-pointer accent-[#4A6FA5] flex-shrink-0" />
+                  className="mt-1 rounded border-border cursor-pointer accent-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#2C3E50] truncate">{doc.filename}</p>
-                      <p className="text-xs text-[#8A7F74] mt-0.5">
-                        {doc.orgnr && <Link href={`/search/${doc.orgnr}`} className="hover:underline text-[#4A6FA5]">{doc.orgnr}</Link>}
+                      <p className="text-sm font-medium text-foreground truncate">{doc.filename}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {doc.orgnr && <Link href={`/search/${doc.orgnr}`} className="hover:underline text-primary">{doc.orgnr}</Link>}
                         {doc.orgnr && " · "}
                         {fmtDate(doc.created_at)}
                       </p>
                       {doc.tags && doc.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {doc.tags.map((tag) => (
-                            <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-[#EDE8E3] text-[#8A7F74]">{tag}</span>
+                            <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{tag}</span>
                           ))}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button onClick={() => handleKeypoints(doc)} title="Nøkkelpunkter"
-                        className={`p-1.5 rounded hover:bg-[#EDE8E3] ${keypointsDocId === doc.id ? "text-[#4A6FA5]" : "text-[#C4BDB4]"}`}>
+                        className={`p-1.5 rounded hover:bg-muted ${keypointsDocId === doc.id ? "text-primary" : "text-muted-foreground"}`}>
                         <FileText className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleViewPdf(doc)} title="Vis PDF"
-                        className={`p-1.5 rounded hover:bg-[#EDE8E3] ${pdfViewDocId === doc.id ? "text-[#4A6FA5]" : "text-[#C4BDB4]"}`}>
+                        className={`p-1.5 rounded hover:bg-muted ${pdfViewDocId === doc.id ? "text-primary" : "text-muted-foreground"}`}>
                         {pdfViewDocId === doc.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                       <button onClick={() => setSimilarDocId(similarDocId === doc.id ? null : doc.id)}
                         title="Lignende dokumenter"
-                        className={`p-1.5 rounded hover:bg-[#EDE8E3] ${similarDocId === doc.id ? "text-[#4A6FA5]" : "text-[#C4BDB4]"}`}>
+                        className={`p-1.5 rounded hover:bg-muted ${similarDocId === doc.id ? "text-primary" : "text-muted-foreground"}`}>
                         <Link2 className="w-4 h-4" />
                       </button>
                       <button onClick={() => openChat(doc)} title="Chat med dokument"
-                        className={`p-1.5 rounded hover:bg-[#EDE8E3] ${chatDocId === doc.id ? "text-[#4A6FA5]" : "text-[#C4BDB4]"}`}>
+                        className={`p-1.5 rounded hover:bg-muted ${chatDocId === doc.id ? "text-primary" : "text-muted-foreground"}`}>
                         <MessageSquare className="w-4 h-4" />
                       </button>
                       <button onClick={() => downloadInsuranceDocumentPdf(doc.id, doc.filename)} title="Last ned PDF"
-                        className="p-1.5 rounded text-[#C4BDB4] hover:bg-[#EDE8E3] hover:text-[#2C3E50]">
+                        className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-foreground">
                         <Download className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDelete(doc.id)} title="Slett"
-                        className="p-1.5 rounded text-[#C4BDB4] hover:bg-[#EDE8E3] hover:text-red-500">
+                        className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-red-500">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -333,67 +333,67 @@ export default function DocumentsPanel() {
 
               {/* Key points panel */}
               {keypointsDocId === doc.id && (
-                <div className="mt-3 pt-3 border-t border-[#EDE8E3]">
+                <div className="mt-3 pt-3 border-t border-border">
                   {keypointsLoading ? (
-                    <div className="flex items-center gap-2 text-xs text-[#8A7F74]">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Loader2 className="w-4 h-4 animate-spin" /> Henter nøkkelpunkter…
                     </div>
                   ) : keypoints && Object.keys(keypoints).length > 0 ? (
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-[#2C3E50]">Nøkkelpunkter</p>
+                      <p className="text-xs font-semibold text-foreground">Nøkkelpunkter</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {Object.entries(keypoints)
                           .filter(([k]) => k !== "doc_id" && k !== "title")
                           .map(([k, v]) => v ? (
-                            <div key={k} className="bg-[#F9F7F4] rounded-lg p-2">
-                              <p className="text-xs font-medium text-[#4A6FA5] mb-0.5">
+                            <div key={k} className="bg-muted rounded-lg p-2">
+                              <p className="text-xs font-medium text-primary mb-0.5">
                                 {KEYPOINT_LABELS[k] ?? k}
                               </p>
-                              <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{String(v)}</p>
+                              <p className="text-xs text-foreground whitespace-pre-wrap">{String(v)}</p>
                             </div>
                           ) : null)}
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-[#8A7F74]">Ingen nøkkelpunkter tilgjengelig.</p>
+                    <p className="text-xs text-muted-foreground">Ingen nøkkelpunkter tilgjengelig.</p>
                   )}
                 </div>
               )}
 
               {/* PDF viewer */}
               {pdfViewDocId === doc.id && (
-                <div className="mt-3 pt-3 border-t border-[#EDE8E3]">
+                <div className="mt-3 pt-3 border-t border-border">
                   {pdfLoading ? (
-                    <div className="flex items-center gap-2 text-xs text-[#8A7F74]">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Loader2 className="w-4 h-4 animate-spin" /> Laster PDF…
                     </div>
                   ) : pdfViewUrl ? (
-                    <iframe src={pdfViewUrl} className="w-full rounded-lg border border-[#EDE8E3]" style={{ height: "500px" }} />
+                    <iframe src={pdfViewUrl} className="w-full rounded-lg border border-border" style={{ height: "500px" }} />
                   ) : (
-                    <p className="text-xs text-[#8A7F74]">Kunne ikke laste PDF.</p>
+                    <p className="text-xs text-muted-foreground">Kunne ikke laste PDF.</p>
                   )}
                 </div>
               )}
 
               {/* Similar documents */}
               {similarDocId === doc.id && (
-                <div className="mt-3 pt-3 border-t border-[#EDE8E3]">
-                  <p className="text-xs font-semibold text-[#2C3E50] mb-2">Lignende dokumenter</p>
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-xs font-semibold text-foreground mb-2">Lignende dokumenter</p>
                   {!similarDocs ? (
-                    <div className="flex items-center gap-2 text-xs text-[#8A7F74]">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Loader2 className="w-4 h-4 animate-spin" /> Søker…
                     </div>
                   ) : similarDocs.length === 0 ? (
-                    <p className="text-xs text-[#8A7F74]">Ingen lignende dokumenter funnet.</p>
+                    <p className="text-xs text-muted-foreground">Ingen lignende dokumenter funnet.</p>
                   ) : (
                     <div className="space-y-1">
                       {similarDocs.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between text-xs py-1 border-b border-[#EDE8E3]">
-                          <span className="text-[#2C3E50]">{s.filename}</span>
+                        <div key={s.id} className="flex items-center justify-between text-xs py-1 border-b border-border">
+                          <span className="text-foreground">{s.filename}</span>
                           <div className="flex items-center gap-2">
-                            {s.orgnr && <Link href={`/search/${s.orgnr}`} className="text-[#4A6FA5] hover:underline">{s.orgnr}</Link>}
+                            {s.orgnr && <Link href={`/search/${s.orgnr}`} className="text-primary hover:underline">{s.orgnr}</Link>}
                             <button onClick={() => downloadInsuranceDocumentPdf(s.id, s.filename)}
-                              className="text-[#C4BDB4] hover:text-[#2C3E50]">
+                              className="text-muted-foreground hover:text-foreground">
                               <Download className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -405,14 +405,14 @@ export default function DocumentsPanel() {
               )}
             </div>
           ))}
-          <p className="text-xs text-[#8A7F74] pl-1">{documents.length} dokument(er)</p>
+          <p className="text-xs text-muted-foreground pl-1">{documents.length} dokument(er)</p>
         </div>
       )}
 
       {!isLoading && documents && documents.length === 0 && (
         <div className="broker-card text-center py-12">
-          <p className="text-sm font-medium text-[#2C3E50]">Ingen dokumenter funnet</p>
-          <p className="text-xs text-[#8A7F74] mt-1">
+          <p className="text-sm font-medium text-foreground">Ingen dokumenter funnet</p>
+          <p className="text-xs text-muted-foreground mt-1">
             {appliedFilter ? `Ingen dokumenter for org.nr ${appliedFilter}.` : "Last opp dokumenter via knappen øverst til høyre."}
           </p>
         </div>
@@ -420,7 +420,7 @@ export default function DocumentsPanel() {
 
       {!isLoading && !documents && (
         <div className="broker-card text-center py-12">
-          <p className="text-sm text-[#8A7F74]">Kunne ikke laste dokumenter.</p>
+          <p className="text-sm text-muted-foreground">Kunne ikke laste dokumenter.</p>
         </div>
       )}
     </div>

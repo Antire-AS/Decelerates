@@ -49,11 +49,11 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
   return (
     <div className="broker-card space-y-4">
       <div className="flex items-center gap-2">
-        <Link2 className="w-4 h-4 text-[#4A6FA5]" />
-        <h3 className="text-sm font-semibold text-[#2C3E50]">Del med klient</h3>
+        <Link2 className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Del med klient</h3>
       </div>
 
-      <p className="text-xs text-[#8A7F74]">
+      <p className="text-xs text-muted-foreground">
         Generer en 30-dagers lenke klienten kan bruke til å se sine forsikringer, skader og dokumenter — uten innlogging.
       </p>
 
@@ -63,12 +63,12 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="Etikett (valgfri, f.eks. «Sendt til kontakt»)"
-          className="flex-1 text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="flex-1 text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
         />
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50"
         >
           {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Generer
@@ -80,7 +80,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
       {/* Active tokens */}
       {isLoading ? (
         <div className="flex justify-center py-3">
-          <Loader2 className="w-4 h-4 animate-spin text-[#4A6FA5]" />
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
         </div>
       ) : active.length > 0 ? (
         <div className="space-y-2">
@@ -89,19 +89,19 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
             const expires = new Date(t.expires_at).toLocaleDateString("nb-NO");
             return (
               <div key={t.token}
-                className="flex items-center justify-between gap-2 bg-[#F9F7F4] border border-[#EDE8E3] rounded-lg px-3 py-2">
+                className="flex items-center justify-between gap-2 bg-muted border border-border rounded-lg px-3 py-2">
                 <div className="min-w-0">
                   {t.label && (
-                    <p className="text-xs font-medium text-[#2C3E50] truncate">{t.label}</p>
+                    <p className="text-xs font-medium text-foreground truncate">{t.label}</p>
                   )}
-                  <p className="text-xs text-[#8A7F74] truncate">{url}</p>
-                  <p className="text-xs text-[#8A7F74]">Utløper {expires}</p>
+                  <p className="text-xs text-muted-foreground truncate">{url}</p>
+                  <p className="text-xs text-muted-foreground">Utløper {expires}</p>
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => copyLink(t.token)}
                     title="Kopier lenke"
-                    className="p-1.5 rounded-lg hover:bg-[#EDE8E3] text-[#4A6FA5]"
+                    className="p-1.5 rounded-lg hover:bg-muted text-primary"
                   >
                     {copied === t.token
                       ? <CheckCircle className="w-4 h-4 text-green-600" />
@@ -109,7 +109,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
                   </button>
                   <a href={url} target="_blank" rel="noopener noreferrer"
                     title="Åpne portal"
-                    className="p-1.5 rounded-lg hover:bg-[#EDE8E3] text-[#4A6FA5]">
+                    className="p-1.5 rounded-lg hover:bg-muted text-primary">
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -118,7 +118,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
           })}
         </div>
       ) : (
-        <p className="text-xs text-[#8A7F74]">Ingen aktive lenker.</p>
+        <p className="text-xs text-muted-foreground">Ingen aktive lenker.</p>
       )}
     </div>
   );

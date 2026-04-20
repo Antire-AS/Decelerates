@@ -16,8 +16,8 @@ export default function CompareTab() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
-  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
-  if (!companies?.length) return <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen selskaper i databasen ennå.</div>;
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  if (!companies?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen selskaper i databasen ennå.</div>;
 
   const toggle = (orgnr: string) => {
     setSelected((prev) => {
@@ -67,7 +67,7 @@ export default function CompareTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#8A7F74]">Velg opptil 8 selskaper å sammenligne.</p>
+      <p className="text-sm text-muted-foreground">Velg opptil 8 selskaper å sammenligne.</p>
 
       {/* Search + picker */}
       <div className="broker-card space-y-2">
@@ -75,18 +75,18 @@ export default function CompareTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Søk selskap…"
-          className="w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50] placeholder:text-[#C4BDB4]"
+          className="w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
         />
         <div className="max-h-52 overflow-y-auto space-y-0.5">
           {filtered.map((c) => (
             <button key={c.orgnr} onClick={() => toggle(c.orgnr)}
               className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                selected.has(c.orgnr) ? "bg-[#2C3E50] text-white" : "hover:bg-[#EDE8E3] text-[#2C3E50]"
+                selected.has(c.orgnr) ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
               }`}>
               <span>{c.navn ?? c.orgnr} <span className="text-xs opacity-60">({c.orgnr})</span></span>
               {c.risk_score != null && (
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  selected.has(c.orgnr) ? "bg-white/20 text-white"
+                  selected.has(c.orgnr) ? "bg-card/20 text-white"
                   : bandTailwindClass(bandFor(c.risk_score).label)
                 }`}>{c.risk_score}</span>
               )}
@@ -100,19 +100,19 @@ export default function CompareTab() {
           {/* Comparison table */}
           <div className="broker-card overflow-x-auto">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-[#2C3E50]">
+              <h3 className="text-sm font-semibold text-foreground">
                 {selectedRows.length} selskaper valgt
               </h3>
               <button
                 onClick={exportCsv}
-                className="px-3 py-1 text-xs rounded-lg bg-[#EDE8E3] text-[#2C3E50] hover:bg-[#DDD8D3] flex items-center gap-1.5"
+                className="px-3 py-1 text-xs rounded-lg bg-muted text-foreground hover:bg-muted flex items-center gap-1.5"
               >
                 ⬇ Eksporter CSV
               </button>
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                <tr className="text-xs text-muted-foreground border-b border-border">
                   <th className="text-left pb-2 font-medium">Selskap</th>
                   <th className="text-right pb-2 font-medium">Omsetning</th>
                   <th className="text-right pb-2 font-medium">Egenkapital</th>
@@ -122,16 +122,16 @@ export default function CompareTab() {
                   <th className="text-right pb-2 font-medium hidden sm:table-cell">År</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EDE8E3]">
+              <tbody className="divide-y divide-border">
                 {selectedRows.map((c) => (
-                  <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
+                  <tr key={c.orgnr} className="hover:bg-muted">
                     <td className="py-2">
-                      <span className="font-medium text-[#2C3E50]">{c.navn ?? c.orgnr}</span>
-                      <span className="block text-xs text-[#8A7F74]">{c.orgnr}</span>
+                      <span className="font-medium text-foreground">{c.navn ?? c.orgnr}</span>
+                      <span className="block text-xs text-muted-foreground">{c.orgnr}</span>
                     </td>
-                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(c.omsetning)}</td>
-                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(c.sum_egenkapital)}</td>
-                    <td className="py-2 text-right text-[#8A7F74]">
+                    <td className="py-2 text-right text-muted-foreground">{fmtMnok(c.omsetning)}</td>
+                    <td className="py-2 text-right text-muted-foreground">{fmtMnok(c.sum_egenkapital)}</td>
+                    <td className="py-2 text-right text-muted-foreground">
                       {c.egenkapitalandel != null ? `${(c.egenkapitalandel * 100).toFixed(1)}%` : "–"}
                     </td>
                     <td className="py-2 text-right">
@@ -141,10 +141,10 @@ export default function CompareTab() {
                         }`}>{c.risk_score}</span>
                       ) : "–"}
                     </td>
-                    <td className="py-2 text-[#8A7F74] text-xs hidden md:table-cell">
+                    <td className="py-2 text-muted-foreground text-xs hidden md:table-cell">
                       {c.naeringskode1_beskrivelse ?? "–"}
                     </td>
-                    <td className="py-2 text-right text-[#8A7F74] hidden sm:table-cell">
+                    <td className="py-2 text-right text-muted-foreground hidden sm:table-cell">
                       {c.regnskapsår ?? "–"}
                     </td>
                   </tr>
@@ -157,7 +157,7 @@ export default function CompareTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {revenueChartData.length > 0 && (
               <div className="broker-card">
-                <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Omsetning (MNOK)</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Omsetning (MNOK)</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={revenueChartData} margin={{ left: 0, right: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
@@ -171,7 +171,7 @@ export default function CompareTab() {
             )}
             {riskChartData.length > 0 && (
               <div className="broker-card">
-                <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Risikoscore</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Risikoscore</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={riskChartData} margin={{ left: 0, right: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />

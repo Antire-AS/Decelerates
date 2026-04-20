@@ -45,7 +45,7 @@ export function DealCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-[#EDE8E3] rounded-lg p-3 space-y-2 select-none
+      className={`bg-card border border-border rounded-lg p-3 space-y-2 select-none
                   ${isDragging ? "opacity-50 shadow-lg" : "shadow-sm hover:shadow-md transition-shadow"}`}
     >
       <div className="flex items-start gap-2">
@@ -53,16 +53,16 @@ export function DealCard({
           {...listeners}
           {...attributes}
           aria-label="Dra for å flytte"
-          className="touch-none cursor-grab active:cursor-grabbing text-[#C4BDB4] hover:text-[#8A7F74] flex-shrink-0 mt-0.5"
+          className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-muted-foreground flex-shrink-0 mt-0.5"
         >
           <GripVertical className="w-4 h-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#2C3E50] truncate" title={companyName ?? deal.orgnr}>
+          <p className="text-sm font-semibold text-foreground truncate" title={companyName ?? deal.orgnr}>
             {companyName ?? deal.orgnr}
           </p>
           {deal.title && (
-            <p className="text-xs text-[#8A7F74] truncate" title={deal.title}>
+            <p className="text-xs text-muted-foreground truncate" title={deal.title}>
               {deal.title}
             </p>
           )}
@@ -70,7 +70,7 @@ export function DealCard({
         <button
           onClick={() => onDelete(deal)}
           aria-label="Slett deal"
-          className="text-[#C4BDB4] hover:text-red-500 flex-shrink-0"
+          className="text-muted-foreground hover:text-red-500 flex-shrink-0"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -82,7 +82,7 @@ export function DealCard({
         </p>
       )}
 
-      <div className="flex items-center gap-3 text-[10px] text-[#8A7F74]">
+      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
         {deal.expected_close_date && (
           <span className="flex items-center gap-0.5">
             <Calendar className="w-3 h-3" /> {deal.expected_close_date}

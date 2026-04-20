@@ -52,12 +52,12 @@ export default function TendersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Anbud</h1>
-          <p className="text-sm text-[#8A7F74]">Opprett og administrer anbudsforespørsler til forsikringsselskaper</p>
+          <h1 className="text-2xl font-bold text-foreground">Anbud</h1>
+          <p className="text-sm text-muted-foreground">Opprett og administrer anbudsforespørsler til forsikringsselskaper</p>
         </div>
         <button
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80"
         >
           <Plus className="w-4 h-4" />
           Nytt anbud
@@ -67,8 +67,8 @@ export default function TendersPage() {
       {/* Tender list */}
       {!tenders?.length ? (
         <div className="broker-card text-center py-12">
-          <FileText className="w-10 h-10 mx-auto text-[#D4C9B8] mb-3" />
-          <p className="text-[#8A7F74]">Ingen anbud ennå. Opprett ditt første anbud.</p>
+          <FileText className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground">Ingen anbud ennå. Opprett ditt første anbud.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -82,12 +82,12 @@ export default function TendersPage() {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-semibold text-[#2C3E50]">{t.title}</h3>
+                    <h3 className="font-semibold text-foreground">{t.title}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.color}`}>
                       {s.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-[#8A7F74]">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span>{t.product_types.join(", ")}</span>
                     {t.deadline && (
                       <span className="flex items-center gap-1">
@@ -97,7 +97,7 @@ export default function TendersPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-6 text-sm text-[#8A7F74]">
+                <div className="flex items-center gap-6 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Send className="w-3.5 h-3.5" />
                     {t.recipient_count} selskaper
@@ -111,7 +111,7 @@ export default function TendersPage() {
                       e.preventDefault();
                       setDeleteId(t.id);
                     }}
-                    className="p-1.5 hover:bg-red-50 rounded text-[#8A7F74] hover:text-red-500"
+                    className="p-1.5 hover:bg-red-50 rounded text-muted-foreground hover:text-red-500"
                     aria-label="Slett anbud"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -208,8 +208,8 @@ function NewTenderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-[#2C3E50] px-6 py-4 flex items-center justify-between rounded-t-2xl">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-primary px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="text-white font-semibold">Nytt anbud</h2>
           <button onClick={onClose} className="text-white/50 hover:text-white">
             <X className="w-5 h-5" />
@@ -251,8 +251,8 @@ function NewTenderModal({
                   onClick={() => toggleProduct(p)}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                     products.includes(p)
-                      ? "bg-[#2C3E50] text-white border-[#2C3E50]"
-                      : "bg-white text-[#8A7F74] border-[#D4C9B8] hover:border-[#4A6FA5]"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:border-primary"
                   }`}
                 >
                   {p}
@@ -281,7 +281,7 @@ function NewTenderModal({
                 {recipients.map((r) => (
                   <span
                     key={r.insurer_name}
-                    className="flex items-center gap-1 text-xs bg-[#C5D8F0] text-[#2C3E50] px-2 py-1 rounded-full"
+                    className="flex items-center gap-1 text-xs bg-accent text-foreground px-2 py-1 rounded-full"
                   >
                     {r.insurer_name}
                     <button onClick={() => removeRecipient(r.insurer_name)}>
@@ -298,7 +298,7 @@ function NewTenderModal({
                   <button
                     key={ins.id}
                     onClick={() => addInsurer(ins)}
-                    className="text-xs px-2.5 py-1 rounded-full border border-[#D4C9B8] text-[#8A7F74] hover:border-[#4A6FA5] hover:text-[#4A6FA5]"
+                    className="text-xs px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary"
                   >
                     + {ins.name}
                   </button>
@@ -319,13 +319,13 @@ function NewTenderModal({
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-[#8A7F74] hover:text-[#2C3E50]">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
               Avbryt
             </button>
             <button
               onClick={handleCreate}
               disabled={!orgnr || !title || !products.length || saving}
-              className="px-6 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f] disabled:opacity-50"
+              className="px-6 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50"
             >
               {saving ? "Oppretter..." : "Opprett anbud"}
             </button>

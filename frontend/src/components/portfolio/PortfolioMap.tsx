@@ -72,7 +72,7 @@ export default function PortfolioMap({ rows }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-48 text-xs text-[#8A7F74]">
+      <div className="flex items-center justify-center h-48 text-xs text-muted-foreground">
         Henter koordinater…
       </div>
     );
@@ -93,7 +93,7 @@ export default function PortfolioMap({ rows }: Props) {
   return (
     <div className="space-y-2">
       {/* Legend */}
-      <div className="flex gap-4 text-xs text-[#8A7F74]">
+      <div className="flex gap-4 text-xs text-muted-foreground">
         {legendEntries.map(({ label, color }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ background: color }} />
@@ -116,11 +116,11 @@ export default function PortfolioMap({ rows }: Props) {
           <Marker key={m.orgnr} position={[m.lat, m.lon]} icon={makeIcon(colorFor(m.risk_score))}>
             <Popup>
               <div className="text-xs space-y-1 min-w-[120px]">
-                <p className="font-semibold text-[#2C3E50]">{m.navn ?? m.orgnr}</p>
-                <p className="text-[#8A7F74]">Risikoscore: {m.risk_score ?? "–"}</p>
+                <p className="font-semibold text-foreground">{m.navn ?? m.orgnr}</p>
+                <p className="text-muted-foreground">Risikoscore: {m.risk_score ?? "–"}</p>
                 <Link
                   href={`/search/${m.orgnr}`}
-                  className="text-[#4A6FA5] underline"
+                  className="text-primary underline"
                 >
                   Åpne profil →
                 </Link>
@@ -130,7 +130,7 @@ export default function PortfolioMap({ rows }: Props) {
         ))}
       </MapContainer>
 
-      <p className="text-xs text-[#8A7F74]">{markers.length} av {rows.length} selskaper har adressedata</p>
+      <p className="text-xs text-muted-foreground">{markers.length} av {rows.length} selskaper har adressedata</p>
     </div>
   );
 }

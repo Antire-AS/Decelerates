@@ -19,15 +19,15 @@ export default function Error({
       <div className="broker-card max-w-md w-full text-center space-y-4">
         <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
         <div>
-          <p className="text-base font-semibold text-[#2C3E50]">Noe gikk galt</p>
-          <p className="text-sm text-[#8A7F74] mt-1">{error.message}</p>
+          <p className="text-base font-semibold text-foreground">Noe gikk galt</p>
+          <p className="text-sm text-muted-foreground mt-1">{error.message}</p>
           {error.digest && (
-            <p className="text-xs text-[#C4BDB4] mt-1 font-mono">ID: {error.digest}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-mono">ID: {error.digest}</p>
           )}
         </div>
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 mx-auto bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]"
+          className="flex items-center gap-2 px-4 py-2 mx-auto bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80"
         >
           <RotateCcw className="w-4 h-4" />
           Prøv igjen

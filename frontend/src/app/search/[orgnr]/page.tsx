@@ -133,7 +133,7 @@ export default function OrgProfilePage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#4A6FA5]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -142,7 +142,7 @@ export default function OrgProfilePage({
     return (
       <div className="broker-card text-center text-sm text-muted-foreground">
         Selskapet ble ikke funnet.{" "}
-        <Link href="/search" className="text-[#4A6FA5] underline">Tilbake</Link>
+        <Link href="/search" className="text-primary underline">Tilbake</Link>
       </div>
     );
   }
@@ -279,13 +279,13 @@ export default function OrgProfilePage({
           <div className="space-y-4">
             <div className="flex gap-2 flex-wrap">
               <Link href={`/idd?orgnr=${orgnr}`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent">
                 <FileText className="w-3.5 h-3.5" />
                 IDD behovsanalyse
               </Link>
               <button
                 onClick={() => downloadCertificatePdf(orgnr)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent"
               >
                 <Download className="w-3.5 h-3.5" />
                 Last ned forsikringsbevis

@@ -52,8 +52,8 @@ export function OfferComparisonTable({ result }: { result: DocumentCompareOut })
   if (!isStructured) {
     const raw = (structured as Record<string, unknown>).raw_text;
     return (
-      <div className="bg-[#F9F7F4] rounded-lg p-3">
-        <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">
+      <div className="bg-muted rounded-lg p-3">
+        <p className="text-xs text-foreground whitespace-pre-wrap">
           {typeof raw === "string" ? raw : JSON.stringify(structured, null, 2)}
         </p>
       </div>
@@ -70,14 +70,14 @@ export function OfferComparisonTable({ result }: { result: DocumentCompareOut })
 
       {/* Comparison rows table */}
       {rows.length > 0 && (
-        <div className="bg-white border border-[#EDE8E3] rounded-lg overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
           <table className="w-full text-xs">
-            <thead className="bg-[#F9F7F4] border-b border-[#EDE8E3]">
+            <thead className="bg-muted border-b border-border">
               <tr>
-                <th className="text-left p-2 font-semibold text-[#2C3E50] w-1/4">Område</th>
-                <th className="text-left p-2 font-semibold text-[#2C3E50]">{titleA}</th>
-                <th className="text-left p-2 font-semibold text-[#2C3E50]">{titleB}</th>
-                <th className="text-center p-2 font-semibold text-[#2C3E50] w-20">Vinner</th>
+                <th className="text-left p-2 font-semibold text-foreground w-1/4">Område</th>
+                <th className="text-left p-2 font-semibold text-foreground">{titleA}</th>
+                <th className="text-left p-2 font-semibold text-foreground">{titleB}</th>
+                <th className="text-center p-2 font-semibold text-foreground w-20">Vinner</th>
               </tr>
             </thead>
             <tbody>
@@ -86,12 +86,12 @@ export function OfferComparisonTable({ result }: { result: DocumentCompareOut })
                 const winnerB = row.winner === "B";
                 const tied = row.winner === "Lik";
                 return (
-                  <tr key={idx} className="border-t border-[#EDE8E3]">
-                    <td className="p-2 font-medium text-[#2C3E50] align-top">{row.area ?? "—"}</td>
-                    <td className={`p-2 align-top ${winnerA ? "bg-emerald-50 text-emerald-900" : "text-[#2C3E50]"}`}>
+                  <tr key={idx} className="border-t border-border">
+                    <td className="p-2 font-medium text-foreground align-top">{row.area ?? "—"}</td>
+                    <td className={`p-2 align-top ${winnerA ? "bg-emerald-50 text-emerald-900" : "text-foreground"}`}>
                       {row.doc_a ?? "—"}
                     </td>
-                    <td className={`p-2 align-top ${winnerB ? "bg-emerald-50 text-emerald-900" : "text-[#2C3E50]"}`}>
+                    <td className={`p-2 align-top ${winnerB ? "bg-emerald-50 text-emerald-900" : "text-foreground"}`}>
                       {row.doc_b ?? "—"}
                     </td>
                     <td className="p-2 text-center align-top">
@@ -107,9 +107,9 @@ export function OfferComparisonTable({ result }: { result: DocumentCompareOut })
 
       {/* Conclusion */}
       {structured.conclusion && (
-        <div className="bg-[#F9F7F4] border-l-4 border-[#4A6FA5] rounded p-3">
-          <p className="text-xs font-semibold text-[#2C3E50] mb-1">Konklusjon</p>
-          <p className="text-xs text-[#2C3E50] whitespace-pre-wrap">{structured.conclusion}</p>
+        <div className="bg-muted border-l-4 border-primary rounded p-3">
+          <p className="text-xs font-semibold text-foreground mb-1">Konklusjon</p>
+          <p className="text-xs text-foreground whitespace-pre-wrap">{structured.conclusion}</p>
         </div>
       )}
     </div>
@@ -128,13 +128,13 @@ function SummaryCard({
   cons?: string[];
 }) {
   return (
-    <div className="bg-white border border-[#EDE8E3] rounded-lg p-3 space-y-2">
-      <p className="text-sm font-semibold text-[#2C3E50] truncate" title={title}>{title}</p>
-      {summary && <p className="text-xs text-[#2C3E50]">{summary}</p>}
+    <div className="bg-card border border-border rounded-lg p-3 space-y-2">
+      <p className="text-sm font-semibold text-foreground truncate" title={title}>{title}</p>
+      {summary && <p className="text-xs text-foreground">{summary}</p>}
       {pros && pros.length > 0 && (
         <div>
           <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-700 mb-0.5">Fordeler</p>
-          <ul className="text-xs text-[#2C3E50] space-y-0.5 list-disc list-inside">
+          <ul className="text-xs text-foreground space-y-0.5 list-disc list-inside">
             {pros.map((p, i) => <li key={i}>{p}</li>)}
           </ul>
         </div>
@@ -142,7 +142,7 @@ function SummaryCard({
       {cons && cons.length > 0 && (
         <div>
           <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700 mb-0.5">Ulemper</p>
-          <ul className="text-xs text-[#2C3E50] space-y-0.5 list-disc list-inside">
+          <ul className="text-xs text-foreground space-y-0.5 list-disc list-inside">
             {cons.map((c, i) => <li key={i}>{c}</li>)}
           </ul>
         </div>
@@ -183,5 +183,5 @@ function WinnerBadge({
       </span>
     );
   }
-  return <span className="text-[10px] text-[#8A7F74]">{winner ?? "—"}</span>;
+  return <span className="text-[10px] text-muted-foreground">{winner ?? "—"}</span>;
 }

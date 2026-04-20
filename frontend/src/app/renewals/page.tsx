@@ -92,7 +92,7 @@ export default function RenewalsPage() {
           {DAYS_OPTIONS.map((d) => (
             <button key={d} onClick={() => setDays(d)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                days === d ? "bg-[#2C3E50] text-white" : "bg-muted text-muted-foreground hover:bg-[#DDD8D3]"
+                days === d ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
               }`}>{d}d</button>
           ))}
         </div>
@@ -123,7 +123,7 @@ export default function RenewalsPage() {
           </div>
           {stageCounts.map((s) => (
             <button key={s.id} onClick={() => setStageFilter(stageFilter === s.id ? "all" : s.id)}
-              className={`broker-card text-left transition-all ${stageFilter === s.id ? "ring-2 ring-[#4A6FA5]" : ""}`}>
+              className={`broker-card text-left transition-all ${stageFilter === s.id ? "ring-2 ring-ring" : ""}`}>
               <p className="text-xs text-muted-foreground font-medium mb-1 truncate">{s.label}</p>
               <p className="text-xl font-bold text-foreground">{s.count}</p>
             </button>
@@ -135,11 +135,11 @@ export default function RenewalsPage() {
       {!isLoading && renewals && renewals.length > 0 && (
         <div className="flex gap-2">
           <button onClick={() => setView("table")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "table" ? "bg-[#2C3E50] text-white" : "bg-muted text-muted-foreground hover:bg-[#DDD8D3]"}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "table" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"}`}>
             Tabell
           </button>
           <button onClick={() => setView("kanban")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "kanban" ? "bg-[#2C3E50] text-white" : "bg-muted text-muted-foreground hover:bg-[#DDD8D3]"}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"}`}>
             Pipeline
           </button>
         </div>
@@ -169,7 +169,7 @@ export default function RenewalsPage() {
                 <th className="text-center pb-2 font-medium">Flytt</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE8E3]">
+            <tbody className="divide-y divide-border">
               {filtered.map((r) => {
                 const stage = (r.renewal_stage ?? "not_started") as StageId;
                 const meta = stageMeta(stage);
@@ -177,7 +177,7 @@ export default function RenewalsPage() {
                 const hasBrief = !!r.renewal_brief;
                 return (
                   <Fragment key={r.id}>
-                    <tr className="hover:bg-[#F9F7F4]">
+                    <tr className="hover:bg-muted">
                       <td className="py-2">
                         <span className="font-medium text-foreground">{r.client_name}</span>
                         <span className="block text-xs text-muted-foreground">{r.orgnr}</span>
@@ -204,7 +204,7 @@ export default function RenewalsPage() {
                           disabled={advancing === r.id}
                           value=""
                           onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
-                          className="text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-white"
+                          className="text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card"
                         >
                           <option value="">Flytt…</option>
                           {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -212,21 +212,21 @@ export default function RenewalsPage() {
                       </td>
                     </tr>
                     {hasBrief && (
-                      <tr className="bg-[#F0F4FB]">
+                      <tr className="bg-accent">
                         <td colSpan={9} className="px-4 py-2">
                           <div className="flex gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Sparkles className="w-3 h-3 text-[#4A6FA5]" />
-                                <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">AI Fornyelsesbriefing</span>
+                                <Sparkles className="w-3 h-3 text-primary" />
+                                <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">AI Fornyelsesbriefing</span>
                               </div>
                               <p className="text-xs text-foreground whitespace-pre-line">{r.renewal_brief}</p>
                             </div>
                             {r.renewal_email_draft && (
-                              <div className="flex-1 border-l border-[#C5D8F0] pl-4">
+                              <div className="flex-1 border-l border-border pl-4">
                                 <div className="flex items-center gap-1.5 mb-1">
-                                  <Mail className="w-3 h-3 text-[#4A6FA5]" />
-                                  <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">Utkast til klient-epost</span>
+                                  <Mail className="w-3 h-3 text-primary" />
+                                  <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">Utkast til klient-epost</span>
                                 </div>
                                 <p className="text-xs text-muted-foreground whitespace-pre-line">{r.renewal_email_draft}</p>
                               </div>
@@ -286,13 +286,13 @@ export default function RenewalsPage() {
                           placeholder="E-post varsling (valgfri)"
                           value={notifyEmails[r.id] ?? ""}
                           onChange={(e) => setNotifyEmails((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-white focus:outline-none focus:border-[#4A6FA5]"
+                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card focus:outline-none focus:border-primary"
                         />
                         <select
                           disabled={advancing === r.id}
                           value=""
                           onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
-                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-white"
+                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card"
                         >
                           <option value="">Flytt til…</option>
                           {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}

@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 kr {fmt(data.total_premium_book)}
               </p>
               {data.renewals_90d > 0 && (
-                <p className="text-xs text-[#C8A951]">
+                <p className="text-xs text-brand-warning">
                   ⚠️ {data.renewals_90d} avtale(r) forfaller innen 90 dager
                 </p>
               )}
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                   </div>
                 </>
               ) : hasCrm ? (
-                <p className="text-sm text-[#5A8A5A]">
+                <p className="text-sm text-brand-success">
                   ✓ Ingen avtaler forfaller de neste 30 dagene
                 </p>
               ) : (
@@ -155,8 +155,8 @@ export default function DashboardPage() {
               key={href}
               href={href}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg
-                         bg-[#2C3E50] text-white text-sm font-medium
-                         hover:bg-[#3d5166] transition-colors"
+                         bg-primary text-primary-foreground text-sm font-medium
+                         hover:bg-primary/90 transition-colors"
             >
               <Icon className="w-4 h-4" />
               {label}
@@ -180,9 +180,9 @@ export default function DashboardPage() {
                 <th className="text-left pb-2 font-medium">Risiko</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE8E3]">
+            <tbody className="divide-y divide-border">
               {companies.map((c) => (
-                <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
+                <tr key={c.orgnr} className="hover:bg-muted">
                   <td className="py-2 font-medium text-foreground">
                     <Link href={`/search/${c.orgnr}`} className="hover:underline">
                       {c.navn ?? c.orgnr}
@@ -203,10 +203,10 @@ export default function DashboardPage() {
       )}
 
       {!hasCrm && (
-        <div className="broker-card bg-[#EEF4FC] border-[#C5D8F0]">
+        <div className="broker-card bg-accent border-border">
           <p className="text-sm text-foreground">
             <strong>Kom i gang:</strong> Gå til{" "}
-            <Link href="/admin" className="text-[#4A6FA5] underline">Admin</Link>{" "}
+            <Link href="/admin" className="text-primary underline">Admin</Link>{" "}
             og trykk <em>Seed CRM demo-data</em> for å fylle opp med realistiske testdata.
           </p>
         </div>

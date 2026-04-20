@@ -123,7 +123,7 @@ export default function OnboardingTour() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="rounded-xl overflow-hidden shadow-2xl bg-[#2C3E50]">
+          <div className="rounded-xl overflow-hidden shadow-2xl bg-primary">
             <Player
               component={DemoVideo}
               durationInFrames={DEMO_VIDEO_CONFIG.durationInFrames}
@@ -151,9 +151,9 @@ export default function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-[#2C3E50] px-6 py-3 flex items-center justify-between">
+        <div className="bg-primary px-6 py-3 flex items-center justify-between">
           <p className="text-xs font-medium text-white/60 uppercase tracking-wide">
             Veiledning · Steg {step + 1} av {STEPS.length}
           </p>
@@ -163,9 +163,9 @@ export default function OnboardingTour() {
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-[#EDE8E3]">
+        <div className="h-1 bg-muted">
           <div
-            className="h-full bg-[#4A6FA5] transition-all duration-300"
+            className="h-full bg-primary transition-all duration-300"
             style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
           />
         </div>
@@ -194,8 +194,8 @@ export default function OnboardingTour() {
 
         {/* Text content */}
         <div className="px-6 py-4">
-          <h2 className="text-lg font-bold text-[#2C3E50] mb-1.5">{current.title}</h2>
-          <p className="text-sm text-[#8A7F74] leading-relaxed">{current.body}</p>
+          <h2 className="text-lg font-bold text-foreground mb-1.5">{current.title}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{current.body}</p>
         </div>
 
         {/* Footer */}
@@ -203,7 +203,7 @@ export default function OnboardingTour() {
           <button
             onClick={() => setStep((s) => s - 1)}
             disabled={step === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] disabled:opacity-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-0"
           >
             <ArrowLeft className="w-4 h-4" />
             Forrige
@@ -213,7 +213,7 @@ export default function OnboardingTour() {
             {STEPS.map((_, i) => (
               <button key={i} onClick={() => setStep(i)}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  i === step ? "bg-[#4A6FA5]" : "bg-[#EDE8E3] hover:bg-[#C8A951]"
+                  i === step ? "bg-primary" : "bg-muted hover:bg-brand-warning"
                 }`} />
             ))}
           </div>
@@ -221,7 +221,7 @@ export default function OnboardingTour() {
           {isLast ? (
             <button
               onClick={close}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80"
             >
               <CheckCircle className="w-4 h-4" />
               Fullfør
@@ -229,7 +229,7 @@ export default function OnboardingTour() {
           ) : (
             <button
               onClick={() => setStep((s) => s + 1)}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80"
             >
               Neste
               <ArrowRight className="w-4 h-4" />

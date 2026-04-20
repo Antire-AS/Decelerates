@@ -98,15 +98,15 @@ export default function OverviewTab({
               if (!v) return null;
               return (
                 <div key={k} className="flex justify-between text-sm gap-2">
-                  <span className="text-[#8A7F74]">{k}</span>
-                  <span className="text-[#2C3E50] font-medium text-right text-xs">{String(v)}</span>
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="text-foreground font-medium text-right text-xs">{String(v)}</span>
                 </div>
               );
             })}
             {!!org.hjemmeside && (
               <a href={`https://${String(org.hjemmeside).replace(/^https?:\/\//, "")}`}
                 target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#4A6FA5] hover:underline mt-1">
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
                 <ExternalLink className="w-3 h-3" />{String(org.hjemmeside)}
               </a>
             )}
@@ -134,7 +134,7 @@ export default function OverviewTab({
               <Section title="PEP / sanksjonssjekk">
                 <p className="text-xs text-red-600 font-medium mb-1">{hits.length} treff i OpenSanctions</p>
                 {(hits as Record<string, unknown>[]).slice(0, 5).map((h, i) => (
-                  <div key={i} className="text-xs text-[#8A7F74] flex items-start gap-1.5">
+                  <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 flex-shrink-0" />
                     <span>{String(h.name ?? h.caption ?? "Treff")}</span>
                   </div>
@@ -162,14 +162,14 @@ export default function OverviewTab({
             rows.push({ label: "Typisk resultatmargin", value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max) });
           return (
             <Section title="SSB-bransjesammenligning">
-              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Typiske nøkkeltall for bransjen{b.live === true ? " (live SSB)" : ""}</span>
               </div>
               {rows.map((row) => (
                 <div key={row.label} className="flex justify-between text-sm">
-                  <span className="text-[#8A7F74]">{row.label}</span>
-                  <span className="text-[#2C3E50] font-medium text-xs">{row.value}</span>
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="text-foreground font-medium text-xs">{row.value}</span>
                 </div>
               ))}
             </Section>
@@ -178,7 +178,7 @@ export default function OverviewTab({
 
         {peerData && peerData.peer_count > 0 && (
           <Section title="Bransje-benchmark (peer-sammenligning)">
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+            <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
               <BarChart3 className="w-3.5 h-3.5" />
               <span>NACE {peerData.nace_section || "–"} · {peerData.peer_count} peers · {peerData.source === "db_peers" ? "database" : "SSB"}</span>
             </div>
@@ -195,10 +195,10 @@ export default function OverviewTab({
                 };
                 return (
                   <div key={k} className="flex justify-between items-baseline text-xs">
-                    <span className="text-[#8A7F74]">{label}</span>
-                    <span className="text-[#2C3E50] font-medium">
-                      {fmtVal(m.company)} <span className="text-[#C4BDB4]">vs</span> <span className="text-[#8A7F74]">{fmtVal(m.peer_avg)}</span>
-                      {m.percentile != null && <span className="ml-2 text-[10px] text-[#4A6FA5]">P{m.percentile}</span>}
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="text-foreground font-medium">
+                      {fmtVal(m.company)} <span className="text-muted-foreground">vs</span> <span className="text-muted-foreground">{fmtVal(m.peer_avg)}</span>
+                      {m.percentile != null && <span className="ml-2 text-[10px] text-primary">P{m.percentile}</span>}
                     </span>
                   </div>
                 );

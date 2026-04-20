@@ -6,12 +6,12 @@ export function StepHeader({ step, total, label }: { step: number; total: number
   return (
     <div className="mb-4">
       <div className="flex items-center gap-3 mb-2">
-        <div className="h-1.5 flex-1 bg-[#EDE8E3] rounded-full overflow-hidden">
-          <div className="h-full bg-[#2C3E50] rounded-full transition-all" style={{ width: `${(step / total) * 100}%` }} />
+        <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(step / total) * 100}%` }} />
         </div>
-        <span className="text-xs text-[#8A7F74] whitespace-nowrap">Steg {step} av {total}</span>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">Steg {step} av {total}</span>
       </div>
-      <h2 className="text-sm font-semibold text-[#2C3E50]">{label}</h2>
+      <h2 className="text-sm font-semibold text-foreground">{label}</h2>
     </div>
   );
 }
@@ -23,12 +23,12 @@ export function NavButtons({ onBack, onNext, nextLabel = "Neste →", nextDisabl
     <div className="flex gap-2 mt-4">
       {onBack && (
         <button onClick={onBack}
-          className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3]">
+          className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground hover:bg-muted">
           ← Tilbake
         </button>
       )}
       <button onClick={onNext} disabled={nextDisabled || loading}
-        className="px-4 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1">
+        className="px-4 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
         {loading && <Loader2 className="w-3 h-3 animate-spin" />}
         {nextLabel}
       </button>

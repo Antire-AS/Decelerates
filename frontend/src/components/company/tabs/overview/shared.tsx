@@ -29,7 +29,7 @@ export function riskGuidanceForLabel(label: string): string {
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="broker-card space-y-3">
-      <h3 className="text-sm font-semibold text-[#2C3E50]">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {children}
     </div>
   );
@@ -38,8 +38,8 @@ export function Section({ title, children }: { title: string; children: React.Re
 export function KV({ label, value }: { label: string; value: unknown }) {
   return (
     <div className="flex justify-between text-sm gap-4">
-      <span className="text-[#8A7F74]">{label}</span>
-      <span className="text-[#2C3E50] font-medium text-right">{fmt(value)}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-foreground font-medium text-right">{fmt(value)}</span>
     </div>
   );
 }

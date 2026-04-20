@@ -34,14 +34,14 @@ export function KanbanColumn({
   const accent = stage.color ?? "#94A3B8";
 
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col bg-[#F9F7F4] rounded-lg border border-[#EDE8E3]">
+    <div className="flex-shrink-0 w-72 flex flex-col bg-muted rounded-lg border border-border">
       <div
-        className="flex items-center justify-between px-3 py-2 border-b border-[#EDE8E3] rounded-t-lg"
+        className="flex items-center justify-between px-3 py-2 border-b border-border rounded-t-lg"
         style={{ borderTopColor: accent, borderTopWidth: 3 }}
       >
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#2C3E50] truncate">{stage.name}</p>
-          <p className="text-[10px] text-[#8A7F74]">
+          <p className="text-sm font-semibold text-foreground truncate">{stage.name}</p>
+          <p className="text-[10px] text-muted-foreground">
             {deals.length} deal{deals.length === 1 ? "" : "s"}
             {total > 0 && ` · ${fmtNok(total)}`}
           </p>
@@ -49,7 +49,7 @@ export function KanbanColumn({
         <button
           onClick={() => onAddDeal(stage.id)}
           aria-label={`Legg til deal i ${stage.name}`}
-          className="text-[#8A7F74] hover:text-[#2C3E50] flex-shrink-0"
+          className="text-muted-foreground hover:text-foreground flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -62,7 +62,7 @@ export function KanbanColumn({
         }`}
       >
         {deals.length === 0 ? (
-          <p className="text-[10px] text-[#C4BDB4] text-center py-6">
+          <p className="text-[10px] text-muted-foreground text-center py-6">
             Slipp en deal her, eller klikk + over.
           </p>
         ) : (

@@ -59,15 +59,15 @@ export default function CoverageSection({ orgnr }: CoverageSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold text-[#2C3E50] flex items-center gap-2">
-          <Shield className="w-5 h-5 text-[#4A6FA5]" />
+        <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+          <Shield className="w-5 h-5 text-primary" />
           Dekningsanalyse
         </h3>
       </div>
 
       {/* Upload form */}
       <div className="broker-card">
-        <p className="text-sm text-[#8A7F74] mb-3">
+        <p className="text-sm text-muted-foreground mb-3">
           Last opp et forsikringsdokument (polise, vilkår, tilbud) for AI-analyse av dekningsomfang.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -91,10 +91,10 @@ export default function CoverageSection({ orgnr }: CoverageSectionProps) {
             accept=".pdf"
             onChange={handleUpload}
             disabled={uploading}
-            className="block flex-1 text-sm text-[#8A7F74] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-[#2C3E50] file:text-white hover:file:bg-[#1a252f] disabled:opacity-50"
+            className="block flex-1 text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-primary/80 disabled:opacity-50"
           />
           {uploading && (
-            <span className="text-xs text-[#4A6FA5] flex items-center gap-1">
+            <span className="text-xs text-primary flex items-center gap-1">
               <Loader2 className="w-3 h-3 animate-spin" />
               Analyserer...
             </span>
@@ -104,7 +104,7 @@ export default function CoverageSection({ orgnr }: CoverageSectionProps) {
 
       {/* Results */}
       {!analyses?.length ? (
-        <div className="text-center py-8 text-sm text-[#8A7F74]">
+        <div className="text-center py-8 text-sm text-muted-foreground">
           Ingen dekningsanalyser ennå. Last opp et forsikringsdokument for å komme i gang.
         </div>
       ) : (
@@ -133,15 +133,15 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
       >
         <div className="flex items-center gap-3">
           {analysis.status === "analysed" ? (
-            <ShieldCheck className="w-5 h-5 text-[#5A8A5A]" />
+            <ShieldCheck className="w-5 h-5 text-brand-success" />
           ) : analysis.status === "error" ? (
-            <ShieldX className="w-5 h-5 text-[#C0392B]" />
+            <ShieldX className="w-5 h-5 text-brand-danger" />
           ) : (
-            <Loader2 className="w-5 h-5 text-[#C8A951] animate-spin" />
+            <Loader2 className="w-5 h-5 text-brand-warning animate-spin" />
           )}
           <div>
-            <h4 className="text-sm font-semibold text-[#2C3E50]">{analysis.title}</h4>
-            <div className="flex items-center gap-3 text-xs text-[#8A7F74]">
+            <h4 className="text-sm font-semibold text-foreground">{analysis.title}</h4>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {analysis.insurer && <span>{analysis.insurer}</span>}
               {analysis.product_type && <span>· {analysis.product_type}</span>}
               {analysis.premium_nok != null && <span>· Premie: {fmtNok(analysis.premium_nok)}</span>}
@@ -151,40 +151,40 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
-            className="p-1 hover:bg-red-50 rounded text-[#8A7F74] hover:text-red-500"
+            className="p-1 hover:bg-red-50 rounded text-muted-foreground hover:text-red-500"
             aria-label="Slett analyse"
           >
             <Trash2 className="w-4 h-4" />
           </button>
-          {expanded ? <ChevronDown className="w-4 h-4 text-[#8A7F74]" /> : <ChevronRight className="w-4 h-4 text-[#8A7F74]" />}
+          {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </div>
       </div>
 
       {expanded && cd && (
-        <div className="mt-4 pt-4 border-t border-[#EDE8E3] space-y-4">
+        <div className="mt-4 pt-4 border-t border-border space-y-4">
           {/* Summary */}
           {cd.oppsummering && (
-            <p className="text-sm text-[#8A7F74] italic">{cd.oppsummering}</p>
+            <p className="text-sm text-muted-foreground italic">{cd.oppsummering}</p>
           )}
 
           {/* Key figures */}
           <div className="grid grid-cols-3 gap-3">
             {analysis.premium_nok != null && (
-              <div className="text-center p-3 bg-[#F5F0EB] rounded-lg">
-                <div className="text-xs text-[#8A7F74]">Premie</div>
-                <div className="text-base font-bold text-[#2C3E50]">{fmtNok(analysis.premium_nok)}</div>
+              <div className="text-center p-3 bg-background rounded-lg">
+                <div className="text-xs text-muted-foreground">Premie</div>
+                <div className="text-base font-bold text-foreground">{fmtNok(analysis.premium_nok)}</div>
               </div>
             )}
             {analysis.deductible_nok != null && (
-              <div className="text-center p-3 bg-[#F5F0EB] rounded-lg">
-                <div className="text-xs text-[#8A7F74]">Egenandel</div>
-                <div className="text-base font-bold text-[#2C3E50]">{fmtNok(analysis.deductible_nok)}</div>
+              <div className="text-center p-3 bg-background rounded-lg">
+                <div className="text-xs text-muted-foreground">Egenandel</div>
+                <div className="text-base font-bold text-foreground">{fmtNok(analysis.deductible_nok)}</div>
               </div>
             )}
             {analysis.coverage_sum_nok != null && (
-              <div className="text-center p-3 bg-[#F5F0EB] rounded-lg">
-                <div className="text-xs text-[#8A7F74]">Forsikringssum</div>
-                <div className="text-base font-bold text-[#2C3E50]">{fmtNok(analysis.coverage_sum_nok)}</div>
+              <div className="text-center p-3 bg-background rounded-lg">
+                <div className="text-xs text-muted-foreground">Forsikringssum</div>
+                <div className="text-base font-bold text-foreground">{fmtNok(analysis.coverage_sum_nok)}</div>
               </div>
             )}
           </div>
@@ -192,18 +192,18 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
           {/* Coverage items */}
           {cd.dekninger && cd.dekninger.length > 0 && (
             <div>
-              <h5 className="text-xs font-semibold text-[#2C3E50] uppercase tracking-wide mb-2">Dekninger</h5>
+              <h5 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-2">Dekninger</h5>
               <div className="space-y-2">
                 {cd.dekninger.map((d, i) => (
-                  <div key={i} className="p-3 bg-[#F5F0EB] rounded-lg">
+                  <div key={i} className="p-3 bg-background rounded-lg">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-[#2C3E50]">{d.navn}</span>
+                      <span className="text-sm font-semibold text-foreground">{d.navn}</span>
                       {d.sum_nok != null && d.sum_nok > 0 && (
-                        <span className="text-xs text-[#4A6FA5] font-medium">{fmtNok(d.sum_nok)}</span>
+                        <span className="text-xs text-primary font-medium">{fmtNok(d.sum_nok)}</span>
                       )}
                     </div>
-                    {d.beskrivelse && <p className="text-xs text-[#8A7F74]">{d.beskrivelse}</p>}
-                    <div className="flex gap-4 mt-1 text-xs text-[#8A7F74]">
+                    {d.beskrivelse && <p className="text-xs text-muted-foreground">{d.beskrivelse}</p>}
+                    <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
                       {d.egenandel_nok != null && d.egenandel_nok > 0 && <span>Egenandel: {fmtNok(d.egenandel_nok)}</span>}
                       {d.karenstid && <span>Karenstid: {d.karenstid}</span>}
                       {d.begrensninger && <span>Begrensning: {d.begrensninger}</span>}
@@ -217,14 +217,14 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
           {/* Exclusions */}
           {cd.unntak && cd.unntak.length > 0 && (
             <div>
-              <h5 className="text-xs font-semibold text-[#C0392B] uppercase tracking-wide mb-2 flex items-center gap-1">
+              <h5 className="text-xs font-semibold text-brand-danger uppercase tracking-wide mb-2 flex items-center gap-1">
                 <ShieldAlert className="w-3.5 h-3.5" />
                 Unntak (ikke dekket)
               </h5>
               <ul className="space-y-1">
                 {cd.unntak.map((u, i) => (
-                  <li key={i} className="text-sm text-[#8A7F74] flex items-start gap-2">
-                    <ShieldX className="w-3.5 h-3.5 text-[#C0392B] mt-0.5 flex-shrink-0" />
+                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <ShieldX className="w-3.5 h-3.5 text-brand-danger mt-0.5 flex-shrink-0" />
                     {u}
                   </li>
                 ))}
@@ -235,10 +235,10 @@ function CoverageCard({ analysis, onDelete }: { analysis: CoverageAnalysis; onDe
           {/* Special terms */}
           {cd.særvilkår && cd.særvilkår.length > 0 && (
             <div>
-              <h5 className="text-xs font-semibold text-[#C8A951] uppercase tracking-wide mb-2">Særvilkår</h5>
+              <h5 className="text-xs font-semibold text-brand-warning uppercase tracking-wide mb-2">Særvilkår</h5>
               <ul className="space-y-1">
                 {cd.særvilkår.map((s, i) => (
-                  <li key={i} className="text-sm text-[#8A7F74]">• {s}</li>
+                  <li key={i} className="text-sm text-muted-foreground">• {s}</li>
                 ))}
               </ul>
             </div>

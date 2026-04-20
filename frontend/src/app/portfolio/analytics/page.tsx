@@ -26,12 +26,12 @@ export default function PortfolioAnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-baseline justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Porteføljeanalyse</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Porteføljeanalyse</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Premievolum, provisjonsanalyse, portefølje og sammenligning av selskaper
           </p>
         </div>
-        <Link href="/portfolio" className="text-xs text-[#4A6FA5] hover:underline">← Tilbake til portefølje</Link>
+        <Link href="/portfolio" className="text-xs text-primary hover:underline">← Tilbake til portefølje</Link>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)}>
@@ -40,7 +40,7 @@ export default function PortfolioAnalyticsPage() {
             <TabsTrigger
               key={t.id}
               value={t.id}
-              className="data-[state=active]:bg-[#2C3E50] data-[state=active]:text-white data-[state=active]:shadow-none bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3] px-4 py-2 text-sm font-medium rounded-lg"
+              className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-none bg-muted text-muted-foreground hover:bg-muted px-4 py-2 text-sm font-medium rounded-lg"
             >
               {t.label}
             </TabsTrigger>

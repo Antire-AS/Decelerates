@@ -88,19 +88,19 @@ export default function ManageTab() {
           { label: "Videochunks",    value: stats?.video_chunks,  icon: <Video className="w-4 h-4" /> },
         ].map(({ label, value, icon }) => (
           <div key={label} className="broker-card text-center">
-            <div className="flex justify-center text-[#4A6FA5] mb-1">{icon}</div>
-            <p className="text-xl font-bold text-[#2C3E50]">{value ?? "–"}</p>
-            <p className="text-xs text-[#8A7F74]">{label}</p>
+            <div className="flex justify-center text-primary mb-1">{icon}</div>
+            <p className="text-xl font-bold text-foreground">{value ?? "–"}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
           </div>
         ))}
       </div>
 
       {/* Index documents */}
       <div className="broker-card space-y-3">
-        <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <RefreshCw className="w-4 h-4" /> Indekser dokumenter og videoer
         </h3>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs text-muted-foreground">
           Henter alle dokumenter og videoer fra databasen og bygger vektorsøkeindeksen på nytt.
           Bruk &ldquo;Tving&rdquo; for å slette eksisterende indeks og starte fra scratch.
         </p>
@@ -108,7 +108,7 @@ export default function ManageTab() {
           <button
             onClick={() => handleIndex(false)}
             disabled={indexLoading}
-            className="px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
           >
             {indexLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
             Indekser (inkrementelt)
@@ -128,32 +128,32 @@ export default function ManageTab() {
 
       {/* Seed regulations */}
       <div className="broker-card space-y-3">
-        <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <Sparkles className="w-4 h-4" /> Seed norske forsikringsreguleringer
         </h3>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs text-muted-foreground">
           Legger til forhåndsdefinererte norske forsikrings- og finansreguleringer i kunnskapsbasen
           (GDPR, IDD, Solvens II, m.fl.). Allerede eksisterende oppføringer hoppes over.
         </p>
         <button
           onClick={handleSeedRegulations}
           disabled={seedLoading}
-          className="px-3 py-1.5 text-xs rounded-lg bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
         >
           {seedLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
           Seed reguleringer
         </button>
         {seedErr && <p className="text-xs text-red-600">{seedErr}</p>}
         {seedResult && (
-          <div className="divide-y divide-[#EDE8E3]">
+          <div className="divide-y divide-border">
             {seedResult.map((item, i) => (
               <div key={i} className="py-2 flex items-center justify-between text-xs">
-                <span className="text-[#2C3E50] font-medium">{item.name}</span>
-                <div className="flex items-center gap-2 text-[#8A7F74]">
+                <span className="text-foreground font-medium">{item.name}</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
                   {item.chunks != null && <span>{item.chunks} chunks</span>}
                   <span className={`px-1.5 py-0.5 rounded-full ${
                     item.status === "seeded" ? "bg-green-100 text-green-700"
-                    : item.status === "exists" ? "bg-[#EDE8E3] text-[#8A7F74]"
+                    : item.status === "exists" ? "bg-muted text-muted-foreground"
                     : "bg-red-100 text-red-600"
                   }`}>
                     {item.status === "seeded" ? "Lagt til" : item.status === "exists" ? "Finnes" : item.status}
@@ -167,50 +167,50 @@ export default function ManageTab() {
 
       {/* Custom knowledge ingest form */}
       <div className="broker-card space-y-3">
-        <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <Plus className="w-4 h-4" /> Legg til egendefinert tekst
         </h3>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs text-muted-foreground">
           Teksten blir delt opp i biter og embeddet for bruk i AI-chat. Knyttes til et orgnr.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-orgnr">Orgnr (9 siffer)</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-orgnr">Orgnr (9 siffer)</label>
             <input
               id="manage-ingest-orgnr"
               value={ingestOrgnr}
               onChange={(e) => setIngestOrgnr(e.target.value.replace(/\D/g, "").slice(0, 9))}
               maxLength={9}
               placeholder="123456789"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-border rounded-lg text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-source">Kildelabel</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-source">Kildelabel</label>
             <input
               id="manage-ingest-source"
               value={ingestSource}
               onChange={(e) => setIngestSource(e.target.value)}
               placeholder="custom_note"
-              className="w-full px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+              className="w-full px-3 py-1.5 text-sm border border-border rounded-lg text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8A7F74] mb-1" htmlFor="manage-ingest-text">Tekst å legge inn</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1" htmlFor="manage-ingest-text">Tekst å legge inn</label>
           <textarea
             id="manage-ingest-text"
             value={ingestText}
             onChange={(e) => setIngestText(e.target.value)}
             rows={5}
             placeholder="Lim inn notater, sammendrag eller fritekst…"
-            className="w-full px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-y"
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
           />
         </div>
         <button
           onClick={handleIngest}
           disabled={ingestLoading}
-          className="px-3 py-1.5 text-xs rounded-lg bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
         >
           {ingestLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
           Lagre i kunnskapsbase

@@ -123,20 +123,20 @@ function NewAgreementWizard() {
         <>
           <StepHeader step={5} total={total} label="Gjennomgang og generering" />
           <div className="space-y-3">
-            <div className="bg-[#F9F7F4] rounded-lg p-4 space-y-2 text-sm">
+            <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
               <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-xs text-[#8A7F74]">Klient</span><p className="font-medium">{data.client_navn}</p></div>
-                <div><span className="text-xs text-[#8A7F74]">Org.nr</span><p className="font-medium">{data.client_orgnr ?? "—"}</p></div>
-                <div><span className="text-xs text-[#8A7F74]">Startdato</span><p>{data.start_date}</p></div>
-                <div><span className="text-xs text-[#8A7F74]">Kundeansvarlig</span><p>{data.account_manager ?? "—"}</p></div>
+                <div><span className="text-xs text-muted-foreground">Klient</span><p className="font-medium">{data.client_navn}</p></div>
+                <div><span className="text-xs text-muted-foreground">Org.nr</span><p className="font-medium">{data.client_orgnr ?? "—"}</p></div>
+                <div><span className="text-xs text-muted-foreground">Startdato</span><p>{data.start_date}</p></div>
+                <div><span className="text-xs text-muted-foreground">Kundeansvarlig</span><p>{data.account_manager ?? "—"}</p></div>
               </div>
               <div>
-                <span className="text-xs text-[#8A7F74]">Forsikringslinjer</span>
+                <span className="text-xs text-muted-foreground">Forsikringslinjer</span>
                 <p className="text-xs mt-0.5">{allLines.join(" · ") || "—"}</p>
               </div>
               {data.fee_structure?.lines && data.fee_structure.lines.length > 0 && (
                 <div>
-                  <span className="text-xs text-[#8A7F74]">Honorar</span>
+                  <span className="text-xs text-muted-foreground">Honorar</span>
                   <div className="mt-1 space-y-0.5">
                     {data.fee_structure.lines.map((f) => (
                       <p key={f.line} className="text-xs">
@@ -148,7 +148,7 @@ function NewAgreementWizard() {
               )}
               {data.kyc_signatory && (
                 <div>
-                  <span className="text-xs text-[#8A7F74]">KYC</span>
+                  <span className="text-xs text-muted-foreground">KYC</span>
                   <p className="text-xs">{data.kyc_signatory} — {data.kyc_id_type} {data.kyc_id_ref}</p>
                 </div>
               )}
@@ -197,25 +197,25 @@ function AgreementsList() {
     finally { setDownloadingId(null); }
   }
 
-  if (isLoading) return <div className="broker-card"><Loader2 className="w-5 h-5 animate-spin text-[#4A6FA5]" /></div>;
+  if (isLoading) return <div className="broker-card"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
   if (!agreements?.length) return (
     <div className="broker-card text-center py-12">
-      <p className="text-sm text-[#8A7F74]">Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.</p>
+      <p className="text-sm text-muted-foreground">Ingen avtaler ennå. Opprett en i «Ny avtale»-fanen.</p>
     </div>
   );
 
   return (
     <div className="broker-card">
-      <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Mine avtaler ({agreements.length})</h2>
+      <h2 className="text-sm font-semibold text-foreground mb-3">Mine avtaler ({agreements.length})</h2>
       {err && <p className="text-xs text-red-600 mb-2">{err}</p>}
-      <div className="divide-y divide-[#EDE8E3]">
+      <div className="divide-y divide-border">
         {agreements.map((a) => {
           const aExt = a as SlaAgreement & { start_date?: string; status?: string; signed_at?: string };
           return (
             <div key={a.id} className="py-3 flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#2C3E50]">{a.client_name || a.client_orgnr}</p>
-                <p className="text-xs text-[#8A7F74] mt-0.5">
+                <p className="text-sm font-semibold text-foreground">{a.client_name || a.client_orgnr}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {a.client_orgnr}
                   {aExt.start_date && ` · Start: ${aExt.start_date}`}
                   {` · Opprettet: ${new Date(a.created_at).toLocaleDateString("nb-NO")}`}
@@ -229,12 +229,12 @@ function AgreementsList() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 {!aExt.signed_at && (
                   <button onClick={() => handleSign(a.id)} disabled={signingId === a.id}
-                    className="px-2.5 py-1 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50">
+                    className="px-2.5 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                     {signingId === a.id ? "…" : "Signer"}
                   </button>
                 )}
                 <button onClick={() => handleDownload(a)} disabled={downloadingId === a.id}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50">
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs rounded border border-border text-foreground hover:bg-muted disabled:opacity-50">
                   {downloadingId === a.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                   PDF
                 </button>
@@ -277,12 +277,12 @@ function BrokerSettingsForm() {
     finally { setSaving(false); }
   }
 
-  if (isLoading) return <div className="broker-card"><Loader2 className="w-5 h-5 animate-spin text-[#4A6FA5]" /></div>;
+  if (isLoading) return <div className="broker-card"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
 
   return (
     <div className="broker-card max-w-lg">
-      <h2 className="text-sm font-semibold text-[#2C3E50] mb-1">Meglerinnstillinger</h2>
-      <p className="text-xs text-[#8A7F74] mb-4">Disse opplysningene trykkes på alle avtaler du oppretter.</p>
+      <h2 className="text-sm font-semibold text-foreground mb-1">Meglerinnstillinger</h2>
+      <p className="text-xs text-muted-foreground mb-4">Disse opplysningene trykkes på alle avtaler du oppretter.</p>
       <form onSubmit={handleSave} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
@@ -308,12 +308,12 @@ function BrokerSettingsForm() {
           <div className="col-span-2">
             <label className="label-xs" htmlFor="broker-address">Adresse</label>
             <textarea id="broker-address" value={val("address")} onChange={(e) => set("address", e.target.value)} rows={2}
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+              className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
           </div>
         </div>
         {msg && <p className={`text-xs ${msg.startsWith("Feil") ? "text-red-600" : "text-green-700"}`}>{msg}</p>}
         <button type="submit" disabled={saving}
-          className="px-4 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50">
+          className="px-4 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
           {saving ? "Lagrer…" : "Lagre innstillinger"}
         </button>
       </form>
@@ -329,7 +329,7 @@ export default function SlaPage() {
   const TAB = (t: typeof tab, label: string) => (
     <button key={t} onClick={() => setTab(t)}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-        tab === t ? "bg-[#2C3E50] text-white" : "text-[#8A7F74] hover:bg-[#EDE8E3]"
+        tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
       }`}>
       {label}
     </button>
@@ -338,8 +338,8 @@ export default function SlaPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Avtaler</h1>
-        <p className="text-sm text-[#8A7F74] mt-1">SLA-avtaler og meglermandat med kunder</p>
+        <h1 className="text-2xl font-bold text-foreground">Avtaler</h1>
+        <p className="text-sm text-muted-foreground mt-1">SLA-avtaler og meglermandat med kunder</p>
       </div>
       <div className="flex gap-2">
         {TAB("ny", "Ny avtale")}

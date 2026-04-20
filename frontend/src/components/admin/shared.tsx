@@ -3,8 +3,8 @@
 export function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-3">
-      <h2 className="text-sm font-semibold text-[#2C3E50]">{title}</h2>
-      {subtitle && <p className="text-xs text-[#8A7F74] mt-0.5">{subtitle}</p>}
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
     </div>
   );
 }
@@ -17,8 +17,8 @@ export function ActionButton({
 }) {
   const base = "px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = {
-    primary:   `${base} bg-[#2C3E50] text-white hover:bg-[#3d5166]`,
-    secondary: `${base} border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3]`,
+    primary:   `${base} bg-primary text-primary-foreground hover:bg-primary/90`,
+    secondary: `${base} border border-border text-foreground hover:bg-muted`,
     danger:    `${base} bg-red-600 text-white hover:bg-red-700`,
   };
   return (

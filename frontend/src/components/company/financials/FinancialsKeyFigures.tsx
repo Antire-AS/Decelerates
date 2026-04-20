@@ -57,18 +57,18 @@ function DetailTable({ title, rows, regn }: { title: string; rows: Array<[string
   if (present.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold text-[#2C3E50]">{title}</h4>
+      <h4 className="text-xs font-semibold text-foreground">{title}</h4>
       <table className="w-full text-xs">
         <tbody>
           {present.map(([label, key]) => (
-            <tr key={key} className="border-b border-[#EDE8E3] last:border-0">
-              <td className="py-1.5 text-[#8A7F74]">{label}</td>
-              <td className="py-1.5 text-right font-medium text-[#2C3E50]">{fmtMnok(num(regn, key))}</td>
+            <tr key={key} className="border-b border-border last:border-0">
+              <td className="py-1.5 text-muted-foreground">{label}</td>
+              <td className="py-1.5 text-right font-medium text-foreground">{fmtMnok(num(regn, key))}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-[10px] text-[#C4BDB4]">Kilde: BRREG</p>
+      <p className="text-[10px] text-muted-foreground">Kilde: BRREG</p>
     </div>
   );
 }
@@ -100,8 +100,8 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
   if (!hasAny) {
     return (
       <div className="broker-card space-y-3">
-        <h3 className="text-sm font-semibold text-[#2C3E50]">Nøkkeltall</h3>
-        <p className="text-xs text-[#8A7F74]">
+        <h3 className="text-sm font-semibold text-foreground">Nøkkeltall</h3>
+        <p className="text-xs text-muted-foreground">
           Ingen offentlige regnskap tilgjengelig for dette selskapet.
           {!hasHistory && " Du kan be AI generere estimater basert på bransje og størrelse."}
         </p>
@@ -110,14 +110,14 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
             <button
               onClick={handleEstimate}
               disabled={estLoading || estDone}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
               {estLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
               {estDone ? "Estimat generert" : "Generer AI-estimat"}
             </button>
             {estErr && <p className="text-xs text-red-600">{estErr}</p>}
             {estDone && (
-              <p className="text-xs text-[#8A7F74]">
+              <p className="text-xs text-muted-foreground">
                 Last inn siden på nytt for å vise estimerte tall.
               </p>
             )}
@@ -132,20 +132,20 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
   return (
     <div className="broker-card space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-[#2C3E50]">
-          Nøkkeltall <span className="text-[#8A7F74] font-normal">({String(yearLabel)})</span>
+        <h3 className="text-sm font-semibold text-foreground">
+          Nøkkeltall <span className="text-muted-foreground font-normal">({String(yearLabel)})</span>
         </h3>
         {hasEstimated && (
-          <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-[#FBF7E8] text-[#C8A951] border border-[#E8D89A]">
+          <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-brand-warning/10 text-brand-warning border border-brand-warning/50">
             AI-estimert
           </span>
         )}
       </div>
 
       {hasEstimated && (
-        <div className="border-l-4 border-[#C8A951] bg-[#FBF7E8] px-3 py-2 rounded-r flex items-start gap-2">
-          <Info className="w-3.5 h-3.5 text-[#C8A951] mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-[#8A7F74]">
+        <div className="border-l-4 border-brand-warning bg-brand-warning/10 px-3 py-2 rounded-r flex items-start gap-2">
+          <Info className="w-3.5 h-3.5 text-brand-warning mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
             Ingen offentlige regnskap funnet i Regnskapsregisteret.
             Tallene under er AI-genererte estimater basert på bransje og selskapstype — kun veiledende.
           </p>
@@ -163,7 +163,7 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
       </div>
 
       {hasReal && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#EDE8E3]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border">
           <DetailTable title="Resultatregnskap" rows={PL_ROWS} regn={regn} />
           <DetailTable title="Balanse" rows={BALANCE_ROWS} regn={regn} />
         </div>
@@ -175,8 +175,8 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-0.5">
-      <p className="text-[10px] uppercase tracking-wide text-[#8A7F74] font-medium">{label}</p>
-      <p className="text-base font-bold text-[#2C3E50]">{value}</p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
+      <p className="text-base font-bold text-foreground">{value}</p>
     </div>
   );
 }

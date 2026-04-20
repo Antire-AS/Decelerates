@@ -92,14 +92,14 @@ export default function VideosPanel() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Kursvideoer</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">Opplærings- og presentasjonsvideoer for meglere</p>
+          <h1 className="text-2xl font-bold text-foreground">Kursvideoer</h1>
+          <p className="text-sm text-muted-foreground mt-1">Opplærings- og presentasjonsvideoer for meglere</p>
         </div>
         <div className="flex gap-2">
           <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
           <button
             onClick={() => setShowUpload(!showUpload)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#EDE8E3] text-[#2C3E50] text-sm font-medium hover:bg-[#EDE8E3]"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted"
           >
             <Upload className="w-4 h-4" />
             Last opp video
@@ -110,12 +110,12 @@ export default function VideosPanel() {
       {/* Upload panel */}
       {showUpload && (
         <div className="broker-card space-y-3">
-          <p className="text-sm font-medium text-[#2C3E50]">Last opp ny video</p>
+          <p className="text-sm font-medium text-foreground">Last opp ny video</p>
           {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? "Laster opp…" : "Velg fil"}
@@ -125,14 +125,14 @@ export default function VideosPanel() {
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-[#4A6FA5]" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}
 
       {!isLoading && videos.length === 0 && (
         <div className="broker-card text-center py-16">
-          <Video className="w-10 h-10 text-[#EDE8E3] mx-auto mb-3" />
-          <p className="text-sm font-medium text-[#2C3E50]">Ingen videoer lastet opp ennå</p>
+          <Video className="w-10 h-10 text-muted mx-auto mb-3" />
+          <p className="text-sm font-medium text-foreground">Ingen videoer lastet opp ennå</p>
         </div>
       )}
 
@@ -151,27 +151,27 @@ export default function VideosPanel() {
                   onClick={() => setActiveIdx(idx)}
                   className={`w-full text-left rounded-xl border p-3 transition-colors ${
                     isActive
-                      ? "border-[#4A6FA5] bg-[#EEF2F8]"
-                      : "border-[#EDE8E3] bg-white hover:bg-[#F9F7F4]"
+                      ? "border-primary bg-accent"
+                      : "border-border bg-card hover:bg-muted"
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      isActive ? "bg-[#4A6FA5]" : "bg-[#EDE8E3]"
+                      isActive ? "bg-primary" : "bg-muted"
                     }`}>
-                      <Play className={`w-3 h-3 ${isActive ? "text-white" : "text-[#8A7F74]"}`} fill="currentColor" />
+                      <Play className={`w-3 h-3 ${isActive ? "text-white" : "text-muted-foreground"}`} fill="currentColor" />
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-sm font-medium leading-snug ${isActive ? "text-[#4A6FA5]" : "text-[#2C3E50]"}`}>
+                      <p className={`text-sm font-medium leading-snug ${isActive ? "text-primary" : "text-foreground"}`}>
                         {displayName(v, idx)}
                       </p>
                       {chs.length > 0 && (
-                        <p className="text-xs text-[#8A7F74] mt-0.5 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                           <BookOpen className="w-3 h-3" />
                           {chs.length} kapitler
                         </p>
                       )}
-                      {isActive && <p className="text-xs text-[#4A6FA5] mt-0.5 font-medium">▶ Spiller nå</p>}
+                      {isActive && <p className="text-xs text-primary mt-0.5 font-medium">▶ Spiller nå</p>}
                     </div>
                   </div>
                 </button>
@@ -183,11 +183,11 @@ export default function VideosPanel() {
           <div className="flex-1 min-w-0 space-y-4">
             {/* Video title */}
             <div className="broker-card py-3 px-4">
-              <h2 className="text-base font-semibold text-[#2C3E50]">
+              <h2 className="text-base font-semibold text-foreground">
                 {activeVideo ? displayName(activeVideo, activeIdx) : ""}
               </h2>
               {activeVideo?.subtitle_url && (
-                <p className="text-xs text-[#8A7F74] mt-0.5">Undertekster tilgjengelig</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Undertekster tilgjengelig</p>
               )}
             </div>
 
@@ -218,7 +218,7 @@ export default function VideosPanel() {
             {/* Chapter navigation */}
             {chapters.length > 0 && (
               <div className="broker-card">
-                <p className="text-sm font-semibold text-[#2C3E50] mb-3 flex items-center gap-1.5">
+                <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4" />
                   Kapitler ({chapters.length})
                 </p>
@@ -227,14 +227,14 @@ export default function VideosPanel() {
                     <button
                       key={i}
                       onClick={() => seekTo(ch.start)}
-                      className="text-left px-3 py-2 rounded-lg border border-[#EDE8E3] hover:bg-[#EEF2F8] hover:border-[#4A6FA5] transition-colors group"
+                      className="text-left px-3 py-2 rounded-lg border border-border hover:bg-accent hover:border-primary transition-colors group"
                     >
                       <span className="flex items-center gap-2 text-xs">
-                        <Clock className="w-3 h-3 text-[#8A7F74] flex-shrink-0" />
-                        <span className="text-[#4A6FA5] font-mono font-medium group-hover:text-[#3a5a8a]">
+                        <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-primary font-mono font-medium group-hover:text-primary/80">
                           {fmtTime(ch.start)}
                         </span>
-                        <span className="text-[#2C3E50] truncate">{ch.title}</span>
+                        <span className="text-foreground truncate">{ch.title}</span>
                       </span>
                     </button>
                   ))}

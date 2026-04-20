@@ -123,7 +123,7 @@ export default function PortfolioDetailPage({
   if (!portfolio && portfolio !== null) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -131,11 +131,11 @@ export default function PortfolioDetailPage({
   if (!portfolio) {
     return (
       <div className="broker-card text-center py-10 max-w-md mx-auto mt-12">
-        <p className="text-sm font-semibold text-[#2C3E50]">Portefølje ikke funnet</p>
-        <p className="text-xs text-[#8A7F74] mt-1">ID {portfolioId} eksisterer ikke eller er slettet.</p>
+        <p className="text-sm font-semibold text-foreground">Portefølje ikke funnet</p>
+        <p className="text-xs text-muted-foreground mt-1">ID {portfolioId} eksisterer ikke eller er slettet.</p>
         <Link
           href="/portfolio"
-          className="text-xs text-[#4A6FA5] hover:underline mt-3 inline-flex items-center gap-1"
+          className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1"
         >
           <ArrowLeft className="w-3 h-3" /> Tilbake til porteføljer
         </Link>
@@ -150,19 +150,19 @@ export default function PortfolioDetailPage({
         <div>
           <Link
             href="/portfolio"
-            className="text-xs text-[#8A7F74] hover:text-[#4A6FA5] flex items-center gap-1 mb-2"
+            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mb-2"
           >
             <ArrowLeft className="w-3 h-3" /> Alle porteføljer
           </Link>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">{portfolio.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{portfolio.name}</h1>
           {portfolio.description && (
-            <p className="text-sm text-[#8A7F74] mt-0.5">{portfolio.description}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{portfolio.description}</p>
           )}
         </div>
         <button
           onClick={handleDownloadPdf}
           disabled={pdfDownloading}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-50"
         >
           {pdfDownloading
             ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -181,7 +181,7 @@ export default function PortfolioDetailPage({
       {/* ── Concentration ── */}
       {concentration && (
         <div className="broker-card">
-          <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Konsentrasjon</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Konsentrasjon</h2>
           <PortfolioConcentration concentration={concentration} />
         </div>
       )}
@@ -189,10 +189,10 @@ export default function PortfolioDetailPage({
       {/* ── Risk table ── */}
       {risk === undefined ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : risk.length === 0 ? (
-        <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">
+        <div className="broker-card text-center py-10 text-sm text-muted-foreground">
           Ingen selskaper i denne porteføljen ennå.{" "}
           Legg til selskaper via selskapsprofilen (CRM-fanen → Portefølje).
         </div>
@@ -210,7 +210,7 @@ export default function PortfolioDetailPage({
       {/* ── Geographic map ── */}
       {risk && risk.length > 0 && (
         <div className="broker-card">
-          <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Geografisk oversikt</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Geografisk oversikt</h2>
           <ErrorBoundary>
             <PortfolioMap rows={risk} />
           </ErrorBoundary>
@@ -219,8 +219,8 @@ export default function PortfolioDetailPage({
 
       {/* ── PDF enrichment ── */}
       <div className="broker-card space-y-3">
-        <p className="text-xs font-semibold text-[#2C3E50]">Legg til årsrapport-PDF manuelt</p>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs font-semibold text-foreground">Legg til årsrapport-PDF manuelt</p>
+        <p className="text-xs text-muted-foreground">
           Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -228,13 +228,13 @@ export default function PortfolioDetailPage({
             value={pdfOrgnr}
             onChange={(e) => setPdfOrgnr(e.target.value)}
             placeholder="Orgnr (9 siffer)"
-            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
+            className="px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
           />
           <input
             value={pdfUrl}
             onChange={(e) => setPdfUrl(e.target.value)}
             placeholder="https://…/årsrapport.pdf"
-            className="px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
+            className="px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
           />
           <div className="flex gap-2">
             <input
@@ -242,12 +242,12 @@ export default function PortfolioDetailPage({
               value={pdfYear}
               onChange={(e) => setPdfYear(Number(e.target.value))}
               min={2010} max={new Date().getFullYear()}
-              className="w-24 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] text-[#2C3E50]"
+              className="w-24 px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
             />
             <button
               onClick={handlePdfEnrich}
               disabled={pdfLoading || !pdfOrgnr.trim() || !pdfUrl.trim()}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3a5e95] disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
               Legg til
