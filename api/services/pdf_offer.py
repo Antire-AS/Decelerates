@@ -537,6 +537,156 @@ def _build_tilbud_terms_page(
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
+def _cover_header_band(pdf: Any, tender_title: str, DARK_BLUE: tuple) -> None:
+    pdf.add_page()
+    pdf.set_fill_color(*DARK_BLUE)
+    pdf.rect(0, 0, 210, 55, style="F")
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_xy(18, 18)
+    pdf.cell(0, 10, "Tilbudsfremstilling", ln=True)
+    pdf.set_font("Helvetica", "", 11)
+    pdf.set_xy(18, 32)
+    pdf.cell(0, 6, tender_title, ln=True)
+
+
+def _cover_client_and_products(
+    pdf: Any,
+    company_name: str,
+    orgnr: str,
+    product_types: List[str],
+    MID_BLUE: tuple,
+) -> None:
+    pdf.set_xy(18, 70)
+    pdf.set_text_color(30, 30, 30)
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, f"Til: {company_name}", ln=True)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(0, 6, f"Org.nr: {orgnr}", ln=True)
+    pdf.ln(4)
+    pdf.set_text_color(*MID_BLUE)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 7, "Forsikringsprodukter vurdert", ln=True)
+    pdf.set_text_color(30, 30, 30)
+    pdf.set_font("Helvetica", "", 10)
+    for prod in product_types:
+        pdf.cell(0, 5, f"  •  {prod}", ln=True)
+    pdf.ln(4)
+
+
+def _cover_meta(
+    pdf: Any,
+    deadline_str: str,
+    broker_name: str,
+    broker_email: str,
+    today_str: str,
+) -> None:
+    if deadline_str:
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(40, 6, "Anbudsfrist:")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, deadline_str, ln=True)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(40, 6, "Utarbeidet av:")
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 6, f"{broker_name} ({broker_email})", ln=True)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(40, 6, "Dato:")
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 6, today_str, ln=True)
+
+
+def _tender_presentation_cover(
+    pdf: Any,
+    tender_title: str,
+    company_name: str,
+    orgnr: str,
+    product_types: List[str],
+    deadline_str: str,
+    today_str: str,
+    broker_name: str,
+    broker_email: str,
+    DARK_BLUE: tuple,
+    MID_BLUE: tuple,
+) -> None:
+    """Cover page for a tender presentation (anbud tilbudsfremstilling)."""
+    _cover_header_band(pdf, tender_title, DARK_BLUE)
+    _cover_client_and_products(pdf, company_name, orgnr, product_types, MID_BLUE)
+    _cover_meta(pdf, deadline_str, broker_name, broker_email, today_str)
+
+
+def _tender_presentation_recommendation(
+    pdf: Any,
+    recommendation: str,
+    DARK_BLUE: tuple,
+    LIGHT_BLUE: tuple,
+) -> None:
+    """Broker's recommendation section + signature block."""
+    pdf.add_page()
+    pdf.set_text_color(*DARK_BLUE)
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, "Meglerens anbefaling", ln=True)
+    pdf.ln(2)
+    pdf.set_fill_color(*LIGHT_BLUE)
+    pdf.set_text_color(30, 30, 30)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.multi_cell(
+        0, 6, recommendation or "Anbefaling fylles inn av megleren.", fill=True
+    )
+    pdf.ln(12)
+    pdf.set_text_color(*DARK_BLUE)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 7, "Godkjenning av kunde", ln=True)
+    pdf.ln(4)
+    pdf.set_draw_color(80, 80, 80)
+    pdf.set_text_color(100, 100, 100)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.cell(90, 6, "Signatur:", ln=False)
+    pdf.cell(90, 6, "Dato:", ln=True)
+    pdf.line(18, pdf.get_y() + 10, 98, pdf.get_y() + 10)
+    pdf.line(108, pdf.get_y() + 10, 192, pdf.get_y() + 10)
+
+
+def generate_tender_presentation_pdf(
+    tender_title: str,
+    company_name: str,
+    orgnr: str,
+    product_types: List[str],
+    deadline: Optional[str],
+    broker_name: str,
+    broker_email: str,
+    offer_summaries: List[Dict[str, Any]],
+    recommendation: str,
+) -> bytes:
+    """Client-facing tilbudsfremstilling PDF — compares insurer responses to an anbud.
+
+    Distinct from `generate_forsikringstilbud_pdf` which presents one broker
+    recommendation; this one presents MULTIPLE insurer quotes side-by-side
+    (the output of a tender/anbud cycle) with the broker's recommendation.
+    """
+    today_str = date.today().strftime("%d.%m.%Y")
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.set_margins(18, 15, 18)
+    _tender_presentation_cover(
+        pdf,
+        tender_title,
+        company_name,
+        orgnr,
+        product_types,
+        deadline or "",
+        today_str,
+        broker_name,
+        broker_email,
+        _DARK_BLUE,
+        _MID_BLUE,
+    )
+    _build_tilbud_offers_page(pdf, offer_summaries, today_str, _DARK_BLUE, _MID_BLUE)
+    _tender_presentation_recommendation(pdf, recommendation, _DARK_BLUE, _LIGHT_BLUE)
+    return bytes(pdf.output())
+
+
 def generate_forsikringstilbud_pdf(
     orgnr: str,
     navn: str,
