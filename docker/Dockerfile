@@ -40,4 +40,9 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Two workers double the in-flight request ceiling on a single replica.
+# Azure Container Apps runs on 1 vCPU + 2 GiB; two workers fit comfortably.
+# Startup operations (alembic migrations via pg_try_advisory_lock, init_db,
+# _seed_pdf_sources upserts, SearchService ensure_index) are all idempotent
+# and lock-protected, so the worker fork race is safe.
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
