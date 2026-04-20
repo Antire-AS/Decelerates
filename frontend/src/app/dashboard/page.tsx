@@ -8,6 +8,7 @@ import RiskBadge from "@/components/company/RiskBadge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Search, RotateCcw, BarChart2, FolderOpen, AlertTriangle } from "lucide-react";
 import { fmt } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 const ACTIVITY_ICONS: Record<string, string> = {
   call: "📞", email: "📧", meeting: "🤝", note: "📝", task: "✅",
@@ -15,6 +16,7 @@ const ACTIVITY_ICONS: Record<string, string> = {
 
 
 export default function DashboardPage() {
+  const T = useT();
   const { data, isLoading: dashLoading, error: dashError, mutate: retryDash } = useSWR<DashboardData>(
     "dashboard",
     getDashboard,
@@ -31,7 +33,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Velkommen</h1>
+        <h1 className="text-2xl font-bold text-foreground">{T("Velkommen")}</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Forsikringsmegling · Due Diligence · Risikoprofil
         </p>
@@ -65,13 +67,13 @@ export default function DashboardPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard
-              label="Fornyelser neste 30 dager"
+              label={T("Fornyelser neste 30 dager")}
               value={data.renewals_30d}
               help={`kr ${fmt(data.premium_at_risk_30d)} i premie`}
             />
-            <MetricCard label="Aktive avtaler"     value={data.total_active_policies} />
-            <MetricCard label="Åpne skader"        value={data.open_claims} />
-            <MetricCard label="Aktiviteter forfalt" value={data.activities_due} />
+            <MetricCard label={T("Aktive avtaler")}     value={data.total_active_policies} />
+            <MetricCard label={T("Åpne skader")}        value={data.open_claims} />
+            <MetricCard label={T("Aktiviteter forfalt")} value={data.activities_due} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -14,8 +14,10 @@ import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
 import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
+import { useT } from "@/lib/i18n";
 
 export default function PortfolioPage() {
+  const T = useT();
   const { data: companies, isLoading } = useSWR<Company[]>(
     "companies-portfolio", () => getCompanies(200),
   );
@@ -98,7 +100,7 @@ export default function PortfolioPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Portefølje</h1>
+          <h1 className="text-2xl font-bold text-foreground">{T("Portefølje")}</h1>
           <p className="text-sm text-muted-foreground mt-1">Oversikt over alle kunder og risikofordeling</p>
         </div>
         <div className="flex items-center gap-2">
