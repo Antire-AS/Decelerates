@@ -104,11 +104,11 @@ export function NewDealModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg my-8"
+        className="bg-card rounded-lg shadow-xl w-full max-w-lg my-8"
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#EDE8E3]">
-          <h2 className="text-base font-semibold text-[#2C3E50]">Ny deal</h2>
-          <button onClick={onClose} className="text-[#8A7F74] hover:text-[#2C3E50]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <h2 className="text-base font-semibold text-foreground">Ny deal</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -118,10 +118,10 @@ export function NewDealModal({
           <div>
             <label className="label-xs" htmlFor="new-deal-company-search">Selskap *</label>
             {picked ? (
-              <div className="flex items-center justify-between bg-[#F9F7F4] border border-[#D4C9B8] rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between bg-muted border border-border rounded-lg px-3 py-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#2C3E50] truncate">{picked.navn}</p>
-                  <p className="text-xs text-[#8A7F74]">{picked.orgnr}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{picked.navn}</p>
+                  <p className="text-xs text-muted-foreground">{picked.orgnr}</p>
                 </div>
                 <button
                   type="button"
@@ -129,7 +129,7 @@ export function NewDealModal({
                     setPicked(null);
                     setCompanyQuery("");
                   }}
-                  className="text-xs text-[#8A7F74] hover:text-[#2C3E50]"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
                   Bytt
                 </button>
@@ -137,25 +137,25 @@ export function NewDealModal({
             ) : (
               <>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#C4BDB4]" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
                   <input
                     id="new-deal-company-search"
                     autoFocus
                     value={companyQuery}
                     onChange={(e) => setCompanyQuery(e.target.value)}
                     placeholder="Søk etter navn eller orgnr…"
-                    className="w-full pl-8 pr-3 py-2 text-sm border border-[#D4C9B8] rounded-lg
-                               bg-white text-[#2C3E50] placeholder-[#C4BDB4]
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6FA5]"
+                    className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-lg
+                               bg-card text-foreground placeholder:text-muted-foreground
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
                 {searching && (
-                  <p className="text-xs text-[#8A7F74] mt-1 flex items-center gap-1">
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                     <Loader2 className="w-3 h-3 animate-spin" /> Søker…
                   </p>
                 )}
                 {companyResults.length > 0 && (
-                  <div className="mt-1 border border-[#EDE8E3] rounded-lg max-h-48 overflow-y-auto bg-white">
+                  <div className="mt-1 border border-border rounded-lg max-h-48 overflow-y-auto bg-card">
                     {companyResults.map((r) => (
                       <button
                         type="button"
@@ -164,10 +164,10 @@ export function NewDealModal({
                           setPicked(r);
                           setCompanyQuery(r.navn);
                         }}
-                        className="w-full text-left px-3 py-2 hover:bg-[#F9F7F4] border-b border-[#EDE8E3] last:border-0"
+                        className="w-full text-left px-3 py-2 hover:bg-muted border-b border-border last:border-0"
                       >
-                        <p className="text-sm font-medium text-[#2C3E50] truncate">{r.navn}</p>
-                        <p className="text-xs text-[#8A7F74]">{r.orgnr}</p>
+                        <p className="text-sm font-medium text-foreground truncate">{r.navn}</p>
+                        <p className="text-xs text-muted-foreground">{r.orgnr}</p>
                       </button>
                     ))}
                   </div>
@@ -246,7 +246,7 @@ export function NewDealModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+              className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
 
@@ -256,14 +256,14 @@ export function NewDealModal({
             <button
               type="submit"
               disabled={saving || !picked}
-              className="w-full sm:w-auto px-4 py-2 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {saving ? "Lagrer…" : "Opprett deal"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-3 py-2 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]"
+              className="w-full sm:w-auto px-3 py-2 text-xs rounded border border-border text-muted-foreground"
             >
               Avbryt
             </button>

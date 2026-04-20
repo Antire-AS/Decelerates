@@ -134,13 +134,13 @@ export default function FinancialsTab({
       />
 
       {historyLoading ? (
-        <div className="broker-card flex items-center gap-2 text-xs text-[#8A7F74]">
+        <div className="broker-card flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" /> Henter historikk…
         </div>
       ) : history.length === 0 ? (
         <div className="broker-card space-y-3">
-          <h3 className="text-sm font-semibold text-[#2C3E50]">Regnskapshistorikk</h3>
-          <p className="text-sm text-[#8A7F74]">
+          <h3 className="text-sm font-semibold text-foreground">Regnskapshistorikk</h3>
+          <p className="text-sm text-muted-foreground">
             Ingen historiske regnskapsdata tilgjengelig.
             Lim inn en årsrapport-PDF over for å hente tall.
           </p>
@@ -159,12 +159,12 @@ export default function FinancialsTab({
             setExpandedYear={setExpandedYear}
           />
           <details className="broker-card group">
-            <summary className="cursor-pointer text-xs text-[#8A7F74] flex items-center gap-1.5 select-none">
+            <summary className="cursor-pointer text-xs text-muted-foreground flex items-center gap-1.5 select-none">
               <RotateCcw className="w-3.5 h-3.5" />
               Tilbakestill og hent historikk på nytt
             </summary>
             <div className="mt-3 space-y-2">
-              <p className="text-xs text-[#8A7F74]">
+              <p className="text-xs text-muted-foreground">
                 Sletter alle lagrede regnskapsrader for dette selskapet og utløser ny henting fra PDF-kildene.
               </p>
               <button
@@ -175,7 +175,7 @@ export default function FinancialsTab({
                 {resetLoading && <Loader2 className="w-3 h-3 animate-spin" />}
                 {resetLoading ? "Sletter…" : "Tilbakestill historikk"}
               </button>
-              {resetMsg && <p className="text-xs text-[#2C3E50]">{resetMsg}</p>}
+              {resetMsg && <p className="text-xs text-foreground">{resetMsg}</p>}
             </div>
           </details>
         </>

@@ -87,23 +87,23 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
       {/* List */}
       <div className="broker-card">
         <button onClick={() => setListOpen((o) => !o)}
-          className="w-full flex items-center justify-between text-sm font-semibold text-[#2C3E50]">
+          className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
           <span>📋 Forsikringsavtaler {policies.length > 0 && `(${policies.length})`}</span>
           {listOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {listOpen && (
           <div className="mt-3">
             {policies.length === 0 ? (
-              <p className="text-xs text-[#8A7F74]">Ingen forsikringsavtaler registrert.</p>
+              <p className="text-xs text-muted-foreground">Ingen forsikringsavtaler registrert.</p>
             ) : (
-              <div className="divide-y divide-[#EDE8E3]">
+              <div className="divide-y divide-border">
                 {policies.map((p) => (
                   <div key={p.id} className="py-2.5 flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#2C3E50]">
+                      <p className="text-sm font-semibold text-foreground">
                         {p.insurer} — {p.product_type}
                       </p>
-                      <p className="text-xs text-[#8A7F74] mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {[
                           p.policy_number && `Avtalenr: ${p.policy_number}`,
                           p.annual_premium_nok && `Premie: ${fmtNok(p.annual_premium_nok)}`,
@@ -112,19 +112,19 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
                       </p>
                       {p.document_url && (
                         <a href={p.document_url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-[#4A6FA5] hover:underline mt-0.5">
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-0.5">
                           📄 Avtaledokument <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                       {p.notes && (
-                        <p className="text-xs text-[#8A7F74] italic mt-1 whitespace-pre-wrap">
+                        <p className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">
                           {p.notes}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {daysBadge(p.renewal_date)}
-                      <button onClick={() => handleDelete(p.id)} className="text-[#C4BDB4] hover:text-red-500">
+                      <button onClick={() => handleDelete(p.id)} className="text-muted-foreground hover:text-red-500">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -139,7 +139,7 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
       {/* Add form */}
       <div className="broker-card">
         <button onClick={() => setFormOpen((o) => !o)}
-          className="w-full flex items-center justify-between text-sm font-semibold text-[#2C3E50]">
+          className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
           <span className="flex items-center gap-1.5"><Plus className="w-4 h-4" /> Registrer forsikringsavtale</span>
           {formOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
@@ -201,16 +201,16 @@ export default function PoliciesSection({ orgnr, onPoliciesLoaded }: {
             <div>
               <label className="label-xs" htmlFor="policy-notes">Notater</label>
               <textarea id="policy-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-                className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+                className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
             </div>
             {err && <p className="text-xs text-red-600">{err}</p>}
             <div className="flex gap-2">
               <button type="submit" disabled={saving}
-                className="px-4 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50">
+                className="px-4 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                 {saving ? "Lagrer…" : "Lagre avtale"}
               </button>
               <button type="button" onClick={() => setFormOpen(false)}
-                className="px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]">
+                className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground">
                 Avbryt
               </button>
             </div>

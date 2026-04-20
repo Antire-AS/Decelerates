@@ -30,8 +30,8 @@ export function Step3Fees({ data, set, allLines, onBack, onNext }: Props) {
           const typeId = `${baseId}-fee-${idx}-type`;
           const rateId = `${baseId}-fee-${idx}-rate`;
           return (
-            <div key={line} className="p-3 bg-[#F9F7F4] rounded-lg">
-              <p className="text-xs font-semibold text-[#2C3E50] mb-2">{line}</p>
+            <div key={line} className="p-3 bg-muted rounded-lg">
+              <p className="text-xs font-semibold text-foreground mb-2">{line}</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="label-xs" htmlFor={typeId}>Honorartype</label>

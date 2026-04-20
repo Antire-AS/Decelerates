@@ -87,8 +87,8 @@ function DataControlsSection() {
         <SectionHeader title="Datahåndtering" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <p className="text-xs font-medium text-[#2C3E50] mb-1">Last inn demo-data</p>
-            <p className="text-xs text-[#8A7F74] mb-2">
+            <p className="text-xs font-medium text-foreground mb-1">Last inn demo-data</p>
+            <p className="text-xs text-muted-foreground mb-2">
               Oppretter &apos;Demo Portefølje&apos; med 8 store norske selskaper og starter PDF-ekstraksjon.
             </p>
             <ActionButton
@@ -99,8 +99,8 @@ function DataControlsSection() {
             <ResultMessage msg={messages.demo ?? null} />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#2C3E50] mb-1">Nullstill innsamlet data</p>
-            <p className="text-xs text-[#8A7F74] mb-2">
+            <p className="text-xs font-medium text-foreground mb-1">Nullstill innsamlet data</p>
+            <p className="text-xs text-muted-foreground mb-2">
               Sletter selskapsdata og regnskapshistorikk. Videoer og dokumenter beholdes.
             </p>
             {!confirmReset ? (
@@ -148,8 +148,8 @@ function DataControlsSection() {
         <SectionHeader title="📧 E-postvarsler" subtitle="Manuell utsendelse av automatiske varsler." />
         <div className="space-y-3">
           <div>
-            <p className="text-xs font-medium text-[#2C3E50] mb-0.5">Porteføljedigest</p>
-            <p className="text-xs text-[#8A7F74] mb-1">Sender e-post med aktive vekstalerts på tvers av alle porteføljer.</p>
+            <p className="text-xs font-medium text-foreground mb-0.5">Porteføljedigest</p>
+            <p className="text-xs text-muted-foreground mb-1">Sender e-post med aktive vekstalerts på tvers av alle porteføljer.</p>
             <ActionButton
               label="Send porteføljedigest" loadingLabel="Sender…"
               variant="secondary"
@@ -159,8 +159,8 @@ function DataControlsSection() {
             <ResultMessage msg={messages.digest ?? null} />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#2C3E50] mb-0.5">Aktivitetspåminnelser</p>
-            <p className="text-xs text-[#8A7F74] mb-1">Varsler om forfallne og forfalldagsoppgaver.</p>
+            <p className="text-xs font-medium text-foreground mb-0.5">Aktivitetspåminnelser</p>
+            <p className="text-xs text-muted-foreground mb-1">Varsler om forfallne og forfalldagsoppgaver.</p>
             <ActionButton
               label="Send aktivitetspåminnelser" loadingLabel="Sjekker…"
               variant="secondary"
@@ -170,8 +170,8 @@ function DataControlsSection() {
             <ResultMessage msg={messages.reminders ?? null} />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#2C3E50] mb-0.5">Fornyelsesterskelvarsler (90/60/30 dager)</p>
-            <p className="text-xs text-[#8A7F74] mb-1">Sender målrettede e-poster per terskel. Idempotent — trygt å kjøre fra cron.</p>
+            <p className="text-xs font-medium text-foreground mb-0.5">Fornyelsesterskelvarsler (90/60/30 dager)</p>
+            <p className="text-xs text-muted-foreground mb-1">Sender målrettede e-poster per terskel. Idempotent — trygt å kjøre fra cron.</p>
             <ActionButton
               label="Send fornyelsesterskelvarsler" loadingLabel="Sjekker…"
               variant="secondary"
@@ -196,8 +196,8 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Admin</h1>
-        <p className="text-sm text-[#8A7F74] mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Admin</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Systemstatistikk, brukeradministrasjon og dataverktøy
         </p>
       </div>
@@ -206,7 +206,7 @@ export default function AdminPage() {
       {isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="broker-card h-20 animate-pulse bg-[#EDE8E3]" />
+            <div key={i} className="broker-card h-20 animate-pulse bg-muted" />
           ))}
         </div>
       )}
@@ -214,8 +214,8 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {statEntries.map(([key, value]) => (
             <div key={key} className="broker-card">
-              <p className="text-xs text-[#8A7F74] font-medium mb-1">{STAT_LABELS[key] ?? key}</p>
-              <p className="text-2xl font-bold text-[#2C3E50]">
+              <p className="text-xs text-muted-foreground font-medium mb-1">{STAT_LABELS[key] ?? key}</p>
+              <p className="text-2xl font-bold text-foreground">
                 {typeof value === "number" ? value : String(value ?? "–")}
               </p>
             </div>

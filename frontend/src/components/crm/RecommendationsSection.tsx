@@ -74,22 +74,22 @@ function NewRecommendationForm({
   return (
     <form onSubmit={handleSubmit} className="broker-card space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#2C3E50]">Ny forsikringsanbefaling</p>
-        <button type="button" onClick={onCancel} className="text-[#8A7F74] hover:text-[#2C3E50]">
+        <p className="text-sm font-semibold text-foreground">Ny forsikringsanbefaling</p>
+        <button type="button" onClick={onCancel} className="text-muted-foreground hover:text-foreground">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-insurer">Anbefalt forsikringsselskap *</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-insurer">Anbefalt forsikringsselskap *</label>
           <input
             id="rec-insurer"
             value={recommendedInsurer}
             onChange={(e) => setRecommendedInsurer(e.target.value)}
             required
             list="insurer-options"
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             placeholder="Velg eller skriv inn"
           />
           <datalist id="insurer-options">
@@ -99,12 +99,12 @@ function NewRecommendationForm({
           </datalist>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-idd">Koble til behovsanalyse (IDD)</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-idd">Koble til behovsanalyse (IDD)</label>
           <select
             id="rec-idd"
             value={iddId}
             onChange={(e) => setIddId(e.target.value ? Number(e.target.value) : "")}
-            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Ingen</option>
             {iddList.map((idd) => (
@@ -118,7 +118,7 @@ function NewRecommendationForm({
 
       {allSubs.length > 0 && (
         <div>
-          <p className="text-xs text-[#8A7F74] font-medium">
+          <p className="text-xs text-muted-foreground font-medium">
             Inkluder tilbud i sammenligningen
           </p>
           <div className="mt-1.5 space-y-1">
@@ -130,7 +130,7 @@ function NewRecommendationForm({
                   onChange={() => toggleSub(sub.id)}
                   className="rounded"
                 />
-                <span className="text-xs text-[#2C3E50]">
+                <span className="text-xs text-foreground">
                   {sub.insurer_name ?? `Selskap #${sub.insurer_id}`} · {sub.product_type}
                 </span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
@@ -148,9 +148,9 @@ function NewRecommendationForm({
       )}
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="rec-rationale">
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-rationale">
           Begrunnelse{" "}
-          <span className="font-normal text-[#8A7F74]">
+          <span className="font-normal text-muted-foreground">
             (la stå tom for å generere med AI)
           </span>
         </label>
@@ -160,7 +160,7 @@ function NewRecommendationForm({
           onChange={(e) => setRationale(e.target.value)}
           rows={4}
           placeholder="Skriv begrunnelse manuelt, eller la feltet stå tomt for AI-generert tekst…"
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
       </div>
 
@@ -168,11 +168,11 @@ function NewRecommendationForm({
 
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel}
-          className="px-3 py-1.5 text-sm text-[#8A7F74] border border-gray-200 rounded-md hover:text-[#2C3E50]">
+          className="px-3 py-1.5 text-sm text-muted-foreground border border-gray-200 rounded-md hover:text-foreground">
           Avbryt
         </button>
         <button type="submit" disabled={saving || !recommendedInsurer.trim()}
-          className="px-4 py-1.5 text-sm bg-[#4A6FA5] text-white rounded-md hover:bg-[#3a5f95] disabled:opacity-50 flex items-center gap-2">
+          className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
           {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           {saving ? (rationale.trim() ? "Lagrer…" : "Genererer AI-begrunnelse…") : "Opprett anbefaling"}
         </button>
@@ -222,11 +222,11 @@ function RecommendationCard({
         <div>
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <p className="text-sm font-semibold text-[#2C3E50]">
+            <p className="text-sm font-semibold text-foreground">
               {rec.recommended_insurer}
             </p>
           </div>
-          <p className="text-xs text-[#8A7F74] mt-0.5 ml-6">
+          <p className="text-xs text-muted-foreground mt-0.5 ml-6">
             Utarbeidet {date}
             {rec.created_by_email && ` · ${rec.created_by_email}`}
             {rec.submission_ids && rec.submission_ids.length > 0 &&
@@ -237,7 +237,7 @@ function RecommendationCard({
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[#4A6FA5] text-white rounded-md hover:bg-[#3a5f95] disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
           >
             {downloading
               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -246,7 +246,7 @@ function RecommendationCard({
           </button>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="text-xs text-[#4A6FA5] hover:underline flex items-center gap-1"
+            className="text-xs text-primary hover:underline flex items-center gap-1"
           >
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {open ? "Skjul" : "Vis"}
@@ -258,9 +258,9 @@ function RecommendationCard({
       </div>
 
       {open && rec.rationale_text && (
-        <div className="mt-4 ml-6 p-3 bg-[#F8F9FB] rounded-lg border border-gray-100">
-          <p className="text-xs text-[#8A7F74] font-medium mb-2">Begrunnelse</p>
-          <p className="text-sm text-[#2C3E50] whitespace-pre-line leading-relaxed">
+        <div className="mt-4 ml-6 p-3 bg-background rounded-lg border border-gray-100">
+          <p className="text-xs text-muted-foreground font-medium mb-2">Begrunnelse</p>
+          <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
             {rec.rationale_text}
           </p>
         </div>
@@ -295,12 +295,12 @@ export default function RecommendationsSection({ orgnr }: { orgnr: string }) {
   return (
     <div className="broker-card space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <FileText className="w-4 h-4" /> Anbefalingsbrev ({recommendations.length})
         </p>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3a5f95]"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {showForm ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
           {showForm ? "Avbryt" : "Ny anbefaling"}
@@ -316,7 +316,7 @@ export default function RecommendationsSection({ orgnr }: { orgnr: string }) {
       )}
 
       {recommendations.length === 0 && !showForm && (
-        <div className="text-center py-6 text-[#8A7F74]">
+        <div className="text-center py-6 text-muted-foreground">
           <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
           <p className="text-xs">Ingen anbefalinger for denne klienten ennå.</p>
           <p className="text-xs mt-0.5">Opprett en etter at tilbud er innhentet.</p>

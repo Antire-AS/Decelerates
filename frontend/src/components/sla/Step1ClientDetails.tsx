@@ -32,7 +32,7 @@ export function Step1ClientDetails({ data, set, err, setErr, lookupLoading, onLo
               placeholder="9 siffer" className="input-sm w-full" />
           </div>
           <button onClick={onLookup} disabled={lookupLoading}
-            className="self-end px-3 py-1.5 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1">
+            className="self-end px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
             {lookupLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
             Slå opp
           </button>
@@ -45,7 +45,7 @@ export function Step1ClientDetails({ data, set, err, setErr, lookupLoading, onLo
         <div>
           <label className="label-xs" htmlFor="sla-client-adresse">Adresse</label>
           <textarea id="sla-client-adresse" value={data.client_adresse ?? ""} onChange={(e) => set({ client_adresse: e.target.value })}
-            rows={2} className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+            rows={2} className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
         </div>
         <div>
           <label className="label-xs" htmlFor="sla-client-kontakt">Kontaktperson (navn + e-post)</label>

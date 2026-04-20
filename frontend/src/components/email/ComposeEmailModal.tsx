@@ -58,13 +58,13 @@ export function ComposeEmailModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl w-full max-w-xl my-8"
+        className="bg-card rounded-lg shadow-xl w-full max-w-xl my-8"
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#EDE8E3]">
-          <h2 className="text-base font-semibold text-[#2C3E50] flex items-center gap-2">
-            <Mail className="w-4 h-4 text-[#4A6FA5]" /> Send e-post
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Mail className="w-4 h-4 text-primary" /> Send e-post
           </h2>
-          <button onClick={onClose} className="text-[#8A7F74] hover:text-[#2C3E50]">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -100,25 +100,25 @@ export function ComposeEmailModal({
               onChange={(e) => setBody(e.target.value)}
               rows={8}
               placeholder="Skriv meldingen din her…"
-              className="w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+              className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
           {err && <p className="text-xs text-red-600">{err}</p>}
-          <p className="text-[10px] text-[#8A7F74]">
+          <p className="text-[10px] text-muted-foreground">
             Sendt e-post logges automatisk som aktivitet på selskapet.
           </p>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <button
               type="submit"
               disabled={sending || !to.trim() || !subject.trim()}
-              className="w-full sm:w-auto px-4 py-2 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {sending ? "Sender…" : "Send e-post"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-3 py-2 text-xs rounded border border-[#D4C9B8] text-[#8A7F74]"
+              className="w-full sm:w-auto px-3 py-2 text-xs rounded border border-border text-muted-foreground"
             >
               Avbryt
             </button>

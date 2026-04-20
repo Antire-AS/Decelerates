@@ -41,14 +41,14 @@ export function Step2Services({ data, set, err, setErr, allLines, toggleLine, on
           <p className="label-xs mb-2">Forsikringslinjer som megleres:</p>
           {Object.entries(INSURANCE_LINES).map(([cat, lines]) => (
             <div key={cat} className="mb-3">
-              <p className="text-xs font-medium text-[#8A7F74] mb-1">{cat}</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{cat}</p>
               <div className="flex flex-wrap gap-2">
                 {lines.map((line) => (
                   <label key={line}
                     className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border cursor-pointer transition-colors ${
                       data.insurance_lines?.includes(line)
-                        ? "bg-[#2C3E50] text-white border-[#2C3E50]"
-                        : "border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3]"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-foreground hover:bg-muted"
                     }`}>
                     <input type="checkbox" className="hidden"
                       checked={!!data.insurance_lines?.includes(line)}

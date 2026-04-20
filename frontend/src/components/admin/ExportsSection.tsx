@@ -47,7 +47,7 @@ export function ExportsSection() {
         <button
           onClick={handleRenewals}
           disabled={loadingRenewals}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-border text-foreground hover:bg-muted disabled:opacity-50"
         >
           {loadingRenewals ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
           Fornyelsesrapport (Excel)
@@ -55,7 +55,7 @@ export function ExportsSection() {
         <button
           onClick={handlePolicies}
           disabled={loadingPolicies}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-border text-foreground hover:bg-muted disabled:opacity-50"
         >
           {loadingPolicies ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
           Avtaleoversikt (Excel)

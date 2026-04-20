@@ -154,21 +154,21 @@ export default function PipelinePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Pipeline</h1>
+        <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
         <button
           onClick={() => {
             setModalStageId(stages[0]?.id ?? null);
             setModalOpen(true);
           }}
           disabled={stages.length === 0}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
           <Plus className="w-3.5 h-3.5" /> Ny deal
         </button>
       </div>
 
       {isLoading && (
-        <div className="flex items-center gap-2 text-sm text-[#8A7F74]">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" /> Laster pipeline…
         </div>
       )}
@@ -179,7 +179,7 @@ export default function PipelinePage() {
 
       {!isLoading && stages.length === 0 && (
         <div className="broker-card">
-          <p className="text-sm text-[#8A7F74]">
+          <p className="text-sm text-muted-foreground">
             Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes
             automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.
           </p>

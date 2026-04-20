@@ -13,24 +13,24 @@ export default function LoginPage() {
   // import { Scale } from "lucide-react";
   //
   // return (
-  //   <div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center">
+  //   <div className="min-h-screen bg-background flex items-center justify-center">
   //     <div className="broker-card w-full max-w-sm text-center space-y-6">
   //       <div className="flex items-center justify-center gap-2">
-  //         <Scale className="w-8 h-8 text-[#4A6FA5]" />
+  //         <Scale className="w-8 h-8 text-primary" />
   //         <div className="text-left">
-  //           <p className="text-lg font-bold text-[#2C3E50] leading-tight">Broker</p>
-  //           <p className="text-sm text-[#8A7F74] leading-tight">Accelerator</p>
+  //           <p className="text-lg font-bold text-foreground leading-tight">Broker</p>
+  //           <p className="text-sm text-muted-foreground leading-tight">Accelerator</p>
   //         </div>
   //       </div>
   //       <div>
-  //         <h1 className="text-xl font-bold text-[#2C3E50]">Logg inn</h1>
-  //         <p className="text-sm text-[#8A7F74] mt-1">
+  //         <h1 className="text-xl font-bold text-foreground">Logg inn</h1>
+  //         <p className="text-sm text-muted-foreground mt-1">
   //           Forsikringsmegling · Due Diligence · Risikoprofil
   //         </p>
   //       </div>
   //       <button
   //         onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })}
-  //         className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] transition-colors"
+  //         className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
   //       >
   //         <svg width="18" height="18" viewBox="0 0 21 21" fill="none">
   //           <rect x="1"  y="1"  width="9" height="9" fill="#F25022" />
@@ -40,7 +40,7 @@ export default function LoginPage() {
   //         </svg>
   //         Logg inn med Microsoft
   //       </button>
-  //       <p className="text-xs text-[#C4BDB4]">Kun for autoriserte meglere</p>
+  //       <p className="text-xs text-muted-foreground">Kun for autoriserte meglere</p>
   //     </div>
   //   </div>
   // );

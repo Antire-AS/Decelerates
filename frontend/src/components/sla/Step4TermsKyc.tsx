@@ -25,8 +25,8 @@ export function Step4TermsKyc({ data, set, err, setErr, onBack, onNext }: Props)
     <>
       <StepHeader step={4} total={5} label="Vilkår og KYC" />
       <div className="space-y-4">
-        <div className="bg-[#F9F7F4] rounded-lg p-3 max-h-48 overflow-y-auto">
-          <p className="text-xs text-[#2C3E50] whitespace-pre-line">{STANDARD_VILKAAR}</p>
+        <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto">
+          <p className="text-xs text-foreground whitespace-pre-line">{STANDARD_VILKAAR}</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -58,8 +58,8 @@ export function Step4TermsKyc({ data, set, err, setErr, onBack, onNext }: Props)
         ].map((label, i) => {
           const key = `kyc_accept_${i}` as keyof SlaData;
           return (
-            <label key={i} className="flex items-start gap-2 text-xs text-[#2C3E50] cursor-pointer">
-              <input type="checkbox" className="mt-0.5 accent-[#4A6FA5]"
+            <label key={i} className="flex items-start gap-2 text-xs text-foreground cursor-pointer">
+              <input type="checkbox" className="mt-0.5 accent-primary"
                 checked={!!(data as Record<string, unknown>)[key]}
                 onChange={(e) => set({ [key]: e.target.checked } as Partial<SlaData>)} />
               {label}

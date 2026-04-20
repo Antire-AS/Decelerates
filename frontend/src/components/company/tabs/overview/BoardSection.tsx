@@ -14,7 +14,7 @@ export default function BoardSection({ members }: Props) {
 
   return (
     <Section title="Styremedlemmer">
-      <div className="flex items-center gap-1.5 mb-2 text-xs text-[#8A7F74]">
+      <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
         <Users className="w-3.5 h-3.5" />
         <span>Fra Brønnøysundregistrene</span>
       </div>
@@ -23,31 +23,31 @@ export default function BoardSection({ members }: Props) {
           {active.slice(0, 10).map((m, i) => (
             <div key={i} className="flex justify-between items-baseline text-sm gap-2">
               <div className="min-w-0">
-                <span className="text-[#2C3E50] font-medium">{m.name || "–"}</span>
+                <span className="text-foreground font-medium">{m.name || "–"}</span>
                 {m.birth_year && (
-                  <span className="text-[#C4BDB4] text-[10px] ml-1.5">f. {m.birth_year}</span>
+                  <span className="text-muted-foreground text-[10px] ml-1.5">f. {m.birth_year}</span>
                 )}
               </div>
-              <span className="text-[#8A7F74] text-xs text-right flex-shrink-0">{m.role || ""}</span>
+              <span className="text-muted-foreground text-xs text-right flex-shrink-0">{m.role || ""}</span>
             </div>
           ))}
         </div>
       )}
       {inactive.length > 0 && (
-        <details className="mt-3 pt-2 border-t border-[#EDE8E3]">
-          <summary className="text-xs text-[#8A7F74] cursor-pointer hover:text-[#2C3E50]">
+        <details className="mt-3 pt-2 border-t border-border">
+          <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
             Tidligere medlemmer ({inactive.length})
           </summary>
           <div className="space-y-1 mt-2">
             {inactive.slice(0, 10).map((m, i) => (
               <div key={i} className="flex justify-between items-baseline text-xs gap-2 opacity-70">
                 <div className="min-w-0">
-                  <span className="text-[#8A7F74]">{m.name || "–"}</span>
+                  <span className="text-muted-foreground">{m.name || "–"}</span>
                   {m.birth_year && (
-                    <span className="text-[#C4BDB4] text-[10px] ml-1.5">f. {m.birth_year}</span>
+                    <span className="text-muted-foreground text-[10px] ml-1.5">f. {m.birth_year}</span>
                   )}
                 </div>
-                <span className="text-[#C4BDB4] text-[10px] text-right flex-shrink-0">
+                <span className="text-muted-foreground text-[10px] text-right flex-shrink-0">
                   {m.deceased ? "Avdød" : "Fratrådt"} · {m.role || ""}
                 </span>
               </div>

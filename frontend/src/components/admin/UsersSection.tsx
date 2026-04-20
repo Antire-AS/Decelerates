@@ -31,30 +31,30 @@ export function UsersSection() {
         title="Brukere og tilganger"
         subtitle={users ? `${users.length} brukere i firmaet` : undefined}
       />
-      {isLoading && <Loader2 className="w-5 h-5 animate-spin text-[#4A6FA5]" />}
+      {isLoading && <Loader2 className="w-5 h-5 animate-spin text-primary" />}
       {!isLoading && !users?.length && (
-        <p className="text-xs text-[#8A7F74]">Ingen brukere funnet.</p>
+        <p className="text-xs text-muted-foreground">Ingen brukere funnet.</p>
       )}
       {users && users.length > 0 && (
-        <div className="divide-y divide-[#EDE8E3]">
-          <div className="grid grid-cols-[3fr_4fr_2fr_auto] gap-3 py-2 text-xs font-semibold text-[#8A7F74]">
+        <div className="divide-y divide-border">
+          <div className="grid grid-cols-[3fr_4fr_2fr_auto] gap-3 py-2 text-xs font-semibold text-muted-foreground">
             <span>Navn</span><span>E-post</span><span>Rolle</span><span />
           </div>
           {users.map((u) => (
             <div key={u.id} className="grid grid-cols-[3fr_4fr_2fr_auto] gap-3 py-2.5 items-center">
-              <span className="text-sm text-[#2C3E50]">{u.name ?? "–"}</span>
-              <span className="text-xs text-[#8A7F74]">{u.email}</span>
+              <span className="text-sm text-foreground">{u.name ?? "–"}</span>
+              <span className="text-xs text-muted-foreground">{u.email}</span>
               <select
                 value={pendingRoles[u.id] ?? u.role}
                 onChange={(e) => setPendingRoles((p) => ({ ...p, [u.id]: e.target.value }))}
-                className="text-xs border border-[#D4C9B8] rounded px-1.5 py-1 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+                className="text-xs border border-border rounded px-1.5 py-1 bg-card focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
               <button
                 onClick={() => handleSave(u)}
                 disabled={saving === u.id}
-                className="text-xs px-2.5 py-1 rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50"
+                className="text-xs px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving === u.id ? "…" : "Lagre"}
               </button>
