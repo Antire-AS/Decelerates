@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { getInsuranceBenchmarks, type PremiumEstimate } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
 import { TrendingUp, Info } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   revenue?: number | null;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function PremiumBenchmark({ revenue, naceSection }: Props) {
+  const T = useT();
   const nace = naceSection?.charAt(0)?.toUpperCase() || undefined;
   const { data } = useSWR(
     revenue ? `benchmark-${revenue}-${nace}` : null,
@@ -27,7 +29,7 @@ export default function PremiumBenchmark({ revenue, naceSection }: Props) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" />
-          Typiske premier
+          {T("Typiske premier")}
         </h3>
         {firstEstimate && (
           <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
@@ -44,7 +46,7 @@ export default function PremiumBenchmark({ revenue, naceSection }: Props) {
 
       <p className="text-xs text-muted-foreground mb-4 flex items-start gap-1.5">
         <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-        Indikative årspremier basert på bedriftsstørrelse og bransje. Ikke tilbud — veiledende markedsnivå.
+        {T("Indikative årspremier basert på bedriftsstørrelse og bransje. Ikke tilbud — veiledende markedsnivå.")}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -7,6 +7,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { getCommissionAnalytics, type CommissionAnalytics } from "@/lib/api";
 import { fmt, fmtMnok, MetricCard } from "./_shared";
+import { useT } from "@/lib/i18n";
 
 // Typical Norwegian broker commission ranges by product type (industry reference)
 const TYPICAL_RATES: Record<string, string> = {
@@ -21,6 +22,7 @@ const TYPICAL_RATES: Record<string, string> = {
 };
 
 export default function ProvisjonTab() {
+  const T = useT();
   const { data, isLoading, error } = useSWR<CommissionAnalytics>(
     "commission-analytics", getCommissionAnalytics,
   );
@@ -28,7 +30,7 @@ export default function ProvisjonTab() {
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (error || !data) return (
     <div className="broker-card text-center py-10 text-sm text-muted-foreground">
-      Ingen provisjonsdata ennå. Legg til provisjonssats på policyer i Selskapsøk → CRM-fanen.
+      {T("Ingen provisjonsdata ennå. Legg til provisjonssats på policyer i Selskapsøk → CRM-fanen.")}
     </div>
   );
 
@@ -39,14 +41,14 @@ export default function ProvisjonTab() {
     <div className="space-y-6">
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <MetricCard label="Total provisjon (estimert)" value={fmtMnok(data.total_commission_nok)} />
-        <MetricCard label="Policyer med provisjon" value={String(data.policy_count)} />
+        <MetricCard label={T("Total provisjon (estimert)")} value={fmtMnok(data.total_commission_nok)} />
+        <MetricCard label={T("Policyer med provisjon")} value={String(data.policy_count)} />
         <MetricCard
-          label="Gj.snitt provisjonsandel"
+          label={T("Gj.snitt provisjonsandel")}
           value={byProduct.length
             ? `${(byProduct.reduce((s, r) => s + r.avg_rate_pct, 0) / byProduct.length).toFixed(1)}%`
             : "–"}
-          sub="av premievolum"
+          sub={T("av premievolum")}
         />
       </div>
 
@@ -54,13 +56,13 @@ export default function ProvisjonTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {byProduct.length > 0 && (
           <div className="broker-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Provisjon per produkttype</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">{T("Provisjon per produkttype")}</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byProduct} layout="vertical" margin={{ left: 8, right: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1e3).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="product_type" tick={{ fontSize: 10 }} width={130} />
-                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, "Provisjon"]} />
+                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, T("Provisjon")]} />
                 <Bar dataKey="commission" fill="#C8A951" radius={[0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -69,13 +71,13 @@ export default function ProvisjonTab() {
 
         {byInsurer.length > 0 && (
           <div className="broker-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Provisjon per forsikringsselskap</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">{T("Provisjon per forsikringsselskap")}</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byInsurer} layout="vertical" margin={{ left: 8, right: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1e3).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="insurer" tick={{ fontSize: 10 }} width={110} />
-                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, "Provisjon"]} />
+                <Tooltip formatter={(v: number) => [`kr ${fmt(v)}`, T("Provisjon")]} />
                 <Bar dataKey="commission" fill="#4A6FA5" radius={[0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -86,16 +88,16 @@ export default function ProvisjonTab() {
       {/* Rate table */}
       {byProduct.length > 0 && (
         <div className="broker-card overflow-x-auto">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Provisjon per produkttype — detaljer</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">{T("Provisjon per produkttype — detaljer")}</h3>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-border">
-                <th className="text-left pb-2 font-medium">Produkttype</th>
-                <th className="text-right pb-2 font-medium">Avtaler</th>
-                <th className="text-right pb-2 font-medium">Premie (kr)</th>
-                <th className="text-right pb-2 font-medium">Provisjon (kr)</th>
-                <th className="text-right pb-2 font-medium">Gj.snitt %</th>
-                <th className="text-right pb-2 font-medium hidden md:table-cell">Typisk bransje</th>
+                <th className="text-left pb-2 font-medium">{T("Produkttype")}</th>
+                <th className="text-right pb-2 font-medium">{T("Avtaler")}</th>
+                <th className="text-right pb-2 font-medium">{T("Premie (kr)")}</th>
+                <th className="text-right pb-2 font-medium">{T("Provisjon (kr)")}</th>
+                <th className="text-right pb-2 font-medium">{T("Gj.snitt %")}</th>
+                <th className="text-right pb-2 font-medium hidden md:table-cell">{T("Typisk bransje")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -119,11 +121,10 @@ export default function ProvisjonTab() {
       {/* Reference rates */}
       <details className="broker-card">
         <summary className="text-sm font-semibold text-foreground cursor-pointer">
-          Typiske provisjonssatser (bransjereferanse)
+          {T("Typiske provisjonssatser (bransjereferanse)")}
         </summary>
         <p className="text-xs text-muted-foreground mt-2 mb-3">
-          Provisjonssatser er konfidensielle bilaterale avtaler mellom megler og forsikringsselskap.
-          Disse er typiske markedsintervaller — ikke bindende tall.
+          {T("Provisjonssatser er konfidensielle bilaterale avtaler mellom megler og forsikringsselskap. Disse er typiske markedsintervaller — ikke bindende tall.")}
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {Object.entries(TYPICAL_RATES).map(([product, range]) => (

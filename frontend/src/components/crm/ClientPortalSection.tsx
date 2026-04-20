@@ -8,8 +8,10 @@ import {
   createOrgClientToken,
   type ClientToken,
 } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
   const { data: tokens, isLoading, mutate } = useSWR<ClientToken[]>(
     `client-tokens-${orgnr}`,
     () => getOrgClientTokens(orgnr),
@@ -50,11 +52,11 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
     <div className="broker-card space-y-4">
       <div className="flex items-center gap-2">
         <Link2 className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Del med klient</h3>
+        <h3 className="text-sm font-semibold text-foreground">{T("Del med klient")}</h3>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Generer en 30-dagers lenke klienten kan bruke til å se sine forsikringer, skader og dokumenter — uten innlogging.
+        {T("Generer en 30-dagers lenke klienten kan bruke til å se sine forsikringer, skader og dokumenter — uten innlogging.")}
       </p>
 
       {/* Create form */}
@@ -62,7 +64,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="Etikett (valgfri, f.eks. «Sendt til kontakt»)"
+          placeholder={T("Etikett (valgfri, f.eks. «Sendt til kontakt»)")}
           className="flex-1 text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
         />
         <button
@@ -71,7 +73,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
           className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50"
         >
           {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Generer
+          {T("Generer")}
         </button>
       </div>
 
@@ -95,12 +97,12 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
                     <p className="text-xs font-medium text-foreground truncate">{t.label}</p>
                   )}
                   <p className="text-xs text-muted-foreground truncate">{url}</p>
-                  <p className="text-xs text-muted-foreground">Utløper {expires}</p>
+                  <p className="text-xs text-muted-foreground">{T("Utløper")} {expires}</p>
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => copyLink(t.token)}
-                    title="Kopier lenke"
+                    title={T("Kopier lenke")}
                     className="p-1.5 rounded-lg hover:bg-muted text-primary"
                   >
                     {copied === t.token
@@ -108,7 +110,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
                       : <Copy className="w-4 h-4" />}
                   </button>
                   <a href={url} target="_blank" rel="noopener noreferrer"
-                    title="Åpne portal"
+                    title={T("Åpne portal")}
                     className="p-1.5 rounded-lg hover:bg-muted text-primary">
                     <ExternalLink className="w-4 h-4" />
                   </a>
@@ -118,7 +120,7 @@ export default function ClientPortalSection({ orgnr }: { orgnr: string }) {
           })}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Ingen aktive lenker.</p>
+        <p className="text-xs text-muted-foreground">{T("Ingen aktive lenker.")}</p>
       )}
     </div>
   );

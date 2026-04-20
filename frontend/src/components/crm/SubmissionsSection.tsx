@@ -10,13 +10,7 @@ import {
 } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-
-const STATUS_LABELS: Record<string, string> = {
-  pending:   "Avventer",
-  quoted:    "Tilbud mottatt",
-  declined:  "Avslått",
-  withdrawn: "Trukket",
-};
+import { useT } from "@/lib/i18n";
 
 const STATUS_COLORS: Record<string, string> = {
   pending:   "bg-amber-100 text-amber-700",
@@ -25,6 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
   withdrawn: "bg-gray-100 text-gray-600",
 };
 
+// Product types are enum values sent to backend — keep Norwegian canon
 const PRODUCT_TYPES = [
   "Motorvognforsikring", "Næringseiendom", "Ansvarsforsikring",
   "Yrkesskadeforsikring", "Reiseforsikring", "Personforsikring",
@@ -33,6 +28,13 @@ const PRODUCT_TYPES = [
 ];
 
 export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
+  const STATUS_LABELS: Record<string, string> = {
+    pending:   T("Avventer"),
+    quoted:    T("Tilbud mottatt"),
+    declined:  T("Avslått"),
+    withdrawn: T("Trukket"),
+  };
   const { data: submissions = [], mutate } = useSWR<Submission[]>(
     `submissions-${orgnr}`,
     () => getOrgSubmissions(orgnr),
@@ -93,7 +95,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
           className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
           <Send className="w-4 h-4 text-primary" />
-          Markedsplassering
+          {T("Markedsplassering")}
           <span className="text-xs text-muted-foreground font-normal">
             ({submissions.length})
           </span>
@@ -104,7 +106,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
           className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
         >
           <Plus className="w-3.5 h-3.5" />
-          Legg til
+          {T("Legg til")}
         </button>
       </div>
 
@@ -114,7 +116,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
             <form onSubmit={handleCreate} className="border border-border rounded-lg p-3 space-y-3 bg-background">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-insurer">Forsikringsselskap *</label>
+                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-insurer">{T("Forsikringsselskap")} *</label>
                   <select
                     id="submission-insurer"
                     value={insurerId}
@@ -122,19 +124,19 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                     required
                     className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <option value="">Velg selskap…</option>
+                    <option value="">{T("Velg selskap…")}</option>
                     {insurers.map((ins) => (
                       <option key={ins.id} value={ins.id}>{ins.name}</option>
                     ))}
                   </select>
                   {insurers.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">
-                      Ingen selskaper. <a href="/insurers" className="underline">Legg til</a>.
+                      {T("Ingen selskaper.")} <a href="/insurers" className="underline">{T("Legg til")}</a>.
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-product">Produkt *</label>
+                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-product">{T("Produkt")} *</label>
                   <select
                     id="submission-product"
                     value={productType}
@@ -147,7 +149,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-requested-at">Sendt dato</label>
+                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-requested-at">{T("Sendt dato")}</label>
                   <input
                     id="submission-requested-at"
                     type="date"
@@ -157,24 +159,24 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-notes">Notater</label>
+                  <label className="text-xs text-muted-foreground font-medium" htmlFor="submission-notes">{T("Notater")}</label>
                   <input
                     id="submission-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    placeholder="Valgfritt"
+                    placeholder={T("Valgfritt")}
                   />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button type="button" onClick={() => setFormOpen(false)}
                   className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5 border border-gray-200 rounded-md">
-                  Avbryt
+                  {T("Avbryt")}
                 </button>
                 <button type="submit" disabled={saving || !insurerId}
                   className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-50">
-                  {saving ? "Lagrer…" : "Legg til"}
+                  {saving ? T("Lagrer…") : T("Legg til")}
                 </button>
               </div>
             </form>
@@ -182,7 +184,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
 
           {submissions.length === 0 && !formOpen && (
             <p className="text-xs text-muted-foreground text-center py-4">
-              Ingen markedsforespørsler ennå
+              {T("Ingen markedsforespørsler ennå")}
             </p>
           )}
 
@@ -191,7 +193,7 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">
-                    {sub.insurer_name ?? `Selskap #${sub.insurer_id}`}
+                    {sub.insurer_name ?? `${T("Selskap")} #${sub.insurer_id}`}
                   </span>
                   <span className="text-xs text-muted-foreground">{sub.product_type}</span>
                   {sub.requested_at && (
@@ -231,9 +233,9 @@ export default function SubmissionsSection({ orgnr }: { orgnr: string }) {
       <ConfirmDialog
         open={deleteId !== null}
         onOpenChange={(o) => { if (!o) setDeleteId(null); }}
-        title="Slett forespørsel?"
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={T("Slett forespørsel?")}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={() => {
           if (deleteId !== null) performDelete(deleteId);

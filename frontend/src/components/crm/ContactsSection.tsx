@@ -7,8 +7,10 @@ import {
   type Contact,
 } from "@/lib/api";
 import { Star, Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export default function ContactsSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
   const { data: contacts = [], mutate } = useSWR<Contact[]>(
     `contacts-${orgnr}`, () => getOrgContacts(orgnr),
   );
@@ -55,14 +57,14 @@ export default function ContactsSection({ orgnr }: { orgnr: string }) {
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between text-sm font-semibold text-foreground"
       >
-        <span>👤 Kontaktpersoner {contacts.length > 0 && `(${contacts.length})`}</span>
+        <span>👤 {T("Kontaktpersoner")} {contacts.length > 0 && `(${contacts.length})`}</span>
         {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
 
       {open && (
         <div className="mt-3 space-y-3">
           {contacts.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Ingen kontaktpersoner registrert.</p>
+            <p className="text-xs text-muted-foreground">{T("Ingen kontaktpersoner registrert.")}</p>
           ) : (
             <div className="divide-y divide-border">
               {contacts.map((c) => (
@@ -90,24 +92,24 @@ export default function ContactsSection({ orgnr }: { orgnr: string }) {
               onClick={() => setForm(true)}
               className="flex items-center gap-1 text-xs text-primary hover:underline"
             >
-              <Plus className="w-3 h-3" /> Legg til kontaktperson
+              <Plus className="w-3 h-3" /> {T("Legg til kontaktperson")}
             </button>
           ) : (
             <form onSubmit={handleAdd} className="space-y-2 pt-2 border-t border-border">
-              <p className="text-xs font-semibold text-foreground">Ny kontaktperson</p>
+              <p className="text-xs font-semibold text-foreground">{T("Ny kontaktperson")}</p>
               <div className="grid grid-cols-2 gap-2">
-                <Input label="Navn *"    value={name}  onChange={setName}  required />
-                <Input label="Tittel"    value={title} onChange={setTitle} />
-                <Input label="E-post"    value={email} onChange={setEmail} type="email" />
-                <Input label="Telefon"   value={phone} onChange={setPhone} />
+                <Input label={T("Navn *")}    value={name}  onChange={setName}  required />
+                <Input label={T("Tittel")}    value={title} onChange={setTitle} />
+                <Input label={T("E-post")}    value={email} onChange={setEmail} type="email" />
+                <Input label={T("Telefon")}   value={phone} onChange={setPhone} />
               </div>
               <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                 <input type="checkbox" checked={primary} onChange={(e) => setPrimary(e.target.checked)} className="accent-primary" />
-                Primærkontakt
+                {T("Primærkontakt")}
               </label>
               <textarea
                 value={notes} onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notater"
+                placeholder={T("Notater")}
                 rows={2}
                 className="w-full px-2 py-1.5 text-xs border border-border rounded-lg bg-card resize-none focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
@@ -115,10 +117,10 @@ export default function ContactsSection({ orgnr }: { orgnr: string }) {
               <div className="flex gap-2">
                 <button type="submit" disabled={saving}
                   className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-                  {saving ? "Lagrer…" : "Lagre"}
+                  {saving ? T("Lagrer…") : T("Lagre")}
                 </button>
                 <button type="button" onClick={() => setForm(false)} className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground">
-                  Avbryt
+                  {T("Avbryt")}
                 </button>
               </div>
             </form>

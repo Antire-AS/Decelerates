@@ -2,6 +2,7 @@
 
 import type { HistoryRow } from "@/lib/api";
 import { fmtMnok } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -66,18 +67,19 @@ interface Props {
 }
 
 export default function FinancialsKeyFiguresTable({ history }: Props) {
+  const T = useT();
   const sorted = [...history].sort((a, b) => a.year - b.year);
   const active = METRICS.filter(m => sorted.some(r => m.get(r) != null));
 
   if (active.length === 0 || sorted.length < 2) return null;
 
   return (
-    <Section title="Nøkkeltall per år">
+    <Section title={T("Nøkkeltall per år")}>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-muted-foreground border-b border-border">
-              <th className="text-left pb-2 font-medium w-28">Nøkkeltall</th>
+              <th className="text-left pb-2 font-medium w-28">{T("Nøkkeltall")}</th>
               {sorted.map(r => (
                 <th key={r.year} className="text-right pb-2 font-medium min-w-[80px]">
                   {r.year}
@@ -91,7 +93,7 @@ export default function FinancialsKeyFiguresTable({ history }: Props) {
           <tbody>
             {active.map(m => (
               <tr key={m.label} className="border-b border-border last:border-0 hover:bg-muted">
-                <td className="py-2 text-muted-foreground font-medium">{m.label}</td>
+                <td className="py-2 text-muted-foreground font-medium">{T(m.label)}</td>
                 {sorted.map((r, i) => {
                   const val = m.get(r);
                   const prev = i > 0 ? m.get(sorted[i - 1]) : null;

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n";
 
 export interface WorkflowStep {
   label: string;
@@ -13,6 +14,7 @@ interface WorkflowStepperProps {
 }
 
 export default function WorkflowStepper({ steps }: WorkflowStepperProps) {
+  const T = useT();
   const activeIdx = steps.findIndex((s) => !s.done);
   const allDone = activeIdx === -1;
 
@@ -67,13 +69,13 @@ export default function WorkflowStepper({ steps }: WorkflowStepperProps) {
       {/* Active step hint */}
       {allDone ? (
         <div className="bg-brand-success/10 border-l-4 border-brand-success rounded px-3 py-2 text-xs">
-          <span className="font-bold text-foreground">✓ Alle {steps.length} steg fullført</span>
-          <span className="text-muted-foreground ml-2">Klientprosessen er komplett.</span>
+          <span className="font-bold text-foreground">✓ {T("Alle")} {steps.length} {T("steg fullført")}</span>
+          <span className="text-muted-foreground ml-2">{T("Klientprosessen er komplett.")}</span>
         </div>
       ) : (
         <div className="bg-accent border-l-4 border-primary rounded px-3 py-2 text-xs">
           <span className="font-bold text-foreground">
-            Neste: Steg {activeIdx + 1} — {steps[activeIdx].label}
+            {T("Neste")}: {T("Steg")} {activeIdx + 1} — {steps[activeIdx].label}
           </span>
           <span className="text-muted-foreground ml-2">{steps[activeIdx].desc}</span>
         </div>

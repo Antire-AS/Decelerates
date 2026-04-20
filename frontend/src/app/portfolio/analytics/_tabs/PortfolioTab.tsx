@@ -12,8 +12,10 @@ import {
 } from "@/lib/api";
 import { fmtMnok, MetricCard } from "./_shared";
 import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 export default function PortfolioTab() {
+  const T = useT();
   const { bandFor } = useRiskConfig();
   const { data: portfolios, isLoading: loadingPortfolios } = useSWR<PortfolioItem[]>("portfolios-fin", getPortfolios);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -25,7 +27,7 @@ export default function PortfolioTab() {
   );
 
   if (loadingPortfolios) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
-  if (!portfolios?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen porteføljer funnet. Opprett en i Portefølje-fanen.</div>;
+  if (!portfolios?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">{T("Ingen porteføljer funnet. Opprett en i Portefølje-fanen.")}</div>;
 
   const revenues = (rows ?? []).filter((r) => r.revenue != null).map((r) => ({ name: r.navn ?? r.orgnr, value: +(r.revenue! / 1e6).toFixed(1) })).sort((a, b) => b.value - a.value).slice(0, 12);
   const riskRows = (rows ?? []).filter((r) => r.risk_score != null).map((r) => ({ name: r.navn ?? r.orgnr, value: r.risk_score! })).sort((a, b) => b.value - a.value);
@@ -52,25 +54,25 @@ export default function PortfolioTab() {
       {loadingRows ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       ) : !rows?.length ? (
-        <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen selskaper i porteføljen eller data ikke hentet ennå.</div>
+        <div className="broker-card text-center py-10 text-sm text-muted-foreground">{T("Ingen selskaper i porteføljen eller data ikke hentet ennå.")}</div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="Selskaper" value={String(rows.length)} />
-            <MetricCard label="Total omsetning" value={fmtMnok(totalRev)} />
-            <MetricCard label="Gj.snitt risikoscore" value={avgRisk ?? "–"} sub="av 20" />
-            <MetricCard label="Gj.snitt EK-andel" value={avgEq ? `${avgEq}%` : "–"} />
+            <MetricCard label={T("Selskaper")} value={String(rows.length)} />
+            <MetricCard label={T("Total omsetning")} value={fmtMnok(totalRev)} />
+            <MetricCard label={T("Gj.snitt risikoscore")} value={avgRisk ?? "–"} sub={T("av 20")} />
+            <MetricCard label={T("Gj.snitt EK-andel")} value={avgEq ? `${avgEq}%` : "–"} />
           </div>
 
           {revenues.length > 0 && (
             <div className="broker-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Omsetning (MNOK) — topp {revenues.length}</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">{T("Omsetning (MNOK) — topp")} {revenues.length}</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={revenues} margin={{ left: 0, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(v: number) => [`${v} MNOK`, "Omsetning"]} />
+                  <Tooltip formatter={(v: number) => [`${v} MNOK`, T("Omsetning")]} />
                   <Bar dataKey="value" fill="#4A6FA5" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -79,13 +81,13 @@ export default function PortfolioTab() {
 
           {riskRows.length > 0 && (
             <div className="broker-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Risikoscore per selskap</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">{T("Risikoscore per selskap")}</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={riskRows} margin={{ left: 0, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
                   <YAxis tick={{ fontSize: 10 }} domain={[0, 20]} />
-                  <Tooltip formatter={(v: number) => [v, "Risikoscore"]} />
+                  <Tooltip formatter={(v: number) => [v, T("Risikoscore")]} />
                   <Bar dataKey="value" fill="#C8A951" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -93,16 +95,16 @@ export default function PortfolioTab() {
           )}
 
           <div className="broker-card overflow-x-auto">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Alle selskaper</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{T("Alle selskaper")}</h3>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-muted-foreground border-b border-border">
-                  <th className="text-left pb-2 font-medium">Selskap</th>
-                  <th className="text-right pb-2 font-medium">Omsetning</th>
-                  <th className="text-right pb-2 font-medium">Egenkapital</th>
-                  <th className="text-right pb-2 font-medium">EK-andel</th>
-                  <th className="text-right pb-2 font-medium">Risiko</th>
-                  <th className="text-right pb-2 font-medium">År</th>
+                  <th className="text-left pb-2 font-medium">{T("Selskap")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Omsetning")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Egenkapital")}</th>
+                  <th className="text-right pb-2 font-medium">{T("EK-andel")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Risiko")}</th>
+                  <th className="text-right pb-2 font-medium">{T("År")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">

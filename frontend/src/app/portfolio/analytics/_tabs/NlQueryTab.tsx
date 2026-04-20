@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Database } from "lucide-react";
 import { nlQuery } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 const EXAMPLE_QUERIES = [
   "Hvilke 10 selskaper har høyest omsetning?",
@@ -12,6 +13,7 @@ const EXAMPLE_QUERIES = [
 ];
 
 export default function NlQueryTab() {
+  const T = useT();
   const [question, setQuestion] = useState("");
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState<{ sql: string; columns: string[]; rows: unknown[][]; error: string | null } | null>(null);
@@ -38,17 +40,17 @@ export default function NlQueryTab() {
       <div className="broker-card space-y-3">
         <div className="flex items-center gap-2 mb-1">
           <Database className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">Naturlig språk til SQL</h3>
+          <h3 className="text-sm font-semibold text-foreground">{T("Naturlig språk til SQL")}</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.
+          {T("Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.")}
         </p>
         <div className="flex gap-2">
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && run()}
-            placeholder="F.eks. «Hvilke selskaper har negativ egenkapital?»"
+            placeholder={T("F.eks. «Hvilke selskaper har negativ egenkapital?»")}
             className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
           <button
@@ -57,7 +59,7 @@ export default function NlQueryTab() {
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
-            Kjør
+            {T("Kjør")}
           </button>
         </div>
 
@@ -65,7 +67,7 @@ export default function NlQueryTab() {
           {EXAMPLE_QUERIES.map((q) => (
             <button key={q} onClick={() => run(q)}
               className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-muted transition-colors">
-              {q}
+              {T(q)}
             </button>
           ))}
         </div>
@@ -78,15 +80,15 @@ export default function NlQueryTab() {
       )}
 
       {result && !result.error && result.rows.length === 0 && (
-        <div className="broker-card text-sm text-center text-muted-foreground py-6">Ingen resultater.</div>
+        <div className="broker-card text-sm text-center text-muted-foreground py-6">{T("Ingen resultater.")}</div>
       )}
 
       {result && result.rows.length > 0 && (
         <div className="broker-card space-y-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-xs text-muted-foreground">{result.rows.length} rader</p>
+            <p className="text-xs text-muted-foreground">{result.rows.length} {T("rader")}</p>
             <details className="text-xs text-muted-foreground">
-              <summary className="cursor-pointer hover:text-foreground">Vis SQL</summary>
+              <summary className="cursor-pointer hover:text-foreground">{T("Vis SQL")}</summary>
               <pre className="mt-2 p-2 bg-primary text-green-300 rounded-lg overflow-x-auto text-xs whitespace-pre-wrap">
                 {result.sql}
               </pre>

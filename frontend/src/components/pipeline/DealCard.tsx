@@ -4,6 +4,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Calendar, GripVertical, Trash2, User } from "lucide-react";
 import type { DealOut } from "@/lib/api";
 import { fmtNok } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 /**
  * One deal card on the kanban board. Draggable via @dnd-kit. The card itself
@@ -22,6 +23,7 @@ export function DealCard({
   companyName?: string;
   onDelete: (deal: DealOut) => void;
 }) {
+  const T = useT();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id.toString(),
     data: { deal },
@@ -52,7 +54,7 @@ export function DealCard({
         <button
           {...listeners}
           {...attributes}
-          aria-label="Dra for å flytte"
+          aria-label={T("Dra for å flytte")}
           className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-muted-foreground flex-shrink-0 mt-0.5"
         >
           <GripVertical className="w-4 h-4" />
@@ -69,7 +71,7 @@ export function DealCard({
         </div>
         <button
           onClick={() => onDelete(deal)}
-          aria-label="Slett deal"
+          aria-label={T("Slett deal")}
           className="text-muted-foreground hover:text-red-500 flex-shrink-0"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -91,7 +93,7 @@ export function DealCard({
         {deal.owner_user_id != null && (
           <span
             className="flex items-center gap-0.5"
-            title={`Bruker-ID ${deal.owner_user_id} eier denne dealen`}
+            title={`${T("Bruker-ID")} ${deal.owner_user_id} ${T("eier denne dealen")}`}
           >
             <User className="w-3 h-3" /> #{deal.owner_user_id}
           </span>
@@ -99,7 +101,7 @@ export function DealCard({
         {daysInStage != null && daysInStage >= 0 && (
           <span
             className={daysInStage > 30 ? "text-amber-600" : ""}
-            title={`${daysInStage} dag${daysInStage === 1 ? "" : "er"} i denne fasen`}
+            title={`${daysInStage} ${daysInStage === 1 ? T("dag i denne fasen") : T("dager i denne fasen")}`}
           >
             {daysInStage}d
           </span>

@@ -2,6 +2,7 @@
 
 import { useRiskConfig } from "@/lib/useRiskConfig";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n";
 
 interface RiskBadgeProps {
   score?: number | null;
@@ -25,10 +26,11 @@ const CSS_BY_LABEL: Record<string, string> = {
 };
 
 export default function RiskBadge({ score, className }: RiskBadgeProps) {
+  const T = useT();
   const { bandFor } = useRiskConfig();
   const band = bandFor(score);
   const emoji = EMOJI_BY_LABEL[band.label] ?? "";
   const cls = CSS_BY_LABEL[band.label] ?? "broker-badge-none";
-  const text = score == null ? "–" : `${emoji} ${band.label}`.trim();
+  const text = score == null ? "–" : `${emoji} ${T(band.label)}`.trim();
   return <span className={cn(cls, className)}>{text}</span>;
 }

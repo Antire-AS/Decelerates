@@ -4,8 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import { knowledgeChat } from "@/lib/api";
 import { type Message, readableSource, renderMarkdownWithTables } from "./_shared";
+import { useT } from "@/lib/i18n";
 
 export default function ChatTab() {
+  const T = useT();
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,10 +41,10 @@ export default function ChatTab() {
       if (err instanceof DOMException && err.name === "AbortError") {
         setMessages((prev) => [...prev, {
           role: "assistant",
-          content: "_(Avbrutt)_",
+          content: `_(${T("Avbrutt")})_`,
         }]);
       } else {
-        setError(`Kunne ikke hente svar: ${err instanceof Error ? err.message : "Ukjent feil"}`);
+        setError(`${T("Kunne ikke hente svar")}: ${err instanceof Error ? err.message : T("Ukjent feil")}`);
       }
     } finally {
       setIsLoading(false);
@@ -62,8 +64,8 @@ export default function ChatTab() {
       <div className="flex-1 space-y-4 overflow-y-auto mb-4" style={{ maxHeight: "55vh" }}>
         {messages.length === 0 && !isLoading && (
           <div className="text-center py-12 text-muted-foreground">
-            <p className="text-sm font-medium text-foreground mb-2">Hei! Jeg er din forsikringsassistent.</p>
-            <p className="text-sm">Spør meg om forsikringstyper, risiko, kunderegulering, GDPR eller hvilken dekning et selskap trenger.</p>
+            <p className="text-sm font-medium text-foreground mb-2">{T("Hei! Jeg er din forsikringsassistent.")}</p>
+            <p className="text-sm">{T("Spør meg om forsikringstyper, risiko, kunderegulering, GDPR eller hvilken dekning et selskap trenger.")}</p>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-2">
               {[
                 "Hva er ansvarsforsikring?",
@@ -73,7 +75,7 @@ export default function ChatTab() {
               ].map((s) => (
                 <button key={s} onClick={() => setQuestion(s)}
                   className="px-3 py-2 text-xs text-left rounded-lg border border-border text-foreground hover:bg-muted">
-                  {s}
+                  {T(s)}
                 </button>
               ))}
             </div>
@@ -95,7 +97,7 @@ export default function ChatTab() {
               {msg.role === "assistant" && msg.sources && msg.sources.length > 0 && (
                 <details className="mt-1.5">
                   <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground inline-block">
-                    Kilder ({msg.sources.length})
+                    {T("Kilder")} ({msg.sources.length})
                   </summary>
                   <div className="mt-1.5 space-y-1">
                     {msg.sources.map((src) => {
@@ -135,12 +137,12 @@ export default function ChatTab() {
 
       <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-border items-end">
         <textarea value={question} onChange={(e) => setQuestion(e.target.value)} onKeyDown={handleKeyDown}
-          placeholder="Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)"
+          placeholder={T("Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)")}
           rows={2} disabled={isLoading}
           className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none disabled:opacity-50" />
         {messages.length > 0 && !isLoading && (
           <button type="button" onClick={() => { setMessages([]); setError(null); }}
-            title="Tøm samtale"
+            title={T("Tøm samtale")}
             className="px-3 py-2 rounded-lg border border-border text-muted-foreground hover:bg-muted text-sm flex items-center gap-1">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -148,12 +150,12 @@ export default function ChatTab() {
         {isLoading ? (
           <button type="button" onClick={() => abortRef.current?.abort()}
             className="px-4 py-2 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted">
-            Stopp
+            {T("Stopp")}
           </button>
         ) : (
           <button type="submit" disabled={!question.trim()}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
-            Send
+            {T("Send")}
           </button>
         )}
       </form>

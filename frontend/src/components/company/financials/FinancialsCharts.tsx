@@ -5,6 +5,7 @@ import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
+import { useT } from "@/lib/i18n";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -33,6 +34,7 @@ export default function FinancialsCharts({
   chartData, eqData, debtData,
   commentary, commentaryLoading, commentaryErr, handleCommentary,
 }: Props) {
+  const T = useT();
   const hasRev  = chartData.length > 0;
   const hasEq   = eqData.length > 0;
   const hasDebt = debtData.length > 0;
@@ -42,7 +44,7 @@ export default function FinancialsCharts({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {hasRev && (
-        <Section title="Omsetning og resultat (MNOK)">
+        <Section title={T("Omsetning og resultat (MNOK)")}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
@@ -50,27 +52,27 @@ export default function FinancialsCharts({
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v: number) => `${v} MNOK`} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="omsetning" name="Omsetning" fill="#4A6FA5" />
-              <Bar dataKey="resultat" name="Nettoresultat" fill="#2C3E50" />
+              <Bar dataKey="omsetning" name={T("Omsetning")} fill="#4A6FA5" />
+              <Bar dataKey="resultat" name={T("Nettoresultat")} fill="#2C3E50" />
             </BarChart>
           </ResponsiveContainer>
         </Section>
       )}
       {hasEq && (
-        <Section title="Egenkapitalandel (%)">
+        <Section title={T("Egenkapitalandel (%)")}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={eqData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
               <XAxis dataKey="year" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} unit="%" />
               <Tooltip formatter={(v: number) => `${v}%`} />
-              <Line type="monotone" dataKey="ekAndel" name="EK-andel" stroke="#4A6FA5" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="ekAndel" name={T("EK-andel")} stroke="#4A6FA5" strokeWidth={2} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </Section>
       )}
       {hasDebt && (
-        <Section title="Gjeldsstruktur (MNOK)">
+        <Section title={T("Gjeldsstruktur (MNOK)")}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={debtData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
@@ -78,8 +80,8 @@ export default function FinancialsCharts({
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v: number) => `${v} MNOK`} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="langsiktig" name="Langsiktig gjeld" fill="#C8A951" stackId="a" />
-              <Bar dataKey="kortsiktig" name="Kortsiktig gjeld" fill="#E8D5A0" stackId="a" />
+              <Bar dataKey="langsiktig" name={T("Langsiktig gjeld")} fill="#C8A951" stackId="a" />
+              <Bar dataKey="kortsiktig" name={T("Kortsiktig gjeld")} fill="#E8D5A0" stackId="a" />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -87,7 +89,7 @@ export default function FinancialsCharts({
       <div className="broker-card flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" /> AI-finanskommentar
+            <Sparkles className="w-4 h-4" /> {T("AI-finanskommentar")}
           </h3>
           <button
             onClick={handleCommentary}
@@ -95,7 +97,7 @@ export default function FinancialsCharts({
             className="px-3 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
           >
             {commentaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-            Generer
+            {T("Generer")}
           </button>
         </div>
         {commentaryErr && <p className="text-xs text-red-600">{commentaryErr}</p>}
@@ -105,7 +107,7 @@ export default function FinancialsCharts({
           </div>
         ) : (
           <p className="text-xs text-muted-foreground mt-2">
-            Klikk «Generer» for AI-analyse av finansiell trendutvikling.
+            {T("Klikk «Generer» for AI-analyse av finansiell trendutvikling.")}
           </p>
         )}
       </div>

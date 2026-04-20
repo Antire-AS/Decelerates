@@ -9,6 +9,7 @@ import {
   type PipelineStageOut,
   type DealOut,
 } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 /**
  * Plan §🟢 #9 — "New deal" modal. Inline company autocomplete (debounced)
@@ -26,6 +27,7 @@ export function NewDealModal({
   onClose: () => void;
   onCreated: (deal: DealOut) => void;
 }) {
+  const T = useT();
   const [companyQuery, setCompanyQuery] = useState("");
   const [companyResults, setCompanyResults] = useState<SearchResult[]>([]);
   const [picked, setPicked] = useState<SearchResult | null>(null);
@@ -73,7 +75,7 @@ export function NewDealModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!picked) {
-      setErr("Velg et selskap først.");
+      setErr(T("Velg et selskap først."));
       return;
     }
     setSaving(true);
@@ -107,7 +109,7 @@ export function NewDealModal({
         className="bg-card rounded-lg shadow-xl w-full max-w-lg my-8"
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-          <h2 className="text-base font-semibold text-foreground">Ny deal</h2>
+          <h2 className="text-base font-semibold text-foreground">{T("Ny deal")}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
@@ -116,7 +118,7 @@ export function NewDealModal({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Company autocomplete */}
           <div>
-            <label className="label-xs" htmlFor="new-deal-company-search">Selskap *</label>
+            <label className="label-xs" htmlFor="new-deal-company-search">{T("Selskap")} *</label>
             {picked ? (
               <div className="flex items-center justify-between bg-muted border border-border rounded-lg px-3 py-2">
                 <div className="min-w-0">
@@ -131,7 +133,7 @@ export function NewDealModal({
                   }}
                   className="text-xs text-muted-foreground hover:text-foreground"
                 >
-                  Bytt
+                  {T("Bytt")}
                 </button>
               </div>
             ) : (
@@ -143,7 +145,7 @@ export function NewDealModal({
                     autoFocus
                     value={companyQuery}
                     onChange={(e) => setCompanyQuery(e.target.value)}
-                    placeholder="Søk etter navn eller orgnr…"
+                    placeholder={T("Søk etter navn eller orgnr…")}
                     className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-lg
                                bg-card text-foreground placeholder:text-muted-foreground
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -151,7 +153,7 @@ export function NewDealModal({
                 </div>
                 {searching && (
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Søker…
+                    <Loader2 className="w-3 h-3 animate-spin" /> {T("Søker…")}
                   </p>
                 )}
                 {companyResults.length > 0 && (
@@ -177,19 +179,19 @@ export function NewDealModal({
           </div>
 
           <div>
-            <label className="label-xs" htmlFor="new-deal-title">Tittel</label>
+            <label className="label-xs" htmlFor="new-deal-title">{T("Tittel")}</label>
             <input
               id="new-deal-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="F.eks. Q3 fornyelse"
+              placeholder={T("F.eks. Q3 fornyelse")}
               className="input-sm w-full"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label-xs" htmlFor="new-deal-stage">Stage *</label>
+              <label className="label-xs" htmlFor="new-deal-stage">{T("Stage")} *</label>
               <select
                 id="new-deal-stage"
                 value={stageId}
@@ -204,7 +206,7 @@ export function NewDealModal({
               </select>
             </div>
             <div>
-              <label className="label-xs" htmlFor="new-deal-expected-premium">Forventet premie (NOK)</label>
+              <label className="label-xs" htmlFor="new-deal-expected-premium">{T("Forventet premie (NOK)")}</label>
               <input
                 id="new-deal-expected-premium"
                 type="number"
@@ -218,7 +220,7 @@ export function NewDealModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label-xs" htmlFor="new-deal-close-date">Forventet closing</label>
+              <label className="label-xs" htmlFor="new-deal-close-date">{T("Forventet closing")}</label>
               <input
                 id="new-deal-close-date"
                 type="date"
@@ -228,19 +230,19 @@ export function NewDealModal({
               />
             </div>
             <div>
-              <label className="label-xs" htmlFor="new-deal-source">Kilde</label>
+              <label className="label-xs" htmlFor="new-deal-source">{T("Kilde")}</label>
               <input
                 id="new-deal-source"
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
-                placeholder="Inbound / Referral / …"
+                placeholder={T("Inbound / Referral / …")}
                 className="input-sm w-full"
               />
             </div>
           </div>
 
           <div>
-            <label className="label-xs" htmlFor="new-deal-notes">Notater</label>
+            <label className="label-xs" htmlFor="new-deal-notes">{T("Notater")}</label>
             <textarea
               id="new-deal-notes"
               value={notes}
@@ -258,14 +260,14 @@ export function NewDealModal({
               disabled={saving || !picked}
               className="w-full sm:w-auto px-4 py-2 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {saving ? "Lagrer…" : "Opprett deal"}
+              {saving ? T("Lagrer…") : T("Opprett deal")}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="w-full sm:w-auto px-3 py-2 text-xs rounded border border-border text-muted-foreground"
             >
-              Avbryt
+              {T("Avbryt")}
             </button>
           </div>
         </form>

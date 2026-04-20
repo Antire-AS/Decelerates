@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Loader2, MessageSquare } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   chatQuestion: string;
@@ -22,10 +23,11 @@ export function PortfolioChat({
   chatErr,
   onSubmit,
 }: Props) {
+  const T = useT();
   return (
     <div className="space-y-3 pt-2 border-t border-border">
       <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-        <MessageSquare className="w-3.5 h-3.5" /> Portefølje-chat
+        <MessageSquare className="w-3.5 h-3.5" /> {T("Portefølje-chat")}
       </p>
       <div className="flex gap-2">
         <input
@@ -33,7 +35,7 @@ export function PortfolioChat({
           value={chatQuestion}
           onChange={(e) => setChatQuestion(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSubmit()}
-          placeholder="F.eks. «Hvilke selskaper har lavest egenkapitalandel?»"
+          placeholder={T("F.eks. «Hvilke selskaper har lavest egenkapitalandel?»")}
           className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
         />
         <button
@@ -41,7 +43,7 @@ export function PortfolioChat({
           disabled={chatLoading || !chatQuestion.trim()}
           className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
           {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-          Spør
+          {T("Spør")}
         </button>
       </div>
       {chatErr && <p className="text-xs text-red-600">{chatErr}</p>}

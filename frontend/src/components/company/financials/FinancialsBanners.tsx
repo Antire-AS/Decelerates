@@ -1,6 +1,7 @@
 "use client";
 
 import { Info } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface ExtractionStatus {
   status?: string;
@@ -23,14 +24,15 @@ export default function FinancialsBanners({
   hasEstimated,
   hasHistory,
 }: Props) {
+  const T = useT();
   return (
     <>
       {extractionStatus && extractionStatus.pending_years.length > 0 && (
         <div className="broker-card border-l-4 border-amber-400 flex items-start gap-2">
           <Info className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="text-xs text-foreground">
-            <span className="font-medium">PDF-utdrag pågår</span> — venter på år:{" "}
-            {extractionStatus.pending_years.join(", ")}. Siden oppdateres automatisk.
+            <span className="font-medium">{T("PDF-utdrag pågår")}</span> — {T("venter på år")}:{" "}
+            {extractionStatus.pending_years.join(", ")}. {T("Siden oppdateres automatisk.")}
           </div>
         </div>
       )}
@@ -38,7 +40,7 @@ export default function FinancialsBanners({
         <div className="broker-card border-l-4 border-border flex items-start gap-2">
           <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            Ingen PDF-kilder funnet ennå. Lim inn en årsrapport-URL nedenfor for å hente tall.
+            {T("Ingen PDF-kilder funnet ennå. Lim inn en årsrapport-URL nedenfor for å hente tall.")}
           </p>
         </div>
       )}
@@ -48,9 +50,9 @@ export default function FinancialsBanners({
           <div className="broker-card border-l-4 border-border flex items-start gap-2">
             <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              Mangler årsrapporter for{" "}
+              {T("Mangler årsrapporter for")}{" "}
               {extractionStatus.missing_target_years.join(", ")}.
-              Lim inn PDF-lenker nedenfor for å hente tall.
+              {" "}{T("Lim inn PDF-lenker nedenfor for å hente tall.")}
             </p>
           </div>
         )}
@@ -58,12 +60,12 @@ export default function FinancialsBanners({
         <div className="broker-card border-l-4 border-primary flex items-start gap-2">
           <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
           <p className="text-xs text-foreground">
-            <span className="font-medium">Fremmed valuta</span> — tall i{" "}
+            <span className="font-medium">{T("Fremmed valuta")}</span> — {T("tall i")}{" "}
             {foreignCurrencies.join(", ")}.
             {Object.entries(fxRates).map(([ccy, rate]) => (
               <span key={ccy}>
                 {" "}
-                Dagskurs: 1 {ccy} = {rate.toFixed(4)} NOK.
+                {T("Dagskurs")}: 1 {ccy} = {rate.toFixed(4)} NOK.
               </span>
             ))}
           </p>
@@ -73,8 +75,7 @@ export default function FinancialsBanners({
         <div className="broker-card border-l-4 border-brand-warning flex items-start gap-2">
           <Info className="w-4 h-4 text-brand-warning flex-shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            Noen tall er hentet fra PDF-årsrapporter og kan avvike fra
-            offisielle BRREG-tall.
+            {T("Noen tall er hentet fra PDF-årsrapporter og kan avvike fra offisielle BRREG-tall.")}
           </p>
         </div>
       )}

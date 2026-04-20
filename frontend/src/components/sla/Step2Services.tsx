@@ -2,6 +2,7 @@
 
 import { StepHeader, NavButtons } from "./SlaShared";
 import { INSURANCE_LINES, type SlaData } from "./slaConstants";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   data: SlaData;
@@ -15,33 +16,34 @@ interface Props {
 }
 
 export function Step2Services({ data, set, err, setErr, allLines, toggleLine, onBack, onNext }: Props) {
+  const T = useT();
   function handleNext() {
-    if (!allLines.length) { setErr("Velg minst én forsikringslinje."); return; }
+    if (!allLines.length) { setErr(T("Velg minst én forsikringslinje.")); return; }
     setErr(null);
     onNext();
   }
 
   return (
     <>
-      <StepHeader step={2} total={5} label="Tjenester (Vedlegg A)" />
+      <StepHeader step={2} total={5} label={T("Tjenester (Vedlegg A)")} />
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-xs" htmlFor="sla-start-date">Avtalestartdato</label>
+            <label className="label-xs" htmlFor="sla-start-date">{T("Avtalestartdato")}</label>
             <input id="sla-start-date" type="date" value={data.start_date ?? new Date().toISOString().slice(0, 10)}
               onChange={(e) => set({ start_date: e.target.value })} className="input-sm w-full" />
           </div>
           <div>
-            <label className="label-xs" htmlFor="sla-account-manager">Kundeansvarlig</label>
+            <label className="label-xs" htmlFor="sla-account-manager">{T("Kundeansvarlig")}</label>
             <input id="sla-account-manager" value={data.account_manager ?? ""} onChange={(e) => set({ account_manager: e.target.value })}
               className="input-sm w-full" />
           </div>
         </div>
         <div>
-          <p className="label-xs mb-2">Forsikringslinjer som megleres:</p>
+          <p className="label-xs mb-2">{T("Forsikringslinjer som megleres:")}</p>
           {Object.entries(INSURANCE_LINES).map(([cat, lines]) => (
             <div key={cat} className="mb-3">
-              <p className="text-xs font-medium text-muted-foreground mb-1">{cat}</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{T(cat)}</p>
               <div className="flex flex-wrap gap-2">
                 {lines.map((line) => (
                   <label key={line}
@@ -53,14 +55,14 @@ export function Step2Services({ data, set, err, setErr, allLines, toggleLine, on
                     <input type="checkbox" className="hidden"
                       checked={!!data.insurance_lines?.includes(line)}
                       onChange={() => toggleLine(line)} />
-                    {line}
+                    {T(line)}
                   </label>
                 ))}
               </div>
             </div>
           ))}
           <div>
-            <label className="label-xs" htmlFor="sla-other-lines">Andre (spesifiser)</label>
+            <label className="label-xs" htmlFor="sla-other-lines">{T("Andre (spesifiser)")}</label>
             <input id="sla-other-lines" value={data.other_lines ?? ""} onChange={(e) => set({ other_lines: e.target.value })}
               className="input-sm w-full" />
           </div>

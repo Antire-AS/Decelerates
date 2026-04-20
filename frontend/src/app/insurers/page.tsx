@@ -10,6 +10,7 @@ import {
   type Insurer,
 } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useT } from "@/lib/i18n";
 
 const PRODUCT_TYPES = [
   "Motorvognforsikring",
@@ -35,6 +36,7 @@ function InsurerForm({
   onSave: (data: Omit<Insurer, "id" | "firm_id" | "created_at">) => Promise<void>;
   onCancel: () => void;
 }) {
+  const T = useT();
   const [name, setName] = useState(initial?.name ?? "");
   const [orgNumber, setOrgNumber] = useState(initial?.org_number ?? "");
   const [contactName, setContactName] = useState(initial?.contact_name ?? "");
@@ -73,29 +75,29 @@ function InsurerForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-name">Navn *</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-name">{T("Navn")} *</label>
           <input
             id="insurer-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            placeholder="f.eks. If Skadeforsikring"
+            placeholder={T("f.eks. If Skadeforsikring")}
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-orgnr">Org.nr</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-orgnr">{T("Org.nr")}</label>
           <input
             id="insurer-orgnr"
             value={orgNumber}
             onChange={(e) => setOrgNumber(e.target.value)}
             className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            placeholder="9 siffer"
+            placeholder={T("9 siffer")}
             maxLength={9}
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-name">Kontaktperson</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-name">{T("Kontaktperson")}</label>
           <input
             id="insurer-contact-name"
             value={contactName}
@@ -104,7 +106,7 @@ function InsurerForm({
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-email">E-post</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-email">{T("E-post")}</label>
           <input
             id="insurer-contact-email"
             type="email"
@@ -114,7 +116,7 @@ function InsurerForm({
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-phone">Telefon</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-phone">{T("Telefon")}</label>
           <input
             id="insurer-contact-phone"
             value={contactPhone}
@@ -125,7 +127,7 @@ function InsurerForm({
       </div>
 
       <div>
-        <p className="text-xs text-muted-foreground font-medium">Produktappetitt</p>
+        <p className="text-xs text-muted-foreground font-medium">{T("Produktappetitt")}</p>
         <div className="flex flex-wrap gap-1.5 mt-1.5">
           {PRODUCT_TYPES.map((p) => (
             <button
@@ -138,14 +140,14 @@ function InsurerForm({
                   : "bg-card text-muted-foreground border-brand-stone hover:border-primary"
               }`}
             >
-              {p}
+              {T(p)}
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-notes">Notater</label>
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-notes">{T("Notater")}</label>
         <textarea
           id="insurer-notes"
           value={notes}
@@ -161,14 +163,14 @@ function InsurerForm({
           onClick={onCancel}
           className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-brand-stone rounded-md"
         >
-          Avbryt
+          {T("Avbryt")}
         </button>
         <button
           type="submit"
           disabled={saving || !name.trim()}
           className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
-          {saving ? "Lagrer…" : "Lagre"}
+          {saving ? T("Lagrer…") : T("Lagre")}
         </button>
       </div>
     </form>
@@ -186,6 +188,7 @@ function InsurerCard({
   onDeleted: () => void;
   onUpdated: (updated: Insurer) => void;
 }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -215,7 +218,7 @@ function InsurerCard({
           <div>
             <p className="text-sm font-semibold text-foreground">{insurer.name}</p>
             {insurer.org_number && (
-              <p className="text-xs text-muted-foreground">Org.nr {insurer.org_number}</p>
+              <p className="text-xs text-muted-foreground">{T("Org.nr")} {insurer.org_number}</p>
             )}
           </div>
         </div>
@@ -225,7 +228,7 @@ function InsurerCard({
             className="text-xs text-primary hover:underline flex items-center gap-1"
           >
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {open ? "Skjul" : "Vis"}
+            {open ? T("Skjul") : T("Vis")}
           </button>
           <button onClick={() => { setOpen(true); setEditing(true); }} className="text-muted-foreground hover:text-primary">
             <Pencil className="w-4 h-4" />
@@ -248,7 +251,7 @@ function InsurerCard({
             <div className="space-y-3 text-sm">
               {(insurer.contact_name || insurer.contact_email || insurer.contact_phone) && (
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-1">Kontakt</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">{T("Kontakt")}</p>
                   <p className="text-foreground">{insurer.contact_name || "–"}</p>
                   {insurer.contact_email && (
                     <a href={`mailto:${insurer.contact_email}`} className="text-xs text-primary hover:underline">
@@ -262,11 +265,11 @@ function InsurerCard({
               )}
               {insurer.appetite && insurer.appetite.length > 0 && (
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-1.5">Produktappetitt</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1.5">{T("Produktappetitt")}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {insurer.appetite.map((p) => (
                       <span key={p} className="px-2 py-0.5 text-xs rounded-full bg-accent text-primary">
-                        {p}
+                        {T(p)}
                       </span>
                     ))}
                   </div>
@@ -274,7 +277,7 @@ function InsurerCard({
               )}
               {insurer.notes && (
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium mb-1">Notater</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">{T("Notater")}</p>
                   <p className="text-foreground text-xs">{insurer.notes}</p>
                 </div>
               )}
@@ -286,9 +289,9 @@ function InsurerCard({
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title={`Slett ${insurer.name}?`}
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={`${T("Slett")} ${insurer.name}?`}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={performDelete}
       />
@@ -299,6 +302,7 @@ function InsurerCard({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function InsurersPage() {
+  const T = useT();
   const { data: insurers, isLoading, mutate: refresh } = useSWR<Insurer[]>(
     "/insurers",
     getInsurers,
@@ -320,9 +324,9 @@ export default function InsurersPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Forsikringsselskaper</h1>
+          <h1 className="text-2xl font-bold text-foreground">{T("Forsikringsselskaper")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Administrer forsikringsselskaper og deres produktappetitt
+            {T("Administrer forsikringsselskaper og deres produktappetitt")}
           </p>
         </div>
         <button
@@ -330,13 +334,13 @@ export default function InsurersPage() {
           className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90"
         >
           {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showForm ? "Avbryt" : "Legg til"}
+          {showForm ? T("Avbryt") : T("Legg til")}
         </button>
       </div>
 
       {showForm && (
         <div className="broker-card">
-          <p className="text-sm font-semibold text-foreground mb-4">Nytt forsikringsselskap</p>
+          <p className="text-sm font-semibold text-foreground mb-4">{T("Nytt forsikringsselskap")}</p>
           <InsurerForm onSave={handleCreate} onCancel={() => setShowForm(false)} />
         </div>
       )}
@@ -344,19 +348,19 @@ export default function InsurersPage() {
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Søk etter selskap…"
+        placeholder={T("Søk etter selskap…")}
         className="w-full px-3 py-2 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       />
 
       {isLoading && (
-        <p className="text-sm text-muted-foreground text-center py-8">Laster…</p>
+        <p className="text-sm text-muted-foreground text-center py-8">{T("Laster…")}</p>
       )}
 
       {!isLoading && filtered.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">
-            {search ? "Ingen treff" : "Ingen forsikringsselskaper lagt til ennå"}
+            {search ? T("Ingen treff") : T("Ingen forsikringsselskaper lagt til ennå")}
           </p>
         </div>
       )}
@@ -374,7 +378,7 @@ export default function InsurersPage() {
 
       {!isLoading && filtered.length > 0 && (
         <p className="text-xs text-muted-foreground text-center">
-          {filtered.length} selskap{filtered.length !== 1 ? "er" : ""}
+          {filtered.length} {filtered.length !== 1 ? T("selskaper") : T("selskap")}
         </p>
       )}
     </div>

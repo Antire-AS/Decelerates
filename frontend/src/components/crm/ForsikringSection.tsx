@@ -10,18 +10,12 @@ import {
 import { Loader2, Trash2, ChevronDown, ChevronUp, Sparkles, FileText, Upload } from "lucide-react";
 import { fmtNok } from "@/lib/format";
 import CoverageGapSection from "@/components/crm/CoverageGapSection";
+import { useT } from "@/lib/i18n";
 
 const PRIORITY_COLOR: Record<string, string> = {
   critical: "text-red-600", high: "text-orange-500",
   medium: "text-yellow-600", low: "text-green-700",
 };
-const PRIORITY_LABEL: Record<string, string> = {
-  critical: "Kritisk", high: "Høy", medium: "Middels", low: "Lav",
-};
-const OFFER_STATUS_LABEL: Record<string, string> = {
-  pending: "Venter", reviewed: "Gjennomgått", accepted: "Akseptert", rejected: "Avvist",
-};
-
 
 function fmtRange(r?: { low: number; mid: number; high: number }) {
   if (!r) return "–";
@@ -29,6 +23,13 @@ function fmtRange(r?: { low: number; mid: number; high: number }) {
 }
 
 export default function ForsikringSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
+  const PRIORITY_LABEL: Record<string, string> = {
+    critical: T("Kritisk"), high: T("Høy"), medium: T("Middels"), low: T("Lav"),
+  };
+  const OFFER_STATUS_LABEL: Record<string, string> = {
+    pending: T("Venter"), reviewed: T("Gjennomgått"), accepted: T("Akseptert"), rejected: T("Avvist"),
+  };
   const { data: needsData, isLoading: needsLoading } = useSWR(
     `needs-${orgnr}`, () => getOrgInsuranceNeeds(orgnr),
   );
@@ -100,17 +101,17 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
       <div className="broker-card">
         <button onClick={() => setNeedsOpen((o) => !o)}
           className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
-          <span>🛡️ Forsikringsbehov {needs.length > 0 && `(${needs.length})`}</span>
+          <span>🛡️ {T("Forsikringsbehov")} {needs.length > 0 && `(${needs.length})`}</span>
           {needsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {needsOpen && (
           <div className="mt-3">
             {needsLoading ? (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" /> Estimerer…
+                <Loader2 className="w-4 h-4 animate-spin" /> {T("Estimerer…")}
               </div>
             ) : needs.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Ingen behovsdata tilgjengelig.</p>
+              <p className="text-xs text-muted-foreground">{T("Ingen behovsdata tilgjengelig.")}</p>
             ) : (
               <>
                 {needsData?.narrative && (
@@ -129,8 +130,8 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
                       {(n.estimated_coverage_nok || n.estimated_annual_premium_nok) && (
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {[
-                            n.estimated_coverage_nok && `Dekningssum: ${fmtNok(n.estimated_coverage_nok)}`,
-                            n.estimated_annual_premium_nok && `Premie: ${fmtRange(n.estimated_annual_premium_nok)} /år`,
+                            n.estimated_coverage_nok && `${T("Dekningssum")}: ${fmtNok(n.estimated_coverage_nok)}`,
+                            n.estimated_annual_premium_nok && `${T("Premie")}: ${fmtRange(n.estimated_annual_premium_nok)} ${T("/år")}`,
                           ].filter(Boolean).join(" · ")}
                         </p>
                       )}
@@ -147,7 +148,7 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
       <div className="broker-card">
         <button onClick={() => setNarrativeOpen((o) => !o)}
           className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
-          <span className="flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> AI-risikoanalyse</span>
+          <span className="flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> {T("AI-risikoanalyse")}</span>
           {narrativeOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {narrativeOpen && (
@@ -156,32 +157,32 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
               <button onClick={handleGenerateNarrative} disabled={genLoading}
                 className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
                 {genLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                Generer risikonarrativ
+                {T("Generer risikonarrativ")}
               </button>
               <button onClick={handleGenerateOffer} disabled={genLoading}
                 className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
                 {genLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
-                Generer forsikringstilbud
+                {T("Generer forsikringstilbud")}
               </button>
             </div>
             {genErr && <p className="text-xs text-red-600">{genErr}</p>}
 
             {narrative && (
               <div className="bg-muted rounded-lg p-3">
-                <p className="text-xs font-semibold text-foreground mb-1">Risikonarrativ</p>
+                <p className="text-xs font-semibold text-foreground mb-1">{T("Risikonarrativ")}</p>
                 <p className="text-xs text-foreground whitespace-pre-wrap">{narrative}</p>
               </div>
             )}
 
             {riskOffer && (
               <div className="bg-muted rounded-lg p-3 space-y-2">
-                <p className="text-xs font-semibold text-foreground">Forsikringstilbud</p>
+                <p className="text-xs font-semibold text-foreground">{T("Forsikringstilbud")}</p>
                 {riskOffer.sammendrag && (
                   <p className="text-xs text-foreground whitespace-pre-wrap">{riskOffer.sammendrag}</p>
                 )}
                 {riskOffer.total_premieanslag && (
                   <p className="text-xs text-primary font-medium">
-                    Totalt premieanslag: {riskOffer.total_premieanslag}
+                    {T("Totalt premieanslag")}: {riskOffer.total_premieanslag}
                   </p>
                 )}
                 {riskOffer.anbefalinger && riskOffer.anbefalinger.length > 0 && (
@@ -204,13 +205,13 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
       <div className="broker-card">
         <button onClick={() => setUploadOpen((o) => !o)}
           className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
-          <span className="flex items-center gap-1.5"><Upload className="w-4 h-4" /> Last opp tilbud (PDF)</span>
+          <span className="flex items-center gap-1.5"><Upload className="w-4 h-4" /> {T("Last opp tilbud (PDF)")}</span>
           {uploadOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {uploadOpen && (
           <div className="mt-3 space-y-3">
             <p className="text-xs text-muted-foreground">
-              Last opp én eller flere PDF-filer med forsikringstilbud. AI-agenten analyserer dem i bakgrunnen.
+              {T("Last opp én eller flere PDF-filer med forsikringstilbud. AI-agenten analyserer dem i bakgrunnen.")}
             </p>
             <input
               type="file" accept=".pdf" multiple
@@ -218,17 +219,17 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
               className="block w-full text-xs text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
             />
             {uploadFiles && uploadFiles.length > 0 && (
-              <p className="text-xs text-muted-foreground">{uploadFiles.length} fil(er) valgt</p>
+              <p className="text-xs text-muted-foreground">{uploadFiles.length} {T("fil(er) valgt")}</p>
             )}
             {uploadErr && <p className="text-xs text-red-600">{uploadErr}</p>}
             <div className="flex gap-2">
               <button onClick={handleUpload} disabled={uploading || !uploadFiles?.length}
                 className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
                 {uploading && <Loader2 className="w-3 h-3 animate-spin" />}
-                {uploading ? "Laster opp…" : "Last opp"}
+                {uploading ? T("Laster opp…") : T("Last opp")}
               </button>
               <button type="button" onClick={() => setUploadOpen(false)}
-                className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground">Avbryt</button>
+                className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground">{T("Avbryt")}</button>
             </div>
           </div>
         )}
@@ -238,13 +239,13 @@ export default function ForsikringSection({ orgnr }: { orgnr: string }) {
       <div className="broker-card">
         <button onClick={() => setOffersOpen((o) => !o)}
           className="w-full flex items-center justify-between text-sm font-semibold text-foreground">
-          <span>📎 Innhentede tilbud {offers.length > 0 && `(${offers.length})`}</span>
+          <span>📎 {T("Innhentede tilbud")} {offers.length > 0 && `(${offers.length})`}</span>
           {offersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {offersOpen && (
           <div className="mt-3">
             {offers.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Ingen tilbud lastet opp.</p>
+              <p className="text-xs text-muted-foreground">{T("Ingen tilbud lastet opp.")}</p>
             ) : (
               <div className="divide-y divide-border">
                 {offers.map((o) => (

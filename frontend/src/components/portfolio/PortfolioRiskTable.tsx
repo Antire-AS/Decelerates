@@ -5,6 +5,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { type PortfolioRiskRow } from "@/lib/api";
 import { fmtMnok } from "@/lib/format";
 import { useRiskConfig } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   portfolioRisk: PortfolioRiskRow[];
@@ -14,22 +15,23 @@ interface Props {
 }
 
 export function PortfolioRiskTable({ portfolioRisk, portfolioName, removingOrgnr, onRemove }: Props) {
+  const T = useT();
   const { bandFor } = useRiskConfig();
 
   return (
     <div>
       <p className="text-xs font-semibold text-foreground mb-2">
-        Selskaper i «{portfolioName}» ({portfolioRisk.length})
+        {T("Selskaper i")} «{portfolioName}» ({portfolioRisk.length})
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-muted-foreground border-b border-border">
-              <th className="text-left pb-1.5 font-medium">Selskap</th>
-              <th className="text-right pb-1.5 font-medium hidden sm:table-cell">Omsetning</th>
-              <th className="text-right pb-1.5 font-medium hidden md:table-cell">Egenkapital</th>
-              <th className="text-right pb-1.5 font-medium hidden md:table-cell">EK-andel</th>
-              <th className="text-right pb-1.5 font-medium">Risiko</th>
+              <th className="text-left pb-1.5 font-medium">{T("Selskap")}</th>
+              <th className="text-right pb-1.5 font-medium hidden sm:table-cell">{T("Omsetning")}</th>
+              <th className="text-right pb-1.5 font-medium hidden md:table-cell">{T("Egenkapital")}</th>
+              <th className="text-right pb-1.5 font-medium hidden md:table-cell">{T("EK-andel")}</th>
+              <th className="text-right pb-1.5 font-medium">{T("Risiko")}</th>
               <th className="w-8 pb-1.5"></th>
             </tr>
           </thead>
