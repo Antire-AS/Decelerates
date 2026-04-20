@@ -148,6 +148,29 @@ async def send_tender(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.post("/tenders/{tender_id}/remind")
+@limiter.limit("5/minute")
+async def remind_tender(
+    request: Request,
+    tender_id: int,
+    db: Session = Depends(get_db),
+    svc: TenderService = Depends(_svc),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Manually send a reminder email to all pending recipients for this tender.
+
+    Bypasses the 7d/2d deadline thresholds used by the daily cron — this is
+    the broker clicking "Send purring nå" because they know it's time.
+    """
+    from api.services.tender_reminders import _remind_one_tender
+
+    tender = svc.get(tender_id, user.firm_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    sent, failed = _remind_one_tender(db, tender)
+    return {"reminders_sent": sent, "reminders_failed": failed}
+
+
 @router.post("/tenders/{tender_id}/recipients")
 @limiter.limit("20/minute")
 async def add_recipient(

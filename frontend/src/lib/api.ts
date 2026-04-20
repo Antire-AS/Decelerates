@@ -1119,6 +1119,12 @@ export const deleteTender = (id: number) =>
 export const sendTender = (id: number) =>
   apiFetch<Tender>(`/tenders/${id}/send`, { method: "POST" });
 
+export const remindTender = (id: number) =>
+  apiFetch<{ reminders_sent: number; reminders_failed: number }>(
+    `/tenders/${id}/remind`,
+    { method: "POST" },
+  );
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,

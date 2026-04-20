@@ -3307,6 +3307,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/{tender_id}/remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remind Tender
+         * @description Manually send a reminder email to all pending recipients for this tender.
+         *
+         *     Bypasses the 7d/2d deadline thresholds used by the daily cron — this is
+         *     the broker clicking "Send purring nå" because they know it's time.
+         */
+        post: operations["remind_tender_tenders__tender_id__remind_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}/send": {
         parameters: {
             query?: never;
@@ -11683,6 +11706,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remind_tender_tenders__tender_id__remind_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

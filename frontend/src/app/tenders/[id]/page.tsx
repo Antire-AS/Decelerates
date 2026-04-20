@@ -6,6 +6,7 @@ import useSWR from "swr";
 import {
   getTender,
   sendTender,
+  remindTender,
   uploadTenderOffer,
   analyseTender,
   updateTender,
@@ -15,6 +16,7 @@ import {
   ArrowLeft,
   Send,
   BarChart2,
+  Bell,
   Clock,
   CheckCircle,
   FileText,
@@ -44,6 +46,7 @@ export default function TenderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: tender, mutate } = useSWR<Tender>(`tender-${id}`, () => getTender(Number(id)));
   const [sending, setSending] = useState(false);
+  const [reminding, setReminding] = useState(false);
   const [analysing, setAnalysing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -69,6 +72,25 @@ export default function TenderDetailPage() {
       toast.error(T("Kunne ikke sende anbudsforespørsler"));
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleRemind() {
+    setReminding(true);
+    try {
+      const res = await remindTender(Number(id));
+      if (res.reminders_sent > 0) {
+        toast.success(
+          `${T("Purring sendt til")} ${res.reminders_sent} ${T("selskap(er)")}`,
+        );
+      } else {
+        toast.message(T("Ingen ventende mottakere å purre"));
+      }
+      mutate();
+    } catch {
+      toast.error(T("Kunne ikke sende purring"));
+    } finally {
+      setReminding(false);
     }
   }
 
@@ -159,13 +181,28 @@ export default function TenderDetailPage() {
             </button>
           )}
           {tender.status === "sent" && (
-            <button
-              onClick={handleClose}
-              className="flex items-center gap-1.5 px-4 py-2 bg-brand-warning text-white text-sm rounded-lg hover:bg-brand-warning/90"
-            >
-              <Clock className="w-4 h-4" />
-              {T("Lukk anbud")}
-            </button>
+            <>
+              <button
+                onClick={handleRemind}
+                disabled={reminding}
+                className="flex items-center gap-1.5 px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted disabled:opacity-50"
+                title={T("Send purring til mottakere som ikke har svart")}
+              >
+                {reminding ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Bell className="w-4 h-4" />
+                )}
+                {T("Send purring")}
+              </button>
+              <button
+                onClick={handleClose}
+                className="flex items-center gap-1.5 px-4 py-2 bg-brand-warning text-white text-sm rounded-lg hover:bg-brand-warning/90"
+              >
+                <Clock className="w-4 h-4" />
+                {T("Lukk anbud")}
+              </button>
+            </>
           )}
           {tender.offers.length >= 2 && tender.status !== "draft" && (
             <button
