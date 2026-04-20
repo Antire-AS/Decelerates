@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Trash2 } from "lucide-react";
-import { knowledgeChat, getChatHistory, clearChatHistory } from "@/lib/api";
+import { Trash2, Paperclip, Loader2 } from "lucide-react";
+import { knowledgeChat, getChatHistory, clearChatHistory, knowledgeQuickUpload } from "@/lib/api";
 import { type Message, readableSource, renderMarkdownWithTables } from "./_shared";
 import { useT } from "@/lib/i18n";
 
@@ -46,6 +46,31 @@ export default function ChatTab() {
     }
     setMessages([]);
     setError(null);
+  }
+
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleAttach(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const res = await knowledgeQuickUpload(f);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `${T("Dokumentet")} **${res.filename}** ${T("er indeksert og tilgjengelig for chat")}.`,
+        },
+      ]);
+    } catch (err) {
+      setError(`${T("Opplasting feilet")}: ${err instanceof Error ? err.message : T("Ukjent feil")}`);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -165,6 +190,22 @@ export default function ChatTab() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-border items-end">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/pdf"
+          onChange={handleAttach}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading || isLoading}
+          title={T("Last opp PDF til kunnskapsbasen")}
+          className="px-3 py-2 rounded-lg border border-border text-muted-foreground hover:bg-muted text-sm flex items-center gap-1 disabled:opacity-50"
+        >
+          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Paperclip className="w-3.5 h-3.5" />}
+        </button>
         <textarea value={question} onChange={(e) => setQuestion(e.target.value)} onKeyDown={handleKeyDown}
           placeholder={T("Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)")}
           rows={2} disabled={isLoading}

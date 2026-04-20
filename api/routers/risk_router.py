@@ -278,19 +278,16 @@ def coverage_gap_analysis(
     return {"status": "ok", **result}
 
 
-@router.get("/org/{orgnr}/risk-report/pdf")
-def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
-    """Generate and return a PDF risk assessment report."""
-    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Company not in database")
+def _build_risk_pdf_for_company(db_obj: Company, user_oid: str, db: Session) -> bytes:
+    """Assemble the risk PDF: profile data + financials + risk + optional whiteboard."""
+    from api.services.whiteboard import WhiteboardService
 
     org = _org_dict_from_db(db_obj)
     regn = db_obj.regnskap_raw or {}
     pep = db_obj.pep_raw or {}
     risk = derive_simple_risk(org, regn, pep)  # type: ignore[arg-type]
-
-    pdf_bytes = generate_risk_report_pdf(
+    wb = WhiteboardService(db).get(db_obj.orgnr, user_oid)
+    return generate_risk_report_pdf(
         orgnr=db_obj.orgnr,
         navn=db_obj.navn,
         organisasjonsform_kode=db_obj.organisasjonsform_kode,
@@ -303,7 +300,28 @@ def download_risk_report(orgnr: str, db: Session = Depends(get_db)):
         sum_eiendeler=db_obj.sum_eiendeler,
         regn=regn,
         risk=risk,
+        whiteboard_items=list(wb.items) if wb and wb.items else None,
+        whiteboard_notes=wb.notes if wb else None,
+        whiteboard_ai_summary=wb.ai_summary if wb else None,
     )
+
+
+@router.get("/org/{orgnr}/risk-report/pdf")
+def download_risk_report(
+    orgnr: str,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Generate and return a PDF risk assessment report.
+
+    If the current user has a Fokus-whiteboard for this company, its items
+    + notes + AI summary are appended as the last section so the PDF
+    reflects what the broker has actually decided to highlight.
+    """
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Company not in database")
+    pdf_bytes = _build_risk_pdf_for_company(db_obj, user.oid, db)
     filename = f"risikorapport_{orgnr}_{date.today().isoformat()}.pdf"
     return Response(
         content=pdf_bytes,

@@ -1,0 +1,24 @@
+name: Daily Tender Reminders
+
+# Tender reminders ("purring") — sends deadline reminders to tender
+# recipients 7 days and 2 days before their deadline. The API endpoint is
+# idempotent-ish: running twice in a day means duplicate reminders, which
+# is annoying but safer than missing a deadline.
+
+on:
+  schedule:
+    # 08:00 UTC daily (10:00 Norwegian summer time, 09:00 winter)
+    - cron: "0 8 * * *"
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger tender deadline reminders
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/tender-reminders" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
