@@ -96,7 +96,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
       </div>
 
       {/* Message thread */}
-      <div className="flex-1 overflow-y-auto space-y-3 max-h-72 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-3 min-h-[28rem] max-h-[60vh] pr-1">
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
