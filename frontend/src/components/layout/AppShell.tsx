@@ -70,7 +70,7 @@ function SidebarContent({
   return (
     <>
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-brand-stone">
+      <div className="px-4 py-5 border-b border-border">
         <div className="flex items-center gap-2">
           <Scale className="w-6 h-6 text-brand-mid" />
           <div>
@@ -103,7 +103,7 @@ function SidebarContent({
       </nav>
 
       {/* Language toggle + user */}
-      <div className="px-3 py-3 border-t border-brand-stone space-y-1">
+      <div className="px-3 py-3 border-t border-border space-y-1">
         <button
           onClick={() => (window as { __openOnboarding?: () => void }).__openOnboarding?.()}
           className="nav-item w-full"
@@ -170,7 +170,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Global ⌘K command palette — mounted once, listens for its own keybind. */}
       <CommandPalette />
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
-      <aside className="hidden md:flex w-56 flex-shrink-0 bg-brand-beige border-r border-brand-stone flex-col">
+      <aside className="hidden md:flex w-56 flex-shrink-0 bg-background border-r border-border flex-col">
         <SidebarContent {...sidebarProps} />
       </aside>
 
@@ -184,7 +184,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Mobile drawer panel ───────────────────────────────────────── */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-brand-beige border-r border-brand-stone transition-transform duration-200 md:hidden",
+        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-background border-r border-border transition-transform duration-200 md:hidden",
         mobileOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <SidebarContent {...sidebarProps} onNavClick={() => setMobileOpen(false)} />
@@ -195,10 +195,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Main content ────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Mobile top bar — bell sits next to the menu button. */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-background border-b border-border flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
+            className="p-1.5 rounded-lg text-foreground hover:bg-muted"
             aria-label="Åpne meny"
           >
             <Menu className="w-5 h-5" />
@@ -215,7 +215,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {mobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
+                className="p-1.5 rounded-lg text-foreground hover:bg-muted"
                 aria-label="Lukk meny"
               >
                 <X className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Desktop top bar — minimal, right-aligned bell + theme toggle (sidebar owns everything else). */}
-        <header className="hidden md:flex items-center justify-end gap-2 px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+        <header className="hidden md:flex items-center justify-end gap-2 px-6 py-2 bg-background border-b border-border flex-shrink-0">
           <button
             onClick={() => {
               // Dispatch a synthetic ⌘K keydown — the CommandPalette's global
@@ -245,7 +245,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
         </header>
 
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-brand-beige focus:outline-none">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-background focus:outline-none">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
             {children}
           </div>
