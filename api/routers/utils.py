@@ -7,7 +7,6 @@ import requests
 from fastapi import APIRouter, HTTPException
 
 from api.services import (
-    fetch_enhet_by_orgnr,
     fetch_koordinater,
     fetch_losore,
     fetch_ssb_benchmark,
@@ -16,6 +15,7 @@ from api.services import (
     fetch_board_members,
     _generate_synthetic_financials,
 )
+from api.services.caching import cached_fetch_enhet
 from api.schemas import (
     BankruptcyOut,
     BoardMembersOut,
@@ -39,7 +39,7 @@ def get_org_roles(orgnr: str) -> dict:
 
 @router.get("/org/{orgnr}/estimate", response_model=EstimateOut)
 def get_synthetic_estimate(orgnr: str) -> dict:
-    org_data = fetch_enhet_by_orgnr(orgnr)
+    org_data = cached_fetch_enhet(orgnr)
     if not org_data:
         raise HTTPException(status_code=404, detail="Organisation not found")
     result = _generate_synthetic_financials(org_data)
@@ -53,7 +53,7 @@ def get_synthetic_estimate(orgnr: str) -> dict:
 
 @router.get("/org/{orgnr}/bankruptcy", response_model=BankruptcyOut)
 def get_bankruptcy_status(orgnr: str) -> dict:
-    org = fetch_enhet_by_orgnr(orgnr)
+    org = cached_fetch_enhet(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
     return {
@@ -66,7 +66,7 @@ def get_bankruptcy_status(orgnr: str) -> dict:
 
 @router.get("/org/{orgnr}/koordinater", response_model=KoordinaterOut)
 def get_koordinater(orgnr: str) -> dict:
-    org = fetch_enhet_by_orgnr(orgnr)
+    org = cached_fetch_enhet(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
     coords = fetch_koordinater(org)
@@ -81,7 +81,7 @@ def get_losore(orgnr: str) -> dict:
 
 @router.get("/org/{orgnr}/benchmark", response_model=BenchmarkOut)
 def get_benchmark(orgnr: str) -> dict:
-    org = fetch_enhet_by_orgnr(orgnr)
+    org = cached_fetch_enhet(orgnr)
     if not org:
         raise HTTPException(status_code=404, detail="Organisation not found")
     nace = org.get("naeringskode1") or ""
