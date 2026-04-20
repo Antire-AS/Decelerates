@@ -185,3 +185,129 @@ def test_process_inbound_rejects_unknown_token(monkeypatch) -> None:
     )
     result = mail_webhook.process_inbound_mail(db=None, mail=mail)  # type: ignore[arg-type]
     assert result == {"matched": False, "reason": "token-unknown"}
+
+
+def test_process_inbound_happy_path_stores_offers(monkeypatch) -> None:
+    """Valid token + a PDF attachment → upload_offer called, status → received."""
+    from api.services import mail_webhook
+    from types import SimpleNamespace
+
+    # Fake recipient + tender
+    recipient = SimpleNamespace(
+        id=42,
+        tender_id=7,
+        insurer_name="Gjensidige",
+        status=None,
+        response_at=None,
+    )
+    monkeypatch.setattr(mail_webhook, "find_recipient", lambda _db, _token: recipient)
+
+    uploaded_offers: list = []
+
+    class _FakeSvc:
+        def __init__(self, _db):
+            pass
+
+        def upload_offer(
+            self, tender_id, insurer_name, filename, pdf_bytes, recipient_id
+        ):
+            uploaded_offers.append(
+                {
+                    "tender_id": tender_id,
+                    "insurer_name": insurer_name,
+                    "filename": filename,
+                    "size": len(pdf_bytes),
+                    "recipient_id": recipient_id,
+                }
+            )
+            return SimpleNamespace(id=100 + len(uploaded_offers))
+
+    monkeypatch.setattr(mail_webhook, "TenderService", _FakeSvc)
+
+    class _FakeDB:
+        def __init__(self):
+            self.commits = 0
+
+        def commit(self):
+            self.commits += 1
+
+    db = _FakeDB()
+
+    mail = ParsedMail(
+        to_address="tender-AbCdEf_1234567890xyz-ABCDEF@broker.example",
+        from_address="insurer@gjensidige.no",
+        subject="Re: Anbud DNB",
+        attachments=[
+            InboundAttachment(
+                filename="tilbud.pdf",
+                content_type="application/pdf",
+                content_base64=base64.b64encode(b"%PDF-1.4 fake").decode("ascii"),
+            ),
+            InboundAttachment(
+                filename="logo.png",
+                content_type="image/png",
+                content_base64=base64.b64encode(b"notpdf").decode("ascii"),
+            ),
+        ],
+    )
+    result = mail_webhook.process_inbound_mail(db=db, mail=mail)  # type: ignore[arg-type]
+
+    # One PDF stored, one skipped (image)
+    assert result["matched"] is True
+    assert result["tender_id"] == 7
+    assert result["recipient_id"] == 42
+    assert len(result["stored_offer_ids"]) == 1
+    assert len(result["skipped"]) == 1
+    assert "logo.png" in result["skipped"][0]
+    # Recipient flipped to received
+    from api.models.tender import TenderRecipientStatus
+
+    assert recipient.status == TenderRecipientStatus.received
+    assert recipient.response_at is not None
+    assert db.commits == 1
+    # upload_offer called with the right args
+    assert uploaded_offers[0]["tender_id"] == 7
+    assert uploaded_offers[0]["filename"] == "tilbud.pdf"
+
+
+def test_process_inbound_skips_undecodable_attachment(monkeypatch) -> None:
+    """Bad base64 → skipped with 'decode failed' reason, no DB write."""
+    from api.services import mail_webhook
+    from types import SimpleNamespace
+
+    recipient = SimpleNamespace(
+        id=42, tender_id=7, insurer_name="If", status=None, response_at=None
+    )
+    monkeypatch.setattr(mail_webhook, "find_recipient", lambda _db, _token: recipient)
+
+    class _FakeSvc:
+        def __init__(self, _db):
+            pass
+
+        def upload_offer(self, **_kwargs):
+            raise AssertionError("should not upload undecodable")
+
+    monkeypatch.setattr(mail_webhook, "TenderService", _FakeSvc)
+
+    class _FakeDB:
+        def commit(self):
+            pass
+
+    mail = ParsedMail(
+        to_address="tender-AbCdEf_1234567890xyz-ABCDEF@broker.example",
+        from_address="x@y",
+        subject="",
+        attachments=[
+            InboundAttachment(
+                filename="broken.pdf",
+                content_type="application/pdf",
+                content_base64="!!!not-base64!!!",
+            )
+        ],
+    )
+    result = mail_webhook.process_inbound_mail(db=_FakeDB(), mail=mail)  # type: ignore[arg-type]
+    assert result["stored_offer_ids"] == []
+    assert len(result["skipped"]) == 1
+    assert "decode failed" in result["skipped"][0]
+    # Recipient NOT flipped because nothing was stored
+    assert recipient.status is None
