@@ -534,5 +534,77 @@
   "Note placeholder": {
     "no": "Skriv et notat om dette selskapet...",
     "en": "Write a note about this company..."
+  },
+  "Hjem": {
+    "no": "Hjem",
+    "en": "Home"
+  },
+  "Selskapsøk": {
+    "no": "Selskapsøk",
+    "en": "Company search"
+  },
+  "Pipeline": {
+    "no": "Pipeline",
+    "en": "Pipeline"
+  },
+  "Portefølje": {
+    "no": "Portefølje",
+    "en": "Portfolio"
+  },
+  "Prospektering": {
+    "no": "Prospektering",
+    "en": "Prospecting"
+  },
+  "Fornyelser": {
+    "no": "Fornyelser",
+    "en": "Renewals"
+  },
+  "Anbud": {
+    "no": "Anbud",
+    "en": "Tenders"
+  },
+  "IDD / Behov": {
+    "no": "IDD / Behov",
+    "en": "IDD / Needs"
+  },
+  "Forsikringsselskaper": {
+    "no": "Forsikringsselskaper",
+    "en": "Insurers"
+  },
+  "Avtaler": {
+    "no": "Avtaler",
+    "en": "Agreements"
+  },
+  "Kunnskapsbase": {
+    "no": "Kunnskapsbase",
+    "en": "Knowledge base"
+  },
+  "Admin": {
+    "no": "Admin",
+    "en": "Admin"
+  },
+  "Velkommen": {
+    "no": "Velkommen",
+    "en": "Welcome"
+  },
+  "Fornyelser neste 30 dager": {
+    "no": "Fornyelser neste 30 dager",
+    "en": "Renewals next 30 days"
+  },
+  "Aktive avtaler": {
+    "no": "Aktive avtaler",
+    "en": "Active agreements"
+  },
+  "Åpne skader": {
+    "no": "Åpne skader",
+    "en": "Open claims"
+  },
+  "Aktiviteter forfalt": {
+    "no": "Aktiviteter forfalt",
+    "en": "Overdue activities"
+  },
+  "Fornyelsespipeline": {
+    "no": "Fornyelsespipeline",
+    "en": "Renewal pipeline"
   }
 }
