@@ -174,8 +174,13 @@ class DocumentAnalysisService:
             if raw:
                 return _parse_json_from_llm_response(raw) or {"raw_text": raw}
 
+        # All three fallback paths returned empty. Most common cause: Gemini
+        # timeout on two large PDFs. The user should see a clear "try again"
+        # message rather than "no LLM configured".
         raise LlmUnavailableError(
-            "Ingen LLM tilgjengelig — sett AZURE_FOUNDRY_BASE_URL og AZURE_FOUNDRY_API_KEY i .env og restart appen"
+            "AI-sammenligningen kunne ikke fullføres akkurat nå. "
+            "Dette skjer oftest når begge PDFene er store og modellen er treg. "
+            "Prøv igjen om et øyeblikk, eller last opp mindre utdrag."
         )
 
 

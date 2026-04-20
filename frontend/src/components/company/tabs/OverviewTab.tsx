@@ -91,7 +91,7 @@ export default function OverviewTab({
       {/* Top 2-column: Company info + Risk */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <div className="space-y-4">
-          <Section title={T("Selskapsinfo")}>
+          <Section title={T("Selskapsinfo")} collapsibleId={`overview-${orgnr}-selskap`}>
             {Object.entries({
               [T("Org.nr")]: org.orgnr, [T("Org.form")]: org.organisasjonsform,
               [T("Kommune")]: org.kommune, [T("Land")]: org.land,
@@ -114,7 +114,7 @@ export default function OverviewTab({
             )}
           </Section>
           {coords && (
-            <Section title={T("Lokasjon")}>
+            <Section title={T("Lokasjon")} collapsibleId={`overview-${orgnr}-lokasjon`}>
               <CompanyMap lat={coords.lat} lon={coords.lon} />
             </Section>
           )}
@@ -123,7 +123,7 @@ export default function OverviewTab({
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
           {finansData && (
-            <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")}>
+            <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")} collapsibleId={`overview-${orgnr}-nokkeltall`}>
               <KV label={T("Omsetning")} value={finansData.sumDriftsinntekter} />
               <KV label={T("Resultat")} value={finansData.arsresultat} />
               <KV label={T("Egenkapital")} value={finansData.sumEgenkapital} />
@@ -133,7 +133,7 @@ export default function OverviewTab({
             const hits = (pep as { hits?: unknown[] })?.hits ?? [];
             if (hits.length === 0) return null;
             return (
-              <Section title={T("PEP / sanksjonssjekk")}>
+              <Section title={T("PEP / sanksjonssjekk")} collapsibleId={`overview-${orgnr}-pep`}>
                 <p className="text-xs text-red-600 font-medium mb-1">{hits.length} {T("treff i OpenSanctions")}</p>
                 {(hits as Record<string, unknown>[]).slice(0, 5).map((h, i) => (
                   <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -163,7 +163,7 @@ export default function OverviewTab({
           if (b.typical_profit_margin_min != null && b.typical_profit_margin_max != null)
             rows.push({ label: T("Typisk resultatmargin"), value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max) });
           return (
-            <Section title={T("SSB-bransjesammenligning")}>
+            <Section title={T("SSB-bransjesammenligning")} collapsibleId={`overview-${orgnr}-ssb`}>
               <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>{T("Typiske nøkkeltall for bransjen")}{b.live === true ? ` ${T("(live SSB)")}` : ""}</span>
@@ -179,7 +179,7 @@ export default function OverviewTab({
         })()}
 
         {peerData && peerData.peer_count > 0 && (
-          <Section title={T("Bransje-benchmark (peer-sammenligning)")}>
+          <Section title={T("Bransje-benchmark (peer-sammenligning)")} collapsibleId={`overview-${orgnr}-peer`}>
             <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
               <BarChart3 className="w-3.5 h-3.5" />
               <span>NACE {peerData.nace_section || "–"} · {peerData.peer_count} {T("peers")} · {peerData.source === "db_peers" ? T("database") : "SSB"}</span>

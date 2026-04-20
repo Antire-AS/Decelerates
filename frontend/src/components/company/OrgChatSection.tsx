@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { chatWithOrg } from "@/lib/api";
+import { chatWithOrg, getChatHistory, clearChatHistory } from "@/lib/api";
 import { Loader2, Send, Bot, User, Trash2, Wrench, Sparkles } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
@@ -22,6 +22,24 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
   const [agentMode, setAgentMode] = useState(false);
   const sessionId = useRef<string | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Hydrate prior per-user conversation for this company so memory persists
+  // across sessions. Session history (company_notes) stays session-scoped as
+  // before — these two layers complement each other.
+  useEffect(() => {
+    (async () => {
+      try {
+        const history = await getChatHistory(orgnr);
+        if (history.messages.length > 0) {
+          setMessages(
+            history.messages.map((m) => ({ role: m.role, text: m.content })),
+          );
+        }
+      } catch {
+        /* non-fatal */
+      }
+    })();
+  }, [orgnr]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,7 +70,12 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
     }
   }
 
-  function clearChat() {
+  async function clearChat() {
+    try {
+      await clearChatHistory(orgnr);
+    } catch {
+      /* still clear local view on failure */
+    }
     setMessages([]);
     sessionId.current = undefined;
     setErr(null);
@@ -96,7 +119,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
       </div>
 
       {/* Message thread */}
-      <div className="flex-1 overflow-y-auto space-y-3 max-h-72 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-3 min-h-[28rem] max-h-[60vh] pr-1">
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="w-8 h-8 text-muted-foreground mx-auto mb-2" />

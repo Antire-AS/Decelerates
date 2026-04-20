@@ -1,6 +1,7 @@
-"""Broker/User domain models — firms, users, settings, notes."""
+"""Broker/User domain models — firms, users, settings, notes, chat memory."""
 
 import enum
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -8,9 +9,11 @@ from sqlalchemy import (
     DateTime,
     Enum as SAEnum,
     ForeignKey,
+    Index,
     Integer,
     JSON,
     String,
+    Text,
 )
 
 from api.models._base import Base
@@ -75,3 +78,34 @@ class BrokerNote(Base):
     text = Column(String, nullable=False)
     mentions = Column(JSON, nullable=True)
     created_at = Column(String, nullable=False)
+
+
+class UserChatMessage(Base):
+    """Per-user, per-company chat history.
+
+    Each row is a single turn (user question or assistant answer). Rows are
+    grouped on (user_oid, orgnr) to reconstruct a conversation — orgnr is
+    NULL for the knowledge-base chat (no company context).
+    """
+
+    __tablename__ = "user_chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_oid = Column(String(64), nullable=False, index=True)
+    orgnr = Column(String(9), nullable=True, index=True)  # NULL = knowledge chat
+    role = Column(String(16), nullable=False)  # "user" or "assistant"
+    content = Column(Text, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_user_chat_messages_user_orgnr_created",
+            "user_oid",
+            "orgnr",
+            "created_at",
+        ),
+    )

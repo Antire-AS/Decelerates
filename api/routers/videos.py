@@ -186,6 +186,32 @@ def list_videos() -> list:
     return results
 
 
+# Course videos are immutable once uploaded; cache aggressively so the
+# second play of the same clip is instant. 1 hour is conservative enough
+# that a re-upload under the same name refreshes within the session.
+_VIDEO_CACHE_HEADERS = {"Cache-Control": "public, max-age=3600"}
+
+
+def _stream_range_response(
+    svc, blob: str, start: int, end: int, file_size: int
+) -> StreamingResponse:
+    length = end - start + 1
+    chunks = svc.stream_range(_VIDEOS_CONTAINER, blob, offset=start, length=length)
+    if chunks is None:
+        raise HTTPException(status_code=502)
+    return StreamingResponse(
+        chunks,
+        status_code=206,
+        media_type="video/mp4",
+        headers={
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(length),
+            **_VIDEO_CACHE_HEADERS,
+        },
+    )
+
+
 @router.get("/videos/stream")
 async def stream_video(blob: str, request: Request):
     """Stream a video blob with HTTP range request support."""
@@ -195,30 +221,23 @@ async def stream_video(blob: str, request: Request):
     file_size = svc.get_blob_size(_VIDEOS_CONTAINER, blob)
     if file_size is None:
         raise HTTPException(status_code=404, detail="Video ikke funnet")
+
     range_header = request.headers.get("range")
     if range_header:
         m = re.match(r"bytes=(\d*)-(\d*)", range_header)
         start = int(m.group(1)) if m and m.group(1) else 0
         end = int(m.group(2)) if m and m.group(2) else file_size - 1
-        length = end - start + 1
-        chunks = svc.stream_range(_VIDEOS_CONTAINER, blob, offset=start, length=length)
-        if chunks is None:
-            raise HTTPException(status_code=502)
-        return StreamingResponse(
-            chunks,
-            status_code=206,
-            media_type="video/mp4",
-            headers={
-                "Content-Range": f"bytes {start}-{end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(length),
-            },
-        )
+        return _stream_range_response(svc, blob, start, end, file_size)
+
     chunks = svc.stream_range(_VIDEOS_CONTAINER, blob)
     if chunks is None:
         raise HTTPException(status_code=502)
     return StreamingResponse(
         chunks,
         media_type="video/mp4",
-        headers={"Accept-Ranges": "bytes", "Content-Length": str(file_size)},
+        headers={
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+            **_VIDEO_CACHE_HEADERS,
+        },
     )
