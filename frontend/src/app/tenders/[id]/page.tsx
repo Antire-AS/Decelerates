@@ -10,6 +10,7 @@ import {
   uploadTenderOffer,
   analyseTender,
   updateTender,
+  downloadTenderPresentationPdf,
   type Tender,
 } from "@/lib/api";
 import {
@@ -20,6 +21,7 @@ import {
   Clock,
   CheckCircle,
   FileText,
+  FileDown,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
@@ -212,6 +214,21 @@ export default function TenderDetailPage() {
             >
               {analysing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart2 className="w-4 h-4" />}
               {T("Analyser tilbud")}
+            </button>
+          )}
+          {tender.offers.length >= 1 && tender.status !== "draft" && (
+            <button
+              onClick={() =>
+                downloadTenderPresentationPdf(
+                  Number(id),
+                  `tilbudsfremstilling_${tender.orgnr}.pdf`,
+                )
+              }
+              className="flex items-center gap-1.5 px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted"
+              title={T("Last ned tilbudsfremstilling for kunde")}
+            >
+              <FileDown className="w-4 h-4" />
+              {T("Tilbudsfremstilling")}
             </button>
           )}
         </div>
