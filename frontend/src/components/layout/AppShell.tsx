@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -154,6 +154,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // crash because React sees a different hook count on re-render.
   const { lang, setLang } = useI18n();
   const { data: session } = useSession();
+  // Platform-aware keyboard shortcut hint — "⌘K" on Mac, "Ctrl+K" elsewhere.
+  // Defaults to Ctrl+K during SSR so non-Mac users (the majority) see the
+  // correct hint on first paint; Mac users get it corrected on hydration.
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform) || /Mac/i.test(navigator.userAgent));
+  }, []);
 
   // Public routes (client portal) — render without the broker shell
   if (pathname.startsWith("/portal")) {
@@ -237,7 +244,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Search className="h-3 w-3" />
             Søk…
-            <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+            <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">{isMac ? "⌘K" : "Ctrl+K"}</kbd>
           </button>
           <NotificationBell />
           <LocaleSwitcher />
