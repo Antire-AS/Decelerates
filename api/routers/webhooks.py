@@ -16,9 +16,11 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db
 from api.schemas import SignicatWebhookAck
 from api.services.audit import log_audit
+from api.services.docuseal_service import DocuSealService
 from api.services.mail_webhook import parse_mail_payload, process_inbound_mail
 from api.services.recommendation_service import RecommendationService
 from api.services.signicat_service import SignicatService
+from api.services.tender_service import TenderService
 
 router = APIRouter()
 _log = logging.getLogger(__name__)
@@ -100,3 +102,60 @@ async def tender_mail_webhook(
         },
     )
     return {"received": True, **result}
+
+
+def _verify_docuseal_and_parse(
+    docuseal: DocuSealService, raw_body: bytes, signature: str
+) -> dict:
+    """Check config + HMAC + decode body. Raises the right HTTP status so
+    the route stays thin."""
+    if not docuseal.is_configured():
+        # 503 (not 401) so DocuSeal retries until we're configured rather than
+        # blackballing the endpoint.
+        raise HTTPException(status_code=503, detail="DocuSeal not configured")
+    if not docuseal.verify_webhook(raw_body, signature):
+        _log.warning("DocuSeal webhook signature mismatch — refusing payload")
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+    return docuseal.parse_webhook(payload)
+
+
+@router.post("/webhooks/docuseal")
+async def docuseal_webhook(
+    request: Request,
+    x_docuseal_signature: str = Header(default=""),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Receive a DocuSeal form-status callback. Verifies HMAC signature, then
+    flips the matching tender row to `analysed` once the client has signed.
+
+    The webhook carries DocuSeal's submission_id. The broker's
+    `/tenders/{id}/contract/send-for-signature` call persisted that same ID
+    onto `tenders.contract_session_id`, so the lookup is O(1) via the partial
+    unique index on that column.
+
+    Unknown session IDs are ACK'd with `matched: false` — DocuSeal retries
+    failed deliveries, and we don't want to turn a replay (or a submission
+    created outside this flow) into a 4xx loop.
+    """
+    raw_body = await request.body()
+    parsed = _verify_docuseal_and_parse(
+        DocuSealService(), raw_body, x_docuseal_signature
+    )
+    matched = False
+    if parsed["status"] in ("signed", "completed"):
+        tender = TenderService(db).mark_contract_signed_by_session(parsed["session_id"])
+        matched = tender is not None
+    log_audit(
+        db,
+        "webhook.docuseal",
+        detail={
+            "session_id": parsed.get("session_id"),
+            "status": parsed.get("status"),
+            "matched": matched,
+        },
+    )
+    return {"received": True, "matched": matched}

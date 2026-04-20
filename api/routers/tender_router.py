@@ -378,9 +378,15 @@ async def tender_contract_send_for_signature(
     if not tender:
         raise HTTPException(status_code=404, detail="Anbud ikke funnet")
     session = _create_tender_signing_session(svc, tender, user, db, body)
+    # Persist the provider session_id so the webhook callback can route back
+    # to this tender (see /webhooks/docuseal). Skip if the provider didn't
+    # return one — better a silent miss than overwriting with "".
+    session_id = session.get("session_id")
+    if session_id:
+        svc.update(tender_id, user.firm_id, contract_session_id=session_id)
     return {
         "tender_id": tender_id,
-        "signing_session_id": session.get("session_id"),
+        "signing_session_id": session_id,
         "signing_url": session.get("signing_url"),
     }
 
