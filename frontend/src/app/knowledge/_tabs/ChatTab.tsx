@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
-import { knowledgeChat } from "@/lib/api";
+import { knowledgeChat, getChatHistory, clearChatHistory } from "@/lib/api";
 import { type Message, readableSource, renderMarkdownWithTables } from "./_shared";
 import { useT } from "@/lib/i18n";
 
@@ -15,9 +15,38 @@ export default function ChatTab() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Hydrate prior conversation on mount so the broker can pick up where they left off.
+  useEffect(() => {
+    (async () => {
+      try {
+        const history = await getChatHistory();
+        if (history.messages.length > 0) {
+          setMessages(
+            history.messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          );
+        }
+      } catch {
+        /* non-fatal — start with empty thread if history fetch fails */
+      }
+    })();
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  async function handleClear() {
+    try {
+      await clearChatHistory();
+    } catch {
+      /* still clear local view even if backend fails */
+    }
+    setMessages([]);
+    setError(null);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -141,7 +170,7 @@ export default function ChatTab() {
           rows={2} disabled={isLoading}
           className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none disabled:opacity-50" />
         {messages.length > 0 && !isLoading && (
-          <button type="button" onClick={() => { setMessages([]); setError(null); }}
+          <button type="button" onClick={handleClear}
             title={T("Tøm samtale")}
             className="px-3 py-2 rounded-lg border border-border text-muted-foreground hover:bg-muted text-sm flex items-center gap-1">
             <Trash2 className="w-3.5 h-3.5" />

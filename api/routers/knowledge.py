@@ -19,6 +19,7 @@ from api.services import (
     _llm_answer_raw,
 )
 from api.services.rag import save_qa_note, clear_chat_session as _clear_chat_session
+from api.services.chat_history import ChatHistoryService, format_history_for_prompt
 from api.rag_chain import build_rag_chain
 from api.schemas import (
     ChatRequest,
@@ -129,6 +130,53 @@ def _chat_agent_mode(
     }
 
 
+def _build_combined_history(
+    orgnr: str, session_id: str, user_oid: str, db: Session
+) -> tuple[str, ChatHistoryService]:
+    """Combine session-scoped history with user-scoped history across sessions.
+
+    User-scoped block delivers the "memory" brokers asked for: continuity
+    even after a reload or coming back next week. Returns the combined
+    prompt block plus the service handle so the caller can append the
+    current turn after the LLM answers.
+    """
+    session_ctx = _build_history_context(orgnr, db, session_id=session_id)
+    svc = ChatHistoryService(db)
+    user_history = svc.load_history(user_oid, orgnr, limit_turns=20)
+    user_block = format_history_for_prompt(user_history)
+    combined = "\n\n".join(b for b in (user_block, session_ctx) if b)
+    return combined, svc
+
+
+def _run_rag_chat(
+    orgnr: str,
+    body: ChatRequest,
+    db_obj: Company,
+    active_session: str,
+    user: CurrentUser,
+    db: Session,
+) -> str:
+    """Execute the RAG chat path: build history, call LLM, persist turn.
+
+    Wraps LLM domain exceptions as HTTP errors so chat_about_org stays short.
+    """
+    history_ctx, chat_history_svc = _build_combined_history(
+        orgnr, active_session, user.oid, db
+    )
+    try:
+        answer = _answer_with_rag_or_notes(
+            orgnr, body.question, db_obj, db, history_ctx
+        )
+    except QuotaError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    except LlmUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
+    _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
+    chat_history_svc.append_turn(user.oid, orgnr, body.question, answer)
+    return answer
+
+
 @router.post("/org/{orgnr}/chat", response_model=OrgChatOut)
 @limiter.limit("10/minute")
 def chat_about_org(
@@ -152,17 +200,7 @@ def chat_about_org(
     if mode == "agent":
         return _chat_agent_mode(orgnr, body.question, user.firm_id, db, active_session)
     _auto_ingest_company_data(orgnr, db)
-    history_ctx = _build_history_context(orgnr, db, session_id=active_session)
-    try:
-        answer = _answer_with_rag_or_notes(
-            orgnr, body.question, db_obj, db, history_ctx
-        )
-    except QuotaError as e:
-        raise HTTPException(status_code=429, detail=str(e))
-    except LlmUnavailableError as e:
-        raise HTTPException(status_code=503, detail=str(e))
-    note_id = save_qa_note(orgnr, body.question, answer, db, session_id=active_session)
-    _chunk_and_store(orgnr, f"qa_{note_id}", f"Q: {body.question}\nA: {answer}", db)
+    answer = _run_rag_chat(orgnr, body, db_obj, active_session, user, db)
     log_audit(db, "chat.org", orgnr=orgnr, detail={"session_id": active_session})
     return {
         "orgnr": orgnr,
@@ -362,35 +400,62 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
     return [{"text": r.chunk_text, "source": r.source} for r in results[: limit + 4]]
 
 
+def _build_knowledge_prompt(question: str, context: str, history_block: str) -> str:
+    """Compose the final knowledge-chat prompt.
+
+    History block goes BEFORE the retrieved context so the LLM treats past
+    turns as conversational priors and current context as authoritative.
+    """
+    parts = [f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}"]
+    if history_block:
+        parts.append(history_block)
+    parts.append(f"Kontekst:\n{context}")
+    parts.append(f"[SPØRSMÅL]: {question}")
+    return "\n\n".join(parts)
+
+
+def _knowledge_no_chunks_response(question: str) -> dict:
+    return {
+        "question": question,
+        "answer": "Ingen kunnskap er indeksert ennå, eller ingen relevante kilder for dette spørsmålet. Gå til Administrer-fanen og klikk 'Indekser kunnskap' hvis basen er tom, eller prøv å omformulere spørsmålet.",
+        "sources": [],
+        "source_snippets": {},
+    }
+
+
 @router.post("/knowledge/chat", response_model=KnowledgeChatOut)
 @limiter.limit("10/minute")
-def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(get_db)):
+def chat_knowledge(
+    request: Request,
+    body: ChatRequest,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
     """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
     chunks = _retrieve_knowledge_chunks(body.question, db)
     if not chunks:
-        return {
-            "question": body.question,
-            "answer": "Ingen kunnskap er indeksert ennå, eller ingen relevante kilder for dette spørsmålet. Gå til Administrer-fanen og klikk 'Indekser kunnskap' hvis basen er tom, eller prøv å omformulere spørsmålet.",
-            "sources": [],
-            "source_snippets": {},
-        }
+        return _knowledge_no_chunks_response(body.question)
+
     context = "\n\n---\n\n".join(
         f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks
     )
     sources = list(dict.fromkeys(c["source"] for c in chunks))
     source_snippets = {c["source"]: _chunk_snippet(c["text"]) for c in chunks}
-    # _llm_answer_raw takes a single pre-formatted prompt string
-    prompt = (
-        f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}\n\n"
-        f"Kontekst:\n{context}\n\n"
-        f"[SPØRSMÅL]: {body.question}"
+
+    history_svc = ChatHistoryService(db)
+    history = history_svc.load_history(user.oid, orgnr=None, limit_turns=20)
+    prompt = _build_knowledge_prompt(
+        body.question, context, format_history_for_prompt(history)
     )
+
     try:
         answer = _llm_answer_raw(prompt) or "Beklager, fikk ikke svar fra AI-tjenesten."
     except LlmUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except QuotaError as e:
         raise HTTPException(status_code=429, detail=str(e))
+
+    history_svc.append_turn(user.oid, orgnr=None, question=body.question, answer=answer)
     log_audit(db, "knowledge.chat", detail={"sources_count": len(sources)})
     return {
         "question": body.question,

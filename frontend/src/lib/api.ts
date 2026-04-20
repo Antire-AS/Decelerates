@@ -371,6 +371,26 @@ export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSi
     signal,
   });
 
+// ── Chat history (per-user memory) ───────────────────────────────────────────
+
+export type ChatHistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
+  created_at: string | null;
+};
+
+export const getChatHistory = (orgnr?: string) => {
+  const qs = orgnr ? `?orgnr=${encodeURIComponent(orgnr)}` : "";
+  return apiFetch<{ orgnr: string | null; messages: ChatHistoryMessage[] }>(
+    `/chat/history${qs}`,
+  );
+};
+
+export const clearChatHistory = (orgnr?: string) => {
+  const qs = orgnr ? `?orgnr=${encodeURIComponent(orgnr)}` : "";
+  return apiFetch<{ deleted: number }>(`/chat/history${qs}`, { method: "DELETE" });
+};
+
 export const getKnowledgeStats = () =>
   apiFetch<KnowledgeStatsOut>("/knowledge/index/stats");
 
