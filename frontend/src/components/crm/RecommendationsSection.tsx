@@ -14,6 +14,7 @@ import {
   type Recommendation, type Submission, type Insurer, type IddBehovsanalyse,
 } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useT } from "@/lib/i18n";
 
 // ── New recommendation form ───────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ function NewRecommendationForm({
   onCreated: () => void;
   onCancel: () => void;
 }) {
+  const T = useT();
   const { data: submissions = [] } = useSWR<Submission[]>(
     `submissions-${orgnr}`,
     () => getOrgSubmissions(orgnr),
@@ -74,7 +76,7 @@ function NewRecommendationForm({
   return (
     <form onSubmit={handleSubmit} className="broker-card space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-foreground">Ny forsikringsanbefaling</p>
+        <p className="text-sm font-semibold text-foreground">{T("Ny forsikringsanbefaling")}</p>
         <button type="button" onClick={onCancel} className="text-muted-foreground hover:text-foreground">
           <X className="w-4 h-4" />
         </button>
@@ -82,7 +84,7 @@ function NewRecommendationForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-insurer">Anbefalt forsikringsselskap *</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-insurer">{T("Anbefalt forsikringsselskap")} *</label>
           <input
             id="rec-insurer"
             value={recommendedInsurer}
@@ -90,7 +92,7 @@ function NewRecommendationForm({
             required
             list="insurer-options"
             className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            placeholder="Velg eller skriv inn"
+            placeholder={T("Velg eller skriv inn")}
           />
           <datalist id="insurer-options">
             {insurers.map((ins) => (
@@ -99,14 +101,14 @@ function NewRecommendationForm({
           </datalist>
         </div>
         <div>
-          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-idd">Koble til behovsanalyse (IDD)</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-idd">{T("Koble til behovsanalyse (IDD)")}</label>
           <select
             id="rec-idd"
             value={iddId}
             onChange={(e) => setIddId(e.target.value ? Number(e.target.value) : "")}
             className="w-full mt-1 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="">Ingen</option>
+            <option value="">{T("Ingen")}</option>
             {iddList.map((idd) => (
               <option key={idd.id} value={idd.id}>
                 {idd.client_name || orgnr} — {new Date(idd.created_at).toLocaleDateString("nb-NO")}
@@ -119,7 +121,7 @@ function NewRecommendationForm({
       {allSubs.length > 0 && (
         <div>
           <p className="text-xs text-muted-foreground font-medium">
-            Inkluder tilbud i sammenligningen
+            {T("Inkluder tilbud i sammenligningen")}
           </p>
           <div className="mt-1.5 space-y-1">
             {allSubs.map((sub) => (
@@ -131,15 +133,15 @@ function NewRecommendationForm({
                   className="rounded"
                 />
                 <span className="text-xs text-foreground">
-                  {sub.insurer_name ?? `Selskap #${sub.insurer_id}`} · {sub.product_type}
+                  {sub.insurer_name ?? `${T("Selskap")} #${sub.insurer_id}`} · {sub.product_type}
                 </span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   sub.status === "quoted" ? "bg-blue-100 text-blue-700" :
                   sub.status === "declined" ? "bg-red-100 text-red-700" :
                   "bg-gray-100 text-gray-600"
                 }`}>
-                  {sub.status === "quoted" ? "Tilbud" :
-                   sub.status === "declined" ? "Avslått" : "Avventer"}
+                  {sub.status === "quoted" ? T("Tilbud") :
+                   sub.status === "declined" ? T("Avslått") : T("Avventer")}
                 </span>
               </label>
             ))}
@@ -149,9 +151,9 @@ function NewRecommendationForm({
 
       <div>
         <label className="text-xs text-muted-foreground font-medium" htmlFor="rec-rationale">
-          Begrunnelse{" "}
+          {T("Begrunnelse")}{" "}
           <span className="font-normal text-muted-foreground">
-            (la stå tom for å generere med AI)
+            {T("(la stå tom for å generere med AI)")}
           </span>
         </label>
         <textarea
@@ -159,7 +161,7 @@ function NewRecommendationForm({
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
           rows={4}
-          placeholder="Skriv begrunnelse manuelt, eller la feltet stå tomt for AI-generert tekst…"
+          placeholder={T("Skriv begrunnelse manuelt, eller la feltet stå tomt for AI-generert tekst…")}
           className="w-full mt-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
       </div>
@@ -169,12 +171,12 @@ function NewRecommendationForm({
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel}
           className="px-3 py-1.5 text-sm text-muted-foreground border border-gray-200 rounded-md hover:text-foreground">
-          Avbryt
+          {T("Avbryt")}
         </button>
         <button type="submit" disabled={saving || !recommendedInsurer.trim()}
           className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
           {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          {saving ? (rationale.trim() ? "Lagrer…" : "Genererer AI-begrunnelse…") : "Opprett anbefaling"}
+          {saving ? (rationale.trim() ? T("Lagrer…") : T("Genererer AI-begrunnelse…")) : T("Opprett anbefaling")}
         </button>
       </div>
     </form>
@@ -192,6 +194,7 @@ function RecommendationCard({
   orgnr: string;
   onDeleted: () => void;
 }) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -227,10 +230,10 @@ function RecommendationCard({
             </p>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 ml-6">
-            Utarbeidet {date}
+            {T("Utarbeidet")} {date}
             {rec.created_by_email && ` · ${rec.created_by_email}`}
             {rec.submission_ids && rec.submission_ids.length > 0 &&
-              ` · ${rec.submission_ids.length} tilbud sammenlignet`}
+              ` · ${rec.submission_ids.length} ${T("tilbud sammenlignet")}`}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -242,14 +245,14 @@ function RecommendationCard({
             {downloading
               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
               : <Download className="w-3.5 h-3.5" />}
-            Last ned PDF
+            {T("Last ned PDF")}
           </button>
           <button
             onClick={() => setOpen((v) => !v)}
             className="text-xs text-primary hover:underline flex items-center gap-1"
           >
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {open ? "Skjul" : "Vis"}
+            {open ? T("Skjul") : T("Vis")}
           </button>
           <button onClick={handleDelete} className="text-red-300 hover:text-red-500">
             <Trash2 className="w-4 h-4" />
@@ -259,7 +262,7 @@ function RecommendationCard({
 
       {open && rec.rationale_text && (
         <div className="mt-4 ml-6 p-3 bg-background rounded-lg border border-gray-100">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Begrunnelse</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">{T("Begrunnelse")}</p>
           <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
             {rec.rationale_text}
           </p>
@@ -269,9 +272,9 @@ function RecommendationCard({
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title="Slett anbefaling?"
-        description="Handlingen kan ikke angres."
-        confirmLabel="Slett"
+        title={T("Slett anbefaling?")}
+        description={T("Handlingen kan ikke angres.")}
+        confirmLabel={T("Slett")}
         destructive
         onConfirm={performDelete}
       />
@@ -285,6 +288,7 @@ function RecommendationCard({
 // route, not from a search input. Same form/list logic as the old standalone
 // /recommendations page.
 export default function RecommendationsSection({ orgnr }: { orgnr: string }) {
+  const T = useT();
   const [showForm, setShowForm] = useState(false);
 
   const { data: recommendations = [], mutate } = useSWR<Recommendation[]>(
@@ -296,14 +300,14 @@ export default function RecommendationsSection({ orgnr }: { orgnr: string }) {
     <div className="broker-card space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <FileText className="w-4 h-4" /> Anbefalingsbrev ({recommendations.length})
+          <FileText className="w-4 h-4" /> {T("Anbefalingsbrev")} ({recommendations.length})
         </p>
         <button
           onClick={() => setShowForm((v) => !v)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {showForm ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-          {showForm ? "Avbryt" : "Ny anbefaling"}
+          {showForm ? T("Avbryt") : T("Ny anbefaling")}
         </button>
       </div>
 
@@ -318,8 +322,8 @@ export default function RecommendationsSection({ orgnr }: { orgnr: string }) {
       {recommendations.length === 0 && !showForm && (
         <div className="text-center py-6 text-muted-foreground">
           <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-          <p className="text-xs">Ingen anbefalinger for denne klienten ennå.</p>
-          <p className="text-xs mt-0.5">Opprett en etter at tilbud er innhentet.</p>
+          <p className="text-xs">{T("Ingen anbefalinger for denne klienten ennå.")}</p>
+          <p className="text-xs mt-0.5">{T("Opprett en etter at tilbud er innhentet.")}</p>
         </div>
       )}
 

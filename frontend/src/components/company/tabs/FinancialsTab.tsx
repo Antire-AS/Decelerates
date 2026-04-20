@@ -10,6 +10,7 @@ import AddPdfForm from "@/components/company/financials/AddPdfForm";
 import FinancialsKeyFiguresTable from "@/components/company/financials/FinancialsKeyFiguresTable";
 import FinancialsCharts from "@/components/company/financials/FinancialsCharts";
 import FinancialsHistoryTable from "@/components/company/financials/FinancialsHistoryTable";
+import { useT } from "@/lib/i18n";
 
 interface ExtractionStatus {
   status: string;
@@ -53,6 +54,7 @@ export default function FinancialsTab({
   pdfUrl, setPdfUrl, pdfYear, setPdfYear, pdfLabel, setPdfLabel,
   pdfLoading, pdfErr, pdfOk, handleAddPdf, setPdfOk,
 }: FinancialsTabProps) {
+  const T = useT();
   const foreignCurrencies = [...new Set(
     history.map((r) => (r.currency as string | undefined)).filter((c): c is string => !!c && c !== "NOK"),
   )];
@@ -76,10 +78,10 @@ export default function FinancialsTab({
     setResetLoading(true); setResetMsg(null);
     try {
       const r = await deleteOrgHistory(orgnr);
-      setResetMsg(`Slettet ${r.deleted_rows} rader. Last inn siden på nytt for å hente data på nytt.`);
+      setResetMsg(`${T("Slettet")} ${r.deleted_rows} ${T("rader. Last inn siden på nytt for å hente data på nytt.")}`);
       onHistoryRefetch?.();
     } catch (e) {
-      setResetMsg(`Feil: ${String(e)}`);
+      setResetMsg(`${T("Feil")}: ${String(e)}`);
     } finally {
       setResetLoading(false);
     }
@@ -135,14 +137,13 @@ export default function FinancialsTab({
 
       {historyLoading ? (
         <div className="broker-card flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" /> Henter historikk…
+          <Loader2 className="w-4 h-4 animate-spin" /> {T("Henter historikk…")}
         </div>
       ) : history.length === 0 ? (
         <div className="broker-card space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Regnskapshistorikk</h3>
+          <h3 className="text-sm font-semibold text-foreground">{T("Regnskapshistorikk")}</h3>
           <p className="text-sm text-muted-foreground">
-            Ingen historiske regnskapsdata tilgjengelig.
-            Lim inn en årsrapport-PDF over for å hente tall.
+            {T("Ingen historiske regnskapsdata tilgjengelig. Lim inn en årsrapport-PDF over for å hente tall.")}
           </p>
         </div>
       ) : (
@@ -161,11 +162,11 @@ export default function FinancialsTab({
           <details className="broker-card group">
             <summary className="cursor-pointer text-xs text-muted-foreground flex items-center gap-1.5 select-none">
               <RotateCcw className="w-3.5 h-3.5" />
-              Tilbakestill og hent historikk på nytt
+              {T("Tilbakestill og hent historikk på nytt")}
             </summary>
             <div className="mt-3 space-y-2">
               <p className="text-xs text-muted-foreground">
-                Sletter alle lagrede regnskapsrader for dette selskapet og utløser ny henting fra PDF-kildene.
+                {T("Sletter alle lagrede regnskapsrader for dette selskapet og utløser ny henting fra PDF-kildene.")}
               </p>
               <button
                 onClick={handleReset}
@@ -173,7 +174,7 @@ export default function FinancialsTab({
                 className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 disabled:opacity-50 flex items-center gap-1.5"
               >
                 {resetLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                {resetLoading ? "Sletter…" : "Tilbakestill historikk"}
+                {resetLoading ? T("Sletter…") : T("Tilbakestill historikk")}
               </button>
               {resetMsg && <p className="text-xs text-foreground">{resetMsg}</p>}
             </div>

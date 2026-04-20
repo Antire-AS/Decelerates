@@ -14,6 +14,7 @@ import {
 import RiskBadge from "@/components/company/RiskBadge";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
 import dynamic from "next/dynamic";
+import { useT } from "@/lib/i18n";
 
 const ContactsSection    = dynamic(() => import("@/components/crm/ContactsSection"));
 const PoliciesSection    = dynamic(() => import("@/components/crm/PoliciesSection"));
@@ -39,6 +40,7 @@ export default function OrgProfilePage({
   params: Promise<{ orgnr: string }>;
 }) {
   const { orgnr } = use(params);
+  const T = useT();
 
   const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat">(
     "oversikt",
@@ -141,8 +143,8 @@ export default function OrgProfilePage({
   if (!prof) {
     return (
       <div className="broker-card text-center text-sm text-muted-foreground">
-        Selskapet ble ikke funnet.{" "}
-        <Link href="/search" className="text-primary underline">Tilbake</Link>
+        {T("Selskapet ble ikke funnet.")}{" "}
+        <Link href="/search" className="text-primary underline">{T("Tilbake")}</Link>
       </div>
     );
   }
@@ -156,13 +158,13 @@ export default function OrgProfilePage({
     slaList.some((s: unknown) => (s as Record<string, unknown>).client_orgnr === orgnr);
 
   const steps: WorkflowStep[] = [
-    { label: "Datainnhenting",   desc: "Selskapsdata fra BRREG",            done: true },
-    { label: "Risikovurdering",  desc: "Risikoscore og AI-narrativ",         done: risk.score != null },
-    { label: "Behovsanalyse",    desc: "Forsikringsbehov estimert",          done: false },
-    { label: "Tilbud innhentet", desc: "Tilbud fra forsikringsselskaper",    done: submissions.some((s) => s.status === "quoted") },
-    { label: "Tilbudsanalyse",   desc: "AI-sammenligning fullført",          done: recommendations.length > 0 },
-    { label: "Presentasjon",     desc: "Forsikringstilbud PDF generert",     done: false },
-    { label: "Kontrakt",         desc: "Tjenesteavtale signert i Avtaler",   done: hasContract },
+    { label: T("Datainnhenting"),   desc: T("Selskapsdata fra BRREG"),            done: true },
+    { label: T("Risikovurdering"),  desc: T("Risikoscore og AI-narrativ"),         done: risk.score != null },
+    { label: T("Behovsanalyse"),    desc: T("Forsikringsbehov estimert"),          done: false },
+    { label: T("Tilbud innhentet"), desc: T("Tilbud fra forsikringsselskaper"),    done: submissions.some((s) => s.status === "quoted") },
+    { label: T("Tilbudsanalyse"),   desc: T("AI-sammenligning fullført"),          done: recommendations.length > 0 },
+    { label: T("Presentasjon"),     desc: T("Forsikringstilbud PDF generert"),     done: false },
+    { label: T("Kontrakt"),         desc: T("Tjenesteavtale signert i Avtaler"),   done: hasContract },
   ];
 
   const triggerCls =
@@ -176,7 +178,7 @@ export default function OrgProfilePage({
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-4 h-4" />
-        Tilbake til søk
+        {T("Tilbake til søk")}
       </Link>
 
       {/* Company header — header + risk badge stack on mobile, side-by-side on sm+ */}
@@ -206,12 +208,12 @@ export default function OrgProfilePage({
         className="space-y-5"
       >
         <TabsList className="flex-wrap justify-start bg-transparent p-0 h-auto gap-2">
-          <TabsTrigger value="oversikt"   className={triggerCls}>Oversikt</TabsTrigger>
-          <TabsTrigger value="okonomi"    className={triggerCls}>Økonomi</TabsTrigger>
-          <TabsTrigger value="forsikring" className={triggerCls}>Forsikring</TabsTrigger>
-          <TabsTrigger value="crm"        className={triggerCls}>CRM</TabsTrigger>
-          <TabsTrigger value="notater"    className={triggerCls}>Notater</TabsTrigger>
-          <TabsTrigger value="chat"       className={triggerCls}>Chat</TabsTrigger>
+          <TabsTrigger value="oversikt"   className={triggerCls}>{T("Oversikt")}</TabsTrigger>
+          <TabsTrigger value="okonomi"    className={triggerCls}>{T("Økonomi")}</TabsTrigger>
+          <TabsTrigger value="forsikring" className={triggerCls}>{T("Forsikring")}</TabsTrigger>
+          <TabsTrigger value="crm"        className={triggerCls}>{T("CRM")}</TabsTrigger>
+          <TabsTrigger value="notater"    className={triggerCls}>{T("Notater")}</TabsTrigger>
+          <TabsTrigger value="chat"       className={triggerCls}>{T("Chat")}</TabsTrigger>
         </TabsList>
 
         {/* ── Oversikt ─────────────────────────────────────────────────── */}
@@ -281,14 +283,14 @@ export default function OrgProfilePage({
               <Link href={`/idd?orgnr=${orgnr}`}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent">
                 <FileText className="w-3.5 h-3.5" />
-                IDD behovsanalyse
+                {T("IDD behovsanalyse")}
               </Link>
               <button
                 onClick={() => downloadCertificatePdf(orgnr)}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent"
               >
                 <Download className="w-3.5 h-3.5" />
-                Last ned forsikringsbevis
+                {T("Last ned forsikringsbevis")}
               </button>
             </div>
             {policiesLoading && !policies ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Sparkles, Info } from "lucide-react";
 import { fmtMnok } from "@/lib/format";
 import { getOrgEstimate } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   orgnr: string;
@@ -53,6 +54,7 @@ function num(regn: Record<string, unknown>, key: string): number | null {
 }
 
 function DetailTable({ title, rows, regn }: { title: string; rows: Array<[string, string]>; regn: Record<string, unknown> }) {
+  const T = useT();
   const present = rows.filter(([, k]) => num(regn, k) != null);
   if (present.length === 0) return null;
   return (
@@ -62,18 +64,19 @@ function DetailTable({ title, rows, regn }: { title: string; rows: Array<[string
         <tbody>
           {present.map(([label, key]) => (
             <tr key={key} className="border-b border-border last:border-0">
-              <td className="py-1.5 text-muted-foreground">{label}</td>
+              <td className="py-1.5 text-muted-foreground">{T(label)}</td>
               <td className="py-1.5 text-right font-medium text-foreground">{fmtMnok(num(regn, key))}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-[10px] text-muted-foreground">Kilde: BRREG</p>
+      <p className="text-[10px] text-muted-foreground">{T("Kilde")}: BRREG</p>
     </div>
   );
 }
 
 export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHistory, onEstimated }: Props) {
+  const T = useT();
   const [estLoading, setEstLoading] = useState(false);
   const [estErr, setEstErr] = useState<string | null>(null);
   const [estDone, setEstDone] = useState(false);
@@ -100,10 +103,10 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
   if (!hasAny) {
     return (
       <div className="broker-card space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Nøkkeltall</h3>
+        <h3 className="text-sm font-semibold text-foreground">{T("Nøkkeltall")}</h3>
         <p className="text-xs text-muted-foreground">
-          Ingen offentlige regnskap tilgjengelig for dette selskapet.
-          {!hasHistory && " Du kan be AI generere estimater basert på bransje og størrelse."}
+          {T("Ingen offentlige regnskap tilgjengelig for dette selskapet.")}
+          {!hasHistory && ` ${T("Du kan be AI generere estimater basert på bransje og størrelse.")}`}
         </p>
         {!hasHistory && (
           <>
@@ -113,12 +116,12 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
               {estLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-              {estDone ? "Estimat generert" : "Generer AI-estimat"}
+              {estDone ? T("Estimat generert") : T("Generer AI-estimat")}
             </button>
             {estErr && <p className="text-xs text-red-600">{estErr}</p>}
             {estDone && (
               <p className="text-xs text-muted-foreground">
-                Last inn siden på nytt for å vise estimerte tall.
+                {T("Last inn siden på nytt for å vise estimerte tall.")}
               </p>
             )}
           </>
@@ -127,17 +130,17 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
     );
   }
 
-  const yearLabel = regn.regnskapsår ?? "estimert";
+  const yearLabel = regn.regnskapsår ?? T("estimert");
 
   return (
     <div className="broker-card space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">
-          Nøkkeltall <span className="text-muted-foreground font-normal">({String(yearLabel)})</span>
+          {T("Nøkkeltall")} <span className="text-muted-foreground font-normal">({String(yearLabel)})</span>
         </h3>
         {hasEstimated && (
           <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-brand-warning/10 text-brand-warning border border-brand-warning/50">
-            AI-estimert
+            {T("AI-estimert")}
           </span>
         )}
       </div>
@@ -146,26 +149,25 @@ export default function FinancialsKeyFigures({ orgnr, regn, equityRatio, hasHist
         <div className="border-l-4 border-brand-warning bg-brand-warning/10 px-3 py-2 rounded-r flex items-start gap-2">
           <Info className="w-3.5 h-3.5 text-brand-warning mt-0.5 flex-shrink-0" />
           <p className="text-xs text-muted-foreground">
-            Ingen offentlige regnskap funnet i Regnskapsregisteret.
-            Tallene under er AI-genererte estimater basert på bransje og selskapstype — kun veiledende.
+            {T("Ingen offentlige regnskap funnet i Regnskapsregisteret. Tallene under er AI-genererte estimater basert på bransje og selskapstype — kun veiledende.")}
           </p>
         </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric label="Omsetning" value={fmtMnok(num(regn, "sum_driftsinntekter"))} />
-        <Metric label="Nettoresultat" value={fmtMnok(num(regn, "aarsresultat"))} />
-        <Metric label="Egenkapital" value={fmtMnok(num(regn, "sum_egenkapital"))} />
+        <Metric label={T("Omsetning")} value={fmtMnok(num(regn, "sum_driftsinntekter"))} />
+        <Metric label={T("Nettoresultat")} value={fmtMnok(num(regn, "aarsresultat"))} />
+        <Metric label={T("Egenkapital")} value={fmtMnok(num(regn, "sum_egenkapital"))} />
         <Metric
-          label="Egenkapitalandel"
+          label={T("Egenkapitalandel")}
           value={equityRatio == null ? "–" : `${(equityRatio * 100).toFixed(1).replace(".", ",")} %`}
         />
       </div>
 
       {hasReal && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border">
-          <DetailTable title="Resultatregnskap" rows={PL_ROWS} regn={regn} />
-          <DetailTable title="Balanse" rows={BALANCE_ROWS} regn={regn} />
+          <DetailTable title={T("Resultatregnskap")} rows={PL_ROWS} regn={regn} />
+          <DetailTable title={T("Balanse")} rows={BALANCE_ROWS} regn={regn} />
         </div>
       )}
     </div>
