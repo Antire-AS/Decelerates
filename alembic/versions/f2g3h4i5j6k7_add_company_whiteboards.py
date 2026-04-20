@@ -6,15 +6,15 @@ keep an AI-generated summary. One row per (user, orgnr); updates upsert.
 
 Safe for zero-downtime: pure new table with CREATE IF NOT EXISTS guard.
 
-Revision ID: b8c9d0e1f2g3
-Revises: a7b8c9d0e1f2
+Revision ID: f2g3h4i5j6k7
+Revises: e1f2g3h4i5j6
 Create Date: 2026-04-20
 """
 
 from alembic import op
 
-revision = "b8c9d0e1f2g3"
-down_revision = "a7b8c9d0e1f2"
+revision = "f2g3h4i5j6k7"
+down_revision = "e1f2g3h4i5j6"
 branch_labels = None
 depends_on = None
 
