@@ -18,9 +18,9 @@ export function fmtMnok(n: number | undefined | null) {
 export function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="broker-card">
-      <p className="text-xs text-[#8A7F74] font-medium mb-1">{label}</p>
-      <p className="text-2xl font-bold text-[#2C3E50]">{value}</p>
-      {sub && <p className="text-xs text-[#8A7F74] mt-1">{sub}</p>}
+      <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
 }

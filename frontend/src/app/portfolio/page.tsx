@@ -14,8 +14,10 @@ import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
 import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
+import { useT } from "@/lib/i18n";
 
 export default function PortfolioPage() {
+  const T = useT();
   const { data: companies, isLoading } = useSWR<Company[]>(
     "companies-portfolio", () => getCompanies(200),
   );
@@ -98,29 +100,29 @@ export default function PortfolioPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Portefølje</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">Oversikt over alle kunder og risikofordeling</p>
+          <h1 className="text-2xl font-bold text-foreground">{T("Portefølje")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">Oversikt over alle kunder og risikofordeling</p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/portfolio/analytics"
-            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-border text-primary bg-accent hover:bg-accent">
             <BarChart2 className="w-3 h-3" />
             Analyse
           </Link>
           <button onClick={handleSeedDemo} disabled={seeding}
-            className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-50">
+            className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-input text-muted-foreground hover:bg-muted disabled:opacity-50">
             {seeding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
             Seed demo-data
           </button>
         </div>
       </div>
 
-      {seedMsg && <div className="broker-card text-xs text-[#2C3E50]">{seedMsg}</div>}
+      {seedMsg && <div className="broker-card text-xs text-foreground">{seedMsg}</div>}
 
       {/* ── Named portfolios ── */}
       <div className="broker-card space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-sm font-semibold text-[#2C3E50]">Navngitte porteføljer</h2>
+          <h2 className="text-sm font-semibold text-foreground">Navngitte porteføljer</h2>
           <div className="flex gap-1.5">
             <input
               type="text"
@@ -133,7 +135,7 @@ export default function PortfolioPage() {
             <button
               onClick={handleCreatePortfolio}
               disabled={creating || !newPortfolioName.trim()}
-              className="px-3 py-1.5 text-xs rounded bg-[#2C3E50] text-white hover:bg-[#3d5166] disabled:opacity-50 flex items-center gap-1"
+              className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
             >
               {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
               Opprett
@@ -142,7 +144,7 @@ export default function PortfolioPage() {
         </div>
 
         {portfolios.length === 0 ? (
-          <p className="text-xs text-[#8A7F74]">
+          <p className="text-xs text-muted-foreground">
             Ingen porteføljer ennå. Opprett en for å gruppere selskaper og bruke AI-chat.
           </p>
         ) : (
@@ -151,15 +153,15 @@ export default function PortfolioPage() {
               <Link
                 key={p.id}
                 href={`/portfolio/${p.id}`}
-                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-[#EDE8E3] hover:bg-[#F9F7F4] hover:border-[#C5D8F0] transition-colors group"
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border hover:bg-muted hover:border-border transition-colors group"
               >
                 <div>
-                  <p className="text-sm font-medium text-[#2C3E50] group-hover:text-[#4A6FA5]">{p.name}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary">{p.name}</p>
                   {p.description && (
-                    <p className="text-xs text-[#8A7F74] mt-0.5">{p.description}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
                   )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#C4BDB4] group-hover:text-[#4A6FA5]" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
               </Link>
             ))}
           </div>
@@ -169,7 +171,7 @@ export default function PortfolioPage() {
       {/* ── Summary metrics ── */}
       {isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="broker-card h-20 animate-pulse bg-[#EDE8E3]" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="broker-card h-20 animate-pulse bg-muted" />)}
         </div>
       )}
 
@@ -177,18 +179,18 @@ export default function PortfolioPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="broker-card">
-              <p className="text-xs text-[#8A7F74] font-medium mb-1">Totalt kunder</p>
-              <p className="text-2xl font-bold text-[#2C3E50]">{companies.length}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">Totalt kunder</p>
+              <p className="text-2xl font-bold text-foreground">{companies.length}</p>
             </div>
             {RISK_BANDS.slice(0, -1).map((b, i) => {
               const count = companies.filter((c) => band(c.risk_score) === i).length;
               return (
                 <div key={b.label}
-                  className="broker-card cursor-pointer hover:bg-[#F9F7F4]"
+                  className="broker-card cursor-pointer hover:bg-muted"
                   onClick={() => setRiskFilter(riskFilter === i ? null : i)}>
                   <p className="text-xs font-medium mb-1" style={{ color: b.color }}>{b.label}</p>
-                  <p className="text-2xl font-bold text-[#2C3E50]">{count}</p>
-                  {riskFilter === i && <p className="text-xs text-[#8A7F74] mt-0.5">Filtrert ↑</p>}
+                  <p className="text-2xl font-bold text-foreground">{count}</p>
+                  {riskFilter === i && <p className="text-xs text-muted-foreground mt-0.5">Filtrert ↑</p>}
                 </div>
               );
             })}
@@ -198,7 +200,7 @@ export default function PortfolioPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {pieData.length > 0 && (
               <div className="broker-card">
-                <h2 className="text-sm font-semibold text-[#2C3E50] mb-3">Risikofordeling</h2>
+                <h2 className="text-sm font-semibold text-foreground mb-3">Risikofordeling</h2>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}
@@ -216,8 +218,8 @@ export default function PortfolioPage() {
             {industryData.length > 0 && (
               <div className="broker-card">
                 <div className="flex items-center gap-2 mb-3">
-                  <h2 className="text-sm font-semibold text-[#2C3E50]">Bransjefordeling</h2>
-                  <BarChart2 className="w-4 h-4 text-[#8A7F74]" />
+                  <h2 className="text-sm font-semibold text-foreground">Bransjefordeling</h2>
+                  <BarChart2 className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={industryData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
@@ -246,41 +248,41 @@ export default function PortfolioPage() {
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Søk selskap…"
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-[#D4C9B8] rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-input rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
               {riskFilter !== null && (
                 <button onClick={() => setRiskFilter(null)}
-                  className="text-xs px-2.5 py-1 rounded-full bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]">
+                  className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-muted">
                   Nullstill filter ×
                 </button>
               )}
-              <span className="text-xs text-[#8A7F74]">{filtered.length} selskaper</span>
+              <span className="text-xs text-muted-foreground">{filtered.length} selskaper</span>
             </div>
 
             {filtered.length === 0 ? (
-              <p className="text-sm text-[#8A7F74] text-center py-6">Ingen selskaper matcher søket.</p>
+              <p className="text-sm text-muted-foreground text-center py-6">Ingen selskaper matcher søket.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                  <tr className="text-xs text-muted-foreground border-b border-border">
                     <th className="text-left pb-2 font-medium">Selskap</th>
                     <th className="text-left pb-2 font-medium hidden md:table-cell">Bransje</th>
                     <th className="text-left pb-2 font-medium hidden lg:table-cell">Kommune</th>
                     <th className="text-right pb-2 font-medium">Risiko</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EDE8E3]">
+                <tbody className="divide-y divide-border">
                   {filtered.map((c) => (
-                    <tr key={c.orgnr} className="hover:bg-[#F9F7F4]">
+                    <tr key={c.orgnr} className="hover:bg-muted">
                       <td className="py-2">
-                        <Link href={`/search/${c.orgnr}`} className="font-medium text-[#4A6FA5] hover:underline">
+                        <Link href={`/search/${c.orgnr}`} className="font-medium text-primary hover:underline">
                           {c.navn ?? c.orgnr}
                         </Link>
-                        <span className="block text-xs text-[#8A7F74] font-normal">{c.orgnr}</span>
+                        <span className="block text-xs text-muted-foreground font-normal">{c.orgnr}</span>
                       </td>
-                      <td className="py-2 text-xs text-[#8A7F74] max-w-[180px] truncate hidden md:table-cell">
+                      <td className="py-2 text-xs text-muted-foreground max-w-[180px] truncate hidden md:table-cell">
                         {c.naeringskode1_beskrivelse ?? "–"}
                       </td>
-                      <td className="py-2 text-xs text-[#8A7F74] hidden lg:table-cell">{c.kommune ?? "–"}</td>
+                      <td className="py-2 text-xs text-muted-foreground hidden lg:table-cell">{c.kommune ?? "–"}</td>
                       <td className="py-2 text-right">
                         {c.risk_score != null ? (
                           <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
@@ -288,7 +290,7 @@ export default function PortfolioPage() {
                               background: RISK_BANDS[band(c.risk_score)].color + "20",
                               color: RISK_BANDS[band(c.risk_score)].color,
                             }}>{c.risk_score}</span>
-                        ) : <span className="text-xs text-[#8A7F74]">–</span>}
+                        ) : <span className="text-xs text-muted-foreground">–</span>}
                       </td>
                     </tr>
                   ))}
@@ -301,7 +303,7 @@ export default function PortfolioPage() {
 
       {!isLoading && !companies && (
         <div className="broker-card text-center py-10">
-          <p className="text-sm text-[#8A7F74]">Ingen selskaper i databasen ennå. Demo-data lastes automatisk ved oppstart.</p>
+          <p className="text-sm text-muted-foreground">Ingen selskaper i databasen ennå. Demo-data lastes automatisk ved oppstart.</p>
         </div>
       )}
     </div>

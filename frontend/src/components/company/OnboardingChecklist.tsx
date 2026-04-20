@@ -82,15 +82,15 @@ export function OnboardingChecklist({ orgnr }: { orgnr: string }) {
   return (
     <div className="broker-card">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-[#2C3E50]">Onboarding-sjekkliste</p>
-        <span className="text-xs text-[#8A7F74]">
+        <p className="text-sm font-semibold text-foreground">Onboarding-sjekkliste</p>
+        <span className="text-xs text-muted-foreground">
           {completedCount} / {items.length} fullført
         </span>
       </div>
       {/* Progress bar */}
-      <div className="w-full h-1.5 bg-[#EDE8E3] rounded-full overflow-hidden mb-3">
+      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-3">
         <div
-          className="h-full bg-[#4A6FA5] transition-all duration-300"
+          className="h-full bg-primary transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -100,14 +100,14 @@ export function OnboardingChecklist({ orgnr }: { orgnr: string }) {
             {item.done ? (
               <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
             ) : (
-              <Circle className="w-4 h-4 text-[#C4BDB4] flex-shrink-0 mt-0.5" />
+              <Circle className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
             )}
             <div className="min-w-0 flex-1">
-              <p className={`text-xs ${item.done ? "text-[#8A7F74] line-through" : "text-[#2C3E50] font-medium"}`}>
+              <p className={`text-xs ${item.done ? "text-muted-foreground line-through" : "text-foreground font-medium"}`}>
                 {item.label}
               </p>
               {!item.done && (
-                <p className="text-[10px] text-[#8A7F74] mt-0.5">{item.hint}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{item.hint}</p>
               )}
             </div>
           </li>

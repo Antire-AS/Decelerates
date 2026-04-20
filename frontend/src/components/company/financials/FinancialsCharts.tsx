@@ -9,7 +9,7 @@ import {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="broker-card space-y-3">
-      <h3 className="text-sm font-semibold text-[#2C3E50]">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {children}
     </div>
   );
@@ -86,13 +86,13 @@ export default function FinancialsCharts({
       )}
       <div className="broker-card flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" /> AI-finanskommentar
           </h3>
           <button
             onClick={handleCommentary}
             disabled={commentaryLoading}
-            className="px-3 py-1 text-xs rounded bg-[#4A6FA5] text-white hover:bg-[#3d5e8e] disabled:opacity-50 flex items-center gap-1"
+            className="px-3 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
           >
             {commentaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
             Generer
@@ -100,11 +100,11 @@ export default function FinancialsCharts({
         </div>
         {commentaryErr && <p className="text-xs text-red-600">{commentaryErr}</p>}
         {commentary ? (
-          <div className="mt-1 bg-[#F9F7F4] rounded-lg p-3 flex-1">
-            <p className="text-xs text-[#2C3E50] whitespace-pre-wrap leading-relaxed">{commentary}</p>
+          <div className="mt-1 bg-muted rounded-lg p-3 flex-1">
+            <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{commentary}</p>
           </div>
         ) : (
-          <p className="text-xs text-[#C4BDB4] mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Klikk «Generer» for AI-analyse av finansiell trendutvikling.
           </p>
         )}

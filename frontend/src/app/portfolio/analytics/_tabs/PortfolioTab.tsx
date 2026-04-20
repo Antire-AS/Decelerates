@@ -24,8 +24,8 @@ export default function PortfolioTab() {
     () => getPortfolioRisk(activeId!),
   );
 
-  if (loadingPortfolios) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>;
-  if (!portfolios?.length) return <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen porteføljer funnet. Opprett en i Portefølje-fanen.</div>;
+  if (loadingPortfolios) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  if (!portfolios?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen porteføljer funnet. Opprett en i Portefølje-fanen.</div>;
 
   const revenues = (rows ?? []).filter((r) => r.revenue != null).map((r) => ({ name: r.navn ?? r.orgnr, value: +(r.revenue! / 1e6).toFixed(1) })).sort((a, b) => b.value - a.value).slice(0, 12);
   const riskRows = (rows ?? []).filter((r) => r.risk_score != null).map((r) => ({ name: r.navn ?? r.orgnr, value: r.risk_score! })).sort((a, b) => b.value - a.value);
@@ -43,16 +43,16 @@ export default function PortfolioTab() {
           {portfolios.map((p) => (
             <button key={p.id} onClick={() => setSelectedId(p.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                activeId === p.id ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
+                activeId === p.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
               }`}>{p.name}</button>
           ))}
         </div>
       )}
 
       {loadingRows ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       ) : !rows?.length ? (
-        <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">Ingen selskaper i porteføljen eller data ikke hentet ennå.</div>
+        <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen selskaper i porteføljen eller data ikke hentet ennå.</div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -64,7 +64,7 @@ export default function PortfolioTab() {
 
           {revenues.length > 0 && (
             <div className="broker-card">
-              <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Omsetning (MNOK) — topp {revenues.length}</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Omsetning (MNOK) — topp {revenues.length}</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={revenues} margin={{ left: 0, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
@@ -79,7 +79,7 @@ export default function PortfolioTab() {
 
           {riskRows.length > 0 && (
             <div className="broker-card">
-              <h3 className="text-sm font-semibold text-[#2C3E50] mb-4">Risikoscore per selskap</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Risikoscore per selskap</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={riskRows} margin={{ left: 0, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
@@ -93,10 +93,10 @@ export default function PortfolioTab() {
           )}
 
           <div className="broker-card overflow-x-auto">
-            <h3 className="text-sm font-semibold text-[#2C3E50] mb-3">Alle selskaper</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Alle selskaper</h3>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                <tr className="text-xs text-muted-foreground border-b border-border">
                   <th className="text-left pb-2 font-medium">Selskap</th>
                   <th className="text-right pb-2 font-medium">Omsetning</th>
                   <th className="text-right pb-2 font-medium">Egenkapital</th>
@@ -105,16 +105,16 @@ export default function PortfolioTab() {
                   <th className="text-right pb-2 font-medium">År</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EDE8E3]">
+              <tbody className="divide-y divide-border">
                 {[...rows].sort((a, b) => (b.revenue ?? 0) - (a.revenue ?? 0)).map((r) => (
-                  <tr key={r.orgnr} className="hover:bg-[#F9F7F4]">
+                  <tr key={r.orgnr} className="hover:bg-muted">
                     <td className="py-2">
-                      <span className="font-medium text-[#2C3E50]">{r.navn ?? r.orgnr}</span>
-                      <span className="block text-xs text-[#8A7F74]">{r.orgnr}</span>
+                      <span className="font-medium text-foreground">{r.navn ?? r.orgnr}</span>
+                      <span className="block text-xs text-muted-foreground">{r.orgnr}</span>
                     </td>
-                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(r.revenue)}</td>
-                    <td className="py-2 text-right text-[#8A7F74]">{fmtMnok(r.equity)}</td>
-                    <td className="py-2 text-right text-[#8A7F74]">{r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}</td>
+                    <td className="py-2 text-right text-muted-foreground">{fmtMnok(r.revenue)}</td>
+                    <td className="py-2 text-right text-muted-foreground">{fmtMnok(r.equity)}</td>
+                    <td className="py-2 text-right text-muted-foreground">{r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}</td>
                     <td className="py-2 text-right">
                       {r.risk_score != null ? (
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${bandTailwindClass(bandFor(r.risk_score).label)}`}>
@@ -122,7 +122,7 @@ export default function PortfolioTab() {
                         </span>
                       ) : "–"}
                     </td>
-                    <td className="py-2 text-right text-[#8A7F74]">{r.regnskapsår ?? "–"}</td>
+                    <td className="py-2 text-right text-muted-foreground">{r.regnskapsår ?? "–"}</td>
                   </tr>
                 ))}
               </tbody>

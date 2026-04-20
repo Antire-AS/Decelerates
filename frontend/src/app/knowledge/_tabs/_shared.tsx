@@ -68,7 +68,7 @@ export function renderMarkdownWithTables(text: string): React.ReactNode {
   while ((match = tableRegex.exec(text)) !== null) {
     if (match.index > lastIdx) {
       parts.push(
-        <p key={key++} className="whitespace-pre-wrap text-sm text-[#2C3E50] leading-relaxed">
+        <p key={key++} className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
           {text.slice(lastIdx, match.index).trim()}
         </p>,
       );
@@ -86,19 +86,19 @@ export function renderMarkdownWithTables(text: string): React.ReactNode {
     if (rows.length >= 2) {
       parts.push(
         <div key={key++} className="overflow-x-auto my-3">
-          <table className="w-full text-xs border border-[#EDE8E3]">
-            <thead className="bg-[#F4F1ED]">
+          <table className="w-full text-xs border border-border">
+            <thead className="bg-muted">
               <tr>
                 {rows[0].map((h, i) => (
-                  <th key={i} className="text-left px-2 py-1.5 font-semibold text-[#2C3E50] border-b border-[#EDE8E3]">{h}</th>
+                  <th key={i} className="text-left px-2 py-1.5 font-semibold text-foreground border-b border-border">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {rows.slice(1).map((r, i) => (
-                <tr key={i} className="border-b border-[#EDE8E3] last:border-0">
+                <tr key={i} className="border-b border-border last:border-0">
                   {r.map((c, j) => (
-                    <td key={j} className="px-2 py-1.5 text-[#2C3E50]">{c}</td>
+                    <td key={j} className="px-2 py-1.5 text-foreground">{c}</td>
                   ))}
                 </tr>
               ))}
@@ -111,12 +111,12 @@ export function renderMarkdownWithTables(text: string): React.ReactNode {
   }
   if (lastIdx < text.length) {
     parts.push(
-      <p key={key++} className="whitespace-pre-wrap text-sm text-[#2C3E50] leading-relaxed">
+      <p key={key++} className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
         {text.slice(lastIdx).trim()}
       </p>,
     );
   }
   return parts.length > 0 ? parts : (
-    <p className="whitespace-pre-wrap text-sm text-[#2C3E50] leading-relaxed">{text}</p>
+    <p className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">{text}</p>
   );
 }

@@ -8,14 +8,14 @@ import { fmt, fmtMnok } from "@/lib/format";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="broker-card space-y-3">
-      <h3 className="text-sm font-semibold text-[#2C3E50]">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {children}
     </div>
   );
 }
 
 function deltaClass(val: string | null): string {
-  if (!val) return "text-[#8A7F74]";
+  if (!val) return "text-muted-foreground";
   return val.startsWith("+") ? "text-green-600" : "text-red-600";
 }
 
@@ -75,7 +75,7 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="text-[#8A7F74] border-b border-[#EDE8E3]">
+            <tr className="text-muted-foreground border-b border-border">
               <th className="text-left pb-1.5 font-medium">År</th>
               <th className="text-right pb-1.5 font-medium">Omsetning</th>
               <th className="text-right pb-1.5 font-medium hidden lg:table-cell">Rev YoY</th>
@@ -97,55 +97,55 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
               return (
                 <Fragment key={r.year}>
                   <tr
-                    className="hover:bg-[#F9F7F4] border-b border-[#EDE8E3] cursor-pointer"
+                    className="hover:bg-muted border-b border-border cursor-pointer"
                     onClick={() => setExpandedYear(isExp ? null : r.year)}
                   >
-                    <td className="py-1.5 font-medium text-[#2C3E50] flex items-center gap-1">
+                    <td className="py-1.5 font-medium text-foreground flex items-center gap-1">
                       {r.year}
                       {r.source === "pdf" && (
-                        <span className="text-[#C8A951] text-[10px] font-normal">(PDF)</span>
+                        <span className="text-brand-warning text-[10px] font-normal">(PDF)</span>
                       )}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74]">{fmtMnok(rev)}</td>
+                    <td className="py-1.5 text-right text-muted-foreground">{fmtMnok(rev)}</td>
                     <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(revYoy)}`}>
                       {revYoy ?? "–"}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74] hidden xl:table-cell"
+                    <td className="py-1.5 text-right text-muted-foreground hidden xl:table-cell"
                       style={{ color: driftsres != null && driftsres < 0 ? "#C0392B" : undefined }}>
                       {fmtMnok(driftsres)}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74] hidden xl:table-cell">
+                    <td className="py-1.5 text-right text-muted-foreground hidden xl:table-cell">
                       {driftsmargin != null ? `${driftsmargin.toFixed(1)}%` : "–"}
                     </td>
                     <td className="py-1.5 text-right" style={{ color: net != null && net < 0 ? "#C0392B" : "#2C3E50" }}>
                       {fmtMnok(net)}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74] hidden sm:table-cell">
+                    <td className="py-1.5 text-right text-muted-foreground hidden sm:table-cell">
                       {margin != null ? `${margin.toFixed(1)}%` : "–"}
                     </td>
                     <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(marginDelta)}`}>
                       {marginDelta ?? "–"}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74]">{fmtMnok(r.sumEgenkapital)}</td>
-                    <td className="py-1.5 text-right text-[#8A7F74]">
+                    <td className="py-1.5 text-right text-muted-foreground">{fmtMnok(r.sumEgenkapital)}</td>
+                    <td className="py-1.5 text-right text-muted-foreground">
                       {r.equity_ratio != null ? `${(r.equity_ratio * 100).toFixed(1)}%` : "–"}
                     </td>
                     <td className={`py-1.5 text-right hidden lg:table-cell font-medium ${deltaClass(ekDelta)}`}>
                       {ekDelta ?? "–"}
                     </td>
-                    <td className="py-1.5 text-right text-[#8A7F74] hidden md:table-cell">
+                    <td className="py-1.5 text-right text-muted-foreground hidden md:table-cell">
                       {fmt(r.antallAnsatte) !== "–" ? fmt(r.antallAnsatte) : "–"}
                     </td>
-                    <td className="py-1.5 text-right text-[#C4BDB4]">
+                    <td className="py-1.5 text-right text-muted-foreground">
                       {isExp ? <ChevronUp className="w-3 h-3 inline" /> : <ChevronDown className="w-3 h-3 inline" />}
                     </td>
                   </tr>
                   {isExp && (
-                    <tr key={`${r.year}-detail`} className="bg-[#F9F7F4]">
+                    <tr key={`${r.year}-detail`} className="bg-muted">
                       <td colSpan={13} className="py-3 px-2">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs font-semibold text-[#2C3E50] mb-2">Resultatregnskap</p>
+                            <p className="text-xs font-semibold text-foreground mb-2">Resultatregnskap</p>
                             {([
                               ["Salgsinntekter", r.salgsinntekter],
                               ["Sum driftsinntekter", r.sumDriftsinntekter],
@@ -167,16 +167,16 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                               ["Årsresultat", r.arsresultat],
                               ["Totalresultat", r.totalresultat],
                             ] as [string, unknown][]).map(([label, val]) => val != null ? (
-                              <div key={label} className="flex justify-between text-xs py-0.5 border-b border-[#EDE8E3]">
-                                <span className="text-[#8A7F74]">{label}</span>
-                                <span className={`font-medium ${Number(val) < 0 ? "text-red-600" : "text-[#2C3E50]"}`}>
+                              <div key={label} className="flex justify-between text-xs py-0.5 border-b border-border">
+                                <span className="text-muted-foreground">{label}</span>
+                                <span className={`font-medium ${Number(val) < 0 ? "text-red-600" : "text-foreground"}`}>
                                   {fmtMnok(val)}
                                 </span>
                               </div>
                             ) : null)}
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-[#2C3E50] mb-2">Balanse</p>
+                            <p className="text-xs font-semibold text-foreground mb-2">Balanse</p>
                             {([
                               ["Varer", r.sumVarer],
                               ["Fordringer", r.sumFordringer],
@@ -194,9 +194,9 @@ export default function FinancialsHistoryTable({ history, expandedYear, setExpan
                               ["Sum gjeld", r.sumGjeld],
                               ["Sum gjeld + EK", r.sumGjeldOgEgenkapital],
                             ] as [string, unknown][]).map(([label, val]) => val != null ? (
-                              <div key={label} className="flex justify-between text-xs py-0.5 border-b border-[#EDE8E3]">
-                                <span className="text-[#8A7F74]">{label}</span>
-                                <span className="font-medium text-[#2C3E50]">{fmtMnok(val)}</span>
+                              <div key={label} className="flex justify-between text-xs py-0.5 border-b border-border">
+                                <span className="text-muted-foreground">{label}</span>
+                                <span className="font-medium text-foreground">{fmtMnok(val)}</span>
                               </div>
                             ) : null)}
                           </div>

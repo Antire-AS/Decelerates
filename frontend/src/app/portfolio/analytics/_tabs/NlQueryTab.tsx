@@ -37,10 +37,10 @@ export default function NlQueryTab() {
     <div className="space-y-4">
       <div className="broker-card space-y-3">
         <div className="flex items-center gap-2 mb-1">
-          <Database className="w-4 h-4 text-[#4A6FA5]" />
-          <h3 className="text-sm font-semibold text-[#2C3E50]">Naturlig språk til SQL</h3>
+          <Database className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">Naturlig språk til SQL</h3>
         </div>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs text-muted-foreground">
           Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.
         </p>
         <div className="flex gap-2">
@@ -49,12 +49,12 @@ export default function NlQueryTab() {
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && run()}
             placeholder="F.eks. «Hvilke selskaper har negativ egenkapital?»"
-            className="flex-1 px-3 py-2 text-sm border border-[#D4C9B8] rounded-lg text-[#2C3E50] placeholder-[#C4BDB4] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
           <button
             onClick={() => run()}
             disabled={loading || !question.trim()}
-            className="px-4 py-2 rounded-lg bg-[#4A6FA5] text-white text-sm font-medium hover:bg-[#3a5e95] disabled:opacity-50 flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
             Kjør
@@ -64,7 +64,7 @@ export default function NlQueryTab() {
         <div className="flex flex-wrap gap-2">
           {EXAMPLE_QUERIES.map((q) => (
             <button key={q} onClick={() => run(q)}
-              className="text-xs px-2.5 py-1 rounded-full bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3] transition-colors">
+              className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-muted transition-colors">
               {q}
             </button>
           ))}
@@ -78,16 +78,16 @@ export default function NlQueryTab() {
       )}
 
       {result && !result.error && result.rows.length === 0 && (
-        <div className="broker-card text-sm text-center text-[#8A7F74] py-6">Ingen resultater.</div>
+        <div className="broker-card text-sm text-center text-muted-foreground py-6">Ingen resultater.</div>
       )}
 
       {result && result.rows.length > 0 && (
         <div className="broker-card space-y-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-xs text-[#8A7F74]">{result.rows.length} rader</p>
-            <details className="text-xs text-[#8A7F74]">
-              <summary className="cursor-pointer hover:text-[#2C3E50]">Vis SQL</summary>
-              <pre className="mt-2 p-2 bg-[#2C3E50] text-green-300 rounded-lg overflow-x-auto text-xs whitespace-pre-wrap">
+            <p className="text-xs text-muted-foreground">{result.rows.length} rader</p>
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer hover:text-foreground">Vis SQL</summary>
+              <pre className="mt-2 p-2 bg-primary text-green-300 rounded-lg overflow-x-auto text-xs whitespace-pre-wrap">
                 {result.sql}
               </pre>
             </details>
@@ -95,17 +95,17 @@ export default function NlQueryTab() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+                <tr className="text-xs text-muted-foreground border-b border-border">
                   {result.columns.map((col) => (
                     <th key={col} className="text-left pb-2 font-medium pr-4">{col}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EDE8E3]">
+              <tbody className="divide-y divide-border">
                 {result.rows.map((row, i) => (
-                  <tr key={i} className="hover:bg-[#F9F7F4]">
+                  <tr key={i} className="hover:bg-muted">
                     {(row as unknown[]).map((cell, j) => (
-                      <td key={j} className="py-2 pr-4 text-[#2C3E50]">
+                      <td key={j} className="py-2 pr-4 text-foreground">
                         {cell == null ? "–" : String(cell)}
                       </td>
                     ))}

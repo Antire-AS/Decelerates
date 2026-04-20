@@ -64,10 +64,10 @@ export default function AnalyseTab() {
   return (
     <div className="space-y-4">
       <div className="broker-card space-y-2">
-        <h3 className="text-sm font-semibold text-[#2C3E50] flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <BarChart3 className="w-4 h-4" /> AI-genererte sammenligninger og tabeller
         </h3>
-        <p className="text-xs text-[#8A7F74]">
+        <p className="text-xs text-muted-foreground">
           Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen.
           Tabeller kan lastes ned som CSV.
         </p>
@@ -79,10 +79,10 @@ export default function AnalyseTab() {
             key={label}
             onClick={() => handleRun(label, prompt)}
             disabled={loading !== null}
-            className="px-4 py-3 text-left text-sm rounded-lg border border-[#EDE8E3] hover:border-[#4A6FA5] hover:bg-[#F0F4FB] disabled:opacity-50 transition-colors text-[#2C3E50] font-medium flex items-center justify-between gap-2"
+            className="px-4 py-3 text-left text-sm rounded-lg border border-border hover:border-primary hover:bg-accent disabled:opacity-50 transition-colors text-foreground font-medium flex items-center justify-between gap-2"
           >
             <span>{label}</span>
-            {loading === label && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#4A6FA5] flex-shrink-0" />}
+            {loading === label && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary flex-shrink-0" />}
           </button>
         ))}
       </div>
@@ -94,10 +94,10 @@ export default function AnalyseTab() {
       {result && (
         <div className="broker-card space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-sm font-semibold text-[#2C3E50]">{result.label}</h4>
+            <h4 className="text-sm font-semibold text-foreground">{result.label}</h4>
             <button
               onClick={() => setResult(null)}
-              className="text-xs text-[#8A7F74] hover:text-[#2C3E50] flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
               <Trash2 className="w-3 h-3" /> Tøm
             </button>
@@ -106,12 +106,12 @@ export default function AnalyseTab() {
           {renderMarkdownWithTables(result.answer)}
 
           {tables.length > 0 && (
-            <div className="flex gap-2 flex-wrap pt-2 border-t border-[#EDE8E3]">
+            <div className="flex gap-2 flex-wrap pt-2 border-t border-border">
               {tables.map((rows, i) => (
                 <button
                   key={i}
                   onClick={() => downloadCsv(`sammenligning_${i + 1}.csv`, tableToCsv(rows))}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border text-primary bg-accent hover:bg-accent"
                 >
                   <Download className="w-3 h-3" />
                   Last ned tabell {i + 1} (CSV)
@@ -121,13 +121,13 @@ export default function AnalyseTab() {
           )}
 
           {result.sources && result.sources.length > 0 && (
-            <details className="pt-2 border-t border-[#EDE8E3]">
-              <summary className="text-xs text-[#8A7F74] cursor-pointer hover:text-[#2C3E50]">
+            <details className="pt-2 border-t border-border">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                 Kilder ({result.sources.length})
               </summary>
               <div className="mt-2 space-y-1">
                 {result.sources.map((src, i) => (
-                  <p key={i} className="text-xs text-[#8A7F74]">• {readableSource(src)}</p>
+                  <p key={i} className="text-xs text-muted-foreground">• {readableSource(src)}</p>
                 ))}
               </div>
             </details>

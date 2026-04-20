@@ -61,8 +61,8 @@ export default function ChatTab() {
     <div className="broker-card flex flex-col" style={{ minHeight: "60vh" }}>
       <div className="flex-1 space-y-4 overflow-y-auto mb-4" style={{ maxHeight: "55vh" }}>
         {messages.length === 0 && !isLoading && (
-          <div className="text-center py-12 text-[#8A7F74]">
-            <p className="text-sm font-medium text-[#2C3E50] mb-2">Hei! Jeg er din forsikringsassistent.</p>
+          <div className="text-center py-12 text-muted-foreground">
+            <p className="text-sm font-medium text-foreground mb-2">Hei! Jeg er din forsikringsassistent.</p>
             <p className="text-sm">Spør meg om forsikringstyper, risiko, kunderegulering, GDPR eller hvilken dekning et selskap trenger.</p>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-2">
               {[
@@ -72,7 +72,7 @@ export default function ChatTab() {
                 "Forklar egenkapitalandel enkelt",
               ].map((s) => (
                 <button key={s} onClick={() => setQuestion(s)}
-                  className="px-3 py-2 text-xs text-left rounded-lg border border-[#EDE8E3] text-[#2C3E50] hover:bg-[#F9F7F4]">
+                  className="px-3 py-2 text-xs text-left rounded-lg border border-border text-foreground hover:bg-muted">
                   {s}
                 </button>
               ))}
@@ -85,8 +85,8 @@ export default function ChatTab() {
             <div className="max-w-[82%]">
               <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-[#2C3E50] text-white rounded-br-sm"
-                  : "bg-[#F4F1ED] text-[#2C3E50] rounded-bl-sm"
+                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                  : "bg-muted text-foreground rounded-bl-sm"
               }`}>
                 {msg.role === "assistant"
                   ? renderMarkdownWithTables(msg.content)
@@ -94,17 +94,17 @@ export default function ChatTab() {
               </div>
               {msg.role === "assistant" && msg.sources && msg.sources.length > 0 && (
                 <details className="mt-1.5">
-                  <summary className="text-xs text-[#8A7F74] cursor-pointer hover:text-[#2C3E50] inline-block">
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground inline-block">
                     Kilder ({msg.sources.length})
                   </summary>
                   <div className="mt-1.5 space-y-1">
                     {msg.sources.map((src) => {
                       const snippet = msg.source_snippets?.[src];
                       return (
-                        <div key={src} className="text-xs border border-[#EDE8E3] rounded-lg p-2 bg-[#F9F7F4]">
-                          <p className="font-medium text-[#2C3E50]">{readableSource(src)}</p>
+                        <div key={src} className="text-xs border border-border rounded-lg p-2 bg-muted">
+                          <p className="font-medium text-foreground">{readableSource(src)}</p>
                           {snippet && (
-                            <p className="text-[10px] text-[#8A7F74] italic mt-0.5 line-clamp-3">{snippet}</p>
+                            <p className="text-[10px] text-muted-foreground italic mt-0.5 line-clamp-3">{snippet}</p>
                           )}
                         </div>
                       );
@@ -118,10 +118,10 @@ export default function ChatTab() {
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-[#F4F1ED] px-4 py-3 rounded-2xl rounded-bl-sm">
+            <div className="bg-muted px-4 py-3 rounded-2xl rounded-bl-sm">
               <div className="flex gap-1 items-center h-4">
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className="w-1.5 h-1.5 bg-[#8A7F74] rounded-full animate-bounce"
+                  <span key={i} className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
@@ -133,26 +133,26 @@ export default function ChatTab() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-[#EDE8E3] items-end">
+      <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-border items-end">
         <textarea value={question} onChange={(e) => setQuestion(e.target.value)} onKeyDown={handleKeyDown}
           placeholder="Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)"
           rows={2} disabled={isLoading}
-          className="flex-1 px-3 py-2 text-sm border border-[#EDE8E3] rounded-lg text-[#2C3E50] placeholder-[#C8BEB4] focus:outline-none focus:border-[#2C3E50] resize-none disabled:opacity-50" />
+          className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none disabled:opacity-50" />
         {messages.length > 0 && !isLoading && (
           <button type="button" onClick={() => { setMessages([]); setError(null); }}
             title="Tøm samtale"
-            className="px-3 py-2 rounded-lg border border-[#EDE8E3] text-[#8A7F74] hover:bg-[#F4F1ED] text-sm flex items-center gap-1">
+            className="px-3 py-2 rounded-lg border border-border text-muted-foreground hover:bg-muted text-sm flex items-center gap-1">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
         {isLoading ? (
           <button type="button" onClick={() => abortRef.current?.abort()}
-            className="px-4 py-2 rounded-lg border border-[#EDE8E3] text-[#2C3E50] text-sm font-medium hover:bg-[#F4F1ED]">
+            className="px-4 py-2 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted">
             Stopp
           </button>
         ) : (
           <button type="submit" disabled={!question.trim()}
-            className="px-4 py-2 rounded-lg bg-[#2C3E50] text-white text-sm font-medium hover:bg-[#3d5166] disabled:opacity-50">
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
             Send
           </button>
         )}

@@ -16,10 +16,10 @@ interface IngestEvent {
 
 const EVENT_ICON: Record<string, React.ReactNode> = {
   done:          <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />,
-  skipped:       <SkipForward className="w-3.5 h-3.5 text-[#C8A951] flex-shrink-0" />,
+  skipped:       <SkipForward className="w-3.5 h-3.5 text-brand-warning flex-shrink-0" />,
   error:         <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />,
   pdf_found:     <CheckCircle className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />,
-  pdf_none:      <SkipForward className="w-3.5 h-3.5 text-[#C4BDB4] flex-shrink-0" />,
+  pdf_none:      <SkipForward className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />,
   pdf_error:     <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />,
 };
 
@@ -155,13 +155,13 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
   }
 
   return (
-    <div className="space-y-3 pt-3 border-t border-[#EDE8E3]">
+    <div className="space-y-3 pt-3 border-t border-border">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-xs font-semibold text-[#2C3E50]">
+        <p className="text-xs font-semibold text-foreground">
           Innhent selskapdata (BRREG + økonomi)
         </p>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-xs text-[#8A7F74] cursor-pointer select-none">
+          <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
             <input
               type="checkbox"
               checked={includePdfs}
@@ -177,7 +177,7 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
             </button>
           ) : (
             <button onClick={startIngest}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#4A6FA5] text-white hover:bg-[#3a5f95]">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
               <Play className="w-3.5 h-3.5" /> Start innhenting
             </button>
           )}
@@ -187,28 +187,28 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
       {(events.length > 0 || running) && (
         <div
           ref={logRef}
-          className="h-48 overflow-y-auto rounded-lg bg-[#2C3E50] p-3 font-mono text-xs space-y-1"
+          className="h-48 overflow-y-auto rounded-lg bg-primary p-3 font-mono text-xs space-y-1"
         >
           {events.map((ev, i) => (
             <div key={i} className="flex items-start gap-2">
               {EVENT_ICON[ev.type] ?? (
                 running && ev.type === "searching"
-                  ? <Loader2 className="w-3.5 h-3.5 text-[#C5D8F0] animate-spin flex-shrink-0" />
+                  ? <Loader2 className="w-3.5 h-3.5 text-accent-foreground animate-spin flex-shrink-0" />
                   : <span className="w-3.5 h-3.5 flex-shrink-0" />
               )}
               <span className={
                 ev.type === "complete" ? "text-green-400 font-semibold"
                 : ev.type === "error" || ev.type === "pdf_error" ? "text-red-400"
                 : ev.type === "done" || ev.type === "pdf_found" ? "text-green-300"
-                : ev.type === "skipped" || ev.type === "pdf_none" ? "text-[#8A9CB8]"
-                : "text-[#C5D8F0]"
+                : ev.type === "skipped" || ev.type === "pdf_none" ? "text-muted-foreground"
+                : "text-accent-foreground"
               }>
                 {eventLabel(ev)}
               </span>
             </div>
           ))}
           {running && (
-            <div className="flex items-center gap-2 text-[#8A9CB8]">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
               <span>Arbeider…</span>
             </div>
@@ -224,9 +224,9 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
       )}
 
       {/* ── CSV import ── */}
-      <div className="pt-3 border-t border-[#EDE8E3] space-y-2">
-        <p className="text-xs font-semibold text-[#2C3E50]">Importer fra CSV</p>
-        <p className="text-xs text-[#8A7F74]">
+      <div className="pt-3 border-t border-border space-y-2">
+        <p className="text-xs font-semibold text-foreground">Importer fra CSV</p>
+        <p className="text-xs text-muted-foreground">
           Last opp en CSV-fil med orgnr (én per linje). Selskaper hentes fra BRREG og legges til porteføljen.
         </p>
         <input
@@ -243,23 +243,23 @@ export function PortfolioIngest({ portfolioId, onDone }: Props) {
         <button
           onClick={() => csvFileRef.current?.click()}
           disabled={csvRunning}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#D4C9B8] text-[#2C3E50] hover:bg-[#EDE8E3] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-50"
         >
           {csvRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
           Velg CSV-fil
         </button>
         {csvEvents.length > 0 && (
-          <div className="h-32 overflow-y-auto rounded-lg bg-[#2C3E50] p-3 font-mono text-xs space-y-1">
+          <div className="h-32 overflow-y-auto rounded-lg bg-primary p-3 font-mono text-xs space-y-1">
             {csvEvents.map((ev, i) => (
               <div key={i} className="flex items-start gap-2">
                 {EVENT_ICON[ev.type] ?? <span className="w-3.5 h-3.5 flex-shrink-0" />}
-                <span className={ev.type === "complete" ? "text-green-400 font-semibold" : ev.type === "error" ? "text-red-400" : "text-[#C5D8F0]"}>
+                <span className={ev.type === "complete" ? "text-green-400 font-semibold" : ev.type === "error" ? "text-red-400" : "text-accent-foreground"}>
                   {eventLabel(ev)}
                 </span>
               </div>
             ))}
             {csvRunning && (
-              <div className="flex items-center gap-2 text-[#8A9CB8]">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
                 <span>Importerer…</span>
               </div>

@@ -42,13 +42,13 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback;
 
     return (
-      <div className="broker-card flex items-start gap-3 text-sm text-[#8A7F74]">
+      <div className="broker-card flex items-start gap-3 text-sm text-muted-foreground">
         <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-medium text-[#2C3E50]">Komponenten kunne ikke lastes</p>
+          <p className="font-medium text-foreground">Komponenten kunne ikke lastes</p>
           <p className="text-xs mt-0.5 font-mono">{this.state.message}</p>
           <button
-            className="text-xs text-[#4A6FA5] hover:underline mt-1"
+            className="text-xs text-primary hover:underline mt-1"
             onClick={() => this.setState({ hasError: false, message: "" })}
           >
             Prøv igjen

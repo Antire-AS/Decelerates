@@ -11,6 +11,7 @@ import ChatTab     from "./_tabs/ChatTab";
 import SearchTab   from "./_tabs/SearchTab";
 import AnalyseTab  from "./_tabs/AnalyseTab";
 import ManageTab   from "./_tabs/ManageTab";
+import { useT } from "@/lib/i18n";
 
 type Tab = "chat" | "search" | "analyse" | "documents" | "videos" | "manage";
 
@@ -24,6 +25,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function KnowledgePage() {
+  const T = useT();
   // Read ?tab= so that /documents and /videos redirects can deep-link directly
   // to the right sub-tab. Falls back to "chat" for the bare /knowledge URL.
   const [activeTab, setActiveTab] = useState<Tab>(() => {
@@ -35,15 +37,15 @@ export default function KnowledgePage() {
   const TAB_CLS = (t: Tab) =>
     `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
       activeTab === t
-        ? "bg-[#2C3E50] text-white"
-        : "text-[#8A7F74] hover:bg-[#EDE8E3]"
+        ? "bg-primary text-primary-foreground"
+        : "text-muted-foreground hover:bg-muted"
     }`;
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-[#2C3E50]">Kunnskapsbase</h1>
-        <p className="text-sm text-[#8A7F74] mt-1">
+        <h1 className="text-2xl font-bold text-foreground">{T("Kunnskapsbase")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           AI-assistent, semantisk søk og indeksadministrasjon
         </p>
       </div>

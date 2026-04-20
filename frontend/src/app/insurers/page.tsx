@@ -73,59 +73,59 @@ function InsurerForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-name">Navn *</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-name">Navn *</label>
           <input
             id="insurer-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             placeholder="f.eks. If Skadeforsikring"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-orgnr">Org.nr</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-orgnr">Org.nr</label>
           <input
             id="insurer-orgnr"
             value={orgNumber}
             onChange={(e) => setOrgNumber(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             placeholder="9 siffer"
             maxLength={9}
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-name">Kontaktperson</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-name">Kontaktperson</label>
           <input
             id="insurer-contact-name"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-email">E-post</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-email">E-post</label>
           <input
             id="insurer-contact-email"
             type="email"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-contact-phone">Telefon</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-contact-phone">Telefon</label>
           <input
             id="insurer-contact-phone"
             value={contactPhone}
             onChange={(e) => setContactPhone(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+            className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-[#8A7F74] font-medium">Produktappetitt</p>
+        <p className="text-xs text-muted-foreground font-medium">Produktappetitt</p>
         <div className="flex flex-wrap gap-1.5 mt-1.5">
           {PRODUCT_TYPES.map((p) => (
             <button
@@ -134,8 +134,8 @@ function InsurerForm({
               onClick={() => toggleAppetite(p)}
               className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
                 appetite.includes(p)
-                  ? "bg-[#4A6FA5] text-white border-[#4A6FA5]"
-                  : "bg-white text-[#8A7F74] border-brand-stone hover:border-[#4A6FA5]"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-brand-stone hover:border-primary"
               }`}
             >
               {p}
@@ -145,13 +145,13 @@ function InsurerForm({
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="insurer-notes">Notater</label>
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="insurer-notes">Notater</label>
         <textarea
           id="insurer-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none"
+          className="w-full mt-1 px-3 py-1.5 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
       </div>
 
@@ -159,14 +159,14 @@ function InsurerForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm text-[#8A7F74] hover:text-[#2C3E50] border border-brand-stone rounded-md"
+          className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-brand-stone rounded-md"
         >
           Avbryt
         </button>
         <button
           type="submit"
           disabled={saving || !name.trim()}
-          className="px-4 py-1.5 text-sm bg-[#4A6FA5] text-white rounded-md hover:bg-[#3a5f95] disabled:opacity-50"
+          className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
           {saving ? "Lagrer…" : "Lagre"}
         </button>
@@ -209,25 +209,25 @@ function InsurerCard({
     <div className="broker-card">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#E8EDF5] flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-[#4A6FA5]" />
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#2C3E50]">{insurer.name}</p>
+            <p className="text-sm font-semibold text-foreground">{insurer.name}</p>
             {insurer.org_number && (
-              <p className="text-xs text-[#8A7F74]">Org.nr {insurer.org_number}</p>
+              <p className="text-xs text-muted-foreground">Org.nr {insurer.org_number}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setOpen((v) => !v); setEditing(false); }}
-            className="text-xs text-[#4A6FA5] hover:underline flex items-center gap-1"
+            className="text-xs text-primary hover:underline flex items-center gap-1"
           >
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {open ? "Skjul" : "Vis"}
           </button>
-          <button onClick={() => { setOpen(true); setEditing(true); }} className="text-[#8A7F74] hover:text-[#4A6FA5]">
+          <button onClick={() => { setOpen(true); setEditing(true); }} className="text-muted-foreground hover:text-primary">
             <Pencil className="w-4 h-4" />
           </button>
           <button onClick={handleDelete} className="text-red-400 hover:text-red-600">
@@ -248,24 +248,24 @@ function InsurerCard({
             <div className="space-y-3 text-sm">
               {(insurer.contact_name || insurer.contact_email || insurer.contact_phone) && (
                 <div>
-                  <p className="text-xs text-[#8A7F74] font-medium mb-1">Kontakt</p>
-                  <p className="text-[#2C3E50]">{insurer.contact_name || "–"}</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Kontakt</p>
+                  <p className="text-foreground">{insurer.contact_name || "–"}</p>
                   {insurer.contact_email && (
-                    <a href={`mailto:${insurer.contact_email}`} className="text-xs text-[#4A6FA5] hover:underline">
+                    <a href={`mailto:${insurer.contact_email}`} className="text-xs text-primary hover:underline">
                       {insurer.contact_email}
                     </a>
                   )}
                   {insurer.contact_phone && (
-                    <p className="text-xs text-[#8A7F74]">{insurer.contact_phone}</p>
+                    <p className="text-xs text-muted-foreground">{insurer.contact_phone}</p>
                   )}
                 </div>
               )}
               {insurer.appetite && insurer.appetite.length > 0 && (
                 <div>
-                  <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Produktappetitt</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1.5">Produktappetitt</p>
                   <div className="flex flex-wrap gap-1.5">
                     {insurer.appetite.map((p) => (
-                      <span key={p} className="px-2 py-0.5 text-xs rounded-full bg-[#E8EDF5] text-[#4A6FA5]">
+                      <span key={p} className="px-2 py-0.5 text-xs rounded-full bg-accent text-primary">
                         {p}
                       </span>
                     ))}
@@ -274,8 +274,8 @@ function InsurerCard({
               )}
               {insurer.notes && (
                 <div>
-                  <p className="text-xs text-[#8A7F74] font-medium mb-1">Notater</p>
-                  <p className="text-[#2C3E50] text-xs">{insurer.notes}</p>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Notater</p>
+                  <p className="text-foreground text-xs">{insurer.notes}</p>
                 </div>
               )}
             </div>
@@ -320,14 +320,14 @@ export default function InsurersPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Forsikringsselskaper</h1>
-          <p className="text-sm text-[#8A7F74] mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground">Forsikringsselskaper</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Administrer forsikringsselskaper og deres produktappetitt
           </p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#4A6FA5] text-white text-sm rounded-md hover:bg-[#3a5f95]"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90"
         >
           {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           {showForm ? "Avbryt" : "Legg til"}
@@ -336,7 +336,7 @@ export default function InsurersPage() {
 
       {showForm && (
         <div className="broker-card">
-          <p className="text-sm font-semibold text-[#2C3E50] mb-4">Nytt forsikringsselskap</p>
+          <p className="text-sm font-semibold text-foreground mb-4">Nytt forsikringsselskap</p>
           <InsurerForm onSave={handleCreate} onCancel={() => setShowForm(false)} />
         </div>
       )}
@@ -345,15 +345,15 @@ export default function InsurersPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Søk etter selskap…"
-        className="w-full px-3 py-2 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+        className="w-full px-3 py-2 text-sm border border-brand-stone rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       />
 
       {isLoading && (
-        <p className="text-sm text-[#8A7F74] text-center py-8">Laster…</p>
+        <p className="text-sm text-muted-foreground text-center py-8">Laster…</p>
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <div className="text-center py-12 text-[#8A7F74]">
+        <div className="text-center py-12 text-muted-foreground">
           <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">
             {search ? "Ingen treff" : "Ingen forsikringsselskaper lagt til ennå"}
@@ -373,7 +373,7 @@ export default function InsurersPage() {
       </div>
 
       {!isLoading && filtered.length > 0 && (
-        <p className="text-xs text-[#8A7F74] text-center">
+        <p className="text-xs text-muted-foreground text-center">
           {filtered.length} selskap{filtered.length !== 1 ? "er" : ""}
         </p>
       )}

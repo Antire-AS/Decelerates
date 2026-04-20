@@ -7,6 +7,7 @@ import { fmt, fmtDate } from "@/lib/format";
 import { downloadXlsx } from "@/lib/excel-export";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Download, Sparkles, Mail } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";
@@ -31,6 +32,7 @@ function stageMeta(stageId?: string) {
 const DAYS_OPTIONS = [30, 60, 90, 180];
 
 export default function RenewalsPage() {
+  const T = useT();
   const [days, setDays] = useState(90);
   const [view, setView] = useState<"table" | "kanban">("table");
   const [stageFilter, setStageFilter] = useState<StageId | "all">("all");
@@ -71,8 +73,8 @@ export default function RenewalsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">Fornyelsespipeline</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">Kommende polisefornyelseringer som krever oppfølging</p>
+          <h1 className="text-2xl font-bold text-foreground">{T("Fornyelsespipeline")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">Kommende polisefornyelseringer som krever oppfølging</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
@@ -83,14 +85,14 @@ export default function RenewalsPage() {
               Steg: r.renewal_stage ?? "not_started",
             })), `fornyelser_${new Date().toISOString().slice(0, 10)}.xlsx`)}
             disabled={!renewals?.length}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#D4C9B8] text-[#8A7F74] hover:bg-[#EDE8E3] disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-input text-muted-foreground hover:bg-muted disabled:opacity-40"
           >
             <Download className="w-3 h-3" /> Excel
           </button>
           {DAYS_OPTIONS.map((d) => (
             <button key={d} onClick={() => setDays(d)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                days === d ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"
+                days === d ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
               }`}>{d}d</button>
           ))}
         </div>
@@ -115,15 +117,15 @@ export default function RenewalsPage() {
       {!isLoading && renewals && renewals.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="broker-card col-span-2 md:col-span-1">
-            <p className="text-xs text-[#8A7F74] font-medium mb-1">Totalt</p>
-            <p className="text-xl font-bold text-[#2C3E50]">{renewals.length}</p>
-            <p className="text-xs text-[#8A7F74]">kr {fmt(totalPremium)}</p>
+            <p className="text-xs text-muted-foreground font-medium mb-1">Totalt</p>
+            <p className="text-xl font-bold text-foreground">{renewals.length}</p>
+            <p className="text-xs text-muted-foreground">kr {fmt(totalPremium)}</p>
           </div>
           {stageCounts.map((s) => (
             <button key={s.id} onClick={() => setStageFilter(stageFilter === s.id ? "all" : s.id)}
-              className={`broker-card text-left transition-all ${stageFilter === s.id ? "ring-2 ring-[#4A6FA5]" : ""}`}>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1 truncate">{s.label}</p>
-              <p className="text-xl font-bold text-[#2C3E50]">{s.count}</p>
+              className={`broker-card text-left transition-all ${stageFilter === s.id ? "ring-2 ring-ring" : ""}`}>
+              <p className="text-xs text-muted-foreground font-medium mb-1 truncate">{s.label}</p>
+              <p className="text-xl font-bold text-foreground">{s.count}</p>
             </button>
           ))}
         </div>
@@ -133,11 +135,11 @@ export default function RenewalsPage() {
       {!isLoading && renewals && renewals.length > 0 && (
         <div className="flex gap-2">
           <button onClick={() => setView("table")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "table" ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "table" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"}`}>
             Tabell
           </button>
           <button onClick={() => setView("kanban")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "kanban" ? "bg-[#2C3E50] text-white" : "bg-[#EDE8E3] text-[#8A7F74] hover:bg-[#DDD8D3]"}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"}`}>
             Pipeline
           </button>
         </div>
@@ -146,7 +148,7 @@ export default function RenewalsPage() {
       {/* Loading skeleton */}
       {isLoading && (
         <div className="broker-card space-y-3">
-          {[...Array(5)].map((_, i) => <div key={i} className="h-8 rounded animate-pulse bg-[#EDE8E3]" />)}
+          {[...Array(5)].map((_, i) => <div key={i} className="h-8 rounded animate-pulse bg-muted" />)}
         </div>
       )}
 
@@ -155,7 +157,7 @@ export default function RenewalsPage() {
         <div className="broker-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-[#8A7F74] border-b border-[#EDE8E3]">
+              <tr className="text-xs text-muted-foreground border-b border-border">
                 <th className="text-left pb-2 font-medium">Klient</th>
                 <th className="text-left pb-2 font-medium">Forsikringstype</th>
                 <th className="text-left pb-2 font-medium">Forsikringsgiver</th>
@@ -167,7 +169,7 @@ export default function RenewalsPage() {
                 <th className="text-center pb-2 font-medium">Flytt</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE8E3]">
+            <tbody className="divide-y divide-border">
               {filtered.map((r) => {
                 const stage = (r.renewal_stage ?? "not_started") as StageId;
                 const meta = stageMeta(stage);
@@ -175,20 +177,20 @@ export default function RenewalsPage() {
                 const hasBrief = !!r.renewal_brief;
                 return (
                   <Fragment key={r.id}>
-                    <tr className="hover:bg-[#F9F7F4]">
+                    <tr className="hover:bg-muted">
                       <td className="py-2">
-                        <span className="font-medium text-[#2C3E50]">{r.client_name}</span>
-                        <span className="block text-xs text-[#8A7F74]">{r.orgnr}</span>
+                        <span className="font-medium text-foreground">{r.client_name}</span>
+                        <span className="block text-xs text-muted-foreground">{r.orgnr}</span>
                       </td>
-                      <td className="py-2 text-[#2C3E50]">{r.product_type ?? r.insurance_type}</td>
-                      <td className="py-2 text-[#8A7F74]">{r.insurer}</td>
-                      <td className="py-2 text-right font-medium text-[#2C3E50]">
+                      <td className="py-2 text-foreground">{r.product_type ?? r.insurance_type}</td>
+                      <td className="py-2 text-muted-foreground">{r.insurer}</td>
+                      <td className="py-2 text-right font-medium text-foreground">
                         {fmt(r.annual_premium_nok ?? r.premium)}
                       </td>
-                      <td className="py-2 text-right text-[#8A7F74]">
+                      <td className="py-2 text-right text-muted-foreground">
                         {r.start_date ? fmtDate(r.start_date) : "–"}
                       </td>
-                      <td className="py-2 text-right text-[#8A7F74]">{fmtDate(r.renewal_date)}</td>
+                      <td className="py-2 text-right text-muted-foreground">{fmtDate(r.renewal_date)}</td>
                       <td className="py-2 text-right">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`}>
                           {r.days_until_renewal}d
@@ -202,7 +204,7 @@ export default function RenewalsPage() {
                           disabled={advancing === r.id}
                           value=""
                           onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
-                          className="text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white"
+                          className="text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card"
                         >
                           <option value="">Flytt…</option>
                           {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -210,23 +212,23 @@ export default function RenewalsPage() {
                       </td>
                     </tr>
                     {hasBrief && (
-                      <tr className="bg-[#F0F4FB]">
+                      <tr className="bg-accent">
                         <td colSpan={9} className="px-4 py-2">
                           <div className="flex gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Sparkles className="w-3 h-3 text-[#4A6FA5]" />
-                                <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">AI Fornyelsesbriefing</span>
+                                <Sparkles className="w-3 h-3 text-primary" />
+                                <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">AI Fornyelsesbriefing</span>
                               </div>
-                              <p className="text-xs text-[#2C3E50] whitespace-pre-line">{r.renewal_brief}</p>
+                              <p className="text-xs text-foreground whitespace-pre-line">{r.renewal_brief}</p>
                             </div>
                             {r.renewal_email_draft && (
-                              <div className="flex-1 border-l border-[#C5D8F0] pl-4">
+                              <div className="flex-1 border-l border-border pl-4">
                                 <div className="flex items-center gap-1.5 mb-1">
-                                  <Mail className="w-3 h-3 text-[#4A6FA5]" />
-                                  <span className="text-[10px] font-semibold text-[#4A6FA5] uppercase tracking-wide">Utkast til klient-epost</span>
+                                  <Mail className="w-3 h-3 text-primary" />
+                                  <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">Utkast til klient-epost</span>
                                 </div>
-                                <p className="text-xs text-[#8A7F74] whitespace-pre-line">{r.renewal_email_draft}</p>
+                                <p className="text-xs text-muted-foreground whitespace-pre-line">{r.renewal_email_draft}</p>
                               </div>
                             )}
                           </div>
@@ -238,7 +240,7 @@ export default function RenewalsPage() {
               })}
             </tbody>
           </table>
-          <p className="text-xs text-[#8A7F74] mt-3">
+          <p className="text-xs text-muted-foreground mt-3">
             Viser {filtered.length} av {renewals?.length} fornyelse(r) innen {days} dager
           </p>
         </div>
@@ -253,22 +255,22 @@ export default function RenewalsPage() {
               <div key={stage.id} className="min-w-[200px]">
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${stage.color}`}>{stage.label}</span>
-                  <span className="text-xs text-[#8A7F74]">{cards.length}</span>
+                  <span className="text-xs text-muted-foreground">{cards.length}</span>
                 </div>
                 <div className="space-y-2">
                   {cards.length === 0 && (
-                    <div className="border-2 border-dashed border-[#EDE8E3] rounded-lg p-4 text-center text-xs text-[#8A7F74]">Tom</div>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center text-xs text-muted-foreground">Tom</div>
                   )}
                   {cards.map((r) => {
                     const nextStages = STAGES.filter((s) => s.id !== stage.id);
                     return (
                       <div key={r.id} className="broker-card !p-3 space-y-2">
                         <div>
-                          <p className="text-xs font-semibold text-[#2C3E50] leading-tight">{r.client_name}</p>
-                          <p className="text-xs text-[#8A7F74]">{r.product_type ?? r.insurance_type}</p>
+                          <p className="text-xs font-semibold text-foreground leading-tight">{r.client_name}</p>
+                          <p className="text-xs text-muted-foreground">{r.product_type ?? r.insurance_type}</p>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="text-xs text-[#8A7F74]">
+                          <div className="text-xs text-muted-foreground">
                             {r.start_date && <p>Tegnet: {fmtDate(r.start_date)}</p>}
                             <p>Fornyes: {fmtDate(r.renewal_date)}</p>
                           </div>
@@ -277,20 +279,20 @@ export default function RenewalsPage() {
                           </span>
                         </div>
                         {r.annual_premium_nok != null && (
-                          <p className="text-xs text-[#8A7F74]">kr {fmt(r.annual_premium_nok)}</p>
+                          <p className="text-xs text-muted-foreground">kr {fmt(r.annual_premium_nok)}</p>
                         )}
                         <input
                           type="email"
                           placeholder="E-post varsling (valgfri)"
                           value={notifyEmails[r.id] ?? ""}
                           onChange={(e) => setNotifyEmails((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                          className="w-full text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white focus:outline-none focus:border-[#4A6FA5]"
+                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card focus:outline-none focus:border-primary"
                         />
                         <select
                           disabled={advancing === r.id}
                           value=""
                           onChange={(e) => e.target.value && handleAdvance(r, e.target.value as StageId)}
-                          className="w-full text-xs border border-[#EDE8E3] rounded-lg px-2 py-1 text-[#2C3E50] bg-white"
+                          className="w-full text-xs border border-border rounded-lg px-2 py-1 text-foreground bg-card"
                         >
                           <option value="">Flytt til…</option>
                           {nextStages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -307,8 +309,8 @@ export default function RenewalsPage() {
 
       {!isLoading && renewals?.length === 0 && (
         <div className="broker-card text-center py-12">
-          <p className="text-sm font-medium text-[#2C3E50]">Ingen kommende fornyelser</p>
-          <p className="text-xs text-[#8A7F74] mt-1">Ingen avtaler forfaller innen de neste {days} dagene.</p>
+          <p className="text-sm font-medium text-foreground">Ingen kommende fornyelser</p>
+          <p className="text-xs text-muted-foreground mt-1">Ingen avtaler forfaller innen de neste {days} dagene.</p>
         </div>
       )}
     </div>

@@ -16,9 +16,9 @@ export default function MetricCard({
 }: MetricCardProps) {
   return (
     <div className={cn("broker-card flex flex-col gap-1", className)} title={help}>
-      <p className="text-xs text-[#8A7F74] font-medium">{label}</p>
-      <p className="text-2xl font-bold text-[#2C3E50]">{value}</p>
-      {help && <p className="text-xs text-[#8A7F74]">{help}</p>}
+      <p className="text-xs text-muted-foreground font-medium">{label}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {help && <p className="text-xs text-muted-foreground">{help}</p>}
     </div>
   );
 }

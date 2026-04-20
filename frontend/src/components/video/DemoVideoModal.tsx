@@ -44,7 +44,7 @@ export default function DemoVideoModal() {
         </button>
 
         {/* Player */}
-        <div className="rounded-xl overflow-hidden shadow-2xl bg-[#2C3E50]">
+        <div className="rounded-xl overflow-hidden shadow-2xl bg-primary">
           <Player
             component={DemoVideo}
             durationInFrames={DEMO_VIDEO_CONFIG.durationInFrames}

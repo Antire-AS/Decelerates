@@ -39,19 +39,57 @@
   --radius:          0.5rem;
 }
 
+.dark {
+  /* Surfaces */
+  --background:      210 29% 13%;  /* near-black with brand-dark hue */
+  --foreground:      38 25% 94%;   /* brand-beige as light-on-dark text */
+
+  --card:            210 29% 16%;  /* one step lighter than bg */
+  --card-foreground: 38 25% 94%;
+
+  --popover:            210 29% 16%;
+  --popover-foreground: 38 25% 94%;
+
+  /* Interactives */
+  --primary:           215 57% 70%;  /* brand-light as the primary in dark mode */
+  --primary-foreground: 210 29% 13%;
+
+  --secondary:           36 18% 30%;  /* dark brand-stone */
+  --secondary-foreground: 38 25% 94%;
+
+  --muted:             28 11% 40%;    /* dark brand-muted */
+  --muted-foreground:  38 18% 78%;    /* brand-stone-ish */
+
+  --accent:             215 34% 47%;  /* brand-mid in dark */
+  --accent-foreground:  38 25% 94%;
+
+  --destructive:           5 64% 59%;   /* slightly brighter danger */
+  --destructive-foreground: 38 25% 94%;
+
+  /* Borders + inputs */
+  --border:  210 20% 25%;
+  --input:   210 20% 25%;
+  --ring:    215 57% 70%;
+}
+
 @layer base {
   body {
-    @apply bg-[#F5F0EB] text-[#2C3E50] font-sans;
+    @apply text-foreground font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-[#2C3E50];
+    @apply font-semibold tracking-tight text-foreground;
+  }
+
+  html, body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
 @layer components {
   .broker-card {
-    @apply bg-white rounded-xl border border-[#D4C9B8] shadow-sm p-5;
+    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm p-5;
   }
 
   .broker-badge-low    { @apply bg-green-100  text-green-800  text-xs font-medium px-2 py-0.5 rounded-full; }
@@ -61,29 +99,74 @@
 
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-           text-[#8A7F74] hover:bg-[#EDE8E3] hover:text-[#2C3E50]
+           text-muted-foreground hover:bg-accent hover:text-accent-foreground
            transition-colors cursor-pointer;
   }
 
   .nav-item-active {
-    @apply bg-[#2C3E50] text-white hover:bg-[#2C3E50] hover:text-white;
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
   }
 
   .label-xs {
-    @apply block text-xs text-[#8A7F74] mb-0.5;
+    @apply block text-xs text-muted-foreground mb-0.5;
   }
 
   .input-sm {
-    @apply w-full px-2 py-1.5 text-xs border border-[#D4C9B8] rounded-lg bg-white
-           focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5];
+    @apply w-full px-2 py-1.5 text-xs border border-input rounded-lg bg-background
+           focus:outline-none focus-visible:ring-1 focus-visible:ring-ring;
   }
 
   .skip-to-content {
     @apply sr-only;
   }
   .skip-to-content:focus {
-    @apply not-sr-only fixed top-2 left-2 z-[100] bg-[#2C3E50] text-white
+    @apply not-sr-only fixed top-2 left-2 z-[100] bg-primary text-primary-foreground
            px-4 py-2 rounded-lg text-sm font-medium shadow-lg outline-none
-           ring-2 ring-[#C5D8F0];
+           ring-2 ring-ring;
+  }
+}
+
+/* A11y preferences — font scale */
+html {
+  --font-scale: 1;
+}
+html[data-font-scale="large"]   { --font-scale: 1.125; }
+html[data-font-scale="xlarge"]  { --font-scale: 1.25; }
+
+body {
+  font-size: calc(1rem * var(--font-scale));
+}
+
+/* A11y preferences — reduced motion override */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* A11y preferences — high contrast */
+html[data-high-contrast="true"] {
+  --background:      0 0% 100%;
+  --foreground:      210 29% 10%;
+  --muted-foreground: 210 29% 20%;
+  --border:          210 29% 40%;
+}
+html[data-high-contrast="true"].dark {
+  --background:      0 0% 4%;
+  --foreground:      0 0% 98%;
+  --muted-foreground: 0 0% 90%;
+  --border:          0 0% 60%;
+}
+
+/* Also honor OS-level prefers-reduced-motion even without the toggle */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

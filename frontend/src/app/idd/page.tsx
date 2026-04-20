@@ -38,16 +38,16 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
     <div className="broker-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-[#2C3E50]">
+          <p className="text-sm font-semibold text-foreground">
             {row.client_name || row.orgnr}
           </p>
-          <p className="text-xs text-[#8A7F74] mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Utarbeidet {date} · {row.created_by_email ?? ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen((v) => !v)}
-            className="text-xs text-[#4A6FA5] hover:underline flex items-center gap-1">
+            className="text-xs text-primary hover:underline flex items-center gap-1">
             {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {open ? "Skjul" : "Vis"}
           </button>
@@ -62,20 +62,20 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
         <div className="mt-4 space-y-3 text-sm">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1">Kontaktperson</p>
-              <p className="text-[#2C3E50]">{row.client_contact_name || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">Kontaktperson</p>
+              <p className="text-foreground">{row.client_contact_name || "–"}</p>
               {row.client_contact_email && (
-                <p className="text-xs text-[#8A7F74]">{row.client_contact_email}</p>
+                <p className="text-xs text-muted-foreground">{row.client_contact_email}</p>
               )}
             </div>
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1">Risikoappetitt</p>
-              <p className="text-[#2C3E50] capitalize">{row.risk_appetite || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">Risikoappetitt</p>
+              <p className="text-foreground capitalize">{row.risk_appetite || "–"}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Risikoforhold</p>
+            <p className="text-xs text-muted-foreground font-medium mb-1.5">Risikoforhold</p>
             <div className="flex flex-wrap gap-2">
               {[
                 ["Eiendom", row.property_owned],
@@ -86,7 +86,7 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
               ].map(([label, val]) => (
                 <span key={String(label)}
                   className={`text-xs px-2 py-0.5 rounded-full ${
-                    val ? "bg-green-100 text-green-700" : "bg-[#EDE8E3] text-[#8A7F74]"
+                    val ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
                   }`}>
                   {String(label)}
                 </span>
@@ -96,10 +96,10 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
 
           {(row.recommended_products ?? []).length > 0 && (
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Anbefalte produkter</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">Anbefalte produkter</p>
               <div className="flex flex-wrap gap-1.5">
                 {row.recommended_products!.map((p) => (
-                  <span key={p} className="text-xs bg-[#F0F4FB] text-[#4A6FA5] border border-[#C5D0E8] px-2 py-0.5 rounded-full">
+                  <span key={p} className="text-xs bg-accent text-primary border border-border px-2 py-0.5 rounded-full">
                     {p}
                   </span>
                 ))}
@@ -109,33 +109,33 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
 
           {row.advisor_notes && (
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1">Rådgivers notater</p>
-              <p className="text-xs text-[#2C3E50] bg-[#F9F7F4] rounded-lg p-2">{row.advisor_notes}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">Rådgivers notater</p>
+              <p className="text-xs text-foreground bg-muted rounded-lg p-2">{row.advisor_notes}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#EDE8E3]">
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-0.5">Vederlagsgrunnlag</p>
-              <p className="text-[#2C3E50] capitalize">{row.fee_basis || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-0.5">Vederlagsgrunnlag</p>
+              <p className="text-foreground capitalize">{row.fee_basis || "–"}</p>
               {row.fee_amount_nok != null && (
-                <p className="text-xs text-[#8A7F74]">kr {fmt(row.fee_amount_nok)}</p>
+                <p className="text-xs text-muted-foreground">kr {fmt(row.fee_amount_nok)}</p>
               )}
             </div>
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-0.5">Egnethetsvurdering</p>
-              <p className="text-xs text-[#2C3E50]">{row.suitability_basis || "–"}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-0.5">Egnethetsvurdering</p>
+              <p className="text-xs text-foreground">{row.suitability_basis || "–"}</p>
             </div>
           </div>
 
           {(row.existing_insurance ?? []).length > 0 && (
             <div>
-              <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Eksisterende forsikringer</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">Eksisterende forsikringer</p>
               <div className="space-y-1">
                 {row.existing_insurance!.map((e, i) => (
                   <div key={i} className="flex justify-between text-xs">
-                    <span className="text-[#2C3E50]">{e.insurer} · {e.product}</span>
-                    {e.premium != null && <span className="text-[#8A7F74]">kr {fmt(e.premium)}</span>}
+                    <span className="text-foreground">{e.insurer} · {e.product}</span>
+                    {e.premium != null && <span className="text-muted-foreground">kr {fmt(e.premium)}</span>}
                   </div>
                 ))}
               </div>
@@ -206,7 +206,7 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
 
   return (
     <div className="broker-card space-y-4">
-      <h3 className="text-sm font-semibold text-[#2C3E50]">Ny behovsanalyse</h3>
+      <h3 className="text-sm font-semibold text-foreground">Ny behovsanalyse</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {(
@@ -218,7 +218,7 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
           ] as const
         ).map(([key, label, required]) => (
           <div key={key}>
-            <label className="text-xs text-[#8A7F74] font-medium" htmlFor={`idd-${key}`}>
+            <label className="text-xs text-muted-foreground font-medium" htmlFor={`idd-${key}`}>
               {label}
               {required && <RequiredMark />}
             </label>
@@ -228,10 +228,10 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
               required={required}
               aria-describedby={required ? `idd-${key}-hint` : undefined}
-              className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]"
+              className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
             {key === "client_contact_name" && (
-              <p id="idd-client_contact_name-hint" className="text-[10px] text-[#8A7F74] mt-0.5">
+              <p id="idd-client_contact_name-hint" className="text-[10px] text-muted-foreground mt-0.5">
                 Navn på kontaktperson hos kunden.
               </p>
             )}
@@ -241,36 +241,36 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-risk-appetite">Risikoappetitt</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-risk-appetite">Risikoappetitt</label>
           <select id="idd-risk-appetite" value={form.risk_appetite}
             onChange={(e) => setForm((f) => ({ ...f, risk_appetite: e.target.value }))}
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]">
+            className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">
             <option value="lav">Lav</option>
             <option value="middels">Middels</option>
             <option value="høy">Høy</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-fee-basis">Vederlagsgrunnlag</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-basis">Vederlagsgrunnlag</label>
           <select id="idd-fee-basis" value={form.fee_basis}
             onChange={(e) => setForm((f) => ({ ...f, fee_basis: e.target.value }))}
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]">
+            className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">
             <option value="provisjon">Provisjon</option>
             <option value="honorar">Honorar</option>
             <option value="begge">Begge</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-fee-amount">Honorar (NOK)</label>
+          <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-fee-amount">Honorar (NOK)</label>
           <input id="idd-fee-amount" value={form.fee_amount_nok}
             onChange={(e) => setForm((f) => ({ ...f, fee_amount_nok: e.target.value }))}
             placeholder="0"
-            className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5]" />
+            className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Risikoforhold</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">Risikoforhold</p>
         <div className="flex flex-wrap gap-2">
           {[
             ["property_owned", "Eier eiendom"],
@@ -283,29 +283,29 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
               onClick={() => setForm((f) => ({ ...f, [key]: !(f as Record<string, unknown>)[key] }))}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                 (form as Record<string, unknown>)[key]
-                  ? "bg-[#2C3E50] text-white border-[#2C3E50]"
-                  : "bg-white text-[#8A7F74] border-[#D4C9B8] hover:border-[#4A6FA5]"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:border-primary"
               }`}>{label}</button>
           ))}
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-[#8A7F74] font-medium mb-1.5">Anbefalte produkter</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">Anbefalte produkter</p>
         <div className="flex flex-wrap gap-2">
           {PRODUCTS.map((p) => (
             <button key={p} onClick={() => toggleProduct(p)}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                 form.recommended_products.includes(p)
-                  ? "bg-[#4A6FA5] text-white border-[#4A6FA5]"
-                  : "bg-white text-[#8A7F74] border-[#D4C9B8] hover:border-[#4A6FA5]"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:border-primary"
               }`}>{p}</button>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-suitability-basis">
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-suitability-basis">
           Egnethetsvurdering (IDD § 7-7)<RequiredMark />
         </label>
         <textarea id="idd-suitability-basis" value={form.suitability_basis}
@@ -314,24 +314,24 @@ function NewIddForm({ orgnr, onCreated }: { orgnr: string; onCreated: () => void
           required
           aria-describedby="idd-suitability-basis-hint"
           placeholder="Begrunn hvorfor anbefalte produkter er egnet for kunden…"
-          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none" />
-        <p id="idd-suitability-basis-hint" className="text-[10px] text-[#8A7F74] mt-0.5">
+          className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none" />
+        <p id="idd-suitability-basis-hint" className="text-[10px] text-muted-foreground mt-0.5">
           Lovpålagt: forklar kort hvorfor produktene er egnet for denne kunden.
         </p>
       </div>
 
       <div>
-        <label className="text-xs text-[#8A7F74] font-medium" htmlFor="idd-advisor-notes">Rådgivers notater</label>
+        <label className="text-xs text-muted-foreground font-medium" htmlFor="idd-advisor-notes">Rådgivers notater</label>
         <textarea id="idd-advisor-notes" value={form.advisor_notes}
           onChange={(e) => setForm((f) => ({ ...f, advisor_notes: e.target.value }))}
           rows={2}
-          className="mt-0.5 w-full text-sm border border-[#D4C9B8] rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#4A6FA5] resize-none" />
+          className="mt-0.5 w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none" />
       </div>
 
       {err && <p className="text-xs text-red-500">{err}</p>}
 
       <button onClick={submit} disabled={loading}
-        className="px-4 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f] disabled:opacity-50 flex items-center gap-2">
+        className="px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80 disabled:opacity-50 flex items-center gap-2">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
         Lagre behovsanalyse
       </button>
@@ -369,14 +369,14 @@ function IddContent() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#2C3E50]">IDD Behovsanalyse</h1>
-          <p className="text-sm text-[#8A7F74] mt-1">
+          <h1 className="text-2xl font-bold text-foreground">IDD Behovsanalyse</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Forsikringsformidlingsloven §§ 5-4, 7-1 til 7-10 · Finanstilsynet rundskriv 9/2019
           </p>
         </div>
         {orgnr && (
           <button onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2C3E50] text-white text-sm rounded-lg hover:bg-[#1a252f]">
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/80">
             <Plus className="w-4 h-4" />
             Ny analyse
           </button>
@@ -386,18 +386,18 @@ function IddContent() {
       {!orgnr && (
         <>
           {allLoading ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
           ) : !allRows?.length ? (
             <div className="broker-card text-center py-10">
-              <FileText className="w-8 h-8 text-[#8A7F74] mx-auto mb-2" />
-              <p className="text-sm text-[#8A7F74]">
+              <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
                 Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en
                 behovsanalyse fra CRM-fanen.
               </p>
             </div>
           ) : (
-            <div className="broker-card divide-y divide-[#EDE8E3]">
-              <p className="text-xs text-[#8A7F74] pb-2 font-medium">
+            <div className="broker-card divide-y divide-border">
+              <p className="text-xs text-muted-foreground pb-2 font-medium">
                 {allRows.length} behovsanalyser i alle selskaper · Klikk for å se detaljer
               </p>
               {allRows.map((r) => {
@@ -406,18 +406,18 @@ function IddContent() {
                   <Link
                     key={r.id}
                     href={`/idd?orgnr=${r.orgnr}`}
-                    className="flex items-center justify-between gap-3 py-2.5 hover:bg-[#F9F7F4] px-1 -mx-1 rounded"
+                    className="flex items-center justify-between gap-3 py-2.5 hover:bg-muted px-1 -mx-1 rounded"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#2C3E50] truncate">
+                      <p className="text-sm font-semibold text-foreground truncate">
                         {r.client_name || r.orgnr}
                       </p>
-                      <p className="text-xs text-[#8A7F74]">
+                      <p className="text-xs text-muted-foreground">
                         Orgnr {r.orgnr} · utarbeidet {date}
                         {r.recommended_products?.length ? ` · ${r.recommended_products.length} produkter` : ""}
                       </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-[#C4BDB4] flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   </Link>
                 );
               })}
@@ -433,9 +433,9 @@ function IddContent() {
           )}
 
           {isLoading ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
           ) : !rows?.length ? (
-            <div className="broker-card text-center py-10 text-sm text-[#8A7F74]">
+            <div className="broker-card text-center py-10 text-sm text-muted-foreground">
               Ingen behovsanalyser registrert for dette selskapet ennå.
             </div>
           ) : (
@@ -448,14 +448,14 @@ function IddContent() {
 
           {/* IDD compliance reference */}
           <details className="broker-card">
-            <summary className="text-sm font-semibold text-[#2C3E50] cursor-pointer">
+            <summary className="text-sm font-semibold text-foreground cursor-pointer">
               IDD-krav — lovgrunnlag
             </summary>
-            <div className="mt-3 space-y-2 text-xs text-[#8A7F74]">
-              <p><strong className="text-[#2C3E50]">§ 5-4</strong> — Plikt til å yte god rådgivning basert på kundens behov og situasjon.</p>
-              <p><strong className="text-[#2C3E50]">§ 7-1 til 7-10</strong> — Informasjonskrav ved distribusjon: IPID, vederlagsinformasjon, rådgivningsdokument.</p>
-              <p><strong className="text-[#2C3E50]">Rundskriv 9/2019</strong> — Finanstilsynets forventninger til behovsanalyse: kartlegging av eksisterende dekning, risikoforhold, økonomi og behov.</p>
-              <p><strong className="text-[#2C3E50]">Vederlagsinformasjon</strong> — Kunden skal informeres om provisjonsgrunnlag og størrelse eller honorarsats før avtale inngås.</p>
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              <p><strong className="text-foreground">§ 5-4</strong> — Plikt til å yte god rådgivning basert på kundens behov og situasjon.</p>
+              <p><strong className="text-foreground">§ 7-1 til 7-10</strong> — Informasjonskrav ved distribusjon: IPID, vederlagsinformasjon, rådgivningsdokument.</p>
+              <p><strong className="text-foreground">Rundskriv 9/2019</strong> — Finanstilsynets forventninger til behovsanalyse: kartlegging av eksisterende dekning, risikoforhold, økonomi og behov.</p>
+              <p><strong className="text-foreground">Vederlagsinformasjon</strong> — Kunden skal informeres om provisjonsgrunnlag og størrelse eller honorarsats før avtale inngås.</p>
             </div>
           </details>
         </>
@@ -478,7 +478,7 @@ function IddContent() {
 
 export default function IddPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#4A6FA5]" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
       <IddContent />
     </Suspense>
   );

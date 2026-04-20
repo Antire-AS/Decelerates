@@ -133,16 +133,16 @@ export default function OrgProfilePage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#4A6FA5]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!prof) {
     return (
-      <div className="broker-card text-center text-sm text-[#8A7F74]">
+      <div className="broker-card text-center text-sm text-muted-foreground">
         Selskapet ble ikke funnet.{" "}
-        <Link href="/search" className="text-[#4A6FA5] underline">Tilbake</Link>
+        <Link href="/search" className="text-primary underline">Tilbake</Link>
       </div>
     );
   }
@@ -166,14 +166,14 @@ export default function OrgProfilePage({
   ];
 
   const triggerCls =
-    "data-[state=active]:bg-[#2C3E50] data-[state=active]:text-white data-[state=active]:shadow-none text-[#8A7F74] hover:bg-[#EDE8E3] px-4 py-2 text-sm font-medium rounded-lg";
+    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none text-muted-foreground hover:bg-muted px-4 py-2 text-sm font-medium rounded-lg";
 
   return (
     <div className="space-y-5">
       {/* Back link */}
       <Link
         href="/search"
-        className="inline-flex items-center gap-1 text-sm text-[#8A7F74] hover:text-[#2C3E50]"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-4 h-4" />
         Tilbake til søk
@@ -183,10 +183,10 @@ export default function OrgProfilePage({
       <div className="broker-card">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-[#2C3E50] break-words">
+            <h1 className="text-lg sm:text-xl font-bold text-foreground break-words">
               {String(org.navn ?? orgnr)}
             </h1>
-            <p className="text-xs sm:text-sm text-[#8A7F74] mt-1 break-words">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
               {orgnr}
               {!!org.organisasjonsform && ` · ${String(org.organisasjonsform)}`}
               {!!org.naeringskode1_beskrivelse && ` · ${String(org.naeringskode1_beskrivelse)}`}
@@ -279,13 +279,13 @@ export default function OrgProfilePage({
           <div className="space-y-4">
             <div className="flex gap-2 flex-wrap">
               <Link href={`/idd?orgnr=${orgnr}`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]">
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent">
                 <FileText className="w-3.5 h-3.5" />
                 IDD behovsanalyse
               </Link>
               <button
                 onClick={() => downloadCertificatePdf(orgnr)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#C5D0E8] text-[#4A6FA5] bg-[#F0F4FB] hover:bg-[#E0E8F5]"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-primary bg-accent hover:bg-accent"
               >
                 <Download className="w-3.5 h-3.5" />
                 Last ned forsikringsbevis

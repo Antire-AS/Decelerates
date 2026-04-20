@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/cn";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, useT } from "@/lib/i18n";
 import {
   LayoutDashboard,
   Search,
@@ -28,6 +28,10 @@ import {
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { A11yPanel } from "@/components/a11y/a11y-panel";
+import { CommandPalette } from "@/components/command-palette";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 // IA cleanup (2026-04):
 //   - /documents and /videos are now sub-tabs of /knowledge
@@ -62,6 +66,7 @@ function SidebarContent({
   session: ReturnType<typeof useSession>["data"];
   onNavClick?: () => void;
 }) {
+  const T = useT();
   return (
     <>
       {/* Logo */}
@@ -91,7 +96,7 @@ function SidebarContent({
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{label}</span>
+              <span>{T(label)}</span>
             </Link>
           );
         })}
@@ -162,6 +167,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#main-content" className="skip-to-content">
         Hopp til hovedinnhold
       </a>
+      {/* Global ⌘K command palette — mounted once, listens for its own keybind. */}
+      <CommandPalette />
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
       <aside className="hidden md:flex w-56 flex-shrink-0 bg-brand-beige border-r border-brand-stone flex-col">
         <SidebarContent {...sidebarProps} />
@@ -191,7 +198,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-brand-beige border-b border-brand-stone flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
+            className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
             aria-label="Åpne meny"
           >
             <Menu className="w-5 h-5" />
@@ -202,10 +209,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="ml-auto flex items-center gap-1">
             <NotificationBell />
+            <LocaleSwitcher />
+            <A11yPanel />
+            <ThemeToggle />
             {mobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 rounded-lg text-brand-dark hover:bg-[#EDE8E3]"
+                className="p-1.5 rounded-lg text-brand-dark hover:bg-muted"
                 aria-label="Lukk meny"
               >
                 <X className="w-5 h-5" />
@@ -214,9 +224,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Desktop top bar — minimal, right-aligned bell only (sidebar owns everything else). */}
-        <header className="hidden md:flex items-center justify-end px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+        {/* Desktop top bar — minimal, right-aligned bell + theme toggle (sidebar owns everything else). */}
+        <header className="hidden md:flex items-center justify-end gap-2 px-6 py-2 bg-brand-beige border-b border-brand-stone flex-shrink-0">
+          <button
+            onClick={() => {
+              // Dispatch a synthetic ⌘K keydown — the CommandPalette's global
+              // listener handles the open/close toggle itself.
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+            }}
+            className="hidden md:inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+            aria-label="Åpne kommandopalett"
+          >
+            <Search className="h-3 w-3" />
+            Søk…
+            <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+          </button>
           <NotificationBell />
+          <LocaleSwitcher />
+          <A11yPanel />
+          <ThemeToggle />
         </header>
 
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-brand-beige focus:outline-none">
