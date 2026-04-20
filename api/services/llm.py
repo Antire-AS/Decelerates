@@ -210,7 +210,8 @@ def _compare_documents_with_gemini(
     """Send two PDFs to Gemini for comparison. Tries multiple models; returns text or None."""
     pdf_a = genai_types.Part.from_bytes(data=pdf_bytes_a, mime_type="application/pdf")
     pdf_b = genai_types.Part.from_bytes(data=pdf_bytes_b, mime_type="application/pdf")
-    return _gemini_generate_with_fallback([pdf_a, pdf_b, prompt], timeout=280)
+    # 360s: two large PDFs routinely push past 280s on cold model instances.
+    return _gemini_generate_with_fallback([pdf_a, pdf_b, prompt], timeout=360)
 
 
 def _try_foundry_chat(

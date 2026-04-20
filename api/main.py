@@ -133,6 +133,7 @@ from api.routers import (
     insurer_api,
     coverage_router,
     tender_router,
+    chat_history,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -436,5 +437,6 @@ app.include_router(accounting.router)
 app.include_router(insurer_api.router)
 app.include_router(coverage_router.router)
 app.include_router(tender_router.router)
+app.include_router(chat_history.router)
 
 __all__ = ["app", "limiter"]
