@@ -126,16 +126,12 @@
   }
 }
 
-/* A11y preferences — font scale */
-html {
-  --font-scale: 1;
-}
-html[data-font-scale="large"]   { --font-scale: 1.125; }
-html[data-font-scale="xlarge"]  { --font-scale: 1.25; }
-
-body {
-  font-size: calc(1rem * var(--font-scale));
-}
+/* A11y preferences — font scale.
+   Must scale <html>'s font-size (not <body>'s) so Tailwind's rem-based
+   utilities (text-xs/sm/base/lg/xl/…) also scale. rem is relative to
+   the root element's computed size. */
+html[data-font-scale="large"]   { font-size: 112.5%; }   /* 18px base */
+html[data-font-scale="xlarge"]  { font-size: 125%;   }   /* 20px base */
 
 /* A11y preferences — reduced motion override */
 html[data-reduced-motion="true"] *,
