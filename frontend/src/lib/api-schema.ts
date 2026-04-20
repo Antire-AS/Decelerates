@@ -3127,6 +3127,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/portal/{access_token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Portal Get Tender
+         * @description Read-only tender view for the insurer portal.
+         *
+         *     Returns what the invited insurer needs to quote: tender title, product list,
+         *     deadline, broker's notes, and the client company name. No broker login
+         *     required — just the unique access token issued when the recipient was added.
+         */
+        get: operations["portal_get_tender_tenders_portal__access_token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/portal/{access_token}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Portal Upload Offer
+         * @description Insurer uploads their quote via the portal link. No auth required.
+         */
+        post: operations["portal_upload_offer_tenders_portal__access_token__upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}": {
         parameters: {
             query?: never;
@@ -3560,6 +3604,14 @@ export interface components {
         Body_compare_offers_org__orgnr__offers_compare_post: {
             /** Files */
             files: string[];
+        };
+        /** Body_portal_upload_offer_tenders_portal__access_token__upload_post */
+        Body_portal_upload_offer_tenders_portal__access_token__upload_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
         };
         /** Body_save_offers_org__orgnr__offers_post */
         Body_save_offers_org__orgnr__offers_post: {
@@ -11252,6 +11304,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    portal_get_tender_tenders_portal__access_token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                access_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    portal_upload_offer_tenders_portal__access_token__upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                access_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_portal_upload_offer_tenders_portal__access_token__upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderOfferOut"];
                 };
             };
             /** @description Validation Error */

@@ -68,6 +68,9 @@ class TenderRecipient(Base):
     )
     insurer_name = Column(String, nullable=False)
     insurer_email = Column(String, nullable=True)
+    # Long-lived URL-safe token — lets the insurer upload their quote on
+    # /anbud/respond/<token> without needing a broker-side login.
+    access_token = Column(String(64), nullable=True, unique=True)
     status = Column(
         SAEnum(
             TenderRecipientStatus, name="tender_recipient_status", create_type=False

@@ -149,10 +149,15 @@ class TenderService:
     def add_recipient(
         self, tender_id: int, insurer_name: str, insurer_email: Optional[str] = None
     ) -> TenderRecipient:
+        import secrets as _secrets
+
         r = TenderRecipient(
             tender_id=tender_id,
             insurer_name=insurer_name,
             insurer_email=insurer_email,
+            # Generate access token up-front so the broker can copy-paste the
+            # insurer link even before "Send invitations" runs.
+            access_token=_secrets.token_urlsafe(32),
             status=TenderRecipientStatus.pending,
             created_at=datetime.now(timezone.utc),
         )
@@ -160,6 +165,41 @@ class TenderService:
         self.db.commit()
         self.db.refresh(r)
         return r
+
+    def get_recipient_by_token(self, access_token: str) -> Optional[TenderRecipient]:
+        """Load a recipient by its public access token. Used by the insurer portal."""
+        return (
+            self.db.query(TenderRecipient)
+            .filter(TenderRecipient.access_token == access_token)
+            .first()
+        )
+
+    def upload_offer_by_token(
+        self,
+        access_token: str,
+        filename: str,
+        pdf_content: bytes,
+    ) -> TenderOffer:
+        """Insurer-facing upload via token portal. No auth required beyond the token.
+
+        The token uniquely identifies (tender, recipient). Each upload adds a
+        TenderOffer and flips the recipient status to `received`.
+        """
+        recipient = self.get_recipient_by_token(access_token)
+        if recipient is None:
+            raise ValueError("Invalid or expired access token")
+        offer = self.upload_offer(
+            tender_id=recipient.tender_id,
+            insurer_name=recipient.insurer_name,
+            filename=filename,
+            pdf_bytes=pdf_content,
+            recipient_id=recipient.id,
+        )
+        # upload_offer already flips recipient status via its recipient_id branch,
+        # but we also record the response timestamp for portal-originated submits.
+        recipient.response_at = datetime.now(timezone.utc)
+        self.db.commit()
+        return offer
 
     def send_invitations(self, tender_id: int, firm_id: int) -> Tender:
         """Mark tender as sent and send emails to all recipients."""
