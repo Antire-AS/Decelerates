@@ -91,6 +91,22 @@ export default function DocumentsPanel() {
     mutate();
   }
 
+  /**
+   * "Open in viewer" — one click to load PDF + AI keypoints side-by-side.
+   * Brokers wanted to see the document and its analysis together, not one
+   * after the other. Toggles off if the same doc is already in viewer mode.
+   */
+  async function handleOpenInViewer(doc: InsuranceDocument) {
+    if (pdfViewDocId === doc.id && keypointsDocId === doc.id) {
+      setPdfViewDocId(null);
+      setPdfViewUrl(null);
+      setKeypointsDocId(null);
+      setKeypoints(null);
+      return;
+    }
+    await Promise.all([handleViewPdf(doc), handleKeypoints(doc)]);
+  }
+
   function toggleSelect(id: number) {
     setSelectedIds((prev) => {
       const n = new Set(prev);
@@ -288,7 +304,14 @@ export default function DocumentsPanel() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{doc.filename}</p>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenInViewer(doc)}
+                        className="text-sm font-medium text-foreground truncate hover:text-primary text-left w-full"
+                        title={T("Åpne dokument og nøkkelpunkter")}
+                      >
+                        {doc.filename}
+                      </button>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {doc.orgnr && <Link href={`/search/${doc.orgnr}`} className="hover:underline text-primary">{doc.orgnr}</Link>}
                         {doc.orgnr && " · "}
@@ -333,8 +356,51 @@ export default function DocumentsPanel() {
                 </div>
               </div>
 
-              {/* Key points panel */}
-              {keypointsDocId === doc.id && (
+              {/* Split viewer: PDF + Keypoints side-by-side when both open on the same doc.
+                  Triggered by clicking the filename (handleOpenInViewer). Falls back to
+                  the single-panel layouts below when only one is open. */}
+              {pdfViewDocId === doc.id && keypointsDocId === doc.id && (
+                <div className="mt-3 pt-3 border-t border-border grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-2">{T("Dokument")}</p>
+                    {pdfLoading ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" /> {T("Laster PDF…")}
+                      </div>
+                    ) : pdfViewUrl ? (
+                      <iframe src={pdfViewUrl} className="w-full rounded-lg border border-border" style={{ height: "600px" }} />
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{T("Kunne ikke laste PDF.")}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-2">{T("AI-nøkkelpunkter")}</p>
+                    {keypointsLoading ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" /> {T("Henter nøkkelpunkter…")}
+                      </div>
+                    ) : keypoints && Object.keys(keypoints).length > 0 ? (
+                      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+                        {Object.entries(keypoints)
+                          .filter(([k]) => k !== "doc_id" && k !== "title")
+                          .map(([k, v]) => v ? (
+                            <div key={k} className="bg-muted rounded-lg p-2">
+                              <p className="text-xs font-medium text-primary mb-0.5">
+                                {T(KEYPOINT_LABELS[k] ?? k)}
+                              </p>
+                              <p className="text-xs text-foreground whitespace-pre-wrap">{String(v)}</p>
+                            </div>
+                          ) : null)}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{T("Ingen nøkkelpunkter tilgjengelig.")}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Key points panel (solo) — shows when only keypoints is open */}
+              {keypointsDocId === doc.id && pdfViewDocId !== doc.id && (
                 <div className="mt-3 pt-3 border-t border-border">
                   {keypointsLoading ? (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -362,8 +428,8 @@ export default function DocumentsPanel() {
                 </div>
               )}
 
-              {/* PDF viewer */}
-              {pdfViewDocId === doc.id && (
+              {/* PDF viewer (solo) — shows when only PDF is open */}
+              {pdfViewDocId === doc.id && keypointsDocId !== doc.id && (
                 <div className="mt-3 pt-3 border-t border-border">
                   {pdfLoading ? (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
