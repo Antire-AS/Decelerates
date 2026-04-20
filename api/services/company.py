@@ -13,7 +13,6 @@ from api.constants import PDF_SEED_DATA
 from api.db import Company, CompanyHistory, CompanyPdfSource
 from api.risk import derive_simple_risk, build_risk_summary
 from api.services.external_apis import (
-    fetch_enhet_by_orgnr,
     fetch_regnskap_keyfigures,
     pep_screen_name,
 )
@@ -147,24 +146,23 @@ def _safe_pep_screen(name: str) -> Optional[Dict[str, Any]]:
 
 
 def fetch_org_profile(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
-    """Fetch the full org profile, parallelising the three external HTTP calls.
-
-    Previously these ran serially: BRREG-enhet → BRREG-regnskap → OpenSanctions.
-    On the 10-second timeout each, cold requests could hit ~30 s. Now:
-      1. enhet + regnskap kick off together (no inter-dependency)
-      2. pep fires as soon as enhet returns the company name
-      3. DB access stays on the caller thread (SQLAlchemy sessions aren't thread-safe)
-
-    Warm case drops from ~sum(individual) to ~max(individual) ≈ 10 s.
+    """Fetch the full org profile. Parallelises the three external HTTP calls
+    (BRREG-enhet + BRREG-regnskap + OpenSanctions-PEP) via ThreadPoolExecutor
+    so cold requests drop from ~sum → ~max of the individual 10 s timeouts.
+    PEP depends on enhet's company name, so fires as soon as enhet returns.
+    DB access stays on the caller thread (sessions aren't thread-safe).
+    ``cached_fetch_enhet`` means the 4 utility endpoints fired in parallel
+    from the company-profile page hit a 5-min TTL cache rather than BRREG.
     """
+    from api.services.caching import cached_fetch_enhet
+
     with ThreadPoolExecutor(max_workers=3) as ex:
-        enhet_future = ex.submit(fetch_enhet_by_orgnr, orgnr)
+        enhet_future = ex.submit(cached_fetch_enhet, orgnr)
         regn_future = ex.submit(_safe_fetch_regn, orgnr)
 
         org = enhet_future.result()
         if not org:
-            # Still wait for regn_future so the thread exits cleanly; discard result.
-            regn_future.result()
+            regn_future.result()  # drain so the thread exits cleanly
             return None
 
         pep_future = ex.submit(_safe_pep_screen, org.get("navn", ""))
