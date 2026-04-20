@@ -32,6 +32,7 @@ import {
   CommandEmpty,
 } from "@/components/ui/command";
 import { searchCompanies } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 type RouteItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -63,6 +64,7 @@ interface CompanyHit {
 
 export function CommandPalette() {
   const router = useRouter();
+  const T = useT();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [hits, setHits] = React.useState<CompanyHit[]>([]);
@@ -127,17 +129,17 @@ export function CommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Søk etter selskap eller side…"
+        placeholder={T("Søk etter selskap eller side…")}
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
         <CommandEmpty>
-          {loading ? "Søker…" : "Ingen treff."}
+          {loading ? T("Søker…") : T("Ingen treff.")}
         </CommandEmpty>
 
         {hits.length > 0 && (
-          <CommandGroup heading="Selskaper">
+          <CommandGroup heading={T("Selskaper")}>
             {hits.map((h) => (
               <CommandItem
                 key={h.orgnr}
@@ -152,7 +154,7 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        <CommandGroup heading="Sider">
+        <CommandGroup heading={T("Sider")}>
           {ROUTES.map((r) => (
             <CommandItem
               key={r.href}
@@ -160,7 +162,7 @@ export function CommandPalette() {
               onSelect={() => go(r.href)}
             >
               <span className="mr-2">{r.icon}</span>
-              <span>{r.label}</span>
+              <span>{T(r.label)}</span>
               <span className="ml-auto text-xs text-muted-foreground">{r.href}</span>
             </CommandItem>
           ))}
