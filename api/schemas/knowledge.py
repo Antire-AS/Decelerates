@@ -18,6 +18,7 @@ class DeleteHistoryOut(BaseModel):
 
 class IngestKnowledgeOut(BaseModel):
     orgnr: str
+    source: str
     chunks_stored: int
 
 

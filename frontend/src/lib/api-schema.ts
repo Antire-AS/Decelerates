@@ -4407,6 +4407,8 @@ export interface components {
             chunks_stored: number;
             /** Orgnr */
             orgnr: string;
+            /** Source */
+            source: string;
         };
         /** IngestKnowledgeRequest */
         IngestKnowledgeRequest: {
@@ -4605,6 +4607,8 @@ export interface components {
             question: string;
             /** Session Id */
             session_id: string;
+            /** Tool Calls */
+            tool_calls?: string[];
         };
         /** PdfHistoryOut */
         PdfHistoryOut: {
