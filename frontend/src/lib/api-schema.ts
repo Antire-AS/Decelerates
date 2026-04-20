@@ -3267,6 +3267,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/{tender_id}/contract/send-for-signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tender Contract Send For Signature
+         * @description Generate the tilbudsfremstilling PDF and push it into the e-signing
+         *     provider (DocuSeal or Signicat via ESIGN_PROVIDER env). Returns the
+         *     signing URL the broker can embed or forward to the client.
+         */
+        post: operations["tender_contract_send_for_signature_tenders__tender_id__contract_send_for_signature_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}/offers": {
         parameters: {
             query?: never;
@@ -3505,6 +3527,31 @@ export interface paths {
          *     signature, then updates the matching Recommendation row.
          */
         post: operations["signicat_webhook_webhooks_signicat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/tender-mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tender Mail Webhook
+         * @description Receive an inbound email from the broker's mail provider and route
+         *     attachments to the matching tender + recipient.
+         *
+         *     Recipients are identified by the `To:` local-part: insurers reply to
+         *     `tender-<access_token>@broker.example`. Auth is a shared secret in
+         *     `X-Mail-Webhook-Secret` (env `MAIL_WEBHOOK_SECRET`).
+         */
+        post: operations["tender_mail_webhook_webhooks_tender_mail_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5044,6 +5091,13 @@ export interface components {
             };
             /** Tender Id */
             tender_id: number;
+        };
+        /** TenderContractRequest */
+        TenderContractRequest: {
+            /** Client Email */
+            client_email: string;
+            /** Client Name */
+            client_name: string;
         };
         /** TenderCreate */
         TenderCreate: {
@@ -11669,6 +11723,43 @@ export interface operations {
             };
         };
     };
+    tender_contract_send_for_signature_tenders__tender_id__contract_send_for_signature_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderContractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_offer_tenders__tender_id__offers_post: {
         parameters: {
             query?: never;
@@ -12017,6 +12108,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignicatWebhookAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tender_mail_webhook_webhooks_tender_mail_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-mail-webhook-secret"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
