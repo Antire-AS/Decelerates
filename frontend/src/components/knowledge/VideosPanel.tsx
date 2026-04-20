@@ -201,6 +201,7 @@ export default function VideosPanel() {
                   ref={videoRef}
                   src={playUrl as string}
                   controls
+                  preload="metadata"
                   className="w-full max-h-[480px]"
                   style={{ display: "block" }}
                 >
