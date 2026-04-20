@@ -391,6 +391,41 @@ export const clearChatHistory = (orgnr?: string) => {
   return apiFetch<{ deleted: number }>(`/chat/history${qs}`, { method: "DELETE" });
 };
 
+// ── Whiteboard (per-user focus workspace per company) ────────────────────────
+
+export type WhiteboardItem = {
+  id: string;
+  label: string;
+  value: string;
+  source_tab?: string;
+};
+
+export type WhiteboardOut = {
+  orgnr: string;
+  items: WhiteboardItem[];
+  notes: string;
+  ai_summary: string;
+  updated_at: string | null;
+};
+
+export const getWhiteboard = (orgnr: string) =>
+  apiFetch<WhiteboardOut>(`/org/${encodeURIComponent(orgnr)}/whiteboard`);
+
+export const saveWhiteboard = (
+  orgnr: string,
+  body: { items: WhiteboardItem[]; notes: string },
+) =>
+  apiFetch<WhiteboardOut>(`/org/${encodeURIComponent(orgnr)}/whiteboard`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+
+export const generateWhiteboardAiSummary = (orgnr: string) =>
+  apiFetch<{ ai_summary: string }>(
+    `/org/${encodeURIComponent(orgnr)}/whiteboard/ai-summary`,
+    { method: "POST" },
+  );
+
 export const getKnowledgeStats = () =>
   apiFetch<KnowledgeStatsOut>("/knowledge/index/stats");
 

@@ -5,19 +5,20 @@ turns so brokers don't have to re-explain context every session. Each row
 is a single turn (user question or assistant answer), grouped by
 (user_oid, orgnr) — orgnr is NULL for the general knowledge chat.
 
-Safe for zero-downtime: CREATE TABLE IF NOT EXISTS + pg_try_advisory_lock
-pattern is not needed here (new table, no existing rows to lock on), but
-IF NOT EXISTS guards against double-apply in replica rollout.
+Safe for zero-downtime: CREATE TABLE IF NOT EXISTS. Original Phase 2 PR C
+shipped this under a revision ID that collided with another migration;
+this renamed copy chains off the current head and uses the same idempotent
+DDL so environments that already have the table just skip.
 
-Revision ID: a7b8c9d0e1f2
-Revises: z6a7b8c9d0e1
+Revision ID: e1f2g3h4i5j6
+Revises: d0e1f2g3h4i5
 Create Date: 2026-04-20
 """
 
 from alembic import op
 
-revision = "a7b8c9d0e1f2"
-down_revision = "z6a7b8c9d0e1"
+revision = "e1f2g3h4i5j6"
+down_revision = "d0e1f2g3h4i5"
 branch_labels = None
 depends_on = None
 
