@@ -330,6 +330,70 @@ async def analyse_tender(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+def _offer_summaries_for_tender(svc: TenderService, tender_id: int) -> list[dict]:
+    """Compose offer_summaries list from a tender's offers, extracting lazily."""
+    from api.services.pdf_offer import _extract_offer_summary
+
+    summaries: list[dict] = []
+    for offer in svc.get_offers(tender_id):
+        summary = _extract_offer_summary(offer.insurer_name, offer.extracted_text or "")
+        summaries.append(summary)
+    return summaries
+
+
+def _build_tender_presentation_bytes(
+    svc: TenderService, tender, user, db: Session
+) -> tuple[bytes, str]:
+    """Render the tilbudsfremstilling PDF bytes + a download filename."""
+    from datetime import datetime as _dt
+
+    from api.db import Company
+    from api.services.pdf_offer import generate_tender_presentation_pdf
+
+    company = db.query(Company).filter(Company.orgnr == tender.orgnr).first()
+    company_name = company.navn if company else tender.orgnr
+    summaries = _offer_summaries_for_tender(svc, tender.id)
+    deadline_str = tender.deadline.isoformat() if tender.deadline else ""
+    pdf_bytes = generate_tender_presentation_pdf(
+        tender_title=tender.title,
+        company_name=company_name,
+        orgnr=tender.orgnr,
+        product_types=tender.product_types or [],
+        deadline=deadline_str,
+        broker_name=user.email or "Megler",
+        broker_email=user.email or "",
+        offer_summaries=summaries,
+        recommendation=tender.notes or "",
+    )
+    filename = (
+        f"tilbudsfremstilling_{tender.orgnr}_{_dt.utcnow().strftime('%Y-%m-%d')}.pdf"
+    )
+    return pdf_bytes, filename
+
+
+@router.get("/tenders/{tender_id}/presentation/pdf")
+@limiter.limit("10/minute")
+async def tender_presentation_pdf(
+    request: Request,
+    tender_id: int,
+    db: Session = Depends(get_db),
+    svc: TenderService = Depends(_svc),
+    user: User = Depends(get_current_user),
+):
+    """Download a client-facing tilbudsfremstilling PDF for this tender."""
+    from fastapi.responses import Response as _Response
+
+    tender = svc.get(tender_id, user.firm_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    pdf_bytes, filename = _build_tender_presentation_bytes(svc, tender, user, db)
+    return _Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 def _to_detail(tender, svc: TenderService) -> dict:
     """Build full TenderOut dict."""
     recipients = svc.get_recipients(tender.id)
