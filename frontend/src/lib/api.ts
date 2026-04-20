@@ -1125,6 +1125,13 @@ export const remindTender = (id: number) =>
     { method: "POST" },
   );
 
+export async function downloadTenderPresentationPdf(
+  id: number,
+  filename: string,
+): Promise<void> {
+  await downloadFile(`/bapi/tenders/${id}/presentation/pdf`, filename);
+}
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,

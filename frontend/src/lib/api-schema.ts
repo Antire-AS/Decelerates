@@ -3287,6 +3287,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/{tender_id}/presentation/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tender Presentation Pdf
+         * @description Download a client-facing tilbudsfremstilling PDF for this tender.
+         */
+        get: operations["tender_presentation_pdf_tenders__tender_id__presentation_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}/recipients": {
         parameters: {
             query?: never;
@@ -11671,6 +11691,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenderOfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tender_presentation_pdf_tenders__tender_id__presentation_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
