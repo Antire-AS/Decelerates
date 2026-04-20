@@ -4,8 +4,10 @@ import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { searchCompanies, type SearchResult } from "@/lib/api";
 import { Search, ChevronRight, Loader2, Clock } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export default function SearchPage() {
+  const T = useT();
   const [query, setQuery]         = useState("");
   const [size, setSize]           = useState(20);
   const [kommunenr, setKommunenr] = useState("");
@@ -38,7 +40,7 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Selskapsøk</h1>
+      <h1 className="text-2xl font-bold text-foreground">{T("Selskapsøk")}</h1>
 
       {/* Search form — stacks vertically on mobile, single row on sm+ */}
       <form onSubmit={handleSearch} className="broker-card space-y-4">

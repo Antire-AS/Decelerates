@@ -7,6 +7,7 @@ import { fmt, fmtDate } from "@/lib/format";
 import { downloadXlsx } from "@/lib/excel-export";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Download, Sparkles, Mail } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";
@@ -31,6 +32,7 @@ function stageMeta(stageId?: string) {
 const DAYS_OPTIONS = [30, 60, 90, 180];
 
 export default function RenewalsPage() {
+  const T = useT();
   const [days, setDays] = useState(90);
   const [view, setView] = useState<"table" | "kanban">("table");
   const [stageFilter, setStageFilter] = useState<StageId | "all">("all");
@@ -71,7 +73,7 @@ export default function RenewalsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Fornyelsespipeline</h1>
+          <h1 className="text-2xl font-bold text-foreground">{T("Fornyelsespipeline")}</h1>
           <p className="text-sm text-muted-foreground mt-1">Kommende polisefornyelseringer som krever oppfølging</p>
         </div>
         <div className="flex gap-2 flex-wrap">
