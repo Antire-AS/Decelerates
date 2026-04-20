@@ -4,6 +4,7 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from api.auth import get_current_user
@@ -328,6 +329,60 @@ async def analyse_tender(
         return {"tender_id": tender_id, "analysis": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+class TenderContractRequest(BaseModel):
+    client_email: str
+    client_name: str
+
+
+def _create_tender_signing_session(
+    svc: TenderService, tender, user, db: Session, body: TenderContractRequest
+) -> dict:
+    """Build the tender presentation PDF and push it into the e-sign provider.
+    Raises HTTPException on config/send failures so the caller stays thin."""
+    from api.services.docuseal_service import get_signing_service
+
+    signing = get_signing_service()
+    if not signing.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="E-signatur-tjeneste ikke konfigurert. Sett ESIGN_PROVIDER + nøkler.",
+        )
+    pdf_bytes, _filename = _build_tender_presentation_bytes(svc, tender, user, db)
+    try:
+        return signing.create_signing_session(
+            pdf_bytes=pdf_bytes,
+            signer_email=body.client_email,
+            signer_name=body.client_name,
+            document_title=f"Tilbudsfremstilling — {tender.title}",
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Signering feilet: {exc}")
+
+
+@router.post("/tenders/{tender_id}/contract/send-for-signature")
+@limiter.limit("5/minute")
+async def tender_contract_send_for_signature(
+    request: Request,
+    tender_id: int,
+    body: TenderContractRequest,
+    db: Session = Depends(get_db),
+    svc: TenderService = Depends(_svc),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Generate the tilbudsfremstilling PDF and push it into the e-signing
+    provider (DocuSeal or Signicat via ESIGN_PROVIDER env). Returns the
+    signing URL the broker can embed or forward to the client."""
+    tender = svc.get(tender_id, user.firm_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    session = _create_tender_signing_session(svc, tender, user, db, body)
+    return {
+        "tender_id": tender_id,
+        "signing_session_id": session.get("session_id"),
+        "signing_url": session.get("signing_url"),
+    }
 
 
 def _offer_summaries_for_tender(svc: TenderService, tender_id: int) -> list[dict]:
