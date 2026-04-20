@@ -183,14 +183,16 @@ class TestOrgProfile:
     ORGNR = "987654321"
 
     def test_profile_returns_org_and_risk(self, client):
-        # Patch the names bound in api.services.company (where fetch_org_profile
-        # imports them via `from api.services.external_apis import ...`). Patching
-        # external_apis directly would be a no-op because company.py has already
-        # resolved its own local references at import time. Classic Python mock
-        # pitfall — the target must be "where the name is looked up".
+        # fetch_org_profile imports cached_fetch_enhet locally from
+        # api.services.caching, so patch it at the caching module (where the
+        # name is defined). Clear the cache first so a prior test's result
+        # doesn't leak through.
+        from api.services.caching import clear_enhet_cache
+
+        clear_enhet_cache()
         with (
             patch(
-                "api.services.company.fetch_enhet_by_orgnr",
+                "api.services.caching.cached_fetch_enhet",
                 return_value=_MOCK_ORG_BRREG,
             ),
             patch(
@@ -208,8 +210,11 @@ class TestOrgProfile:
         assert "risk_summary" in data
 
     def test_unknown_org_returns_404(self, client):
+        from api.services.caching import clear_enhet_cache
+
+        clear_enhet_cache()
         with (
-            patch("api.services.company.fetch_enhet_by_orgnr", return_value=None),
+            patch("api.services.caching.cached_fetch_enhet", return_value=None),
             patch("api.services.company.fetch_regnskap_keyfigures", return_value={}),
             patch("api.services.company.pep_screen_name", return_value=[]),
             patch("api.services.pdf_extract._auto_extract_pdf_sources"),
