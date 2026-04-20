@@ -53,7 +53,7 @@ def test_get_synthetic_estimate_returns_200():
     org = {"orgnr": "123456789", "navn": "Test AS"}
     estimated = {"revenue": "10M NOK", "equity": "2M NOK"}
     with (
-        patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=org),
+        patch("api.routers.utils.cached_fetch_enhet", return_value=org),
         patch(
             "api.routers.utils._generate_synthetic_financials", return_value=estimated
         ),
@@ -64,7 +64,7 @@ def test_get_synthetic_estimate_returns_200():
 
 
 def test_get_synthetic_estimate_returns_404_when_not_found():
-    with patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=None):
+    with patch("api.routers.utils.cached_fetch_enhet", return_value=None):
         resp = client.get("/org/123456789/estimate")
     assert resp.status_code == 404
 
@@ -72,7 +72,7 @@ def test_get_synthetic_estimate_returns_404_when_not_found():
 def test_get_synthetic_estimate_returns_503_when_llm_fails():
     org = {"orgnr": "123456789"}
     with (
-        patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=org),
+        patch("api.routers.utils.cached_fetch_enhet", return_value=org),
         patch("api.routers.utils._generate_synthetic_financials", return_value=None),
     ):
         resp = client.get("/org/123456789/estimate")
@@ -84,7 +84,7 @@ def test_get_synthetic_estimate_returns_503_when_llm_fails():
 
 def test_get_bankruptcy_returns_status_flags():
     org = {"konkurs": False, "under_konkursbehandling": True, "under_avvikling": False}
-    with patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=org):
+    with patch("api.routers.utils.cached_fetch_enhet", return_value=org):
         resp = client.get("/org/123456789/bankruptcy")
     assert resp.status_code == 200
     body = resp.json()
@@ -93,7 +93,7 @@ def test_get_bankruptcy_returns_status_flags():
 
 
 def test_get_bankruptcy_returns_404_when_not_found():
-    with patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=None):
+    with patch("api.routers.utils.cached_fetch_enhet", return_value=None):
         resp = client.get("/org/123456789/bankruptcy")
     assert resp.status_code == 404
 
@@ -105,7 +105,7 @@ def test_get_koordinater_returns_coordinates():
     org = {"navn": "Test AS", "forretningsadresse": {}}
     coords = {"lat": 59.91, "lon": 10.75}
     with (
-        patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=org),
+        patch("api.routers.utils.cached_fetch_enhet", return_value=org),
         patch("api.routers.utils.fetch_koordinater", return_value=coords),
     ):
         resp = client.get("/org/123456789/koordinater")
@@ -114,7 +114,7 @@ def test_get_koordinater_returns_coordinates():
 
 
 def test_get_koordinater_returns_404_when_not_found():
-    with patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=None):
+    with patch("api.routers.utils.cached_fetch_enhet", return_value=None):
         resp = client.get("/org/123456789/koordinater")
     assert resp.status_code == 404
 
@@ -140,7 +140,7 @@ def test_get_benchmark_returns_nace_and_benchmark():
     org = {"naeringskode1": "41.200"}
     benchmark = {"equity_ratio_low": 0.1, "equity_ratio_high": 0.4}
     with (
-        patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=org),
+        patch("api.routers.utils.cached_fetch_enhet", return_value=org),
         patch("api.routers.utils.fetch_ssb_benchmark", return_value=benchmark),
     ):
         resp = client.get("/org/123456789/benchmark")
@@ -151,7 +151,7 @@ def test_get_benchmark_returns_nace_and_benchmark():
 
 
 def test_get_benchmark_returns_404_when_not_found():
-    with patch("api.routers.utils.fetch_enhet_by_orgnr", return_value=None):
+    with patch("api.routers.utils.cached_fetch_enhet", return_value=None):
         resp = client.get("/org/123456789/benchmark")
     assert resp.status_code == 404
 
