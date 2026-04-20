@@ -17,20 +17,7 @@ _db_url = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1).repl
     "postgresql+psycopg2://", "postgresql+psycopg://", 1
 )
 
-engine = create_engine(
-    _db_url,
-    echo=False,
-    future=True,
-    # Azure Postgres drops idle connections aggressively. pool_pre_ping makes
-    # SQLAlchemy run a lightweight SELECT 1 on checkout and silently reconnect
-    # if the connection was dropped — eliminates the transient OperationalError
-    # 500s that were hitting the renewals endpoint first thing each morning.
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    # Recycle connections before Azure Postgres' idle timeout (default ~30 min).
-    pool_recycle=1800,
-)
+engine = create_engine(_db_url, echo=False, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 

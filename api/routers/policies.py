@@ -26,15 +26,6 @@ def _get_notification() -> NotificationPort:
     return resolve(NotificationPort)  # type: ignore[return-value]
 
 
-def _enum_value(v, default: str | None = None) -> str | None:
-    """Safely extract an enum value. Returns default if v is None or a raw string."""
-    if v is None:
-        return default
-    # SQLAlchemy can hand back either the Enum instance or the raw string if the
-    # DB value is outside the Python enum. Handle both.
-    return v.value if hasattr(v, "value") else str(v)
-
-
 def _serialize(p) -> dict:
     return {
         "id": p.id,
@@ -48,8 +39,8 @@ def _serialize(p) -> dict:
         "annual_premium_nok": p.annual_premium_nok,
         "start_date": p.start_date.isoformat() if p.start_date else None,
         "renewal_date": p.renewal_date.isoformat() if p.renewal_date else None,
-        "status": _enum_value(p.status, default="active"),
-        "renewal_stage": _enum_value(p.renewal_stage, default="not_started"),
+        "status": p.status.value,
+        "renewal_stage": p.renewal_stage.value if p.renewal_stage else "not_started",
         "notes": p.notes,
         "document_url": p.document_url,
         "commission_rate_pct": p.commission_rate_pct,
@@ -190,42 +181,24 @@ def list_all_policies(
 
 
 def _enrich_renewals(policies: list, svc: PolicyService) -> list:
-    """Add days_until_renewal and client_name to serialized renewal policies.
-
-    Per-policy failures are tolerated: a bad row does not sink the whole list.
-    Previously a single row with an unexpected enum value would 500 the request.
-    """
-    import logging
+    """Add days_until_renewal and client_name to serialized renewal policies."""
     from datetime import date
     from api.db import Company as CompanyModel
 
-    log = logging.getLogger(__name__)
     today = date.today()
     orgnrs = [p.orgnr for p in policies]
-    company_map: dict = {}
-    if orgnrs:
-        company_map = {
-            c.orgnr: c.navn
-            for c in svc.db.query(CompanyModel)
-            .filter(CompanyModel.orgnr.in_(orgnrs))
-            .all()
-            if c.navn
-        }
+    company_map = {
+        c.orgnr: c.navn
+        for c in svc.db.query(CompanyModel).filter(CompanyModel.orgnr.in_(orgnrs)).all()
+        if c.navn
+    }
     result = []
     for p in policies:
-        try:
-            serialized = _serialize(p)
-            if p.renewal_date:
-                serialized["days_until_renewal"] = (p.renewal_date - today).days
-            serialized["client_name"] = company_map.get(p.orgnr) or p.orgnr
-            result.append(serialized)
-        except Exception as e:
-            log.warning(
-                "enrich_renewals skipping policy id=%s orgnr=%s: %s",
-                getattr(p, "id", None),
-                getattr(p, "orgnr", None),
-                e,
-            )
+        serialized = _serialize(p)
+        if p.renewal_date:
+            serialized["days_until_renewal"] = (p.renewal_date - today).days
+        serialized["client_name"] = company_map.get(p.orgnr) or p.orgnr
+        result.append(serialized)
     return result
 
 

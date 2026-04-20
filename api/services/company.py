@@ -2,6 +2,7 @@
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 
@@ -82,53 +83,95 @@ def _upsert_company(
     db.commit()
 
 
+def _financials_db_fallback(orgnr: str, db: Session) -> Dict[str, Any]:
+    """Return financial key figures from the most recent company_history row, or {}.
+
+    Pure DB lookup, no network. Caller is responsible for holding a live session.
+    """
+    recent_hist = (
+        db.query(CompanyHistory)
+        .filter(CompanyHistory.orgnr == orgnr)
+        .order_by(CompanyHistory.year.desc())
+        .first()
+    )
+    if not recent_hist:
+        return {}
+    raw_fields = dict(recent_hist.raw) if recent_hist.raw else {}
+    # Derive sum_gjeld from short+long term debt if not already in raw
+    short_debt = recent_hist.short_term_debt or 0
+    long_debt = recent_hist.long_term_debt or 0
+    gjeld_fallback = (short_debt + long_debt) or raw_fields.get("sum_gjeld")
+    return {
+        **raw_fields,
+        "regnskapsår": recent_hist.year,
+        "sum_driftsinntekter": recent_hist.revenue,
+        "aarsresultat": recent_hist.net_result,
+        "sum_egenkapital": recent_hist.equity,
+        "sum_eiendeler": recent_hist.total_assets,
+        "sum_gjeld": gjeld_fallback,
+        "equity_ratio": recent_hist.equity_ratio,
+        "antall_ansatte": recent_hist.antall_ansatte,
+        "_source": "pdf_history",
+    }
+
+
 def _fetch_financials_with_fallback(orgnr: str, db: Session) -> Dict[str, Any]:
-    """Fetch financials from BRREG; fall back to most recent PDF history row if empty."""
+    """Fetch financials from BRREG; fall back to most recent PDF history row if empty.
+
+    Public helper (module-level callers rely on this signature). Internally
+    fetch_org_profile uses the parallel variant below.
+    """
     try:
         regn = fetch_regnskap_keyfigures(orgnr)
     except requests.HTTPError:
         regn = {}
+    return regn or _financials_db_fallback(orgnr, db)
 
-    if not regn:
-        recent_hist = (
-            db.query(CompanyHistory)
-            .filter(CompanyHistory.orgnr == orgnr)
-            .order_by(CompanyHistory.year.desc())
-            .first()
-        )
-        if recent_hist:
-            raw_fields = dict(recent_hist.raw) if recent_hist.raw else {}
-            # Derive sum_gjeld from short+long term debt if not already in raw
-            short_debt = recent_hist.short_term_debt or 0
-            long_debt = recent_hist.long_term_debt or 0
-            gjeld_fallback = (short_debt + long_debt) or raw_fields.get("sum_gjeld")
-            regn = {
-                **raw_fields,
-                "regnskapsår": recent_hist.year,
-                "sum_driftsinntekter": recent_hist.revenue,
-                "aarsresultat": recent_hist.net_result,
-                "sum_egenkapital": recent_hist.equity,
-                "sum_eiendeler": recent_hist.total_assets,
-                "sum_gjeld": gjeld_fallback,
-                "equity_ratio": recent_hist.equity_ratio,
-                "antall_ansatte": recent_hist.antall_ansatte,
-                "_source": "pdf_history",
-            }
-    return regn
+
+def _safe_fetch_regn(orgnr: str) -> Dict[str, Any]:
+    """HTTP-only regnskap fetch. Thread-safe (no DB access). Returns {} on HTTPError."""
+    try:
+        return fetch_regnskap_keyfigures(orgnr)
+    except requests.HTTPError:
+        return {}
+
+
+def _safe_pep_screen(name: str) -> Optional[Dict[str, Any]]:
+    """PEP screen with HTTPError swallow. Thread-safe."""
+    if not name:
+        return None
+    try:
+        return pep_screen_name(name)
+    except requests.HTTPError:
+        return None
 
 
 def fetch_org_profile(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
-    org = fetch_enhet_by_orgnr(orgnr)
-    if not org:
-        return None
+    """Fetch the full org profile, parallelising the three external HTTP calls.
 
-    regn = _fetch_financials_with_fallback(orgnr, db)
+    Previously these ran serially: BRREG-enhet → BRREG-regnskap → OpenSanctions.
+    On the 10-second timeout each, cold requests could hit ~30 s. Now:
+      1. enhet + regnskap kick off together (no inter-dependency)
+      2. pep fires as soon as enhet returns the company name
+      3. DB access stays on the caller thread (SQLAlchemy sessions aren't thread-safe)
 
-    try:
-        pep = pep_screen_name(org.get("navn", ""))
-    except requests.HTTPError:
-        pep = None
+    Warm case drops from ~sum(individual) to ~max(individual) ≈ 10 s.
+    """
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        enhet_future = ex.submit(fetch_enhet_by_orgnr, orgnr)
+        regn_future = ex.submit(_safe_fetch_regn, orgnr)
 
+        org = enhet_future.result()
+        if not org:
+            # Still wait for regn_future so the thread exits cleanly; discard result.
+            regn_future.result()
+            return None
+
+        pep_future = ex.submit(_safe_pep_screen, org.get("navn", ""))
+        regn_http = regn_future.result()
+        pep = pep_future.result()
+
+    regn = regn_http or _financials_db_fallback(orgnr, db)
     risk = derive_simple_risk(org, regn, pep) if regn else None
     _upsert_company(db, orgnr, org, regn, risk, pep)
 

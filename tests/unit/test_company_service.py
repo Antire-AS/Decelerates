@@ -73,20 +73,27 @@ def test_fetch_financials_fallback_to_history(mock_regn):
 
 @patch("api.services.company.pep_screen_name", return_value={"hit_count": 0})
 @patch(
-    "api.services.company._fetch_financials_with_fallback",
+    "api.services.company.fetch_regnskap_keyfigures",
     return_value={"sum_driftsinntekter": 1000},
 )
 @patch(
     "api.services.company.fetch_enhet_by_orgnr",
     return_value={"orgnr": "123", "navn": "Test"},
 )
-def test_fetch_org_profile_success(mock_enhet, mock_fin, mock_pep):
+def test_fetch_org_profile_success(mock_enhet, mock_regn, mock_pep):
+    """fetch_org_profile wires enhet + regnskap + pep into a single profile dict.
+
+    The three external calls run in parallel via ThreadPoolExecutor; patching
+    the underlying helpers at the module level catches both the direct call and
+    the thread-local wrappers.
+    """
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = None
     result = fetch_org_profile("123", db)
     assert result is not None
     assert "org" in result
     assert "regnskap" in result
+    assert result["regnskap"]["sum_driftsinntekter"] == 1000
 
 
 @patch("api.services.company.fetch_enhet_by_orgnr", return_value=None)
