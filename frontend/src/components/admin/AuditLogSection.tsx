@@ -15,6 +15,15 @@ import { useT } from "@/lib/i18n";
  * The filter bar pushes state into a key the SWR cache uses, so changing
  * filters refetches the right page automatically.
  */
+/** Return a yyyy-mm-dd date string N days ago (local timezone). */
+function daysAgoIso(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+type QuickRange = "today" | "week" | "month" | "all";
+
 export function AuditLogSection() {
   const T = useT();
   const [limit, setLimit]               = useState(50);
@@ -22,9 +31,22 @@ export function AuditLogSection() {
   const [orgnr, setOrgnr]               = useState("");
   const [action, setAction]             = useState("");
   const [actorEmail, setActorEmail]     = useState("");
-  const [fromDate, setFromDate]         = useState("");
+  // Default to "today" so the log isn't an overwhelming wall on first open.
+  // Broker can click "Siste uke", "Siste måned", or "Alle" to widen.
+  const [fromDate, setFromDate]         = useState(daysAgoIso(0));
   const [toDate, setToDate]             = useState("");
+  const [quickRange, setQuickRange]     = useState<QuickRange>("today");
   const [expanded, setExpanded]         = useState<Set<number>>(new Set());
+
+  function applyRange(range: QuickRange) {
+    setQuickRange(range);
+    setOffset(0);
+    setToDate("");
+    if (range === "today") setFromDate(daysAgoIso(0));
+    else if (range === "week") setFromDate(daysAgoIso(7));
+    else if (range === "month") setFromDate(daysAgoIso(30));
+    else setFromDate("");
+  }
 
   const cacheKey = `audit-${limit}-${offset}-${orgnr}-${action}-${actorEmail}-${fromDate}-${toDate}`;
   const { data, isLoading, mutate } = useSWR<AuditLogPageOut>(
@@ -68,7 +90,8 @@ export function AuditLogSection() {
 
   function clearFilters() {
     setOrgnr(""); setAction(""); setActorEmail("");
-    setFromDate(""); setToDate(""); setOffset(0);
+    setFromDate(daysAgoIso(0)); setToDate(""); setOffset(0);
+    setQuickRange("today");
   }
 
   const hasFilters = orgnr || action || actorEmail || fromDate || toDate;
@@ -89,6 +112,33 @@ export function AuditLogSection() {
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
+      </div>
+
+      {/* Quick range chips */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs text-muted-foreground">{T("Tidsrom")}:</span>
+        {([
+          ["today", "I dag"],
+          ["week", "Siste uke"],
+          ["month", "Siste måned"],
+          ["all", "Alle"],
+        ] as const).map(([key, label]) => {
+          const active = quickRange === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => applyRange(key)}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                active
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {T(label)}
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter bar */}
@@ -114,13 +164,13 @@ export function AuditLogSection() {
         <input
           type="date"
           value={fromDate}
-          onChange={(e) => { setFromDate(e.target.value); setOffset(0); }}
+          onChange={(e) => { setFromDate(e.target.value); setQuickRange("all"); setOffset(0); }}
           className="text-xs border border-border rounded px-2 py-1.5 bg-card"
         />
         <input
           type="date"
           value={toDate}
-          onChange={(e) => { setToDate(e.target.value); setOffset(0); }}
+          onChange={(e) => { setToDate(e.target.value); setQuickRange("all"); setOffset(0); }}
           className="text-xs border border-border rounded px-2 py-1.5 bg-card"
         />
       </div>
