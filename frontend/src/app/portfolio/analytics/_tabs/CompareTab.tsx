@@ -9,15 +9,17 @@ import { Loader2 } from "lucide-react";
 import { getCompanies, type Company } from "@/lib/api";
 import { fmtMnok } from "./_shared";
 import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 export default function CompareTab() {
+  const T = useT();
   const { bandFor } = useRiskConfig();
   const { data: companies, isLoading } = useSWR<Company[]>("companies-compare", () => getCompanies(500));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
-  if (!companies?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">Ingen selskaper i databasen ennå.</div>;
+  if (!companies?.length) return <div className="broker-card text-center py-10 text-sm text-muted-foreground">{T("Ingen selskaper i databasen ennå.")}</div>;
 
   const toggle = (orgnr: string) => {
     setSelected((prev) => {
@@ -67,14 +69,14 @@ export default function CompareTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Velg opptil 8 selskaper å sammenligne.</p>
+      <p className="text-sm text-muted-foreground">{T("Velg opptil 8 selskaper å sammenligne.")}</p>
 
       {/* Search + picker */}
       <div className="broker-card space-y-2">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søk selskap…"
+          placeholder={T("Søk selskap…")}
           className="w-full text-sm border border-border rounded-lg px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
         />
         <div className="max-h-52 overflow-y-auto space-y-0.5">
@@ -101,25 +103,25 @@ export default function CompareTab() {
           <div className="broker-card overflow-x-auto">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-foreground">
-                {selectedRows.length} selskaper valgt
+                {selectedRows.length} {T("selskaper valgt")}
               </h3>
               <button
                 onClick={exportCsv}
                 className="px-3 py-1 text-xs rounded-lg bg-muted text-foreground hover:bg-muted flex items-center gap-1.5"
               >
-                ⬇ Eksporter CSV
+                {T("⬇ Eksporter CSV")}
               </button>
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-muted-foreground border-b border-border">
-                  <th className="text-left pb-2 font-medium">Selskap</th>
-                  <th className="text-right pb-2 font-medium">Omsetning</th>
-                  <th className="text-right pb-2 font-medium">Egenkapital</th>
-                  <th className="text-right pb-2 font-medium">EK-andel</th>
-                  <th className="text-right pb-2 font-medium">Risiko</th>
-                  <th className="text-left pb-2 font-medium hidden md:table-cell">Bransje</th>
-                  <th className="text-right pb-2 font-medium hidden sm:table-cell">År</th>
+                  <th className="text-left pb-2 font-medium">{T("Selskap")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Omsetning")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Egenkapital")}</th>
+                  <th className="text-right pb-2 font-medium">{T("EK-andel")}</th>
+                  <th className="text-right pb-2 font-medium">{T("Risiko")}</th>
+                  <th className="text-left pb-2 font-medium hidden md:table-cell">{T("Bransje")}</th>
+                  <th className="text-right pb-2 font-medium hidden sm:table-cell">{T("År")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -157,13 +159,13 @@ export default function CompareTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {revenueChartData.length > 0 && (
               <div className="broker-card">
-                <h3 className="text-sm font-semibold text-foreground mb-3">Omsetning (MNOK)</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">{T("Omsetning (MNOK)")}</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={revenueChartData} margin={{ left: 0, right: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" height={50} />
                     <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip formatter={(v: number) => [`${v} MNOK`, "Omsetning"]} />
+                    <Tooltip formatter={(v: number) => [`${v} MNOK`, T("Omsetning")]} />
                     <Bar dataKey="value" fill="#4A6FA5" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -171,13 +173,13 @@ export default function CompareTab() {
             )}
             {riskChartData.length > 0 && (
               <div className="broker-card">
-                <h3 className="text-sm font-semibold text-foreground mb-3">Risikoscore</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">{T("Risikoscore")}</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={riskChartData} margin={{ left: 0, right: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EDE8E3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" height={50} />
                     <YAxis tick={{ fontSize: 10 }} domain={[0, 20]} />
-                    <Tooltip formatter={(v: number) => [v, "Risikoscore"]} />
+                    <Tooltip formatter={(v: number) => [v, T("Risikoscore")]} />
                     <Bar dataKey="value" fill="#C8A951" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>

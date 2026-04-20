@@ -12,10 +12,12 @@ import {
   type PortfolioItem,
 } from "@/lib/api";
 import { useRiskConfig } from "@/lib/useRiskConfig";
+import { useT } from "@/lib/i18n";
 
 const BAND_KEYS = ["low", "mid", "high", "veryhigh"] as const;
 
 export default function ProspectingPage() {
+  const T = useT();
   const { bands, bandFor } = useRiskConfig();
   const RISK_BANDS = useMemo(
     () => bands.map(b => ({ ...b, label: `${b.label} (${b.min}–${b.max})` })),
@@ -125,9 +127,9 @@ export default function ProspectingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Prospektering</h1>
+        <h1 className="text-2xl font-bold text-foreground">{T("Prospektering")}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Utforsk alle selskaper i databasen og legg til i en portefølje
+          {T("Utforsk alle selskaper i databasen og legg til i en portefølje")}
         </p>
       </div>
 
@@ -139,7 +141,7 @@ export default function ProspectingPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Navn eller orgnr…"
+              placeholder={T("Navn eller orgnr…")}
               className="w-full pl-9 pr-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
             />
           </div>
@@ -149,7 +151,7 @@ export default function ProspectingPage() {
             onChange={(e) => setIndustry(e.target.value)}
             className="text-sm border border-border rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="">Alle bransjer</option>
+            <option value="">{T("Alle bransjer")}</option>
             {industries.map((ind) => (
               <option key={ind} value={ind}>{ind.slice(0, 50)}</option>
             ))}
@@ -158,7 +160,7 @@ export default function ProspectingPage() {
           <input
             value={municipalityFilter}
             onChange={(e) => setMunicipality(e.target.value)}
-            placeholder="Kommune…"
+            placeholder={T("Kommune…")}
             className="text-sm border border-border rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
 
@@ -167,14 +169,14 @@ export default function ProspectingPage() {
             onChange={(e) => setRiskFilter(e.target.value)}
             className="text-sm border border-border rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="all">Alle risikonivåer</option>
+            <option value="all">{T("Alle risikonivåer")}</option>
             {BAND_KEYS.map((key, i) => {
               const b = bands[i];
               return b ? (
                 <option key={key} value={key}>{b.label} ({b.min}–{b.max})</option>
               ) : null;
             })}
-            <option value="unknown">Ukjent</option>
+            <option value="unknown">{T("Ukjent")}</option>
           </select>
         </div>
 
@@ -182,7 +184,7 @@ export default function ProspectingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border">
           <div>
             <div className="flex justify-between items-baseline mb-1">
-              <p className="text-xs font-medium text-muted-foreground">Omsetning (MNOK)</p>
+              <p className="text-xs font-medium text-muted-foreground">{T("Omsetning (MNOK)")}</p>
               <span className="text-xs text-foreground font-mono">{minRevenueMnok}–{maxRevenueMnok}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -202,7 +204,7 @@ export default function ProspectingPage() {
           </div>
           <div>
             <div className="flex justify-between items-baseline mb-1">
-              <p className="text-xs font-medium text-muted-foreground">Risikoscore (0–20)</p>
+              <p className="text-xs font-medium text-muted-foreground">{T("Risikoscore (0–20)")}</p>
               <span className="text-xs text-foreground font-mono">{minRiskScore}–{maxRiskScore}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -223,17 +225,17 @@ export default function ProspectingPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-muted-foreground">Sorter etter:</span>
+          <span className="text-xs text-muted-foreground">{T("Sorter etter:")}</span>
           {(["risk", "revenue", "name"] as const).map((s) => (
             <button key={s} onClick={() => setSortBy(s)}
               className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
                 sortBy === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
               }`}>
-              {s === "risk" ? "Risiko" : s === "revenue" ? "Omsetning" : "Navn"}
+              {s === "risk" ? T("Risiko") : s === "revenue" ? T("Omsetning") : T("Navn")}
             </button>
           ))}
           <span className="text-xs text-muted-foreground ml-auto">
-            {isLoading ? "Laster…" : `${filtered.length} selskaper`}
+            {isLoading ? T("Laster…") : `${filtered.length} ${T("selskaper")}`}
           </span>
         </div>
       </div>
@@ -268,8 +270,8 @@ export default function ProspectingPage() {
           onClick={() => setSelectedOrgnr(null)}>
           <div className="bg-card rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-sm font-bold text-foreground">Legg til i portefølje</h3>
-            <p className="text-xs text-muted-foreground">Velg hvilken portefølje du vil legge til {selectedOrgnr}:</p>
+            <h3 className="text-sm font-bold text-foreground">{T("Legg til i portefølje")}</h3>
+            <p className="text-xs text-muted-foreground">{T("Velg hvilken portefølje du vil legge til")} {selectedOrgnr}:</p>
             {addErr && <p className="text-xs text-red-600">{addErr}</p>}
             <div className="space-y-2">
               {portfolios.map((p) => {
@@ -291,7 +293,7 @@ export default function ProspectingPage() {
             </div>
             <button onClick={() => setSelectedOrgnr(null)}
               className="w-full text-xs text-muted-foreground hover:text-foreground pt-1">
-              Avbryt
+              {T("Avbryt")}
             </button>
           </div>
         </div>
@@ -306,19 +308,19 @@ export default function ProspectingPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="broker-card text-center py-10">
-          <p className="text-sm text-muted-foreground">Ingen selskaper matcher filtrene.</p>
+          <p className="text-sm text-muted-foreground">{T("Ingen selskaper matcher filtrene.")}</p>
         </div>
       ) : (
         <div className="broker-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-border">
-                <th className="text-left pb-2 font-medium">Selskap</th>
-                <th className="text-left pb-2 font-medium hidden md:table-cell">Bransje</th>
-                <th className="text-left pb-2 font-medium hidden lg:table-cell">Kommune</th>
-                <th className="text-right pb-2 font-medium hidden sm:table-cell">Omsetning</th>
-                <th className="text-right pb-2 font-medium">Risiko</th>
-                <th className="text-right pb-2 font-medium">Handling</th>
+                <th className="text-left pb-2 font-medium">{T("Selskap")}</th>
+                <th className="text-left pb-2 font-medium hidden md:table-cell">{T("Bransje")}</th>
+                <th className="text-left pb-2 font-medium hidden lg:table-cell">{T("Kommune")}</th>
+                <th className="text-right pb-2 font-medium hidden sm:table-cell">{T("Omsetning")}</th>
+                <th className="text-right pb-2 font-medium">{T("Risiko")}</th>
+                <th className="text-right pb-2 font-medium">{T("Handling")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -358,10 +360,10 @@ export default function ProspectingPage() {
                         className="flex items-center gap-1 ml-auto px-2.5 py-1 text-xs rounded-lg border border-border text-primary hover:bg-muted transition-colors"
                       >
                         <Plus className="w-3 h-3" />
-                        Portefølje
+                        {T("Portefølje")}
                       </button>
                     ) : (
-                      <span className="text-xs text-muted-foreground">Ingen porteføljer</span>
+                      <span className="text-xs text-muted-foreground">{T("Ingen porteføljer")}</span>
                     )}
                   </td>
                 </tr>

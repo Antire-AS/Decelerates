@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface Alert {
   orgnr: string;
@@ -15,10 +16,11 @@ interface Props {
 }
 
 export function PortfolioAlerts({ alerts }: Props) {
+  const T = useT();
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Varsler
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> {T("Varsler")}
       </p>
       {alerts.map((a, i) => (
         <div key={i} className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${

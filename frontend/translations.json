@@ -7,6 +7,14 @@
     "no": "AI risikoanalyse",
     "en": "AI risk narrative"
   },
+  "AI-genererte sammenligninger og tabeller": {
+    "no": "AI-genererte sammenligninger og tabeller",
+    "en": "AI-generated comparisons and tables"
+  },
+  "AI-sammenlign valgte (2)": {
+    "no": "AI-sammenlign valgte (2)",
+    "en": "AI-compare selected (2)"
+  },
   "AI-sammenligning": {
     "no": "AI-sammenligning",
     "en": "AI comparison"
@@ -54,6 +62,26 @@
   "Aktivitetspåminnelser": {
     "no": "Aktivitetspåminnelser",
     "en": "Activity reminders"
+  },
+  "Alle": {
+    "no": "Alle",
+    "en": "All"
+  },
+  "Alle bransjer": {
+    "no": "Alle bransjer",
+    "en": "All industries"
+  },
+  "Alle porteføljer": {
+    "no": "Alle porteføljer",
+    "en": "All portfolios"
+  },
+  "Alle risikonivåer": {
+    "no": "Alle risikonivåer",
+    "en": "All risk levels"
+  },
+  "Alle selskaper": {
+    "no": "Alle selskaper",
+    "en": "All companies"
   },
   "Analyse coverage gap": {
     "no": "Analyser dekningstomme",
@@ -119,6 +147,10 @@
     "no": "Anbudsfrist",
     "en": "Tender deadline"
   },
+  "Andel": {
+    "no": "Andel",
+    "en": "Share"
+  },
   "Andre (spesifiser)": {
     "no": "Andre (spesifiser)",
     "en": "Other (specify)"
@@ -143,6 +175,14 @@
     "no": "Ansvarsforsikring",
     "en": "Liability insurance"
   },
+  "Antall": {
+    "no": "Antall",
+    "en": "Count"
+  },
+  "Arbeider…": {
+    "no": "Arbeider…",
+    "en": "Working…"
+  },
   "Ask analyst": {
     "no": "Spør risikoanalytikeren",
     "en": "Ask the risk analyst"
@@ -150,6 +190,10 @@
   "Avbruddsforsikring": {
     "no": "Avbruddsforsikring",
     "en": "Business interruption insurance"
+  },
+  "Avbrutt": {
+    "no": "Avbrutt",
+    "en": "Aborted"
   },
   "Avbryt": {
     "no": "Avbryt",
@@ -223,6 +267,10 @@
     "no": "Fødselsår",
     "en": "Born"
   },
+  "Bransje": {
+    "no": "Bransje",
+    "en": "Industry"
+  },
   "Bruker": {
     "no": "Bruker",
     "en": "User"
@@ -250,6 +298,14 @@
   "Cash & bank": {
     "no": "Bank og kontanter",
     "en": "Cash & bank"
+  },
+  "Chat": {
+    "no": "Chat",
+    "en": "Chat"
+  },
+  "Chat med dokument": {
+    "no": "Chat med dokument",
+    "en": "Chat with document"
   },
   "Checked vs OpenSanctions": {
     "no": "Sjekket mot OpenSanctions",
@@ -331,6 +387,10 @@
     "no": "Disse opplysningene trykkes på alle avtaler du oppretter.",
     "en": "This information is printed on every agreement you create."
   },
+  "Dokumentchunks": {
+    "no": "Dokumentchunks",
+    "en": "Document chunks"
+  },
   "Dokumenter": {
     "no": "Dokumenter",
     "en": "Documents"
@@ -358,6 +418,18 @@
   "E-post kontakt": {
     "no": "E-post kontakt",
     "en": "Contact email"
+  },
+  "EK-andel": {
+    "no": "EK-andel",
+    "en": "Equity ratio"
+  },
+  "Egenandel": {
+    "no": "Egenandel",
+    "en": "Deductible"
+  },
+  "Egenkapital": {
+    "no": "Egenkapital",
+    "en": "Equity"
   },
   "Egnethetsvurdering": {
     "no": "Egnethetsvurdering",
@@ -435,6 +507,14 @@
     "no": "F.eks. Totalforsikring 2026",
     "en": "E.g. Total insurance 2026"
   },
+  "F.eks. «Hvilke selskaper har lavest egenkapitalandel?»": {
+    "no": "F.eks. «Hvilke selskaper har lavest egenkapitalandel?»",
+    "en": "E.g. \"Which companies have the lowest equity ratio?\""
+  },
+  "F.eks. «Hvilke selskaper har negativ egenkapital?»": {
+    "no": "F.eks. «Hvilke selskaper har negativ egenkapital?»",
+    "en": "E.g. \"Which companies have negative equity?\""
+  },
   "Fast honorar (NOK/år)": {
     "no": "Fast honorar (NOK/år)",
     "en": "Fixed fee (NOK/year)"
@@ -446,6 +526,18 @@
   "Felt": {
     "no": "Felt",
     "en": "Field"
+  },
+  "Ferdig": {
+    "no": "Ferdig",
+    "en": "Done"
+  },
+  "Filtrer på org.nr": {
+    "no": "Filtrer på org.nr",
+    "en": "Filter by org.nr"
+  },
+  "Filtrer:": {
+    "no": "Filtrer:",
+    "en": "Filter:"
   },
   "Financial Lines": {
     "no": "Financial Lines",
@@ -467,6 +559,10 @@
     "no": "Finans",
     "en": "Finance"
   },
+  "Finnes": {
+    "no": "Finnes",
+    "en": "Exists"
+  },
   "Firmaattest dato": {
     "no": "Firmaattest dato",
     "en": "Certificate of registration date"
@@ -486,6 +582,22 @@
   "Fjern filter": {
     "no": "Fjern filter",
     "en": "Clear filter"
+  },
+  "Fjern valg": {
+    "no": "Fjern valg",
+    "en": "Clear selection"
+  },
+  "Fordeling per status": {
+    "no": "Fordeling per status",
+    "en": "Distribution per status"
+  },
+  "Forfaller 90 dager": {
+    "no": "Forfaller 90 dager",
+    "en": "Expiring in 90 days"
+  },
+  "Forklar egenkapitalandel enkelt": {
+    "no": "Forklar egenkapitalandel enkelt",
+    "en": "Explain equity ratio simply"
   },
   "Fornyelser": {
     "no": "Fornyelser",
@@ -514,6 +626,10 @@
   "Forrige": {
     "no": "Forrige",
     "en": "Previous"
+  },
+  "Forsikringsdokumenter og tilbud lastet opp for kundene": {
+    "no": "Forsikringsdokumenter og tilbud lastet opp for kundene",
+    "en": "Insurance documents and offers uploaded for customers"
   },
   "Forsikringslinjer": {
     "no": "Forsikringslinjer",
@@ -595,6 +711,30 @@
     "no": "Genererer…",
     "en": "Generating…"
   },
+  "Geografi": {
+    "no": "Geografi",
+    "en": "Geography"
+  },
+  "Geografisk oversikt": {
+    "no": "Geografisk oversikt",
+    "en": "Geographic overview"
+  },
+  "Gj.snitt %": {
+    "no": "Gj.snitt %",
+    "en": "Average %"
+  },
+  "Gj.snitt EK-andel": {
+    "no": "Gj.snitt EK-andel",
+    "en": "Average equity ratio"
+  },
+  "Gj.snitt provisjonsandel": {
+    "no": "Gj.snitt provisjonsandel",
+    "en": "Average commission share"
+  },
+  "Gj.snitt risikoscore": {
+    "no": "Gj.snitt risikoscore",
+    "en": "Average risk score"
+  },
   "Gjennomgang og generering": {
     "no": "Gjennomgang og generering",
     "en": "Review and generate"
@@ -627,9 +767,29 @@
     "no": "Har kjøretøy",
     "en": "Has vehicles"
   },
+  "Hei! Jeg er din forsikringsassistent.": {
+    "no": "Hei! Jeg er din forsikringsassistent.",
+    "en": "Hi! I am your insurance assistant."
+  },
   "Helseforsikring": {
     "no": "Helseforsikring",
     "en": "Health insurance"
+  },
+  "Henter": {
+    "no": "Henter",
+    "en": "Fetching"
+  },
+  "Henter alle dokumenter og videoer fra databasen og bygger vektorsøkeindeksen på nytt. Bruk \"Tving\" for å slette eksisterende indeks og starte fra scratch.": {
+    "no": "Henter alle dokumenter og videoer fra databasen og bygger vektorsøkeindeksen på nytt. Bruk \"Tving\" for å slette eksisterende indeks og starte fra scratch.",
+    "en": "Fetches all documents and videos from the database and rebuilds the vector search index. Use \"Force\" to delete the existing index and start from scratch."
+  },
+  "Henter koordinater…": {
+    "no": "Henter koordinater…",
+    "en": "Fetching coordinates…"
+  },
+  "Henter nøkkelpunkter…": {
+    "no": "Henter nøkkelpunkter…",
+    "en": "Fetching key points…"
   },
   "Henter…": {
     "no": "Henter…",
@@ -659,6 +819,34 @@
     "no": "Honorartype",
     "en": "Fee type"
   },
+  "Hva dekkes": {
+    "no": "Hva dekkes",
+    "en": "What is covered"
+  },
+  "Hva er ansvarsforsikring?": {
+    "no": "Hva er ansvarsforsikring?",
+    "en": "What is liability insurance?"
+  },
+  "Hva er en SLA-avtale?": {
+    "no": "Hva er en SLA-avtale?",
+    "en": "What is an SLA agreement?"
+  },
+  "Hvilke 10 selskaper har høyest omsetning?": {
+    "no": "Hvilke 10 selskaper har høyest omsetning?",
+    "en": "Which 10 companies have the highest revenue?"
+  },
+  "Hvilke selskaper har negativ egenkapital?": {
+    "no": "Hvilke selskaper har negativ egenkapital?",
+    "en": "Which companies have negative equity?"
+  },
+  "Hvilken forsikring trenger et byggefirma?": {
+    "no": "Hvilken forsikring trenger et byggefirma?",
+    "en": "What insurance does a construction company need?"
+  },
+  "ID {id} eksisterer ikke eller er slettet.": {
+    "no": "ID {id} eksisterer ikke eller er slettet.",
+    "en": "ID {id} does not exist or has been deleted."
+  },
   "IDD / Behov": {
     "no": "IDD / Behov",
     "en": "IDD / Needs"
@@ -675,9 +863,33 @@
     "no": "Ikke avklart",
     "en": "Not determined"
   },
+  "Import fullført.": {
+    "no": "Import fullført.",
+    "en": "Import complete."
+  },
+  "Importer fra CSV": {
+    "no": "Importer fra CSV",
+    "en": "Import from CSV"
+  },
+  "Importerer…": {
+    "no": "Importerer…",
+    "en": "Importing…"
+  },
   "Inbound / Referral / …": {
     "no": "Inbound / Referral / …",
     "en": "Inbound / Referral / …"
+  },
+  "Indekser (inkrementelt)": {
+    "no": "Indekser (inkrementelt)",
+    "en": "Index (incremental)"
+  },
+  "Indekser dokumenter og videoer": {
+    "no": "Indekser dokumenter og videoer",
+    "en": "Index documents and videos"
+  },
+  "Indeksering fullført": {
+    "no": "Indeksering fullført",
+    "en": "Indexing complete"
   },
   "Industry benchmarks": {
     "no": "Bransjesammenligning",
@@ -711,6 +923,14 @@
     "no": "Ingen data funnet.",
     "en": "No data found."
   },
+  "Ingen dokumenter for org.nr": {
+    "no": "Ingen dokumenter for org.nr",
+    "en": "No documents for org.nr"
+  },
+  "Ingen dokumenter funnet": {
+    "no": "Ingen dokumenter funnet",
+    "en": "No documents found"
+  },
   "Ingen endring.": {
     "no": "Ingen endring.",
     "en": "No change."
@@ -719,13 +939,61 @@
     "no": "Ingen forsikringsselskaper lagt til ennå",
     "en": "No insurers added yet"
   },
+  "Ingen lignende dokumenter funnet.": {
+    "no": "Ingen lignende dokumenter funnet.",
+    "en": "No similar documents found."
+  },
   "Ingen mottakere lagt til.": {
     "no": "Ingen mottakere lagt til.",
     "en": "No recipients added."
   },
+  "Ingen nøkkelpunkter tilgjengelig.": {
+    "no": "Ingen nøkkelpunkter tilgjengelig.",
+    "en": "No key points available."
+  },
   "Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.": {
     "no": "Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.",
     "en": "No pipeline stages configured for your firm. Default stages are created automatically via the Alembic migration — contact an admin if this message appears in production."
+  },
+  "Ingen policyer registrert ennå. Legg til policyer i Selskapsøk → CRM-fanen.": {
+    "no": "Ingen policyer registrert ennå. Legg til policyer i Selskapsøk → CRM-fanen.",
+    "en": "No policies registered yet. Add policies in Company search → CRM tab."
+  },
+  "Ingen porteføljer": {
+    "no": "Ingen porteføljer",
+    "en": "No portfolios"
+  },
+  "Ingen porteføljer funnet. Opprett en i Portefølje-fanen.": {
+    "no": "Ingen porteføljer funnet. Opprett en i Portefølje-fanen.",
+    "en": "No portfolios found. Create one in the Portfolio tab."
+  },
+  "Ingen provisjonsdata ennå. Legg til provisjonssats på policyer i Selskapsøk → CRM-fanen.": {
+    "no": "Ingen provisjonsdata ennå. Legg til provisjonssats på policyer i Selskapsøk → CRM-fanen.",
+    "en": "No commission data yet. Add commission rate on policies in Company search → CRM tab."
+  },
+  "Ingen resultater for": {
+    "no": "Ingen resultater for",
+    "en": "No results for"
+  },
+  "Ingen resultater.": {
+    "no": "Ingen resultater.",
+    "en": "No results."
+  },
+  "Ingen selskaper i databasen ennå.": {
+    "no": "Ingen selskaper i databasen ennå.",
+    "en": "No companies in the database yet."
+  },
+  "Ingen selskaper i denne porteføljen ennå. Legg til selskaper via selskapsprofilen (CRM-fanen → Portefølje).": {
+    "no": "Ingen selskaper i denne porteføljen ennå. Legg til selskaper via selskapsprofilen (CRM-fanen → Portefølje).",
+    "en": "No companies in this portfolio yet. Add companies via the company profile (CRM tab → Portfolio)."
+  },
+  "Ingen selskaper i porteføljen eller data ikke hentet ennå.": {
+    "no": "Ingen selskaper i porteføljen eller data ikke hentet ennå.",
+    "en": "No companies in the portfolio or data not yet retrieved."
+  },
+  "Ingen selskaper matcher filtrene.": {
+    "no": "Ingen selskaper matcher filtrene.",
+    "en": "No companies match the filters."
   },
   "Ingen treff": {
     "no": "Ingen treff",
@@ -734,6 +1002,22 @@
   "Ingen treff.": {
     "no": "Ingen treff.",
     "en": "No matches."
+  },
+  "Ingen videoer lastet opp ennå": {
+    "no": "Ingen videoer lastet opp ennå",
+    "en": "No videos uploaded yet"
+  },
+  "Inkluder årsrapport-PDF": {
+    "no": "Inkluder årsrapport-PDF",
+    "en": "Include annual report PDF"
+  },
+  "Innhent selskapdata (BRREG + økonomi)": {
+    "no": "Innhent selskapdata (BRREG + økonomi)",
+    "en": "Fetch company data (BRREG + financials)"
+  },
+  "Innhenting fullført. Porteføljedata er oppdatert.": {
+    "no": "Innhenting fullført. Porteføljedata er oppdatert.",
+    "en": "Fetching complete. Portfolio data updated."
   },
   "Innskuddspensjon": {
     "no": "Innskuddspensjon",
@@ -767,6 +1051,10 @@
     "no": "KYC",
     "en": "KYC"
   },
+  "Kapitler": {
+    "no": "Kapitler",
+    "en": "Chapters"
+  },
   "Key figures": {
     "no": "Nøkkeltall",
     "en": "Key figures"
@@ -774,6 +1062,18 @@
   "Kilde": {
     "no": "Kilde",
     "en": "Source"
+  },
+  "Kildelabel": {
+    "no": "Kildelabel",
+    "en": "Source label"
+  },
+  "Kilder": {
+    "no": "Kilder",
+    "en": "Sources"
+  },
+  "Kjør": {
+    "no": "Kjør",
+    "en": "Run"
   },
   "Kjøretøy": {
     "no": "Kjøretøy",
@@ -795,9 +1095,25 @@
     "no": "Klientnavn er påkrevd.",
     "en": "Client name is required."
   },
+  "Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen. Tabeller kan lastes ned som CSV.": {
+    "no": "Klikk en knapp for å be AI-en lage en strukturert tabell basert på kunnskapsbasen. Tabeller kan lastes ned som CSV.",
+    "en": "Click a button to ask the AI to create a structured table based on the knowledge base. Tables can be downloaded as CSV."
+  },
   "Kommentar": {
     "no": "Kommentar",
     "en": "Comment"
+  },
+  "Kommune": {
+    "no": "Kommune",
+    "en": "Municipality"
+  },
+  "Kommune…": {
+    "no": "Kommune…",
+    "en": "Municipality…"
+  },
+  "Konsentrasjon": {
+    "no": "Konsentrasjon",
+    "en": "Concentration"
   },
   "Kontakt": {
     "no": "Kontakt",
@@ -835,6 +1151,18 @@
     "no": "Kunden bekrefter å ha lest og forstått vilkårene.",
     "en": "The client confirms having read and understood the terms."
   },
+  "Kunne ikke hente svar": {
+    "no": "Kunne ikke hente svar",
+    "en": "Could not fetch answer"
+  },
+  "Kunne ikke laste PDF.": {
+    "no": "Kunne ikke laste PDF.",
+    "en": "Could not load PDF."
+  },
+  "Kunne ikke laste dokumenter.": {
+    "no": "Kunne ikke laste dokumenter.",
+    "en": "Could not load documents."
+  },
   "Kunne ikke laste opp tilbud": {
     "no": "Kunne ikke laste opp tilbud",
     "en": "Could not upload offer"
@@ -855,6 +1183,10 @@
     "no": "Kunnskapsbase",
     "en": "Knowledge base"
   },
+  "Kursvideoer": {
+    "no": "Kursvideoer",
+    "en": "Course videos"
+  },
   "Lagre": {
     "no": "Lagre",
     "en": "Save"
@@ -862,6 +1194,10 @@
   "Lagre behovsanalyse": {
     "no": "Lagre behovsanalyse",
     "en": "Save needs analysis"
+  },
+  "Lagre i kunnskapsbase": {
+    "no": "Lagre i kunnskapsbase",
+    "en": "Save to knowledge base"
   },
   "Lagre innstillinger": {
     "no": "Lagre innstillinger",
@@ -871,17 +1207,69 @@
     "no": "Lagrer…",
     "en": "Saving…"
   },
+  "Lagret": {
+    "no": "Lagret",
+    "en": "Saved"
+  },
+  "Lagt til": {
+    "no": "Lagt til",
+    "en": "Added"
+  },
   "Last inn demo-data": {
     "no": "Last inn demo-data",
     "en": "Load demo data"
+  },
+  "Last ned PDF": {
+    "no": "Last ned PDF",
+    "en": "Download PDF"
+  },
+  "Last ned PDF-rapport": {
+    "no": "Last ned PDF-rapport",
+    "en": "Download PDF report"
+  },
+  "Last ned tabell": {
+    "no": "Last ned tabell",
+    "en": "Download table"
+  },
+  "Last opp": {
+    "no": "Last opp",
+    "en": "Upload"
+  },
+  "Last opp dokument": {
+    "no": "Last opp dokument",
+    "en": "Upload document"
+  },
+  "Last opp dokumenter via knappen øverst til høyre.": {
+    "no": "Last opp dokumenter via knappen øverst til høyre.",
+    "en": "Upload documents via the button in the top right."
+  },
+  "Last opp en CSV-fil med orgnr (én per linje). Selskaper hentes fra BRREG og legges til porteføljen.": {
+    "no": "Last opp en CSV-fil med orgnr (én per linje). Selskaper hentes fra BRREG og legges til porteføljen.",
+    "en": "Upload a CSV file with org.nr (one per line). Companies are fetched from BRREG and added to the portfolio."
+  },
+  "Last opp ny video": {
+    "no": "Last opp ny video",
+    "en": "Upload new video"
   },
   "Last opp tilbud": {
     "no": "Last opp tilbud",
     "en": "Upload offer"
   },
+  "Last opp video": {
+    "no": "Last opp video",
+    "en": "Upload video"
+  },
+  "Laster PDF…": {
+    "no": "Laster PDF…",
+    "en": "Loading PDF…"
+  },
   "Laster opp og analyserer...": {
     "no": "Laster opp og analyserer...",
     "en": "Uploading and analysing..."
+  },
+  "Laster opp…": {
+    "no": "Laster opp…",
+    "en": "Uploading…"
   },
   "Laster pipeline…": {
     "no": "Laster pipeline…",
@@ -903,6 +1291,34 @@
     "no": "Legg til deal i",
     "en": "Add deal to"
   },
+  "Legg til egendefinert tekst": {
+    "no": "Legg til egendefinert tekst",
+    "en": "Add custom text"
+  },
+  "Legg til i portefølje": {
+    "no": "Legg til i portefølje",
+    "en": "Add to portfolio"
+  },
+  "Legg til årsrapport-PDF manuelt": {
+    "no": "Legg til årsrapport-PDF manuelt",
+    "en": "Add annual report PDF manually"
+  },
+  "Legger til forhåndsdefinererte norske forsikrings- og finansreguleringer i kunnskapsbasen (GDPR, IDD, Solvens II, m.fl.). Allerede eksisterende oppføringer hoppes over.": {
+    "no": "Legger til forhåndsdefinererte norske forsikrings- og finansreguleringer i kunnskapsbasen (GDPR, IDD, Solvens II, m.fl.). Allerede eksisterende oppføringer hoppes over.",
+    "en": "Adds predefined Norwegian insurance and financial regulations to the knowledge base (GDPR, IDD, Solvency II, and more). Existing entries are skipped."
+  },
+  "Lignende dokumenter": {
+    "no": "Lignende dokumenter",
+    "en": "Similar documents"
+  },
+  "Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.": {
+    "no": "Lim inn en direkte PDF-URL for et selskap i porteføljen for å berike historikken.",
+    "en": "Paste a direct PDF URL for a company in the portfolio to enrich the history."
+  },
+  "Lim inn notater, sammendrag eller fritekst…": {
+    "no": "Lim inn notater, sammendrag eller fritekst…",
+    "en": "Paste notes, summaries, or free text…"
+  },
   "Logg inn": {
     "no": "Logg inn",
     "en": "Log in"
@@ -918,6 +1334,10 @@
   "Low": {
     "no": "Lav",
     "en": "Low"
+  },
+  "Lukk": {
+    "no": "Lukk",
+    "en": "Close"
   },
   "Lukk anbud": {
     "no": "Lukk anbud",
@@ -983,9 +1403,17 @@
     "no": "Nasjonalt ID-kort",
     "en": "National ID card"
   },
+  "Naturlig språk til SQL": {
+    "no": "Naturlig språk til SQL",
+    "en": "Natural language to SQL"
+  },
   "Navn": {
     "no": "Navn",
     "en": "Name"
+  },
+  "Navn eller orgnr…": {
+    "no": "Navn eller orgnr…",
+    "en": "Name or org.nr…"
   },
   "Navn på kontaktperson hos kunden.": {
     "no": "Navn på kontaktperson hos kunden.",
@@ -1031,6 +1459,10 @@
     "no": "Notater",
     "en": "Notes"
   },
+  "Nullstill": {
+    "no": "Nullstill",
+    "en": "Reset"
+  },
   "Nullstill innsamlet data": {
     "no": "Nullstill innsamlet data",
     "en": "Reset collected data"
@@ -1071,6 +1503,26 @@
     "no": "Nøkkelforskjeller",
     "en": "Key differences"
   },
+  "Nøkkelpunkter": {
+    "no": "Nøkkelpunkter",
+    "en": "Key points"
+  },
+  "Om dokumentet": {
+    "no": "Om dokumentet",
+    "en": "About the document"
+  },
+  "Omsetning": {
+    "no": "Omsetning",
+    "en": "Revenue"
+  },
+  "Omsetning (MNOK)": {
+    "no": "Omsetning (MNOK)",
+    "en": "Revenue (MNOK)"
+  },
+  "Omsetning (MNOK) — topp": {
+    "no": "Omsetning (MNOK) — topp",
+    "en": "Revenue (MNOK) — top"
+  },
   "Omsetning (NOK)": {
     "no": "Omsetning (NOK)",
     "en": "Revenue (NOK)"
@@ -1078,6 +1530,14 @@
   "Operating result": {
     "no": "Driftsresultat",
     "en": "Operating result"
+  },
+  "Opplasting feilet": {
+    "no": "Opplasting feilet",
+    "en": "Upload failed"
+  },
+  "Opplærings- og presentasjonsvideoer for meglere": {
+    "no": "Opplærings- og presentasjonsvideoer for meglere",
+    "en": "Training and presentation videos for brokers"
   },
   "Opprett anbud": {
     "no": "Opprett anbud",
@@ -1119,6 +1579,10 @@
     "no": "Org.nr",
     "en": "Org.no"
   },
+  "Org.nr (valgfritt)": {
+    "no": "Org.nr (valgfritt)",
+    "en": "Org.nr (optional)"
+  },
   "Organisasjonsnummer": {
     "no": "Organisasjonsnummer",
     "en": "Organisation number"
@@ -1131,9 +1595,25 @@
     "no": "Orgnr",
     "en": "Org.no"
   },
+  "Orgnr (9 siffer)": {
+    "no": "Orgnr (9 siffer)",
+    "en": "Org.nr (9 digits)"
+  },
   "PDF": {
     "no": "PDF",
     "en": "PDF"
+  },
+  "PDF funnet": {
+    "no": "PDF funnet",
+    "en": "PDF found"
+  },
+  "PDF-feil": {
+    "no": "PDF-feil",
+    "en": "PDF error"
+  },
+  "PDF-fil *": {
+    "no": "PDF-fil *",
+    "en": "PDF file *"
   },
   "PEP hits": {
     "no": "PEP-treff",
@@ -1155,6 +1635,10 @@
     "no": "Pensjonsforsikringer",
     "en": "Pension insurance"
   },
+  "Periode": {
+    "no": "Periode",
+    "en": "Period"
+  },
   "Personalforsikring": {
     "no": "Personalforsikring",
     "en": "Personal insurance"
@@ -1171,9 +1655,21 @@
     "no": "Pipeline",
     "en": "Pipeline"
   },
+  "Policyer med provisjon": {
+    "no": "Policyer med provisjon",
+    "en": "Policies with commission"
+  },
   "Portefølje": {
     "no": "Portefølje",
     "en": "Portfolio"
+  },
+  "Portefølje ikke funnet": {
+    "no": "Portefølje ikke funnet",
+    "en": "Portfolio not found"
+  },
+  "Portefølje-chat": {
+    "no": "Portefølje-chat",
+    "en": "Portfolio chat"
   },
   "Porteføljeanalyse": {
     "no": "Porteføljeanalyse",
@@ -1187,6 +1683,22 @@
     "no": "Porteføljer",
     "en": "Portfolios"
   },
+  "Premie": {
+    "no": "Premie",
+    "en": "Premium"
+  },
+  "Premie (kr)": {
+    "no": "Premie (kr)",
+    "en": "Premium (NOK)"
+  },
+  "Premie per forsikringsselskap": {
+    "no": "Premie per forsikringsselskap",
+    "en": "Premium per insurer"
+  },
+  "Premie per produkttype": {
+    "no": "Premie per produkttype",
+    "en": "Premium per product type"
+  },
   "Previous questions": {
     "no": "Tidligere spørsmål",
     "en": "Previous questions"
@@ -1194,6 +1706,10 @@
   "Produktappetitt": {
     "no": "Produktappetitt",
     "en": "Product appetite"
+  },
+  "Produkttype": {
+    "no": "Produkttype",
+    "en": "Product type"
   },
   "Produkttyper": {
     "no": "Produkttyper",
@@ -1227,9 +1743,33 @@
     "no": "Prospektering",
     "en": "Prospecting"
   },
+  "Provisjon": {
+    "no": "Provisjon",
+    "en": "Commission"
+  },
   "Provisjon (%)": {
     "no": "Provisjon (%)",
     "en": "Commission (%)"
+  },
+  "Provisjon (kr)": {
+    "no": "Provisjon (kr)",
+    "en": "Commission (NOK)"
+  },
+  "Provisjon per forsikringsselskap": {
+    "no": "Provisjon per forsikringsselskap",
+    "en": "Commission per insurer"
+  },
+  "Provisjon per produkttype": {
+    "no": "Provisjon per produkttype",
+    "en": "Commission per product type"
+  },
+  "Provisjon per produkttype — detaljer": {
+    "no": "Provisjon per produkttype — detaljer",
+    "en": "Commission per product type — details"
+  },
+  "Provisjonssatser er konfidensielle bilaterale avtaler mellom megler og forsikringsselskap. Disse er typiske markedsintervaller — ikke bindende tall.": {
+    "no": "Provisjonssatser er konfidensielle bilaterale avtaler mellom megler og forsikringsselskap. Disse er typiske markedsintervaller — ikke bindende tall.",
+    "en": "Commission rates are confidential bilateral agreements between broker and insurer. These are typical market ranges — not binding figures."
   },
   "Påkrevd felt": {
     "no": "Påkrevd felt",
@@ -1291,6 +1831,10 @@
     "no": "Omsetning og resultat (MNOK)",
     "en": "Revenue & net result (MNOK)"
   },
+  "Risiko": {
+    "no": "Risiko",
+    "en": "Risk"
+  },
   "Risikoappetitt": {
     "no": "Risikoappetitt",
     "en": "Risk appetite"
@@ -1298,6 +1842,18 @@
   "Risikoforhold": {
     "no": "Risikoforhold",
     "en": "Risk factors"
+  },
+  "Risikoscore": {
+    "no": "Risikoscore",
+    "en": "Risk score"
+  },
+  "Risikoscore (0–20)": {
+    "no": "Risikoscore (0–20)",
+    "en": "Risk score (0–20)"
+  },
+  "Risikoscore per selskap": {
+    "no": "Risikoscore per selskap",
+    "en": "Risk score per company"
   },
   "Risk profile": {
     "no": "Risikoprofil",
@@ -1334,6 +1890,10 @@
   "Sales revenue": {
     "no": "Salgsinntekter",
     "en": "Sales revenue"
+  },
+  "Sammendrag": {
+    "no": "Sammendrag",
+    "en": "Summary"
   },
   "Sats (%)": {
     "no": "Sats (%)",
@@ -1375,6 +1935,14 @@
     "no": "Seed fiktive selskaper (full demo)",
     "en": "Seed fictional companies (full demo)"
   },
+  "Seed norske forsikringsreguleringer": {
+    "no": "Seed norske forsikringsreguleringer",
+    "en": "Seed Norwegian insurance regulations"
+  },
+  "Seed reguleringer": {
+    "no": "Seed reguleringer",
+    "en": "Seed regulations"
+  },
   "Seeder…": {
     "no": "Seeder…",
     "en": "Seeding…"
@@ -1395,6 +1963,10 @@
     "no": "Selskaper",
     "en": "Companies"
   },
+  "Selskaper i": {
+    "no": "Selskaper i",
+    "en": "Companies in"
+  },
   "Selskapsnavn": {
     "no": "Selskapsnavn",
     "en": "Company name"
@@ -1402,6 +1974,10 @@
   "Selskapsøk": {
     "no": "Selskapsøk",
     "en": "Company search"
+  },
+  "Send": {
+    "no": "Send",
+    "en": "Send"
   },
   "Send aktivitetspåminnelser": {
     "no": "Send aktivitetspåminnelser",
@@ -1471,6 +2047,10 @@
     "no": "Skjul",
     "en": "Hide"
   },
+  "Skriv inn et gyldig 9-sifret orgnr.": {
+    "no": "Skriv inn et gyldig 9-sifret orgnr.",
+    "en": "Enter a valid 9-digit org.nr."
+  },
   "Slett": {
     "no": "Slett",
     "en": "Delete"
@@ -1507,6 +2087,14 @@
     "no": "Slår opp ~100 største norske selskaper i BRREG og starter AI-agent for årsrapport-PDF. Tar 30–90 minutter.",
     "en": "Looks up the ~100 largest Norwegian companies in BRREG and starts the AI agent for annual report PDFs. Takes 30–90 minutes."
   },
+  "Snitt per avtale": {
+    "no": "Snitt per avtale",
+    "en": "Average per policy"
+  },
+  "Sorter etter:": {
+    "no": "Sorter etter:",
+    "en": "Sort by:"
+  },
   "Source": {
     "no": "Kilde",
     "en": "Source"
@@ -1539,6 +2127,18 @@
     "no": "Spesialforsikring",
     "en": "Specialty insurance"
   },
+  "Spiller nå": {
+    "no": "Spiller nå",
+    "en": "Now playing"
+  },
+  "Spør": {
+    "no": "Spør",
+    "en": "Ask"
+  },
+  "Spør meg om forsikringstyper, risiko, kunderegulering, GDPR eller hvilken dekning et selskap trenger.": {
+    "no": "Spør meg om forsikringstyper, risiko, kunderegulering, GDPR eller hvilken dekning et selskap trenger.",
+    "en": "Ask me about insurance types, risk, customer regulation, GDPR, or what coverage a company needs."
+  },
   "Stage": {
     "no": "Stage",
     "en": "Stage"
@@ -1547,17 +2147,45 @@
     "no": "Start",
     "en": "Start"
   },
+  "Start innhenting": {
+    "no": "Start innhenting",
+    "en": "Start fetching"
+  },
   "Startdato": {
     "no": "Startdato",
     "en": "Start date"
+  },
+  "Starter innhenting for": {
+    "no": "Starter innhenting for",
+    "en": "Starting fetch for"
   },
   "Starter…": {
     "no": "Starter…",
     "en": "Starting…"
   },
+  "Status": {
+    "no": "Status",
+    "en": "Status"
+  },
   "Steg": {
     "no": "Steg",
     "en": "Step"
+  },
+  "Still et spørsmål om dokumentet…": {
+    "no": "Still et spørsmål om dokumentet…",
+    "en": "Ask a question about the document…"
+  },
+  "Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)": {
+    "no": "Still et spørsmål... (Enter for å sende, Shift+Enter for ny linje)",
+    "en": "Ask a question... (Enter to send, Shift+Enter for new line)"
+  },
+  "Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.": {
+    "no": "Still spørsmål om selskapsdatabasen på norsk — AI oversetter til SQL og returnerer resultatene direkte.",
+    "en": "Ask questions about the company database in Norwegian — AI translates to SQL and returns results directly."
+  },
+  "Stopp": {
+    "no": "Stopp",
+    "en": "Stop"
   },
   "Styreansvar (D&O)": {
     "no": "Styreansvar (D&O)",
@@ -1566,6 +2194,10 @@
   "Styreansvarsforsikring": {
     "no": "Styreansvarsforsikring",
     "en": "Directors & Officers insurance"
+  },
+  "Størrelse": {
+    "no": "Størrelse",
+    "en": "Size"
   },
   "Svar mottatt": {
     "no": "Svar mottatt",
@@ -1595,13 +2227,41 @@
     "no": "Søk etter selskap…",
     "en": "Search for insurer…"
   },
+  "Søk etter tekst, begreper, selskaper…": {
+    "no": "Søk etter tekst, begreper, selskaper…",
+    "en": "Search for text, concepts, companies…"
+  },
+  "Søk i kunnskapsbasen": {
+    "no": "Søk i kunnskapsbasen",
+    "en": "Search the knowledge base"
+  },
+  "Søk selskap…": {
+    "no": "Søk selskap…",
+    "en": "Search company…"
+  },
   "Søker…": {
     "no": "Søker…",
     "en": "Searching…"
   },
+  "Tagger (kommaseparert)": {
+    "no": "Tagger (kommaseparert)",
+    "en": "Tags (comma-separated)"
+  },
   "Tax cost": {
     "no": "Skattekostnad",
     "en": "Tax cost"
+  },
+  "Tekst å legge inn": {
+    "no": "Tekst å legge inn",
+    "en": "Text to add"
+  },
+  "Teksten blir delt opp i biter og embeddet for bruk i AI-chat. Knyttes til et orgnr.": {
+    "no": "Teksten blir delt opp i biter og embeddet for bruk i AI-chat. Knyttes til et orgnr.",
+    "en": "The text is split into chunks and embedded for use in AI chat. Linked to an org.nr."
+  },
+  "Teksten kan ikke være tom.": {
+    "no": "Teksten kan ikke være tom.",
+    "en": "The text cannot be empty."
   },
   "Telefon": {
     "no": "Telefon",
@@ -1619,6 +2279,10 @@
     "no": "Tilbake til anbud",
     "en": "Back to tenders"
   },
+  "Tilbake til porteføljer": {
+    "no": "Tilbake til porteføljer",
+    "en": "Back to portfolios"
+  },
   "Ting / Avbrudd": {
     "no": "Ting / Avbrudd",
     "en": "Property / Business interruption"
@@ -1635,6 +2299,14 @@
     "no": "Tjenester (Vedlegg A)",
     "en": "Services (Appendix A)"
   },
+  "Top 15 risiko": {
+    "no": "Top 15 risiko",
+    "en": "Top 15 risk"
+  },
+  "Topp 5 selskaper med høyest risikoscore": {
+    "no": "Topp 5 selskaper med høyest risikoscore",
+    "en": "Top 5 companies with the highest risk score"
+  },
   "Total assets": {
     "no": "Sum eiendeler",
     "en": "Total assets"
@@ -1642,6 +2314,10 @@
   "Total debt": {
     "no": "Sum gjeld",
     "en": "Total debt"
+  },
+  "Total omsetning": {
+    "no": "Total omsetning",
+    "en": "Total revenue"
   },
   "Total operating costs": {
     "no": "Sum driftskostnader",
@@ -1651,9 +2327,21 @@
     "no": "Sum driftsinntekter",
     "en": "Total operating income"
   },
+  "Total premievolum": {
+    "no": "Total premievolum",
+    "en": "Total premium volume"
+  },
+  "Total provisjon (estimert)": {
+    "no": "Total provisjon (estimert)",
+    "en": "Total commission (estimated)"
+  },
   "Total result": {
     "no": "Totalresultat",
     "en": "Total result"
+  },
+  "Totalt chunks": {
+    "no": "Totalt chunks",
+    "en": "Total chunks"
   },
   "Transport": {
     "no": "Transport",
@@ -1667,9 +2355,37 @@
     "no": "Omsetning",
     "en": "Turnover"
   },
+  "Tving full re-indeksering": {
+    "no": "Tving full re-indeksering",
+    "en": "Force full re-indexing"
+  },
   "Type legitimasjon": {
     "no": "Type legitimasjon",
     "en": "Type of ID"
+  },
+  "Typisk bransje": {
+    "no": "Typisk bransje",
+    "en": "Typical industry"
+  },
+  "Typiske provisjonssatser (bransjereferanse)": {
+    "no": "Typiske provisjonssatser (bransjereferanse)",
+    "en": "Typical commission rates (industry reference)"
+  },
+  "Tøm": {
+    "no": "Tøm",
+    "en": "Clear"
+  },
+  "Tøm samtale": {
+    "no": "Tøm samtale",
+    "en": "Clear conversation"
+  },
+  "Ukjent": {
+    "no": "Ukjent",
+    "en": "Unknown"
+  },
+  "Ukjent feil": {
+    "no": "Ukjent feil",
+    "en": "Unknown error"
   },
   "Ulykke": {
     "no": "Ulykke",
@@ -1679,6 +2395,14 @@
     "no": "⚠️ Dette selskapet er under frivillig avvikling",
     "en": "⚠️ This company is currently under voluntary liquidation"
   },
+  "Undertekster tilgjengelig": {
+    "no": "Undertekster tilgjengelig",
+    "en": "Subtitles available"
+  },
+  "Unntak": {
+    "no": "Unntak",
+    "en": "Exclusions"
+  },
   "Upload new offers": {
     "no": "Last opp nye tilbud og lagre til database",
     "en": "Upload new offers and save to database"
@@ -1686,6 +2410,10 @@
   "Utarbeidet": {
     "no": "Utarbeidet",
     "en": "Prepared"
+  },
+  "Utforsk alle selskaper i databasen og legg til i en portefølje": {
+    "no": "Utforsk alle selskaper i databasen og legg til i en portefølje",
+    "en": "Explore all companies in the database and add to a portfolio"
   },
   "Utkast": {
     "no": "Utkast",
@@ -1699,6 +2427,10 @@
     "no": "Varetransportforsikring",
     "en": "Cargo transport insurance"
   },
+  "Varsler": {
+    "no": "Varsler",
+    "en": "Alerts"
+  },
   "Varsler om forfallne og forfalldagsoppgaver.": {
     "no": "Varsler om forfallne og forfalldagsoppgaver.",
     "en": "Notifies about overdue and due-today tasks."
@@ -1707,17 +2439,37 @@
     "no": "Vederlagsgrunnlag",
     "en": "Fee basis"
   },
+  "Velg CSV-fil": {
+    "no": "Velg CSV-fil",
+    "en": "Choose CSV file"
+  },
   "Velg et selskap først.": {
     "no": "Velg et selskap først.",
     "en": "Choose a company first."
+  },
+  "Velg ett dokument til for å sammenligne": {
+    "no": "Velg ett dokument til for å sammenligne",
+    "en": "Select one more document to compare"
+  },
+  "Velg fil": {
+    "no": "Velg fil",
+    "en": "Choose file"
   },
   "Velg forsikringsselskap...": {
     "no": "Velg forsikringsselskap...",
     "en": "Choose insurer..."
   },
+  "Velg hvilken portefølje du vil legge til": {
+    "no": "Velg hvilken portefølje du vil legge til",
+    "en": "Choose which portfolio to add"
+  },
   "Velg minst én forsikringslinje.": {
     "no": "Velg minst én forsikringslinje.",
     "en": "Select at least one insurance line."
+  },
+  "Velg opptil 8 selskaper å sammenligne.": {
+    "no": "Velg opptil 8 selskaper å sammenligne.",
+    "en": "Select up to 8 companies to compare."
   },
   "Velkommen": {
     "no": "Velkommen",
@@ -1731,6 +2483,10 @@
     "no": "Svært høy",
     "en": "Very high"
   },
+  "Videochunks": {
+    "no": "Videochunks",
+    "en": "Video chunks"
+  },
   "Videoer": {
     "no": "Videoer",
     "en": "Videos"
@@ -1739,6 +2495,10 @@
     "no": "Vis profil",
     "en": "View profile"
   },
+  "Viktige vilkår": {
+    "no": "Viktige vilkår",
+    "en": "Important terms"
+  },
   "Vilkår og KYC": {
     "no": "Vilkår og KYC",
     "en": "Terms and KYC"
@@ -1746,6 +2506,18 @@
   "Vis": {
     "no": "Vis",
     "en": "Show"
+  },
+  "Vis PDF": {
+    "no": "Vis PDF",
+    "en": "View PDF"
+  },
+  "Vis SQL": {
+    "no": "Vis SQL",
+    "en": "Show SQL"
+  },
+  "Vis selskaper med egenkapitalandel under 10%": {
+    "no": "Vis selskaper med egenkapitalandel under 10%",
+    "en": "Show companies with equity ratio below 10%"
   },
   "Viser": {
     "no": "Viser",
@@ -1771,9 +2543,25 @@
     "no": "Ytelsespensjon",
     "en": "Defined benefit pension"
   },
+  "allerede i database": {
+    "no": "allerede i database",
+    "en": "already in database"
+  },
   "av": {
     "no": "av",
     "en": "of"
+  },
+  "av 20": {
+    "no": "av 20",
+    "en": "of 20"
+  },
+  "av premievolum": {
+    "no": "av premievolum",
+    "en": "of premium volume"
+  },
+  "avtaler": {
+    "no": "avtaler",
+    "en": "policies"
   },
   "begge": {
     "no": "begge",
@@ -1782,6 +2570,10 @@
   "behovsanalyser i alle selskaper · Klikk for å se detaljer": {
     "no": "behovsanalyser i alle selskaper · Klikk for å se detaljer",
     "en": "needs analyses across all companies · Click to view details"
+  },
+  "biter for orgnr": {
+    "no": "biter for orgnr",
+    "en": "chunks for org.nr"
   },
   "brukere i firmaet": {
     "no": "brukere i firmaet",
@@ -1803,6 +2595,14 @@
     "no": "deals",
     "en": "deals"
   },
+  "dokument(er)": {
+    "no": "dokument(er)",
+    "en": "document(s)"
+  },
+  "dokumenter": {
+    "no": "dokumenter",
+    "en": "documents"
+  },
   "eier denne dealen": {
     "no": "eier denne dealen",
     "en": "owns this deal"
@@ -1811,13 +2611,49 @@
     "no": "f.eks. If Skadeforsikring",
     "en": "e.g. If Skadeforsikring"
   },
+  "feil": {
+    "no": "feil",
+    "en": "error"
+  },
+  "ferdig": {
+    "no": "ferdig",
+    "en": "done"
+  },
+  "fra dokumenter": {
+    "no": "fra dokumenter",
+    "en": "from documents"
+  },
+  "fra videoer": {
+    "no": "fra videoer",
+    "en": "from videos"
+  },
+  "hentet": {
+    "no": "hentet",
+    "en": "fetched"
+  },
   "honorar": {
     "no": "honorar",
     "en": "fee"
   },
+  "hoppet over": {
+    "no": "hoppet over",
+    "en": "skipped"
+  },
   "høy": {
     "no": "høy",
     "en": "high"
+  },
+  "ingen PDF": {
+    "no": "ingen PDF",
+    "en": "no PDF"
+  },
+  "kapitler": {
+    "no": "kapitler",
+    "en": "chapters"
+  },
+  "kr": {
+    "no": "kr",
+    "en": "NOK"
   },
   "lav": {
     "no": "lav",
@@ -1830,6 +2666,10 @@
   "middels": {
     "no": "middels",
     "en": "medium"
+  },
+  "nye chunks": {
+    "no": "nye chunks",
+    "en": "new chunks"
   },
   "opprettet. PDF lastes ned automatisk.": {
     "no": "opprettet. PDF lastes ned automatisk.",
@@ -1847,6 +2687,10 @@
     "no": "rader",
     "en": "rows"
   },
+  "resultater": {
+    "no": "resultater",
+    "en": "results"
+  },
   "selskap": {
     "no": "selskap",
     "en": "company"
@@ -1855,21 +2699,65 @@
     "no": "selskaper",
     "en": "companies"
   },
+  "selskaper har adressedata": {
+    "no": "selskaper har adressedata",
+    "en": "companies have address data"
+  },
+  "selskaper valgt": {
+    "no": "selskaper valgt",
+    "en": "companies selected"
+  },
+  "selskaper…": {
+    "no": "selskaper…",
+    "en": "companies…"
+  },
+  "slettet": {
+    "no": "slettet",
+    "en": "deleted"
+  },
+  "søker etter årsrapporter…": {
+    "no": "søker etter årsrapporter…",
+    "en": "searching for annual reports…"
+  },
   "tilbud": {
     "no": "tilbud",
     "en": "offers"
+  },
+  "tilbud, ansvar": {
+    "no": "tilbud, ansvar",
+    "en": "offer, liability"
+  },
+  "treff": {
+    "no": "treff",
+    "en": "hits"
+  },
+  "ukjent": {
+    "no": "ukjent",
+    "en": "unknown"
   },
   "utarbeidet": {
     "no": "utarbeidet",
     "en": "prepared"
   },
+  "videoer": {
+    "no": "videoer",
+    "en": "videos"
+  },
   "vs industry mid": {
     "no": "vs. bransjegjennomsnitt",
     "en": "vs industry mid"
   },
+  "Åpne profil": {
+    "no": "Åpne profil",
+    "en": "Open profile"
+  },
   "Åpne skader": {
     "no": "Åpne skader",
     "en": "Open claims"
+  },
+  "År": {
+    "no": "År",
+    "en": "Year"
   },
   "år": {
     "no": "år",
@@ -1883,9 +2771,33 @@
     "no": "⚠️ Sletter alle selskaper og regnskapsdata. Er du sikker?",
     "en": "⚠️ Deletes all companies and financial data. Are you sure?"
   },
+  "⬇ Eksporter CSV": {
+    "no": "⬇ Eksporter CSV",
+    "en": "⬇ Export CSV"
+  },
   "🇳🇴 Norges Topp 100": {
     "no": "🇳🇴 Norges Topp 100",
     "en": "🇳🇴 Norway Top 100"
+  },
+  "📊 Cyberforsikring — dekning og unntak": {
+    "no": "📊 Cyberforsikring — dekning og unntak",
+    "en": "📊 Cyber insurance — coverage and exclusions"
+  },
+  "📊 Forsikringslovgivning — nøkkelparagrafer": {
+    "no": "📊 Forsikringslovgivning — nøkkelparagrafer",
+    "en": "📊 Insurance legislation — key sections"
+  },
+  "📊 Oversikt over vanlige bedriftsforsikringer": {
+    "no": "📊 Oversikt over vanlige bedriftsforsikringer",
+    "en": "📊 Overview of common business insurance"
+  },
+  "📊 Sammenlign ansvarsforsikring og produktansvar": {
+    "no": "📊 Sammenlign ansvarsforsikring og produktansvar",
+    "en": "📊 Compare liability insurance and product liability"
+  },
+  "📊 Sammenlign forsikringstilbydere i dokumentene": {
+    "no": "📊 Sammenlign forsikringstilbydere i dokumentene",
+    "en": "📊 Compare insurance providers in the documents"
   },
   "📧 E-postvarsler": {
     "no": "📧 E-postvarsler",
