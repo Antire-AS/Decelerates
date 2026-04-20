@@ -208,6 +208,16 @@ jobs:
                   exit 0
                 fi
                 ;;
+              Stopped)
+                # Scaled to zero on envs with min_replicas=0 (staging).
+                # Healthy only flips true after the startup probe passes,
+                # so Stopped+Healthy means "container ran + /ping passed,
+                # then KEDA scaled back down" — that's a successful deploy.
+                if [ "$HEALTH" = "Healthy" ]; then
+                  echo "Revision $REV is healthy and scaled to zero — accepting."
+                  exit 0
+                fi
+                ;;
               ActivationFailed)
                 echo "::error::Revision $REV failed to activate. See container logs."
                 az containerapp logs show --name "$APP" --resource-group "$RG" \
@@ -286,10 +296,28 @@ jobs:
             --resource-group ${{ env.RG }} \
             --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "url=https://$FQDN" >> $GITHUB_OUTPUT
-          az containerapp update \
-            --name ${{ steps.config.outputs.frontend_app }} \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars "NEXTAUTH_URL=https://$FQDN"
+
+          # A concurrent deploy (e.g. a skip-staging promote landing ~60s after
+          # a staging merge) can hold a provisioning lock on ca-frontend and
+          # the update fails with ContainerAppOperationInProgress. Retry up to
+          # 6× with 20s backoff — concurrent ops typically clear inside 120s.
+          # Any other failure fails fast.
+          for ATTEMPT in 1 2 3 4 5 6; do
+            if az containerapp update \
+                --name ${{ steps.config.outputs.frontend_app }} \
+                --resource-group ${{ env.RG }} \
+                --set-env-vars "NEXTAUTH_URL=https://$FQDN" 2>&1 | tee /tmp/update.log; then
+              exit 0
+            fi
+            if ! grep -q "ContainerAppOperationInProgress" /tmp/update.log; then
+              echo "::error::az update failed for a non-concurrency reason"
+              exit 1
+            fi
+            echo "Concurrent op in progress, retrying in 20s (attempt $ATTEMPT/6)..."
+            sleep 20
+          done
+          echo "::error::Timed out waiting for concurrent container operation"
+          exit 1
 
       - name: Restore custom domains (deploy can drop them)
         if: steps.config.outputs.env == 'prod'
