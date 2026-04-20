@@ -304,29 +304,38 @@ def _readable_source(source: str) -> str:
     return source
 
 
-def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> list:
-    """Hybrid retrieval: vector similarity + source-key keyword match."""
+# pgvector cosine_distance: 0 = identical, 1 = orthogonal, 2 = opposite.
+# 0.55 keeps borderline-relevant matches (corpus is conversational transcript
+# data so similarity scores run lower than a clean document set).
+_MAX_COSINE_DISTANCE = 0.55
+
+
+def _vector_matches(question: str, db: Session, limit: int) -> list:
+    """Vector similarity hits above the relevance threshold."""
     from api.services.knowledge_index import KNOWLEDGE_ORG
 
     q_emb = _embed(question)
-    seen: set[int] = set()
-    results = []
+    if not q_emb:
+        return []
+    distance = CompanyChunk.embedding.cosine_distance(q_emb)
+    return list(
+        db.query(CompanyChunk)
+        .filter(
+            CompanyChunk.orgnr == KNOWLEDGE_ORG,
+            CompanyChunk.embedding.isnot(None),
+            distance < _MAX_COSINE_DISTANCE,
+        )
+        .order_by(distance)
+        .limit(limit)
+        .all()
+    )
 
-    # 1. Vector similarity
-    if q_emb:
-        for r in (
-            db.query(CompanyChunk)
-            .filter(
-                CompanyChunk.orgnr == KNOWLEDGE_ORG, CompanyChunk.embedding.isnot(None)
-            )
-            .order_by(CompanyChunk.embedding.cosine_distance(q_emb))
-            .limit(limit)
-            .all()
-        ):
-            results.append(r)
-            seen.add(r.id)
 
-    # 2. Keyword match on source key (catches exact chapter-title hits the vector misses)
+def _keyword_matches(question: str, db: Session, seen: set[int]) -> list:
+    """Source-key keyword matches — catches exact chapter hits the vector misses."""
+    from api.services.knowledge_index import KNOWLEDGE_ORG
+
+    extra = []
     keywords = [w for w in question.lower().split() if len(w) > 3]
     for kw in keywords[:4]:
         for r in (
@@ -339,9 +348,17 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
             .all()
         ):
             if r.id not in seen:
-                results.append(r)
+                extra.append(r)
                 seen.add(r.id)
+    return extra
 
+
+def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> list:
+    """Hybrid retrieval: vector similarity (filtered by distance) + keyword match."""
+    vector_hits = _vector_matches(question, db, limit)
+    seen = {r.id for r in vector_hits}
+    keyword_hits = _keyword_matches(question, db, seen)
+    results = vector_hits + keyword_hits
     return [{"text": r.chunk_text, "source": r.source} for r in results[: limit + 4]]
 
 
@@ -353,7 +370,7 @@ def chat_knowledge(request: Request, body: ChatRequest, db: Session = Depends(ge
     if not chunks:
         return {
             "question": body.question,
-            "answer": "Ingen kunnskap er indeksert ennå. Gå til Administrer-fanen og klikk 'Indekser kunnskap'.",
+            "answer": "Ingen kunnskap er indeksert ennå, eller ingen relevante kilder for dette spørsmålet. Gå til Administrer-fanen og klikk 'Indekser kunnskap' hvis basen er tom, eller prøv å omformulere spørsmålet.",
             "sources": [],
             "source_snippets": {},
         }

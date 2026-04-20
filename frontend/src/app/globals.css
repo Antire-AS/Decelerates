@@ -27,8 +27,8 @@
   --primary-foreground: 0 0% 100%;
   --secondary:       36 18% 78%;
   --secondary-foreground: 210 29% 24%;
-  --muted:           28 11% 58%;
-  --muted-foreground: 28 11% 42%;
+  --muted:            38 22% 92%;   /* warm off-white; readable as AI bubble + kanban cards */
+  --muted-foreground: 210 18% 35%;  /* darker blue-grey on the soft muted surface */
   --accent:          215 57% 85%;
   --accent-foreground: 210 29% 24%;
   --destructive:     5 64% 49%;

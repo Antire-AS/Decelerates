@@ -60,8 +60,8 @@ export default function ChatTab() {
   }
 
   return (
-    <div className="broker-card flex flex-col" style={{ minHeight: "60vh" }}>
-      <div className="flex-1 space-y-4 overflow-y-auto mb-4" style={{ maxHeight: "55vh" }}>
+    <div className="broker-card flex flex-col" style={{ minHeight: "70vh", maxHeight: "calc(100vh - 220px)" }}>
+      <div className="flex-1 space-y-4 overflow-y-auto mb-4">
         {messages.length === 0 && !isLoading && (
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-sm font-medium text-foreground mb-2">{T("Hei! Jeg er din forsikringsassistent.")}</p>
