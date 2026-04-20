@@ -144,3 +144,44 @@ def test_parsedmail_is_immutable_like_dataclass() -> None:
     """Sanity: ParsedMail is a dataclass with the expected fields."""
     mail = ParsedMail(to_address="a", from_address="b", subject="c", attachments=[])
     assert mail.to_address == "a"
+
+
+# ── process_inbound_mail (mocked DB) ─────────────────────────────────────────
+
+
+def test_process_inbound_rejects_address_without_token(monkeypatch) -> None:
+    """If the To address isn't `tender-<token>@...`, we return matched=False
+    without touching the DB — no lookup, no insert."""
+    from api.services import mail_webhook
+
+    called = {"n": 0}
+
+    def _boom(*args, **kwargs):
+        called["n"] += 1
+        return None
+
+    monkeypatch.setattr(mail_webhook, "find_recipient", _boom)
+    mail = ParsedMail(
+        to_address="hello@broker.example",
+        from_address="x@y",
+        subject="",
+        attachments=[],
+    )
+    result = mail_webhook.process_inbound_mail(db=None, mail=mail)  # type: ignore[arg-type]
+    assert result == {"matched": False, "reason": "no-token-in-address"}
+    assert called["n"] == 0
+
+
+def test_process_inbound_rejects_unknown_token(monkeypatch) -> None:
+    """Address has the right shape but token doesn't map to a recipient."""
+    from api.services import mail_webhook
+
+    monkeypatch.setattr(mail_webhook, "find_recipient", lambda _db, _token: None)
+    mail = ParsedMail(
+        to_address="tender-AbCdEf_1234567890xyz-ABCDEF@broker.example",
+        from_address="x@y",
+        subject="",
+        attachments=[],
+    )
+    result = mail_webhook.process_inbound_mail(db=None, mail=mail)  # type: ignore[arg-type]
+    assert result == {"matched": False, "reason": "token-unknown"}

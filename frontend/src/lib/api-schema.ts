@@ -3511,6 +3511,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/tender-mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tender Mail Webhook
+         * @description Receive an inbound email from the broker's mail provider and route
+         *     attachments to the matching tender + recipient.
+         *
+         *     Recipients are identified by the `To:` local-part: insurers reply to
+         *     `tender-<access_token>@broker.example`. Auth is a shared secret in
+         *     `X-Mail-Webhook-Secret` (env `MAIL_WEBHOOK_SECRET`).
+         */
+        post: operations["tender_mail_webhook_webhooks_tender_mail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -12017,6 +12042,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignicatWebhookAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tender_mail_webhook_webhooks_tender_mail_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-mail-webhook-secret"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
