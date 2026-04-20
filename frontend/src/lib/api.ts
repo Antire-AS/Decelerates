@@ -371,6 +371,24 @@ export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSi
     signal,
   });
 
+export const knowledgeQuickUpload = async (file: File) => {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/bapi/knowledge/quick-upload", {
+    method: "POST",
+    body: fd,
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail ?? `HTTP ${res.status}`);
+  }
+  return (await res.json()) as {
+    doc_id: number;
+    filename: string;
+    chunks_indexed: number;
+  };
+};
+
 // ── Chat history (per-user memory) ───────────────────────────────────────────
 
 export type ChatHistoryMessage = {

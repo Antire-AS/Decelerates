@@ -254,6 +254,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/tender-reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Tender Reminders
+         * @description Send purring emails to tender recipients at the 7d + 2d-before-deadline marks.
+         *
+         *     Wired to a daily GitHub Actions cron at 08:00 UTC. Idempotent enough for
+         *     safety — if the scheduler fires twice in a day, a recipient might get two
+         *     reminders, which is annoying but not dangerous.
+         */
+        post: operations["send_tender_reminders_admin_tender_reminders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/trigger-coverage-gap-alerts": {
         parameters: {
             query?: never;
@@ -1234,6 +1258,26 @@ export interface paths {
         get: operations["knowledge_index_stats_knowledge_index_stats_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/quick-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Knowledge Quick Upload
+         * @description One-click PDF upload + index for the knowledge chat attach button.
+         */
+        post: operations["knowledge_quick_upload_knowledge_quick_upload_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2328,6 +2372,10 @@ export interface paths {
         /**
          * Download Risk Report
          * @description Generate and return a PDF risk assessment report.
+         *
+         *     If the current user has a Fokus-whiteboard for this company, its items
+         *     + notes + AI summary are appended as the last section so the PDF
+         *     reflects what the broker has actually decided to highlight.
          */
         get: operations["download_risk_report_org__orgnr__risk_report_pdf_get"];
         put?: never;
@@ -3604,6 +3652,14 @@ export interface components {
         Body_compare_offers_org__orgnr__offers_compare_post: {
             /** Files */
             files: string[];
+        };
+        /** Body_knowledge_quick_upload_knowledge_quick_upload_post */
+        Body_knowledge_quick_upload_knowledge_quick_upload_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
         };
         /** Body_portal_upload_offer_tenders_portal__access_token__upload_post */
         Body_portal_upload_offer_tenders_portal__access_token__upload_post: {
@@ -5455,6 +5511,28 @@ export interface operations {
             };
         };
     };
+    send_tender_reminders_admin_tender_reminders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     trigger_coverage_gap_alerts_admin_trigger_coverage_gap_alerts_post: {
         parameters: {
             query?: never;
@@ -7233,6 +7311,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KnowledgeStatsOut"];
+                };
+            };
+        };
+    };
+    knowledge_quick_upload_knowledge_quick_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_knowledge_quick_upload_knowledge_quick_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
