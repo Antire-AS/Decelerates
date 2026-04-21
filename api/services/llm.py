@@ -29,7 +29,7 @@ from google.genai import types as genai_types
 from api.constants import GEMINI_MODEL
 from api.domain.exceptions import LlmUnavailableError
 from api.prompts import CHAT_SYSTEM_PROMPT
-from api.telemetry import llm_calls, llm_duration_ms
+from api.telemetry import llm_calls, llm_duration_ms, record_vertex_token_usage
 
 
 _INJECTION_PATTERNS = re.compile(
@@ -191,6 +191,9 @@ def _gemini_generate_with_fallback(
                 resp = client.models.generate_content(
                     model=model, contents=parts, config=config
                 )
+                # Phase 4 follow-up: surface Vertex AI token cost in OTel
+                # so Gemini prompt regressions are visible alongside Foundry.
+                record_vertex_token_usage(resp, model)
                 return resp.text
             except Exception as exc:
                 logger.warning("Gemini model %s failed: %s", model, exc)
