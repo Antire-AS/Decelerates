@@ -53,6 +53,33 @@ jobs:
       - name: Log in to ACR
         run: az acr login --name ${{ env.ACR }}
 
+      - name: Define retry-on-provisioning helper
+        # Shared bash function used by every `az containerapp update / az rest PATCH`
+        # call in this job. Only retries on ContainerAppOperationInProgress — any
+        # other failure fails fast. Concurrent deploys (eg. a [skip-staging]
+        # promote landing ~60s after a staging merge) hold a provisioning lock
+        # on the container app for up to ~2 min; 6× 20s retries cover that
+        # window comfortably.
+        run: |
+          cat > /tmp/retry-on-provisioning.sh <<'SH'
+          retry_on_provisioning() {
+            for ATTEMPT in 1 2 3 4 5 6; do
+              if "$@" 2>&1 | tee /tmp/retry.log; then
+                return 0
+              fi
+              if ! grep -q "ContainerAppOperationInProgress" /tmp/retry.log; then
+                echo "::error::command failed for a non-concurrency reason"
+                return 1
+              fi
+              echo "Concurrent op in progress, retrying in 20s (attempt $ATTEMPT/6)..."
+              sleep 20
+            done
+            echo "::error::Timed out waiting for concurrent container operation"
+            return 1
+          }
+          SH
+          chmod +x /tmp/retry-on-provisioning.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -138,7 +165,8 @@ jobs:
               --env-vars "${ENV_VARS[@]}"
           else
             echo "App exists — env-vars only (image + probe via atomic PATCH below)"
-            az containerapp update \
+            source /tmp/retry-on-provisioning.sh
+            retry_on_provisioning az containerapp update \
               --name ${{ steps.config.outputs.api_app }} \
               --resource-group ${{ env.RG }} \
               --set-env-vars "${ENV_VARS[@]}"
@@ -173,7 +201,8 @@ jobs:
           }]
           print(json.dumps({'properties': {'template': {'containers': [c]}}}))
           ")
-          az rest --method PATCH --url "$API_URL" \
+          source /tmp/retry-on-provisioning.sh
+          retry_on_provisioning az rest --method PATCH --url "$API_URL" \
             --headers "Content-Type=application/json" \
             --body "$PATCHED"
 
@@ -297,27 +326,11 @@ jobs:
             --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "url=https://$FQDN" >> $GITHUB_OUTPUT
 
-          # A concurrent deploy (e.g. a skip-staging promote landing ~60s after
-          # a staging merge) can hold a provisioning lock on ca-frontend and
-          # the update fails with ContainerAppOperationInProgress. Retry up to
-          # 6× with 20s backoff — concurrent ops typically clear inside 120s.
-          # Any other failure fails fast.
-          for ATTEMPT in 1 2 3 4 5 6; do
-            if az containerapp update \
-                --name ${{ steps.config.outputs.frontend_app }} \
-                --resource-group ${{ env.RG }} \
-                --set-env-vars "NEXTAUTH_URL=https://$FQDN" 2>&1 | tee /tmp/update.log; then
-              exit 0
-            fi
-            if ! grep -q "ContainerAppOperationInProgress" /tmp/update.log; then
-              echo "::error::az update failed for a non-concurrency reason"
-              exit 1
-            fi
-            echo "Concurrent op in progress, retrying in 20s (attempt $ATTEMPT/6)..."
-            sleep 20
-          done
-          echo "::error::Timed out waiting for concurrent container operation"
-          exit 1
+          source /tmp/retry-on-provisioning.sh
+          retry_on_provisioning az containerapp update \
+            --name ${{ steps.config.outputs.frontend_app }} \
+            --resource-group ${{ env.RG }} \
+            --set-env-vars "NEXTAUTH_URL=https://$FQDN"
 
       - name: Restore custom domains (deploy can drop them)
         if: steps.config.outputs.env == 'prod'
