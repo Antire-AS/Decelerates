@@ -139,6 +139,32 @@ class TenderService:
         self.db.commit()
         return True
 
+    def mark_contract_signed_by_session(
+        self, contract_session_id: str
+    ) -> Optional[Tender]:
+        """Find the tender that was sent for signature under this provider
+        session and flip its status to `analysed` (the terminal state for the
+        anbud workflow — contract signed, loop closed).
+
+        Called from the public `/webhooks/docuseal` endpoint, which has no
+        auth context and therefore no firm_id. The lookup is by the session
+        id alone; the partial unique index on `contract_session_id` (see
+        migration `h4i5j6k7l8m9`) guarantees at most one row matches.
+        """
+        if not contract_session_id:
+            return None
+        tender = (
+            self.db.query(Tender)
+            .filter(Tender.contract_session_id == contract_session_id)
+            .first()
+        )
+        if not tender:
+            return None
+        tender.status = TenderStatus.analysed
+        self.db.commit()
+        self.db.refresh(tender)
+        return tender
+
     def get_recipients(self, tender_id: int) -> list:
         return (
             self.db.query(TenderRecipient)
