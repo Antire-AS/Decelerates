@@ -50,6 +50,7 @@ def _restore_real_rag_chain_for_integration():
                 setattr(caller, sym, getattr(real, sym))
     yield
 
+
 _TEST_USER_CTX: contextvars.ContextVar = contextvars.ContextVar(
     "test_user", default=None
 )
