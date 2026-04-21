@@ -30,10 +30,14 @@ Two reasons the code ships OFF until a human deliberately enables it:
 
 ```bash
 az containerapp revision set-mode \
-  --name ca-api-prod \
+  --name ca-api \
   --resource-group rg-broker-accelerator-prod \
   --mode multiple
 ```
+
+> The prod container app is named `ca-api` (staging is `ca-api-staging`).
+> An earlier draft of this runbook used `ca-api-prod` — that name does
+> not exist. Run `az containerapp list -o table` to confirm.
 
 After this, every deploy creates a new revision without deactivating
 the old one. The `deploy.yml` canary step will split traffic 90/10 on
@@ -42,11 +46,23 @@ the next deploy.
 ### 2. Set GitHub Actions secrets
 
 - `CANARY_ENABLED` = `1`
-- `APPLICATIONINSIGHTS_APP_ID` = the AI application ID (not the
-  connection string) — found in the Azure portal under the App Insights
-  resource → "API Access". Needed by the watchdog's KQL query.
+- `APPLICATIONINSIGHTS_APP_ID` = `1033c306-2948-4d5d-9e8a-08a12b093024`
+  (pre-looked-up via `az monitor app-insights component show -g
+  rg-broker-accelerator-prod`; this is the App ID for
+  `appi-broker-accelerator-prod`, not the connection string).
 - `APPLICATIONINSIGHTS_API_KEY` = create via App Insights → API Access
-  → "Create API key" with "Read telemetry" permission.
+  → "Create API key" with "Read telemetry" permission. The `az monitor
+  app-insights api-key create` CLI equivalent requires permissions on
+  the AI resource, not just subscription read — run it as an owner:
+  ```bash
+  az monitor app-insights api-key create \
+    --app appi-broker-accelerator-prod \
+    --resource-group rg-broker-accelerator-prod \
+    --api-key canary-watchdog-readonly \
+    --read-properties ReadTelemetry
+  ```
+  Copy the `apiKey` from the response into the GitHub secret *once* —
+  Azure never shows it again.
 
 The deploy step is gated on `env.CANARY_ENABLED == '1' && env == 'prod'`
 so staging deploys are unaffected.
