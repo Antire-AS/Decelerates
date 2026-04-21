@@ -45,3 +45,27 @@ pdf_extraction_duration_ms = _meter.create_histogram(
     unit="ms",
     description="PDF extraction wall-clock duration in milliseconds",
 )
+
+
+def record_vertex_token_usage(resp, model: str) -> None:
+    """Extract Vertex-AI-shaped `usage_metadata` from a generate_content
+    response and record it via the `llm.tokens.*` histograms with
+    provider=\"vertex_ai\".
+
+    Best-effort: telemetry must never fail the caller. Lives here rather
+    than inside api/services/llm.py so api/services/pdf_parse.py can
+    share it without a circular import.
+    """
+    try:
+        usage = getattr(resp, "usage_metadata", None)
+        if usage is None:
+            return
+        prompt = getattr(usage, "prompt_token_count", None) or 0
+        completion = getattr(usage, "candidates_token_count", None) or 0
+        attrs = {"provider": "vertex_ai", "model": model or "unknown"}
+        if prompt:
+            llm_tokens_prompt.record(int(prompt), attrs)
+        if completion:
+            llm_tokens_completion.record(int(completion), attrs)
+    except Exception:
+        pass  # metering is best-effort
