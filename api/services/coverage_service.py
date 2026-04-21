@@ -87,7 +87,12 @@ class CoverageService:
         return analysis
 
     def run_analysis(self, analysis_id: int) -> CoverageAnalysis:
-        """Run AI extraction on a pending coverage analysis."""
+        """Run AI extraction on a pending coverage analysis.
+
+        # FIRM_ID_AUDIT: `analysis_id` is always obtained by the caller via
+        # `svc.get(analysis_id, user.firm_id)` which pre-filters by firm,
+        # so this method is reached with a row the broker is entitled to.
+        """
         analysis = self.db.query(CoverageAnalysis).get(analysis_id)
         if not analysis:
             raise ValueError(f"Coverage analysis {analysis_id} not found")

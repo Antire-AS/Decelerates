@@ -27,7 +27,11 @@ router = APIRouter()
 def _resolve_user_id(db: Session, user: CurrentUser) -> int:
     """Look up the numeric users.id from the Azure OID. Returns 404 if the
     user record hasn't been auto-provisioned yet (shouldn't happen in
-    practice — first login provisions via UserService.get_or_create)."""
+    practice — first login provisions via UserService.get_or_create).
+
+    # FIRM_ID_AUDIT: azure_oid is globally unique per user; firm_id would be
+    # redundant scoping and block legitimate first-login lookups.
+    """
     row = db.query(User).filter(User.azure_oid == user.oid).first()
     if not row:
         raise HTTPException(status_code=404, detail="User record not found")

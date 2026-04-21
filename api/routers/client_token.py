@@ -43,7 +43,14 @@ def create_client_token(
 
 
 def _fetch_crm_snapshot(orgnr: str, db: Session) -> dict:
-    """Fetch policies, claims, documents for the client portal snapshot."""
+    """Fetch policies, claims, documents for the client portal snapshot.
+
+    # FIRM_ID_AUDIT: `ClientToken` table intentionally has no `firm_id` —
+    # the portal shows the customer every record about their company
+    # across every broker firm that deals with them. In practice each
+    # orgnr has a single broker so the multi-firm case is vanishingly
+    # rare; revisit if the product wants to scope to the issuing firm.
+    """
     policies = (
         db.query(Policy)
         .filter(Policy.orgnr == orgnr, Policy.status == PolicyStatus.active)

@@ -148,6 +148,9 @@ class RecommendationService:
         return self._get_or_raise(orgnr, firm_id, rec_id)
 
     def store_pdf(self, rec_id: int, pdf_bytes: bytes) -> None:
+        # FIRM_ID_AUDIT: callers in api/routers/recommendations.py obtain
+        # rec_id via `svc.get(orgnr, user.firm_id, rec_id)` (→ _get_or_raise)
+        # before calling this method, so rec_id is already firm-scoped.
         row = self.db.query(Recommendation).filter(Recommendation.id == rec_id).first()
         if row:
             row.pdf_content = pdf_bytes
@@ -158,7 +161,11 @@ class RecommendationService:
                 raise
 
     def attach_signing_session(self, rec_id: int, session_id: str) -> None:
-        """Plan §🟢 #11 — record the Signicat session id on a recommendation."""
+        """Plan §🟢 #11 — record the Signicat session id on a recommendation.
+
+        # FIRM_ID_AUDIT: same as store_pdf — the router pre-scopes rec_id
+        # via _get_or_raise before calling this write path.
+        """
         row = self.db.query(Recommendation).filter(Recommendation.id == rec_id).first()
         if row:
             row.signing_session_id = session_id
@@ -174,7 +181,14 @@ class RecommendationService:
         signed_pdf_blob_url: Optional[str] = None,
     ) -> Optional[Recommendation]:
         """Plan §🟢 #11 — webhook handler. Updates by session_id (not rec_id)
-        because Signicat only knows the session, never our internal id."""
+        because Signicat only knows the session, never our internal id.
+
+        # FIRM_ID_AUDIT: invoked from the Signicat webhook after HMAC
+        # verification. Signicat doesn't carry our firm_id, and the
+        # session_id was minted by the original firm-scoped create call;
+        # there's only ever one row with this session_id thanks to the
+        # unique constraint, so the lookup is safe by construction.
+        """
         from datetime import datetime, timezone
 
         row = (

@@ -411,13 +411,23 @@ class TestUserService:
         db = _mock_db()
         svc = UserService(db)
         with pytest.raises(ForbiddenError):
-            svc.update_role(1, UserRoleUpdate(role="admin"), requester_role="broker")
+            svc.update_role(
+                1,
+                UserRoleUpdate(role="admin"),
+                requester_role="broker",
+                requester_firm_id=1,
+            )
 
     def test_update_role_unknown_role_raises(self):
         db = _mock_db()
         svc = UserService(db)
         with pytest.raises(NotFoundError):
-            svc.update_role(1, UserRoleUpdate(role="superuser"), requester_role="admin")
+            svc.update_role(
+                1,
+                UserRoleUpdate(role="superuser"),
+                requester_role="admin",
+                requester_firm_id=1,
+            )
 
     def test_update_role_success(self):
         db = _mock_db()
@@ -427,7 +437,7 @@ class TestUserService:
         mock_q.first.return_value = existing
 
         UserService(db).update_role(
-            1, UserRoleUpdate(role="admin"), requester_role="admin"
+            1, UserRoleUpdate(role="admin"), requester_role="admin", requester_firm_id=1
         )
         assert existing.role == UserRole.admin
         db.commit.assert_called_once()

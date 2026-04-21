@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationInboxService:
+    """Notifications are scoped via `user_id` — see individual methods."""
+
     def __init__(self, db: Session) -> None:
         self.db = db
 
@@ -30,12 +32,16 @@ class NotificationInboxService:
         unread_only: bool = False,
         limit: int = 50,
     ) -> List[Notification]:
+        # FIRM_ID_AUDIT: user_id is stronger scoping than firm_id here —
+        # each user belongs to exactly one firm, and the router resolves
+        # user_id from the authenticated oid.
         q = self.db.query(Notification).filter(Notification.user_id == user_id)
         if unread_only:
             q = q.filter(Notification.read.is_(False))
         return q.order_by(Notification.created_at.desc()).limit(limit).all()
 
     def unread_count(self, user_id: int) -> int:
+        # FIRM_ID_AUDIT: see list_for_user — user_id scope is strongest.
         return (
             self.db.query(Notification)
             .filter(Notification.user_id == user_id, Notification.read.is_(False))
@@ -104,7 +110,10 @@ class NotificationInboxService:
 
     def mark_read(self, notification_id: int, user_id: int) -> Notification:
         """Mark a single notification as read. user_id check prevents one
-        broker from marking another's notifications."""
+        broker from marking another's notifications.
+
+        # FIRM_ID_AUDIT: user_id is the per-user scope (stronger than firm_id).
+        """
         notif = (
             self.db.query(Notification)
             .filter(Notification.id == notification_id, Notification.user_id == user_id)
@@ -123,7 +132,10 @@ class NotificationInboxService:
         return notif
 
     def mark_all_read(self, user_id: int) -> int:
-        """Bulk mark every unread notification for this user. Returns count."""
+        """Bulk mark every unread notification for this user. Returns count.
+
+        # FIRM_ID_AUDIT: user_id scope is stronger than firm_id.
+        """
         updated = (
             self.db.query(Notification)
             .filter(Notification.user_id == user_id, Notification.read.is_(False))

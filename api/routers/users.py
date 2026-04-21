@@ -65,6 +65,7 @@ def update_role(
             user_id,
             body,
             requester_role=user.role if hasattr(user, "role") else "broker",
+            requester_firm_id=user.firm_id,
         )
         log_audit(
             db, "user.role.update", detail={"user_id": user_id, "new_role": body.role}

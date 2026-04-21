@@ -26,6 +26,7 @@ def _svc(db: Session = Depends(get_db)) -> SavedSearchService:
 
 
 def _resolve_user_id(db: Session, user: CurrentUser) -> int:
+    # FIRM_ID_AUDIT: azure_oid is globally unique; firm_id would be redundant.
     row = db.query(User).filter(User.azure_oid == user.oid).first()
     if not row:
         raise HTTPException(status_code=404, detail="User record not found")
