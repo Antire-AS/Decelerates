@@ -1,0 +1,41 @@
+name: Dependabot auto-merge
+
+# Auto-enable squash-merge on Dependabot PRs that qualify as low-risk:
+# (a) the update is a `patch` semver bump, OR
+# (b) the advisory is a security fix (regardless of semver type).
+# Minor and major updates still require human review. The merge only
+# completes once all required checks pass — GitHub's auto-merge queue
+# handles the actual merging.
+#
+# Rationale: 7 advisories (2 high, 5 moderate) sat open during the
+# 2026-04-20 sprint because one-line bumps were routed through manual
+# review. Patch-level security bumps have near-zero behaviour change and
+# are standard industry practice for auto-merge.
+
+on: pull_request_target
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge on patch + security updates
+        # Enable merge; actual merging happens only after required
+        # checks pass (branch-protection gate).
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.alert-state == 'open'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
