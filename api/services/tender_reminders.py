@@ -78,7 +78,12 @@ def _remind_one_tender(db: Session, tender: Tender) -> tuple[int, int]:
 
 
 def send_deadline_reminders(db: Session, today: date | None = None) -> dict[str, Any]:
-    """Send deadline reminders for all tenders hitting the 7d or 2d threshold."""
+    """Send deadline reminders for all tenders hitting the 7d or 2d threshold.
+
+    # FIRM_ID_AUDIT: system-level cron that iterates every firm's active
+    # tenders by design; reminder emails are addressed to the tender's
+    # creator, so firm-scoping is implicit via `tender.firm_id` downstream.
+    """
     today = today or datetime.now(timezone.utc).date()
     sent_count = 0
     failed_count = 0

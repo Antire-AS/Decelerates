@@ -171,7 +171,9 @@ def test_list_users_returns_empty_list_when_none():
 def test_update_role_raises_forbidden_when_not_admin():
     db = _mock_db()
     with pytest.raises(ForbiddenError, match="Only admins"):
-        UserService(db).update_role(1, _role_update("broker"), requester_role="broker")
+        UserService(db).update_role(
+            1, _role_update("broker"), requester_role="broker", requester_firm_id=1
+        )
 
 
 def test_update_role_raises_not_found_for_unknown_role():
@@ -179,7 +181,7 @@ def test_update_role_raises_not_found_for_unknown_role():
     db.query.return_value.filter.return_value.first.return_value = _mock_user()
     with pytest.raises(NotFoundError, match="Unknown role"):
         UserService(db).update_role(
-            1, _role_update("superuser"), requester_role="admin"
+            1, _role_update("superuser"), requester_role="admin", requester_firm_id=1
         )
 
 
@@ -187,14 +189,18 @@ def test_update_role_raises_not_found_for_missing_user():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = None
     with pytest.raises(NotFoundError, match="User 999 not found"):
-        UserService(db).update_role(999, _role_update("admin"), requester_role="admin")
+        UserService(db).update_role(
+            999, _role_update("admin"), requester_role="admin", requester_firm_id=1
+        )
 
 
 def test_update_role_sets_new_role():
     user = _mock_user(role=UserRole.broker)
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = user
-    UserService(db).update_role(1, _role_update("admin"), requester_role="admin")
+    UserService(db).update_role(
+        1, _role_update("admin"), requester_role="admin", requester_firm_id=1
+    )
     assert user.role == UserRole.admin
 
 
@@ -202,7 +208,9 @@ def test_update_role_commits():
     user = _mock_user()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = user
-    UserService(db).update_role(1, _role_update("viewer"), requester_role="admin")
+    UserService(db).update_role(
+        1, _role_update("viewer"), requester_role="admin", requester_firm_id=1
+    )
     db.commit.assert_called_once()
 
 
@@ -211,7 +219,7 @@ def test_update_role_returns_updated_user():
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = user
     result = UserService(db).update_role(
-        1, _role_update("admin"), requester_role="admin"
+        1, _role_update("admin"), requester_role="admin", requester_firm_id=1
     )
     assert result is user
 
@@ -221,7 +229,9 @@ def test_update_role_accepts_all_valid_roles(role):
     user = _mock_user()
     db = _mock_db()
     db.query.return_value.filter.return_value.first.return_value = user
-    UserService(db).update_role(1, _role_update(role), requester_role="admin")
+    UserService(db).update_role(
+        1, _role_update(role), requester_role="admin", requester_firm_id=1
+    )
     assert user.role == UserRole[role]
 
 
