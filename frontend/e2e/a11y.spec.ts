@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * WCAG 2.1 AA gate — runs axe-core against the 6 highest-traffic
@@ -26,6 +27,10 @@ const SURFACES: Array<{ path: string; label: string }> = [
   { path: "/renewals", label: "renewals" },
   { path: "/knowledge", label: "knowledge" },
 ];
+
+test.beforeEach(async ({ page }) => {
+  await dismissOnboarding(page);
+});
 
 for (const { path, label } of SURFACES) {
   test(`a11y: ${label} has no serious or critical axe violations`, async ({ page }) => {
