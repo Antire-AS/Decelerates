@@ -261,6 +261,42 @@ jobs:
             --revision "$REV" --tail 50 2>&1 || true
           exit 1
 
+      - name: Canary watchdog (CANARY_ENABLED only)
+        # Phase 7 of application-hardening plan. Dormant until
+        # `az containerapp revision set-mode --mode multiple` is run
+        # on the target Container App AND `CANARY_ENABLED=1` is set on
+        # the workflow secrets. See docs/runbooks/canary-activation.md.
+        #
+        # When active: the new revision has just passed the Healthy probe
+        # above. We split traffic 90/10 (old/new) and let the watchdog
+        # observe 5xx rate for 5 minutes. If the rate exceeds 2% the
+        # watchdog rolls traffic back to 100% old and fails this step.
+        # If the window passes cleanly the watchdog promotes to 100% new.
+        if: ${{ env.CANARY_ENABLED == '1' && steps.config.outputs.env == 'prod' }}
+        env:
+          CANARY_ENABLED: ${{ secrets.CANARY_ENABLED }}
+          APPLICATIONINSIGHTS_APP_ID: ${{ secrets.APPLICATIONINSIGHTS_APP_ID }}
+          APPLICATIONINSIGHTS_API_KEY: ${{ secrets.APPLICATIONINSIGHTS_API_KEY }}
+        run: |
+          APP=${{ steps.config.outputs.api_app }}
+          RG=${{ env.RG }}
+          NEW_REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
+            --query properties.latestRevisionName -o tsv)
+          PREV_REV=$(az containerapp revision list --name "$APP" \
+            --resource-group "$RG" \
+            --query "[?properties.active && name != '$NEW_REV'] | [0].name" -o tsv)
+          if [ -z "$PREV_REV" ]; then
+            echo "No previous active revision — skipping canary on first deploy."
+            exit 0
+          fi
+          echo "Splitting traffic 90/10 between $PREV_REV and $NEW_REV"
+          az containerapp ingress traffic set \
+            --name "$APP" --resource-group "$RG" \
+            --revision-weight "$PREV_REV=90" "$NEW_REV=10"
+          python scripts/canary_watchdog.py \
+            --app "$APP" --resource-group "$RG" \
+            --new-revision "$NEW_REV" --previous-revision "$PREV_REV"
+
       - name: Get API URL
         id: api
         run: |
