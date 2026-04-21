@@ -1,19 +1,10 @@
 """Unit tests for api/services/rag.py — RagService + helpers.
 
 Pure static tests — uses MagicMock DB; no real infrastructure required.
-api.rag_chain is stubbed before import to avoid langchain dependency.
+Specific rag_chain behaviour is patched per-test via `@patch(...)`.
 """
 
-import sys
 from unittest.mock import MagicMock, patch
-
-
-# Stub api.rag_chain before importing rag.py to avoid langchain at import time.
-_rag_chain_stub = MagicMock()
-_rag_chain_stub.chunk_text = MagicMock(return_value=["chunk1"])
-_rag_chain_stub.embed_chunks = MagicMock(return_value=[("chunk1", "src", [0.1, 0.2])])
-if "api.rag_chain" not in sys.modules:
-    sys.modules["api.rag_chain"] = _rag_chain_stub
 
 from api.services.rag import (
     RagService,

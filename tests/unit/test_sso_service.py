@@ -3,7 +3,6 @@
 import sys
 from unittest.mock import MagicMock
 
-sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 import pytest

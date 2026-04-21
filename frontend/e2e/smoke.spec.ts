@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Smoke tests — every top-level broker page must render without throwing.
@@ -28,6 +29,10 @@ const PAGES: Array<{ path: string; landmark: RegExp | string }> = [
   { path: "/insurers",        landmark: /forsikringssel/i },
   { path: "/prospecting",     landmark: /prospekt/i },
 ];
+
+test.beforeEach(async ({ page }) => {
+  await dismissOnboarding(page);
+});
 
 for (const { path, landmark } of PAGES) {
   test(`smoke: ${path} renders`, async ({ page }) => {

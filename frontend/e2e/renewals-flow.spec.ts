@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Renewals flow — broker reviews upcoming policy renewals.
@@ -10,6 +11,10 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("Renewals", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissOnboarding(page);
+  });
+
   test("page renders heading and renewal content", async ({ page }) => {
     await page.goto("/renewals");
     await expect(page.getByRole("heading", { name: /Fornyelsespipeline/i })).toBeVisible({ timeout: 30_000 });

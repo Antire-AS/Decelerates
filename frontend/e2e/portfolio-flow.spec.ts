@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Portfolio flow — broker browses their book of business via the portfolio
@@ -9,6 +10,10 @@ import { test, expect } from "@playwright/test";
  * is the cross-portfolio dashboard, and /portfolio/[id] is the per-portfolio
  * detail view (skipped if no portfolios exist in the env).
  */
+
+test.beforeEach(async ({ page }) => {
+  await dismissOnboarding(page);
+});
 
 test("portfolio: list page renders the create-portfolio call to action", async ({ page }) => {
   await page.goto("/portfolio");
