@@ -208,6 +208,8 @@ class CoverageGapService:
                         }
                     )
             except Exception:
+                # Per-orgnr isolation; log so repeated failures surface.
+                logger.exception("gap analysis failed orgnr=%s", orgnr)
                 continue
         return results
 

@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+logger = logging.getLogger(__name__)
+
 from api.db import InsuranceDocument
 
 _log = logging.getLogger(__name__)
@@ -92,7 +94,10 @@ def _text_to_pdf(text: str, title: str) -> bytes:
         try:
             pdf.multi_cell(0, 5, line[:200])
         except Exception:
-            pass
+            # fpdf occasionally chokes on exotic glyphs — skip individual
+            # lines rather than abort the whole demo PDF. Debug-level so
+            # we don't spam prod logs with benign rendering hiccups.
+            logger.debug("fpdf multi_cell skipped a line in demo PDF")
     return pdf.output()
 
 
