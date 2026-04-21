@@ -33,7 +33,15 @@ def _get_gap_summary(policy: Policy, db: Session) -> str:
             )
             return f"Manglende dekning: {gap_types}."
     except Exception:
-        pass
+        # Gap summary is a nice-to-have on the renewal email; swallow to
+        # keep the email send path robust, but log so persistent failures
+        # show up. Without this, stale gap data would silently disappear
+        # from every renewal notification.
+        _log.exception(
+            "renewal_agent gap summary failed for policy=%s orgnr=%s",
+            policy.id,
+            policy.orgnr,
+        )
     return ""
 
 
