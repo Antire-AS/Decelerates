@@ -156,7 +156,12 @@ class PolicyService:
         )
 
     def mark_renewal_notified(self, policy_id: int, threshold_days: int) -> None:
-        """Record that a renewal notification was sent at this threshold."""
+        """Record that a renewal notification was sent at this threshold.
+
+        # FIRM_ID_AUDIT: called only from `_notify_threshold` after
+        # `get_policies_needing_renewal_notification(firm_id, ...)` already
+        # filtered by firm; policy_id is guaranteed to belong to that firm.
+        """
         self.db.query(Policy).filter(Policy.id == policy_id).update(
             {"last_renewal_notified_days": threshold_days}
         )

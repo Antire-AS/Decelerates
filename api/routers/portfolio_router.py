@@ -349,7 +349,14 @@ def get_portfolio_alerts(
     user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Detect significant YoY financial changes for companies in the portfolio."""
-    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    # Scope to the caller's firm — without this an attacker with any valid
+    # portfolio_id could read another firm's alerts. Tenant-isolation audit
+    # caught this on 2026-04-21.
+    portfolio = (
+        db.query(Portfolio)
+        .filter(Portfolio.id == portfolio_id, Portfolio.firm_id == user.firm_id)
+        .first()
+    )
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
     return collect_alerts(portfolio_id, db)

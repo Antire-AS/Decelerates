@@ -221,6 +221,10 @@ class AdminService:
         return {"reset": True, "deleted_rows": deleted}
 
     def _get_or_create_portfolio(self, name: str, description: str) -> Portfolio:
+        # FIRM_ID_AUDIT: admin seed helper for demo/top-100 system-wide
+        # portfolios. `Portfolio.firm_id` is nullable by design so these
+        # demo fixtures aren't scoped to any broker firm. Callers live under
+        # /admin/demo and /admin/seed-norway-top100 which are admin-only.
         portfolio = self.db.query(Portfolio).filter(Portfolio.name == name).first()
         if not portfolio:
             portfolio = Portfolio(
