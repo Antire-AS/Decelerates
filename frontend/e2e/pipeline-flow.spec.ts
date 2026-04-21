@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Pipeline flow — broker manages deals via the kanban board.
@@ -12,6 +13,10 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("Pipeline", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissOnboarding(page);
+  });
+
   test("page renders heading and Ny deal button", async ({ page }) => {
     await page.goto("/pipeline");
     await expect(page.getByRole("heading", { name: /Pipeline/i })).toBeVisible({ timeout: 30_000 });

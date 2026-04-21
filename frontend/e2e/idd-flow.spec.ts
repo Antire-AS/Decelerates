@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * IDD + Insurers + SLA flow — broker uses compliance and configuration pages.
@@ -9,6 +10,10 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("IDD, Insurers, and SLA", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissOnboarding(page);
+  });
+
   test("IDD page renders heading and behovsanalyser list or empty state", async ({ page }) => {
     await page.goto("/idd");
     await expect(page.getByRole("heading", { name: /IDD Behovsanalyse/i })).toBeVisible({ timeout: 30_000 });

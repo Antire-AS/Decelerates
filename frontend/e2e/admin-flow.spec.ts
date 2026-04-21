@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Admin flow — admin panel with system stats, data controls, and exports.
@@ -15,6 +16,10 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("Admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissOnboarding(page);
+  });
+
   test("page renders heading and stats grid", async ({ page }) => {
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: /Admin/i })).toBeVisible({ timeout: 30_000 });

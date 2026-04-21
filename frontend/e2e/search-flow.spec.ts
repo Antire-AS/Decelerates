@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * Search flow — broker types in a company name (or org number), picks a
@@ -10,6 +11,10 @@ import { test, expect } from "@playwright/test";
  */
 
 const DNB_ORGNR = "984851006";
+
+test.beforeEach(async ({ page }) => {
+  await dismissOnboarding(page);
+});
 
 test("search-flow: search page renders heading and input", async ({ page }) => {
   await page.goto("/search");

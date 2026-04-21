@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { dismissOnboarding } from "./_helpers";
 
 /**
  * CRM flow — broker navigates to a company profile and interacts with the
@@ -12,6 +13,10 @@ import { test, expect } from "@playwright/test";
 const DNB_ORGNR = "984851006";
 
 test.describe("CRM and Chat", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissOnboarding(page);
+  });
+
   test("DNB profile loads and shows tab bar", async ({ page }) => {
     await page.goto(`/search/${DNB_ORGNR}`);
     await expect(page.getByText(/DNB BANK ASA/i).first()).toBeVisible({ timeout: 30_000 });
