@@ -8,6 +8,7 @@ service so the audit trail can't be skipped by adding a new caller.
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
@@ -87,6 +88,14 @@ def create_stage(
         stage = svc.create_stage(user.firm_id, body, user.email)
     except NotFoundError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    except IntegrityError:
+        # uq_pipeline_stage_firm_name — broker already has a stage with this
+        # name. Surface as 409 so the frontend can render "Name already taken"
+        # instead of a generic 5xx.
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="Et steg med dette navnet finnes allerede."
+        )
     log_audit(db, "stage.create", detail={"stage_id": stage.id, "name": body.name})
     return _serialize_stage(stage)
 
