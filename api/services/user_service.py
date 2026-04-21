@@ -47,13 +47,19 @@ class UserService:
         return user
 
     def get_by_oid(self, oid: str) -> Optional[User]:
+        # FIRM_ID_AUDIT: Azure OID is globally unique per user; a firm_id
+        # filter would be redundant and block legitimate first-login lookups.
         return self.db.query(User).filter(User.azure_oid == oid).first()
 
     def list_users(self, firm_id: int) -> list[User]:
         return self.db.query(User).filter(User.firm_id == firm_id).all()
 
     def update_role(
-        self, user_id: int, body: UserRoleUpdate, requester_role: str
+        self,
+        user_id: int,
+        body: UserRoleUpdate,
+        requester_role: str,
+        requester_firm_id: int,
     ) -> User:
         if requester_role != "admin":
             raise ForbiddenError("Only admins can change user roles")
@@ -61,7 +67,14 @@ class UserService:
             new_role = UserRole[body.role]
         except KeyError:
             raise NotFoundError(f"Unknown role: {body.role}")
-        user = self.db.query(User).filter(User.id == user_id).first()
+        # Admins can only update users in their own firm. Without this filter
+        # an admin of firm A could flip roles on firm B's users just by
+        # guessing user_ids — the tenant-isolation audit caught this.
+        user = (
+            self.db.query(User)
+            .filter(User.id == user_id, User.firm_id == requester_firm_id)
+            .first()
+        )
         if not user:
             raise NotFoundError(f"User {user_id} not found")
         user.role = new_role  # type: ignore[assignment]

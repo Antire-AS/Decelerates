@@ -28,6 +28,10 @@ def verify_api_key(
     """Validate the X-API-Key header against Insurer.api_key.
 
     Returns the authenticated Insurer row. Raises 401 if no match.
+
+    # FIRM_ID_AUDIT: Insurer-facing API, not broker-facing. Scope here is
+    # `insurer_id` (each API key belongs to a specific insurer) — firm_id
+    # is the wrong axis for this entire module.
     """
     if not x_api_key or not x_api_key.strip():
         raise HTTPException(status_code=401, detail="Missing API key")
@@ -68,7 +72,10 @@ class SubmissionView(BaseModel):
 def _get_submission_for_insurer(
     db: Session, submission_id: int, insurer_id: int
 ) -> Submission:
-    """Look up a submission that belongs to the given insurer, or raise 404."""
+    """Look up a submission that belongs to the given insurer, or raise 404.
+
+    # FIRM_ID_AUDIT: insurer-facing API scopes by insurer_id, not firm_id.
+    """
     sub = (
         db.query(Submission)
         .filter(

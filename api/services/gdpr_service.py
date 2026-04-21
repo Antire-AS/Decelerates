@@ -66,6 +66,9 @@ class GdprService:
         return self._serialize_export(company, records)
 
     def _fetch_related_records(self, orgnr: str) -> dict:
+        # FIRM_ID_AUDIT: GDPR Art. 20 export is scoped to the data subject
+        # (the company identified by orgnr), not a single broker firm. All
+        # records across every firm that reference this orgnr must appear.
         return {
             "history": (
                 self.db.query(CompanyHistory)
