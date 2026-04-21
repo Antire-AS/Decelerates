@@ -15,14 +15,46 @@ shapes:
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 from urllib.parse import urlparse
 
 import requests
 
 from api.ports.driven.llm_port import LlmPort
+from api.telemetry import llm_tokens_completion, llm_tokens_prompt
 
 logger = logging.getLogger(__name__)
+
+
+def _record_token_counts(
+    prompt: int, completion: int, provider: str, model: str
+) -> None:
+    """Push prompt + completion token counts to OpenTelemetry histograms.
+
+    Best-effort: a telemetry failure must never fail the LLM call. Attributes
+    are `provider` (e.g. `foundry`, `foundry_embed`) + `model` so the App
+    Insights dashboard can break cost down by model family.
+    """
+    try:
+        attrs = {"provider": provider, "model": model or "unknown"}
+        if prompt:
+            llm_tokens_prompt.record(int(prompt), attrs)
+        if completion:
+            llm_tokens_completion.record(int(completion), attrs)
+    except Exception:
+        pass  # metering is best-effort
+
+
+def _record_token_usage(resp: Any, provider: str, model: str) -> None:
+    """Extract OpenAI-shaped `usage` from a chat completion response and
+    record it. Accepts either SDK objects (with `.usage.prompt_tokens`)
+    or dict-shaped responses. Silent no-op if usage is missing."""
+    usage = getattr(resp, "usage", None)
+    if usage is None:
+        return
+    prompt = getattr(usage, "prompt_tokens", None) or 0
+    completion = getattr(usage, "completion_tokens", None) or 0
+    _record_token_counts(prompt, completion, provider, model)
 
 
 @dataclass(frozen=True)
@@ -79,12 +111,14 @@ class FoundryLlmAdapter(LlmPort):
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": user_prompt})
+        resolved_model = model or self._config.default_text_model
         try:
             resp = self._get_chat_client().chat.completions.create(
-                model=model or self._config.default_text_model,
+                model=resolved_model,
                 messages=messages,
                 max_completion_tokens=max_completion_tokens,
             )
+            _record_token_usage(resp, "foundry", resolved_model)
             return resp.choices[0].message.content
         except Exception as exc:
             logger.warning("Foundry chat failed: %s", exc)
@@ -114,6 +148,15 @@ class FoundryLlmAdapter(LlmPort):
             )
             resp.raise_for_status()
             data = resp.json()
+            # Azure OpenAI REST response includes `usage.prompt_tokens`.
+            # Embeddings have no "completion" side — record 0 there.
+            usage = data.get("usage") or {}
+            _record_token_counts(
+                int(usage.get("prompt_tokens") or 0),
+                0,
+                "foundry_embed",
+                self._config.embedding_deployment,
+            )
             return data["data"][0]["embedding"]
         except Exception as exc:
             logger.warning("Foundry embed failed: %s", exc)
