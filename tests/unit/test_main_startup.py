@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
-sys.modules.setdefault("api.rag_chain", MagicMock())
 
 
 def test_stamp_skipped_when_alembic_version_table_exists():

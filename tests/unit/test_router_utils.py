@@ -7,7 +7,6 @@ import requests as _requests
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.routers.utils import router

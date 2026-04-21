@@ -9,10 +9,7 @@ from fastapi.testclient import TestClient
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-# Must stub api.rag_chain before the knowledge router is imported
-_rag_chain_stub = MagicMock()
-_rag_chain_stub.build_rag_chain = MagicMock(return_value=lambda q: "mocked answer")
-sys.modules["api.rag_chain"] = _rag_chain_stub
+# Specific rag_chain behaviour is patched per-test via `@patch(...)`.
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.domain.exceptions import LlmUnavailableError

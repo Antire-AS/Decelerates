@@ -13,10 +13,7 @@ from fastapi.testclient import TestClient
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-# Stub rag_chain before importing
-_rag_chain_stub = MagicMock()
-_rag_chain_stub.build_rag_chain = MagicMock(return_value=lambda q: "mocked rag answer")
-sys.modules["api.rag_chain"] = _rag_chain_stub
+# Specific rag_chain behaviour is patched per-test via `@patch(...)`.
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.auth import CurrentUser, get_current_user
