@@ -182,5 +182,9 @@ def _fallback_ddg_search(navn: str, target_years: List[int]) -> List[Dict[str, A
                     results.append({"year": year, "url": url, "label": "annual"})
                     break
         except Exception:
+            # DuckDuckGo rate-limits per-IP; per-year isolation prevents one
+            # failed lookup from killing the whole fallback scan. Log at
+            # warning so persistent rate limits surface in telemetry.
+            logger.warning("DDG fallback search failed for %r year=%d", navn, year)
             continue
     return results
