@@ -124,7 +124,14 @@ class BrokerService:
                 user_ids=user_ids,
             )
         except Exception:
-            pass
+            # Notifications are best-effort — a fan-out failure must NOT
+            # roll back the note itself. Log so ops can see if the bell
+            # icon ever stops lighting up.
+            logger.exception(
+                "mention notification fan-out failed for orgnr=%s firm_id=%s",
+                orgnr,
+                firm_id,
+            )
 
     def _resolve_mentions(self, text: str, firm_id: int) -> tuple[List[str], List[int]]:
         """Extract @mentions from `text` and look up matching same-firm users.
