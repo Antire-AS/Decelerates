@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 
 # Stub heavy transitive deps before any api.* import
-sys.modules.setdefault("api.rag_chain", MagicMock())
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
 from api.adapters.foundry_llm_adapter import (
