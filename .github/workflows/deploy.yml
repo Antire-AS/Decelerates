@@ -173,17 +173,32 @@ jobs:
           fi
 
       - name: Deploy API image + startup probe (atomic)
+        id: deploy_api
         # Alembic migrations + auto-seed can take 30-60s on first deploy.
         # The probe and image MUST be updated in a single PATCH so the new
         # revision starts with the correct probe. If the probe is set AFTER
         # the deploy, the old revision's probe (10s) kills the container
         # before the new probe (60s) takes effect.
+        #
+        # Also publishes `new_revision` as a step output — `latestRevision
+        # Name` lags the PATCH by ~2 s, and on 2026-04-21 the first canary
+        # run hit that race: the canary step queried it BEFORE Azure had
+        # registered the new revision, so it validated (and re-promoted)
+        # the PREVIOUS revision. Deploys appeared to succeed without
+        # shipping any new code — a silent prod-freeze. Capturing the
+        # name here lets downstream steps use it directly.
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
           SUBSCRIPTION=$(az account show --query id -o tsv)
           API_URL="https://management.azure.com/subscriptions/$SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP?api-version=2024-03-01"
           IMAGE="${{ env.ACR }}.azurecr.io/broker-api:${{ github.sha }}"
+
+          # Snapshot the pre-deploy "latest" so we can detect when Azure
+          # registers the new revision after the PATCH.
+          BEFORE_REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
+            --query properties.latestRevisionName -o tsv 2>/dev/null || echo "none")
+          echo "Pre-deploy latest revision: $BEFORE_REV"
 
           # Fetch the current container spec, update image + probe in one PATCH
           CURRENT=$(az rest --method GET --url "$API_URL" --query "properties.template.containers[0]" -o json)
@@ -206,16 +221,36 @@ jobs:
             --headers "Content-Type=application/json" \
             --body "$PATCHED"
 
+          # Poll until Azure registers a new revision (up to 60 s).
+          # Without this, latestRevisionName still returns $BEFORE_REV
+          # for ~2 s after the PATCH completes.
+          for ATTEMPT in $(seq 1 30); do
+            AFTER_REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
+              --query properties.latestRevisionName -o tsv 2>/dev/null || echo "none")
+            if [ -n "$AFTER_REV" ] \
+                && [ "$AFTER_REV" != "$BEFORE_REV" ] \
+                && [ "$AFTER_REV" != "none" ]; then
+              echo "New revision registered after $((ATTEMPT * 2))s: $AFTER_REV"
+              echo "new_revision=$AFTER_REV" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Timed out after 60s waiting for latestRevisionName to advance past $BEFORE_REV."
+          echo "The PATCH may have been a no-op (same image as currently deployed)."
+          exit 1
+
       - name: Wait for API revision to become Healthy
         # Catches startup crashes that the deploy step would otherwise report
-        # as "success". Polls the latest revision's healthState and waits up
-        # to 6 min for the migration+startup cycle to complete.
+        # as "success". Polls the new revision's healthState (captured by
+        # `Deploy API image` above, NOT re-queried — see the 2026-04-21
+        # silent-prod-freeze note on that step) and waits up to 6 min for
+        # the migration+startup cycle to complete.
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
           DEADLINE=$(( $(date +%s) + 360 ))
-          REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
-            --query properties.latestRevisionName -o tsv)
+          REV="${{ steps.deploy_api.outputs.new_revision }}"
           echo "Watching revision: $REV"
           # Container Apps uses several "running" states depending on KEDA
           # scale state. All of these mean "the new revision is up and
@@ -280,13 +315,18 @@ jobs:
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
-          NEW_REV=$(az containerapp show --name "$APP" --resource-group "$RG" \
-            --query properties.latestRevisionName -o tsv)
+          # Use the revision captured by Deploy API above rather than
+          # re-querying latestRevisionName (which lags — see that step's
+          # note). PREV_REV filters to "active, currently serving any
+          # traffic, not the new one" so we don't pick a stale revision
+          # that's already at 0%.
+          NEW_REV="${{ steps.deploy_api.outputs.new_revision }}"
           PREV_REV=$(az containerapp revision list --name "$APP" \
             --resource-group "$RG" \
-            --query "[?properties.active && name != '$NEW_REV'] | [0].name" -o tsv)
+            --query "[?properties.active && properties.trafficWeight > \`0\` && name != '$NEW_REV'] | [0].name" \
+            -o tsv)
           if [ -z "$PREV_REV" ]; then
-            echo "No previous active revision — skipping canary on first deploy."
+            echo "No previous revision with traffic — skipping canary on first deploy."
             exit 0
           fi
           echo "Splitting traffic 90/10 between $PREV_REV and $NEW_REV"
