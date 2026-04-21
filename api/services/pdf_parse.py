@@ -24,6 +24,7 @@ from google.genai import types as genai_types
 from api.constants import GEMINI_PDF_MODELS
 from api.domain.exceptions import PdfExtractionError  # noqa: F401 — re-exported
 from api.prompts import FINANCIALS_PROMPT
+from api.telemetry import record_vertex_token_usage
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,9 @@ def _gemini_inline(
     """
     pdf_part = genai_types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
     resp = client.models.generate_content(model=model_name, contents=[pdf_part, prompt])
+    # Phase 4 follow-up: record Vertex AI token cost. Best-effort; never
+    # fails the extraction on telemetry errors.
+    record_vertex_token_usage(resp, model_name)
     return resp.text
 
 
