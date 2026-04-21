@@ -141,6 +141,63 @@ resource "azurerm_monitor_metric_alert" "api_cpu" {
   }
 }
 
+# ── Saved Log Analytics queries: LLM token observability ─────────────────────
+# Custom metrics llm.tokens.prompt / llm.tokens.completion ship from every
+# Foundry + Vertex call (api/telemetry.py). These saved searches make the
+# right KQL one click away in the portal under Log Analytics →
+# Saved searches → "broker-llm". Keep them here (as Terraform) rather than
+# ad-hoc in the portal so they survive workspace rebuilds. Docs +
+# copy-pasteable queries in docs/runbooks/llm-token-observability.md.
+
+resource "azurerm_log_analytics_saved_search" "llm_tokens_by_model" {
+  name                       = "broker-llm-tokens-by-model"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  category                   = "broker-llm"
+  display_name               = "LLM tokens by provider + model (24h)"
+  query                      = <<-EOT
+    customMetrics
+    | where timestamp > ago(24h)
+    | where name in ("llm.tokens.prompt", "llm.tokens.completion")
+    | extend provider = tostring(customDimensions.provider),
+             model    = tostring(customDimensions.model)
+    | summarize total_tokens = sum(valueSum) by name, provider, model
+    | order by total_tokens desc
+  EOT
+}
+
+resource "azurerm_log_analytics_saved_search" "llm_tokens_trend" {
+  name                       = "broker-llm-tokens-per-call-trend"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  category                   = "broker-llm"
+  display_name               = "LLM avg prompt tokens per call (7d, hourly)"
+  query                      = <<-EOT
+    customMetrics
+    | where timestamp > ago(7d)
+    | where name == "llm.tokens.prompt"
+    | extend provider = tostring(customDimensions.provider),
+             model    = tostring(customDimensions.model)
+    | summarize avg_prompt = sum(valueSum) / sum(valueCount)
+        by bin(timestamp, 1h), provider, model
+    | render timechart
+  EOT
+}
+
+resource "azurerm_log_analytics_saved_search" "llm_call_volume" {
+  name                       = "broker-llm-call-volume"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  category                   = "broker-llm"
+  display_name               = "LLM call volume + errors (24h, 5m buckets)"
+  query                      = <<-EOT
+    customMetrics
+    | where timestamp > ago(24h)
+    | where name == "llm.calls"
+    | extend provider = tostring(customDimensions.provider),
+             outcome  = tostring(customDimensions.outcome)
+    | summarize calls = sum(valueCount) by bin(timestamp, 5m), provider, outcome
+    | render timechart
+  EOT
+}
+
 # ── Alert: API container memory > 80 % ────────────────────────────────────────
 
 resource "azurerm_monitor_metric_alert" "api_memory" {
