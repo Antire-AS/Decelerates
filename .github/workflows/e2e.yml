@@ -24,6 +24,7 @@ on:
         options:
           - staging
           - prod
+          - auth-test
 
 jobs:
   e2e:
@@ -54,6 +55,19 @@ jobs:
         run: |
           echo "PLAYWRIGHT_BASE_URL=https://ca-frontend.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
           echo "PLAYWRIGHT_API_BASE_URL=https://ca-api.whitepebble-3ac25616.norwayeast.azurecontainerapps.io" >> $GITHUB_ENV
+
+      - name: Enable real-auth spec (auth-test target)
+        # Phase 2 of the application-hardening plan. Points Playwright at
+        # prod (AUTH_DISABLED unset there) and turns on auth-flow.spec.ts
+        # which otherwise skips. Requires the E2E_AUTH_BOT_{EMAIL,PASSWORD}
+        # secrets; see docs/runbooks/auth-e2e-setup.md for provisioning.
+        if: github.event_name == 'workflow_dispatch' && inputs.target == 'auth-test'
+        run: |
+          echo "PLAYWRIGHT_BASE_URL=https://meglerai.no" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_API_BASE_URL=https://meglerai.no" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_AUTH_TEST=1" >> $GITHUB_ENV
+          echo "E2E_AUTH_BOT_EMAIL=${{ secrets.E2E_AUTH_BOT_EMAIL }}" >> $GITHUB_ENV
+          echo "E2E_AUTH_BOT_PASSWORD=${{ secrets.E2E_AUTH_BOT_PASSWORD }}" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v5
         with:
