@@ -79,6 +79,24 @@ jobs:
         if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      - name: Warm ca-api-staging (scale-to-zero cold start)
+        # ca-api-staging runs with min_replicas=0 for cost. The first hit
+        # after idle takes ~30-45s for the container to bind :8000. Pre-
+        # warming here removes the cold-start variable from the e2e suite
+        # so tests measure real behaviour, not KEDA wake-up time. Also warms
+        # the frontend SSR path since several specs navigate to /search/...
+        # immediately.
+        run: |
+          for _ in 1 2 3; do
+            if curl -sf --max-time 60 "${PLAYWRIGHT_API_BASE_URL}/ping" > /dev/null; then
+              echo "API warm"
+              break
+            fi
+            echo "Waiting 10s for cold start..."
+            sleep 10
+          done
+          curl -sf --max-time 30 "${PLAYWRIGHT_BASE_URL}/search/984851006" > /dev/null || true
+
       - name: Run e2e suite
         run: npx playwright test --project chromium
 
