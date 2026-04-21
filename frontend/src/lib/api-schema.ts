@@ -3512,6 +3512,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/docuseal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Docuseal Webhook
+         * @description Receive a DocuSeal form-status callback. Verifies HMAC signature, then
+         *     flips the matching tender row to `analysed` once the client has signed.
+         *
+         *     The webhook carries DocuSeal's submission_id. The broker's
+         *     `/tenders/{id}/contract/send-for-signature` call persisted that same ID
+         *     onto `tenders.contract_session_id`, so the lookup is O(1) via the partial
+         *     unique index on that column.
+         *
+         *     Unknown session IDs are ACK'd with `matched: false` — DocuSeal retries
+         *     failed deliveries, and we don't want to turn a replay (or a submission
+         *     created outside this flow) into a 4xx loop.
+         */
+        post: operations["docuseal_webhook_webhooks_docuseal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhooks/signicat": {
         parameters: {
             query?: never;
@@ -4407,6 +4437,8 @@ export interface components {
             chunks_stored: number;
             /** Orgnr */
             orgnr: string;
+            /** Source */
+            source: string;
         };
         /** IngestKnowledgeRequest */
         IngestKnowledgeRequest: {
@@ -4605,6 +4637,8 @@ export interface components {
             question: string;
             /** Session Id */
             session_id: string;
+            /** Tool Calls */
+            tool_calls?: string[];
         };
         /** PdfHistoryOut */
         PdfHistoryOut: {
@@ -12067,6 +12101,39 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["Body_upload_video_videos_upload_post"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    docuseal_webhook_webhooks_docuseal_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-docuseal-signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

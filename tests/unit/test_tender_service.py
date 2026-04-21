@@ -151,6 +151,37 @@ class TestDelete:
         db.commit.assert_called_once()
 
 
+class TestMarkContractSignedBySession:
+    def test_empty_session_id_returns_none_without_query(self, svc, db):
+        assert svc.mark_contract_signed_by_session("") is None
+        db.query.assert_not_called()
+
+    def test_unknown_session_returns_none(self, svc, db):
+        mock_query = MagicMock()
+        db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+        mock_query.first.return_value = None
+
+        assert svc.mark_contract_signed_by_session("sub-nope") is None
+        db.commit.assert_not_called()
+
+    def test_flips_status_to_analysed_and_commits(self, svc, db):
+        from api.db import TenderStatus
+
+        tender = MagicMock()
+        tender.status = TenderStatus.sent
+        mock_query = MagicMock()
+        db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+        mock_query.first.return_value = tender
+
+        result = svc.mark_contract_signed_by_session("sub-42")
+        assert result is tender
+        assert tender.status == TenderStatus.analysed
+        db.commit.assert_called_once()
+        db.refresh.assert_called_once_with(tender)
+
+
 class TestUploadOffer:
     @patch("api.services.coverage_service._extract_text", return_value="sample text")
     def test_upload_stores_pdf(self, mock_extract, svc, db):

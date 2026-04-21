@@ -42,7 +42,7 @@ def auth_client(test_db):
 
 @pytest.fixture(autouse=True)
 def seed_broker_firm(test_db):
-    from api.db import BrokerFirm
+    from api.db import BrokerFirm, Deal, PipelineStage
 
     if not test_db.query(BrokerFirm).filter(BrokerFirm.id == _FIRM_ID).first():
         test_db.add(
@@ -53,6 +53,14 @@ def seed_broker_firm(test_db):
             )
         )
         test_db.commit()
+    # Clear any Deals/PipelineStages leaked from prior tests (or prior runs).
+    # `test_db.rollback()` only undoes in-session changes; route handlers
+    # commit via their own scope, so without explicit cleanup each fresh
+    # test here can hit a UniqueViolation on `uq_pipeline_stage_firm_name`.
+    # Deals reference stages FK-on-cascade, so delete deals first.
+    test_db.query(Deal).filter(Deal.firm_id == _FIRM_ID).delete()
+    test_db.query(PipelineStage).filter(PipelineStage.firm_id == _FIRM_ID).delete()
+    test_db.commit()
 
 
 # ── Pipeline stages ──────────────────────────────────────────────────────────
@@ -81,7 +89,6 @@ class TestPipelineStages:
         assert data["firm_id"] == _FIRM_ID
         assert data["color"] == "#4A6FA5"
 
-    @pytest.mark.skip(reason="Drifted during CI outage 2026-04-14/18; tracked in #113")
     def test_create_duplicate_name_fails(self, auth_client):
         auth_client.post(
             "/pipeline/stages",

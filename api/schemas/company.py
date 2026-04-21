@@ -154,6 +154,9 @@ class OrgChatOut(BaseModel):
     question: str
     answer: str
     session_id: str
+    # Populated only when mode=agent — list of tool names invoked this turn
+    # (e.g. ["coverage_gap"]). Empty list in RAG mode.
+    tool_calls: List[str] = Field(default_factory=list)
 
 
 class EstimateOut(BaseModel):
