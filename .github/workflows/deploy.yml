@@ -337,6 +337,65 @@ jobs:
             --app "$APP" --resource-group "$RG" \
             --new-revision "$NEW_REV" --previous-revision "$PREV_REV"
 
+      - name: Finalize revisions (promote + deactivate zombies)
+        # Reconciliation step that always runs. In Multiple-revision mode
+        # Azure does NOT auto-promote new revisions or deactivate old ones
+        # — it just lists them all as "active" with whatever traffic
+        # weights they have. min_replicas=1 means each active revision
+        # holds its own SQLAlchemy pool, and on 2026-04-21 we hit Postgres
+        # connection exhaustion after ~5 deploys accumulated their pools.
+        #
+        # Two modes:
+        #   Canary enabled: the watchdog above already set weights (either
+        #     NEW=100 on promote or PREV=100 on rollback). This step just
+        #     deactivates every other active revision so their replicas
+        #     stop holding DB connections.
+        #   Canary disabled: nothing has touched weights yet. This step
+        #     promotes NEW_REV to 100% and deactivates the rest.
+        if: always() && steps.deploy_api.outputs.new_revision != ''
+        run: |
+          APP=${{ steps.config.outputs.api_app }}
+          RG=${{ env.RG }}
+          NEW_REV="${{ steps.deploy_api.outputs.new_revision }}"
+
+          # Figure out which revision actually holds 100% traffic. If no
+          # single revision does (e.g. canary rolled back with mixed
+          # weights), we keep everything at its current weight — don't
+          # paper over a rollback.
+          HUNDRED_REV=$(az containerapp revision list --name "$APP" \
+            --resource-group "$RG" \
+            --query "[?properties.active && properties.trafficWeight == \`100\`] | [0].name" \
+            -o tsv 2>/dev/null || true)
+
+          if [ -z "$HUNDRED_REV" ]; then
+            # No revision at 100% — either canary rolled back or weights
+            # are split. Promote the new revision explicitly.
+            echo "No revision at 100% traffic; promoting $NEW_REV."
+            az containerapp ingress traffic set \
+              --name "$APP" --resource-group "$RG" \
+              --revision-weight "$NEW_REV=100"
+            HUNDRED_REV="$NEW_REV"
+          fi
+
+          echo "Serving revision: $HUNDRED_REV. Deactivating zombies."
+          # Deactivate every active revision except the one serving.
+          # Errors are logged but don't fail the deploy — a stuck zombie
+          # is bad but not bad enough to fail a green canary.
+          ZOMBIES=$(az containerapp revision list --name "$APP" \
+            --resource-group "$RG" \
+            --query "[?properties.active && name != '$HUNDRED_REV'].name" \
+            -o tsv)
+          for REV in $ZOMBIES; do
+            echo "  deactivating $REV"
+            az containerapp revision deactivate \
+              --name "$APP" --resource-group "$RG" \
+              --revision "$REV" 2>&1 | tail -1 || true
+          done
+          echo "Done. Active revisions:"
+          az containerapp revision list --name "$APP" --resource-group "$RG" \
+            --query "[?properties.active].{name:name, traffic:properties.trafficWeight}" \
+            -o table
+
       - name: Get API URL
         id: api
         run: |
