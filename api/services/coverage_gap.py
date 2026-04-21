@@ -137,7 +137,22 @@ class CoverageGapService:
             {orgnr, items: [{type, priority, reason, status, estimated_coverage_nok,
             actual_coverage_nok, actual_insurer, actual_policy_number, coverage_note}],
             covered_count, gap_count, total_count}
+
+        For an orgnr we've never seen, we return an empty report rather than the
+        generic baseline recommendations — we have no size/industry signal to
+        tailor them with, so showing "buy liability insurance" for every random
+        orgnr the UI hits is misleading (and breaks the dashboard's "companies
+        with gaps" counter).
         """
+        company = self.db.query(Company).filter(Company.orgnr == orgnr).first()
+        if not company:
+            return {
+                "orgnr": orgnr,
+                "items": [],
+                "covered_count": 0,
+                "gap_count": 0,
+                "total_count": 0,
+            }
         org, regn = _load_company_context(orgnr, self.db)
         needs = estimate_insurance_needs(org, regn)
 

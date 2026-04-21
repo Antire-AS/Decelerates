@@ -370,17 +370,31 @@ def _vector_matches(question: str, db: Session, limit: int) -> list:
 
 
 def _keyword_matches(question: str, db: Session, seen: set[int]) -> list:
-    """Source-key keyword matches — catches exact chapter hits the vector misses."""
+    """Keyword fallback — catches hits the vector search misses, and keeps
+    retrieval working even when `_embed` is unavailable (tests, cold start,
+    provider outage). Matches on BOTH `source` and `chunk_text` so questions
+    about the content itself work, not just those matching the source-key
+    nomenclature.
+    """
+    import re
+
     from api.services.knowledge_index import KNOWLEDGE_ORG
 
     extra = []
-    keywords = [w for w in question.lower().split() if len(w) > 3]
+    # Strip non-word chars so "FAL?" → "fal" matches a row whose source is
+    # "regulation::FAL". Filter stop-ish words (≤3 chars) after stripping.
+    raw = [re.sub(r"\W+", "", w) for w in question.lower().split()]
+    keywords = [w for w in raw if len(w) > 3]
     for kw in keywords[:4]:
+        pattern = f"%{kw}%"
         for r in (
             db.query(CompanyChunk)
             .filter(
                 CompanyChunk.orgnr == KNOWLEDGE_ORG,
-                CompanyChunk.source.ilike(f"%{kw}%"),
+                (
+                    CompanyChunk.source.ilike(pattern)
+                    | CompanyChunk.chunk_text.ilike(pattern)
+                ),
             )
             .limit(4)
             .all()
