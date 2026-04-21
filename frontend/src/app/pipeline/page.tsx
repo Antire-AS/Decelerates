@@ -2,15 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCenter,
-} from "@dnd-kit/core";
-import { Plus, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Plus, Loader2, Trash2, ArrowRight } from "lucide-react";
 import {
   getDeals,
   getPipelineStages,
@@ -20,44 +13,40 @@ import {
   type DealOut,
   type PipelineStageOut,
 } from "@/lib/api";
-import { KanbanColumn } from "@/components/pipeline/KanbanColumn";
 import { NewDealModal } from "@/components/pipeline/NewDealModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useT } from "@/lib/i18n";
 
 /**
- * Plan §🟢 #9 — kanban deal pipeline.
+ * Pipeline page — renewal-style tracker.
  *
- * Two SWR queries (stages + deals) feed a DndContext that handles drag-end
- * by calling PATCH /deals/{id}/stage. We optimistically update the local
- * deal list before the network call so the card snaps to the new column
- * immediately; the SWR mutate at the end reconciles with the server truth.
+ * The original /pipeline was a kanban with drag-and-drop (plan §🟢 #9) but
+ * broker feedback (2026-04-20) preferred the renewal-style one-row-per-deal
+ * + explicit "advance stage" button. This rewrite adopts that pattern and
+ * retires drag-drop, which also closes issue #109 (keyboard-a11y drag) by
+ * removing the drag surface entirely.
+ *
+ * Backend contract unchanged: PATCH /deals/{id}/stage + DELETE /deals/{id}.
  */
 export default function PipelinePage() {
   const T = useT();
-  const { data: stages = [], error: stagesErr, isLoading: stagesLoading } = useSWR<PipelineStageOut[]>(
-    "pipeline-stages",
-    () => getPipelineStages(),
-  );
-  const { data: deals = [], mutate: mutateDeals, isLoading: dealsLoading } = useSWR<DealOut[]>(
-    "deals",
-    () => getDeals(),
-  );
+  const { data: stages = [], error: stagesErr, isLoading: stagesLoading } = useSWR<
+    PipelineStageOut[]
+  >("pipeline-stages", () => getPipelineStages());
+  const { data: deals = [], mutate: mutateDeals, isLoading: dealsLoading } =
+    useSWR<DealOut[]>("deals", () => getDeals());
 
-  // Local mirror for optimistic drag-end. Whenever the SWR fetch returns
-  // fresh data, sync into local. The optimistic updater writes here first
-  // so the card moves before the network call resolves.
-  const [localDeals, setLocalDeals] = useState<DealOut[]>([]);
-  useEffect(() => {
-    setLocalDeals(deals);
-  }, [deals]);
+  const [stageFilter, setStageFilter] = useState<number | "all">("all");
+  const [advancing, setAdvancing] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalStageId, setModalStageId] = useState<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<DealOut | null>(null);
 
-  // Lazy company-name lookup so cards show "DNB Bank ASA" instead of "984851006".
-  // Cached per orgnr — only fires the first time we see a deal for that company.
+  // Lazy company-name lookup (same pattern as the previous kanban).
   const [companyNames, setCompanyNames] = useState<Record<string, string>>({});
   useEffect(() => {
     const missing = Array.from(
-      new Set(localDeals.map((d) => d.orgnr).filter((o) => !(o in companyNames)))
+      new Set(deals.map((d) => d.orgnr).filter((o) => !(o in companyNames))),
     );
     if (missing.length === 0) return;
     let cancelled = false;
@@ -70,9 +59,9 @@ export default function PipelinePage() {
             const navn = (prof.org as Record<string, unknown>)?.navn;
             if (typeof navn === "string") updates[orgnr] = navn;
           } catch {
-            // Profile fetch is best-effort; fall back to orgnr in the card.
+            /* best-effort */
           }
-        })
+        }),
       );
       if (!cancelled && Object.keys(updates).length > 0) {
         setCompanyNames((prev) => ({ ...prev, ...updates }));
@@ -81,77 +70,42 @@ export default function PipelinePage() {
     return () => {
       cancelled = true;
     };
-  }, [localDeals, companyNames]);
+  }, [deals, companyNames]);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalStageId, setModalStageId] = useState<number | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<DealOut | null>(null);
-
-  const sensors = useSensors(
-    // 5px activation distance prevents accidental drags on click.
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  );
-
-  // Group deals by stage_id for column rendering.
-  const dealsByStage = useMemo(() => {
-    const m: Record<number, DealOut[]> = {};
-    for (const d of localDeals) {
-      (m[d.stage_id] ??= []).push(d);
-    }
-    return m;
-  }, [localDeals]);
-
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over) return;
-    const overData = over.data.current as { stageId?: number } | undefined;
-    const newStageId = overData?.stageId;
-    if (newStageId == null) return;
-    const dealId = Number(active.id);
-    const deal = localDeals.find((d) => d.id === dealId);
-    if (!deal || deal.stage_id === newStageId) return;
-
-    // Optimistic — move the card immediately.
-    setLocalDeals((prev) =>
-      prev.map((d) => (d.id === dealId ? { ...d, stage_id: newStageId } : d))
-    );
-
+  async function handleAdvance(deal: DealOut, newStageId: number) {
+    setAdvancing(deal.id);
     try {
-      await moveDealStage(dealId, newStageId);
-      // Re-sync from server (handles server-side mutations like won_at stamping).
-      mutateDeals();
+      await moveDealStage(deal.id, newStageId);
+      await mutateDeals();
     } catch (e) {
-      // Roll back on failure.
-      setLocalDeals((prev) =>
-        prev.map((d) => (d.id === dealId ? { ...d, stage_id: deal.stage_id } : d))
-      );
-      // Best-effort surfacing — a toast system would be nicer (out of scope).
-      console.error("Failed to move deal:", e);
+      console.error("Kunne ikke flytte deal:", e);
+    } finally {
+      setAdvancing(null);
     }
   }
 
-  function handleDeleteDeal(d: DealOut) {
-    setPendingDelete(d);
-  }
-
-  async function performDeleteDeal(d: DealOut) {
-    setLocalDeals((prev) => prev.filter((x) => x.id !== d.id));
+  async function performDelete(d: DealOut) {
     try {
       await deleteDeal(d.id);
-      mutateDeals();
+      await mutateDeals();
     } catch (e) {
-      console.error("Failed to delete deal:", e);
-      mutateDeals();  // re-fetch to reset state
+      console.error("Kunne ikke slette deal:", e);
     }
   }
 
-  function handleAddDeal(stageId: number) {
-    setModalStageId(stageId);
-    setModalOpen(true);
-  }
+  const stageCounts = useMemo(
+    () =>
+      stages.map((s) => ({
+        ...s,
+        count: deals.filter((d) => d.stage_id === s.id).length,
+      })),
+    [stages, deals],
+  );
+
+  const filteredDeals =
+    stageFilter === "all" ? deals : deals.filter((d) => d.stage_id === stageFilter);
 
   const isLoading = stagesLoading || dealsLoading;
-  const hasError = stagesErr;
 
   return (
     <div className="space-y-4">
@@ -175,7 +129,7 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {hasError && (
+      {stagesErr && (
         <p className="text-sm text-red-600">{T("Kunne ikke laste pipeline. Sjekk at API-en kjører.")}</p>
       )}
 
@@ -187,21 +141,113 @@ export default function PipelinePage() {
         </div>
       )}
 
+      {/* Stage summary cards — click to filter */}
       {stages.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4">
-            {stages.map((stage) => (
-              <KanbanColumn
-                key={stage.id}
-                stage={stage}
-                deals={dealsByStage[stage.id] ?? []}
-                companyNames={companyNames}
-                onAddDeal={handleAddDeal}
-                onDeleteDeal={handleDeleteDeal}
-              />
-            ))}
-          </div>
-        </DndContext>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <button
+            onClick={() => setStageFilter("all")}
+            className={`broker-card text-left transition-all ${
+              stageFilter === "all" ? "ring-2 ring-ring" : ""
+            }`}
+          >
+            <p className="text-xs text-muted-foreground">{T("Alle")}</p>
+            <p className="text-xl font-bold text-foreground">{deals.length}</p>
+          </button>
+          {stageCounts.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setStageFilter(stageFilter === s.id ? "all" : s.id)}
+              className={`broker-card text-left transition-all ${
+                stageFilter === s.id ? "ring-2 ring-ring" : ""
+              }`}
+            >
+              <p className="text-xs text-muted-foreground">{s.name}</p>
+              <p className="text-xl font-bold text-foreground">{s.count}</p>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Deal table */}
+      {stages.length > 0 && (
+        <div className="broker-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
+                  {T("Selskap")}
+                </th>
+                <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
+                  {T("Tittel")}
+                </th>
+                <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
+                  {T("Steg")}
+                </th>
+                <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
+                  {T("Flytt til")}
+                </th>
+                <th className="text-left py-2 pr-3 text-muted-foreground font-semibold w-10" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredDeals.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                    {T("Ingen deals i dette steget.")}
+                  </td>
+                </tr>
+              )}
+              {filteredDeals.map((d) => {
+                const currentStage = stages.find((s) => s.id === d.stage_id);
+                const nextStages = stages.filter((s) => s.id !== d.stage_id);
+                const name = companyNames[d.orgnr] ?? d.orgnr;
+                return (
+                  <tr key={d.id}>
+                    <td className="py-2 pr-3">
+                      <Link
+                        href={`/search/${d.orgnr}`}
+                        className="text-primary hover:underline"
+                      >
+                        {name}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-3 text-foreground">
+                      {d.title ?? T("(uten tittel)")}
+                    </td>
+                    <td className="py-2 pr-3">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {currentStage?.name ?? T("Ukjent")}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3">
+                      <div className="flex flex-wrap gap-1">
+                        {nextStages.slice(0, 3).map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={() => handleAdvance(d, s.id)}
+                            disabled={advancing === d.id}
+                            className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                          >
+                            <ArrowRight className="w-3 h-3" /> {s.name}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-2 pr-3">
+                      <button
+                        onClick={() => setPendingDelete(d)}
+                        className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-red-500"
+                        title={T("Slett")}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {modalOpen && modalStageId != null && (
@@ -209,8 +255,7 @@ export default function PipelinePage() {
           stages={stages}
           defaultStageId={modalStageId}
           onClose={() => setModalOpen(false)}
-          onCreated={(deal) => {
-            setLocalDeals((prev) => [deal, ...prev]);
+          onCreated={() => {
             mutateDeals();
           }}
         />
@@ -218,13 +263,19 @@ export default function PipelinePage() {
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
-        title={pendingDelete ? `${T("Slett deal")} "${pendingDelete.title ?? pendingDelete.orgnr}"?` : ""}
+        onOpenChange={(o) => {
+          if (!o) setPendingDelete(null);
+        }}
+        title={
+          pendingDelete
+            ? `${T("Slett deal")} "${pendingDelete.title ?? pendingDelete.orgnr}"?`
+            : ""
+        }
         description={T("Handlingen kan ikke angres.")}
         confirmLabel={T("Slett")}
         destructive
         onConfirm={() => {
-          if (pendingDelete) performDeleteDeal(pendingDelete);
+          if (pendingDelete) performDelete(pendingDelete);
         }}
       />
     </div>
