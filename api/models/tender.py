@@ -46,6 +46,12 @@ class Tender(Base):
         default=TenderStatus.draft,
     )
     analysis_result = Column(JSON, nullable=True)
+    # ID returned by the e-sign provider when the broker sends the contract
+    # for signature. The provider's webhook carries the same ID, so this is
+    # how we route callbacks back to the tender row. Partial unique index
+    # (WHERE NOT NULL) is created by the Alembic migration, not here — the
+    # model field stays simple so it doesn't clash with the partial index.
+    contract_session_id = Column(String(128), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 
