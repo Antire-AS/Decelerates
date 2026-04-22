@@ -173,99 +173,12 @@ def get_insurance_needs(orgnr: str, db: Session = Depends(get_db)) -> dict:
 @router.get("/org/{orgnr}/peer-benchmark", response_model=PeerBenchmarkOut)
 def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
     """Compare a company's key ratios against peer companies in the same NACE section."""
-    from api.db import Company
-    from api.constants import _NACE_SECTION_MAP, NACE_BENCHMARKS
-    import statistics
+    from api.services.company import compute_peer_benchmark
 
-    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
-    if not db_obj:
+    result = compute_peer_benchmark(orgnr, db)
+    if result is None:
         raise HTTPException(status_code=404, detail="Company not in database")
-
-    nace = db_obj.naeringskode1 or ""
-    section = ""
-    try:
-        code = int(str(nace).split(".")[0])
-        for rng, s in _NACE_SECTION_MAP:
-            if code in rng:
-                section = s
-                break
-    except (ValueError, AttributeError):
-        pass
-
-    peers = (
-        (
-            db.query(Company)
-            .filter(Company.orgnr != orgnr, Company.naeringskode1.like(f"{nace[:2]}%"))
-            .filter(Company.sum_driftsinntekter.isnot(None))
-            .all()
-        )
-        if len(nace) >= 2
-        else []
-    )
-
-    def _pct(val, values):
-        if val is None or not values:
-            return None
-        below = sum(1 for v in values if v < val)
-        return round(below / len(values) * 100)
-
-    if len(peers) >= 3:
-        peer_revenues = [p.sum_driftsinntekter for p in peers if p.sum_driftsinntekter]
-        peer_eq = [p.equity_ratio for p in peers if p.equity_ratio is not None]
-        peer_risk = [p.risk_score for p in peers if p.risk_score is not None]
-        metrics = {
-            "equity_ratio": {
-                "company": db_obj.equity_ratio,
-                "peer_avg": round(statistics.mean(peer_eq), 3) if peer_eq else None,
-                "percentile": _pct(db_obj.equity_ratio, peer_eq),
-            },
-            "revenue": {
-                "company": db_obj.sum_driftsinntekter,
-                "peer_avg": round(statistics.mean(peer_revenues))
-                if peer_revenues
-                else None,
-                "percentile": _pct(db_obj.sum_driftsinntekter, peer_revenues),
-            },
-            "risk_score": {
-                "company": db_obj.risk_score,
-                "peer_avg": round(statistics.mean(peer_risk), 1) if peer_risk else None,
-                "percentile": _pct(db_obj.risk_score, peer_risk),
-            },
-        }
-        source = "db_peers"
-    else:
-        bench = NACE_BENCHMARKS.get(section, {})
-        eq_mid = (
-            (bench.get("eq_ratio_min", 0) + bench.get("eq_ratio_max", 0)) / 2
-            if bench
-            else None
-        )
-        metrics = {
-            "equity_ratio": {
-                "company": db_obj.equity_ratio,
-                "peer_avg": round(eq_mid, 3) if eq_mid else None,
-                "percentile": None,
-            },
-            "revenue": {
-                "company": db_obj.sum_driftsinntekter,
-                "peer_avg": None,
-                "percentile": None,
-            },
-            "risk_score": {
-                "company": db_obj.risk_score,
-                "peer_avg": None,
-                "percentile": None,
-            },
-        }
-        source = "ssb_ranges"
-
-    return {
-        "orgnr": orgnr,
-        "nace_section": section,
-        "peer_count": len(peers),
-        "metrics": metrics,
-        "source": source,
-    }
+    return result
 
 
 @router.get("/org-by-name")
