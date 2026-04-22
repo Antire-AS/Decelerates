@@ -194,6 +194,55 @@ def test_derive_simple_risk_exposes_altman_z_alongside_rule_score():
     assert isinstance(result["score"], int)
 
 
+# ── Parity with TS re-implementation ─────────────────────────────────────────
+#
+# These fixtures are mirrored in frontend/src/lib/altman.ts as doc-comment
+# "PINNING FIXTURES". Any change to the Python formula, zone cutoffs, or
+# score_20 mapping that breaks these assertions means the TS mirror ALSO
+# needs updating — otherwise the scenario slider will show different
+# Z'' values than the backend returned on page load. Keep both in sync.
+
+SCENARIO_PARITY_FIXTURES = [
+    # Fixture A — healthy company, comfortably in safe zone
+    (
+        {"x1": 0.30, "x2": 0.35, "x3": 0.15, "x4": 1.50},
+        {"z_score": 5.69, "zone": "safe", "score_20": 0},
+    ),
+    # Fixture B — middle of the grey zone
+    (
+        {"x1": 0.10, "x2": 0.15, "x3": 0.05, "x4": 0.40},
+        {"z_score": 1.90, "zone": "grey", "score_20": 10},
+    ),
+    # Fixture C — deep distress (negative working capital + negative equity)
+    (
+        {"x1": -0.10, "x2": -0.20, "x3": -0.05, "x4": 0.05},
+        {"z_score": -1.59, "zone": "distress", "score_20": 20},
+    ),
+]
+
+
+def test_ts_parity_fixtures_match_python_reference():
+    """Guards the TS mirror against silent Python-side drift. Computes Z''
+    directly from the pinned ratios (bypassing _altman_ratios so we test
+    the coefficients and zone/score mapping, not the regn-to-ratios step
+    which the TS side doesn't do)."""
+    from api.risk import _map_z_to_risk_score, _z_zone
+
+    for ratios, expected in SCENARIO_PARITY_FIXTURES:
+        z = (
+            6.56 * ratios["x1"]
+            + 3.26 * ratios["x2"]
+            + 6.72 * ratios["x3"]
+            + 1.05 * ratios["x4"]
+        )
+        assert round(z, 2) == expected["z_score"], (
+            f"TS parity drift: ratios={ratios} Python z={round(z, 2)} "
+            f"expected={expected['z_score']} — also update altman.ts"
+        )
+        assert _z_zone(z) == expected["zone"]
+        assert _map_z_to_risk_score(z) == expected["score_20"]
+
+
 def test_derive_simple_risk_altman_is_none_for_bank_regn():
     """When the extraction can't fill current assets (typical for banks),
     altman_z should be None but rule-based score still computes."""

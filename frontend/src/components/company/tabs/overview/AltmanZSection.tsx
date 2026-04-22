@@ -4,6 +4,7 @@ import type { AltmanZScore } from "@/lib/api-types";
 import { Section } from "./shared";
 import { useT } from "@/lib/i18n";
 import AltmanTrendChart from "./AltmanTrendChart";
+import ScenarioSlider from "./ScenarioSlider";
 
 interface Props {
   altman: AltmanZScore;
@@ -101,6 +102,7 @@ export default function AltmanZSection({ altman, orgnr }: Props) {
       </p>
 
       <AltmanTrendChart orgnr={orgnr} />
+      <ScenarioSlider baseline={altman} />
     </Section>
   );
 }
