@@ -161,16 +161,24 @@ export default function PortfolioDetailPage({
             <p className="text-sm text-muted-foreground mt-0.5">{portfolio.description}</p>
           )}
         </div>
-        <button
-          onClick={handleDownloadPdf}
-          disabled={pdfDownloading}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-50"
-        >
-          {pdfDownloading
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Download className="w-4 h-4" />}
-          {T("Last ned PDF-rapport")}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/portfolio/${portfolioId}/altman-risk`}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted"
+          >
+            {T("Altman-risikoprofil")}
+          </Link>
+          <button
+            onClick={handleDownloadPdf}
+            disabled={pdfDownloading}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-50"
+          >
+            {pdfDownloading
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />}
+            {T("Last ned PDF-rapport")}
+          </button>
+        </div>
       </div>
 
       {/* ── Alerts ── */}
