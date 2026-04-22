@@ -1,4 +1,11 @@
-"""Agentic IR discovery — Claude, Gemini, and Azure OpenAI tool-use agent loops."""
+"""Agentic IR discovery — Claude + Azure OpenAI tool-use agent loops.
+
+Gemini AI-Studio agent paths were deleted on 2026-04-22 (see
+docs/decisions/2026-04-22-pdf-agents-recall.md). Measured recall was
+2/20 and the free-tier RPM quota made the path unreliable. Phase 2
+of the 2026-04-22 redesign replaces the DDG web_search tool with a
+Bing Web Search adapter for the remaining agents' tool-use loop.
+"""
 
 import json
 import logging
@@ -6,14 +13,9 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
-from google import genai as google_genai
-from google.genai import types as genai_types
-
 from api.prompts import IR_DISCOVERY_PROMPT_TEMPLATE
 from api.services.llm import _llm_answer_raw
-from api.services.pdf_parse import _gemini_api_keys
 from api.services.pdf_web import (
-    _ddg_query,
     _ddg_search_results,
     _fetch_url_content,
     _parse_agent_pdf_list,
@@ -25,36 +27,17 @@ logger = logging.getLogger(__name__)
 
 # ── Shared tool dispatch ───────────────────────────────────────────────────────
 
-_GEMINI_FETCH_URL_TOOL = genai_types.Tool(
-    function_declarations=[
-        genai_types.FunctionDeclaration(
-            name="fetch_url",
-            description=(
-                "Fetch the content of a URL. Returns {text, pdf_links, page_links}. "
-                "pdf_links are direct .pdf URLs found on the page. "
-                "Use this to navigate to investor relations pages and find PDF download links."
-            ),
-            parameters=genai_types.Schema(
-                type=genai_types.Type.OBJECT,
-                properties={
-                    "url": genai_types.Schema(
-                        type=genai_types.Type.STRING, description="The URL to fetch"
-                    )
-                },
-                required=["url"],
-            ),
-        ),
-    ]
-)
-
 
 def _run_tool(name: str, args: Dict[str, Any]) -> Any:
-    """Dispatch a tool call by name. Shared between Claude and Gemini agent loops."""
+    """Dispatch a tool call by name. Shared between Claude and Azure agent loops.
+
+    The `web_search` tool currently uses the DDG fallback only — measurements
+    on 2026-04-22 showed DDG's HTML endpoint returns HTTP 202 anti-bot pages,
+    so this is effectively broken. Phase 2 of the redesign swaps this for
+    a Bing Web Search adapter with real API access.
+    """
     if name == "web_search":
-        results = _gemini_web_search(args.get("query", ""))
-        if not results:
-            results = _ddg_search_results(args.get("query", ""))  # fallback
-        return results
+        return _ddg_search_results(args.get("query", ""))
     if name == "fetch_url":
         return _fetch_url_content(args.get("url", ""))
     return {"error": f"unknown tool: {name}"}
@@ -160,245 +143,6 @@ def _agent_discover_pdfs_claude(
     return _parse_agent_pdf_list(last_text)
 
 
-# ── Gemini agent loop ──────────────────────────────────────────────────────────
-
-
-def _gemini_web_search(query: str) -> List[Dict[str, Any]]:
-    """Use Gemini's native Google Search grounding to return [{title, url, snippet}] results."""
-    keys = _gemini_api_keys()
-    if not keys:
-        return []
-    _search_models = ["gemini-2.5-flash", "gemini-2.0-flash"]
-    for api_key in keys:
-        client = google_genai.Client(api_key=api_key)
-        for model_name in _search_models:
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=query,
-                    config=genai_types.GenerateContentConfig(
-                        tools=[
-                            genai_types.Tool(google_search=genai_types.GoogleSearch())
-                        ],
-                    ),
-                )
-                results: List[Dict[str, Any]] = []
-                if response.candidates:
-                    meta = getattr(response.candidates[0], "grounding_metadata", None)
-                    chunks = getattr(meta, "grounding_chunks", None) or []
-                    for chunk in chunks:
-                        web = getattr(chunk, "web", None)
-                        if web:
-                            url = getattr(web, "uri", "") or ""
-                            title = getattr(web, "title", "") or ""
-                            if url:
-                                results.append(
-                                    {"title": title, "url": url, "snippet": ""}
-                                )
-                if results:
-                    return results[:8]
-            except Exception as exc:
-                msg = str(exc)
-                if (
-                    "quota" in msg.lower()
-                    or "429" in msg
-                    or "RESOURCE_EXHAUSTED" in msg
-                    or "limit: 0" in msg
-                ):
-                    logger.warning(
-                        "[web_search] Quota on %s key ...%s for %r",
-                        model_name,
-                        api_key[-4:],
-                        query,
-                    )
-                    continue
-                logger.warning(
-                    "[web_search] Gemini search failed (%s) for %r: %s",
-                    model_name,
-                    query,
-                    exc,
-                )
-                break
-    return []
-
-
-def _run_gemini_phase2(chat: Any, navn: str, phase1_text: str) -> str:
-    """Run the fetch_url tool loop (max 4 turns). Returns last text response."""
-    last_text = ""
-    response = chat.send_message(
-        f"The investor relations page for {navn} is here:\n\n{phase1_text}\n\n"
-        "Use fetch_url to navigate to the IR/annual-reports page. "
-        "The pdf_links field in the response contains direct PDF URLs — use those. "
-        "Do NOT guess or construct PDF URLs. Output the final JSON array."
-    )
-    for _ in range(4):
-        for part in response.candidates[0].content.parts:
-            if hasattr(part, "text") and part.text:
-                last_text = part.text
-        fn_calls = [
-            p.function_call
-            for p in response.candidates[0].content.parts
-            if p.function_call
-        ]
-        if not fn_calls:
-            break
-        fn_responses = [
-            genai_types.Part(
-                function_response=genai_types.FunctionResponse(
-                    name=fc.name,
-                    response={"result": json.dumps(_run_tool(fc.name, dict(fc.args)))},
-                )
-            )
-            for fc in fn_calls
-        ]
-        response = chat.send_message(fn_responses)
-    return last_text
-
-
-def _agent_discover_pdfs_gemini(
-    orgnr: str,
-    navn: str,
-    hjemmeside: Optional[str],
-    target_years: List[int],
-    api_key: str,
-) -> List[Dict[str, Any]]:
-    """Gemini agent for annual report PDF discovery using native Google Search + fetch_url.
-
-    Phase 1: Google Search grounding to find direct PDF URLs or IR page URLs.
-    Phase 2: If IR pages found but no PDFs, fetch them with fetch_url tool.
-    """
-    system_prompt = _agent_system_prompt(navn, orgnr, hjemmeside, target_years)
-    client = google_genai.Client(api_key=api_key)
-    _AGENT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
-
-    def _is_quota_err(exc: Exception) -> bool:
-        msg = str(exc)
-        return any(x in msg for x in ["429", "RESOURCE_EXHAUSTED", "NOT_FOUND", "404"])
-
-    for _model in _AGENT_MODELS:
-        try:
-            search_response = client.models.generate_content(
-                model=_model,
-                contents=(
-                    f"Find the official investor relations or annual reports page URL for {navn} "
-                    f"(orgnr {orgnr}, homepage: {hjemmeside or 'unknown'}). "
-                    "Return only the IR/annual-reports page URL as plain text, not PDF links."
-                ),
-                config=genai_types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
-                ),
-            )
-            phase1_text = (search_response.text or "").strip()
-            if not phase1_text or phase1_text in ("[]", ""):
-                phase1_text = (
-                    f"Homepage: {hjemmeside or 'unknown'}. "
-                    f"Try fetching {hjemmeside}/investors/annual-reports or similar IR pages."
-                )
-            logger.info(
-                "[gemini] Phase 1 IR page response for %s: %s", orgnr, phase1_text[:300]
-            )
-
-            chat = client.chats.create(
-                model=_model,
-                config=genai_types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    tools=[_GEMINI_FETCH_URL_TOOL],
-                ),
-            )
-            last_text = _run_gemini_phase2(chat, navn, phase1_text)
-            return _parse_agent_pdf_list(last_text)
-
-        except Exception as _exc:
-            if _is_quota_err(_exc):
-                logger.warning(
-                    "[gemini] Quota error on %s for %s, trying next model",
-                    _model,
-                    orgnr,
-                )
-                continue
-            logger.error("[gemini] Unexpected error for %s: %s", orgnr, _exc)
-            raise
-
-    return []  # all models quota-exhausted
-
-
-# ── Per-year Google Search (fast path) ────────────────────────────────────────
-
-
-def _search_pdf_url_for_year(
-    client: Any, navn: str, hjemmeside: Optional[str], year: int
-) -> Optional[str]:
-    """Ask Gemini + Google Search for a single year's annual report PDF URL."""
-    homepage_hint = f" Their website is {hjemmeside}." if hjemmeside else ""
-    prompt = (
-        f"Find the direct PDF download URL for the {year} annual report of '{navn}'.{homepage_hint} "
-        f"Return ONLY the complete PDF URL on a single line — it must end in .pdf or be a direct PDF download. "
-        f"Do not return web pages, only the actual PDF file URL."
-    )
-    for model in ["gemini-2.5-flash", "gemini-2.0-flash"]:
-        try:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config=genai_types.GenerateContentConfig(
-                    tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())],
-                ),
-            )
-            text = (response.text or "").strip()
-            pdf_urls = re.findall(r"https?://\S+\.pdf(?:\?\S*)?", text)
-            if pdf_urls:
-                return pdf_urls[0]
-            if response.candidates:
-                meta = getattr(response.candidates[0], "grounding_metadata", None)
-                for chunk in getattr(meta, "grounding_chunks", None) or []:
-                    uri = getattr(getattr(chunk, "web", None), "uri", "") or ""
-                    if ".pdf" in uri.lower():
-                        return uri
-        except Exception as exc:
-            if any(
-                x in str(exc)
-                for x in ["429", "RESOURCE_EXHAUSTED", "quota", "limit: 0"]
-            ):
-                logger.debug(
-                    "[discovery] Gemini Google Search quota for %s year %d, trying DDG",
-                    navn,
-                    year,
-                )
-                continue
-            break
-    ddg_urls = _ddg_query(f"{navn} annual report {year} filetype:pdf")
-    if ddg_urls:
-        logger.info(
-            "[discovery] DDG fallback found %d candidates for %s year %d",
-            len(ddg_urls),
-            navn,
-            year,
-        )
-        return ddg_urls[0]
-    return None
-
-
-def _discover_pdfs_per_year_search(
-    orgnr: str,
-    navn: str,
-    hjemmeside: Optional[str],
-    target_years: List[int],
-    api_key: str,
-) -> List[Dict[str, Any]]:
-    """Fast path: one Google Search per year to find the direct PDF URL."""
-    client = google_genai.Client(api_key=api_key)
-    results: List[Dict[str, Any]] = []
-    for year in target_years:
-        url = _search_pdf_url_for_year(client, navn, hjemmeside, year)
-        if url:
-            logger.info("[discovery] Per-year search found %d: %s", year, url[:80])
-            results.append(
-                {"year": year, "pdf_url": url, "label": f"{navn} Annual Report {year}"}
-            )
-    return results
-
-
 # ── Azure OpenAI agent loop ────────────────────────────────────────────────────
 
 
@@ -501,8 +245,9 @@ def _agent_discover_pdfs(
     """Run an LLM tool-use agent to find official annual report PDFs.
 
     Primary: Foundry tool-use agent (single provider, reliable).
-    Fallback: Legacy Claude → Azure OpenAI → Gemini chain (kept for
-    environments where Foundry is not configured).
+    Fallback: Claude → Azure OpenAI (kept for environments where
+    Foundry is not configured). Gemini was deleted 2026-04-22 after
+    measured 2/20 recall + free-tier quota issues.
     Returns [] if no agent succeeds — caller falls back to _discover_ir_pdfs.
     """
     logger.info(
@@ -555,21 +300,6 @@ def _agent_discover_pdfs(
             return result
     except Exception as exc:
         logger.warning("[discovery] Azure OpenAI agent failed for %s: %s", orgnr, exc)
-
-    for gemini_key in _gemini_api_keys():
-        try:
-            result = _discover_pdfs_per_year_search(
-                orgnr, navn, hjemmeside, target_years, gemini_key
-            )
-            if result:
-                return result
-            result = _agent_discover_pdfs_gemini(
-                orgnr, navn, hjemmeside, target_years, gemini_key
-            )
-            if result:
-                return result
-        except Exception as exc:
-            logger.warning("[discovery] Gemini failed for %s: %s", orgnr, exc)
 
     logger.warning("[discovery] All agents returned no results for %s", orgnr)
     return []

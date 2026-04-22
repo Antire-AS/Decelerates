@@ -111,9 +111,6 @@ jobs:
           ENV_VARS=(
             "ENVIRONMENT=${{ steps.config.outputs.environment }}"
             "DATABASE_URL=${{ steps.config.outputs.db_url }}"
-            "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
-            "GEMINI_API_KEY_2=${{ secrets.GEMINI_API_KEY_2 }}"
-            "GEMINI_API_KEY_3=${{ secrets.GEMINI_API_KEY_3 }}"
             "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"
             "AZURE_FOUNDRY_BASE_URL=${{ secrets.AZURE_FOUNDRY_BASE_URL }}"
             "AZURE_FOUNDRY_API_KEY=${{ secrets.AZURE_FOUNDRY_API_KEY }}"
