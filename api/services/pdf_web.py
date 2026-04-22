@@ -70,24 +70,59 @@ def _search_for_pdfs(navn: str, hjemmeside: Optional[str], year: int) -> List[st
     return all_urls[:PDF_URL_LIMIT]
 
 
-def _search_all_annual_pdfs(navn: str, hjemmeside: Optional[str]) -> List[str]:
-    """Search DuckDuckGo for all annual report PDFs for a company (no year filter).
-
-    Uses 2 queries max to avoid DDG rate limiting. Returns up to 20 PDF URLs.
-    """
+def _build_search_queries(navn: str, hjemmeside: Optional[str]) -> List[str]:
+    """Build the 1-2 search queries to try for a company's annual reports."""
     queries = []
     if hjemmeside:
         domain = re.sub(r"^https?://", "", hjemmeside).rstrip("/").split("/")[0]
-        queries.append(f'site:{domain} "annual report" filetype:pdf')
-    queries.append(f'{navn} "annual report" filetype:pdf')
+        queries.append(f'site:{domain} "annual report"')
+    queries.append(f'{navn} "annual report"')
+    return queries
 
+
+def _bing_search_pdfs(queries: List[str]) -> List[str]:
+    """Try Bing Web Search for each query. Returns [] if Bing isn't
+    configured or errors — caller falls through to DDG."""
+    try:
+        from api.container import resolve
+        from api.ports.driven.web_search_port import WebSearchPort
+
+        bing: WebSearchPort = resolve(WebSearchPort)
+        if bing is None or not bing.is_configured():
+            return []
+        urls: List[str] = []
+        for query in queries:
+            urls += bing.search_pdfs(query, max_results=20)
+            urls = list(dict.fromkeys(urls))
+            if len(urls) >= 20:
+                break
+        return urls[:20]
+    except Exception as exc:  # pragma: no cover - defence in depth
+        logger.warning("[search] Bing path errored, falling back to DDG: %s", exc)
+        return []
+
+
+def _search_all_annual_pdfs(navn: str, hjemmeside: Optional[str]) -> List[str]:
+    """Search for all annual report PDFs for a company (no year filter).
+
+    Tries Bing Web Search first (real API, reliable); falls back to DDG
+    HTML scrape if Bing isn't configured. DDG has been returning HTTP 202
+    anti-bot pages since ~2026-04 and is effectively dead — it's kept only
+    as a local-dev convenience for developers without a Bing key.
+    """
+    queries = _build_search_queries(navn, hjemmeside)
+
+    urls = _bing_search_pdfs(queries)
+    if urls:
+        return urls
+
+    # DDG fallback — currently broken (HTTP 202). Kept for local dev.
     all_urls: List[str] = []
     for query in queries:
-        all_urls += _ddg_query(query)
+        all_urls += _ddg_query(f"{query} filetype:pdf")
         all_urls = list(dict.fromkeys(all_urls))
         if len(all_urls) >= 20:
             break
-
     return all_urls[:20]
 
 
