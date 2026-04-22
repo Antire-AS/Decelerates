@@ -21,6 +21,7 @@ import AltmanZSection from "./overview/AltmanZSection";
 import BoardSection from "./overview/BoardSection";
 import LicensesSection from "./overview/LicensesSection";
 import StrukturSection from "./overview/StrukturSection";
+import BenchmarkBar from "./overview/BenchmarkBar";
 
 const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
 
@@ -157,26 +158,64 @@ export default function OverviewTab({
 
         {benchmark?.benchmark && Object.keys(benchmark.benchmark).length > 0 && (() => {
           const b = benchmark.benchmark as Record<string, unknown>;
-          const fmtPct = (v: unknown) => `${(Number(v) * 100).toFixed(0)} %`;
-          const fmtRange = (lo: unknown, hi: unknown) => `${fmtPct(lo)} – ${fmtPct(hi)}`;
-          const rows: { label: string; value: string }[] = [];
-          if (b.industry) rows.push({ label: T("Bransje"), value: String(b.industry) });
-          if (b.typical_equity_ratio_min != null && b.typical_equity_ratio_max != null)
-            rows.push({ label: T("Typisk egenkapitalandel"), value: fmtRange(b.typical_equity_ratio_min, b.typical_equity_ratio_max) });
-          if (b.typical_profit_margin_min != null && b.typical_profit_margin_max != null)
-            rows.push({ label: T("Typisk resultatmargin"), value: fmtRange(b.typical_profit_margin_min, b.typical_profit_margin_max) });
+          const fmtPct = (v: number) => `${(v * 100).toFixed(0)} %`;
+          // Company's actual ratios — reuse equity_ratio from the /org payload
+          // and compute operating margin from whatever P&L shape the financial
+          // fields arrived in (native Norwegian fields or camelCase aliases).
+          const revenue = Number(regn.sumDriftsinntekter ?? regn.sum_driftsinntekter ?? 0);
+          const ebit = Number(
+            regn.driftsresultat ?? regn.arsresultat ?? regn.aarsresultat ?? 0,
+          );
+          const companyMargin = revenue > 0 ? ebit / revenue : null;
+          const companyEqRatio = risk.equity_ratio ?? null;
+          const eqMin = b.typical_equity_ratio_min as number | null | undefined;
+          const eqMax = b.typical_equity_ratio_max as number | null | undefined;
+          const marginMin = b.typical_profit_margin_min as number | null | undefined;
+          const marginMax = b.typical_profit_margin_max as number | null | undefined;
           return (
             <Section title={T("SSB-bransjesammenligning")} collapsibleId={`overview-${orgnr}-ssb`}>
               <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>{T("Typiske nøkkeltall for bransjen")}{b.live === true ? ` ${T("(live SSB)")}` : ""}</span>
               </div>
-              {rows.map((row) => (
-                <div key={row.label} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{row.label}</span>
-                  <span className="text-foreground font-medium text-xs">{row.value}</span>
+              {Boolean(b.industry) && (
+                <div className="flex justify-between text-xs mb-3">
+                  <span className="text-muted-foreground">{T("Bransje")}</span>
+                  <span className="text-foreground font-medium">{String(b.industry)}</span>
                 </div>
-              ))}
+              )}
+              {eqMin != null && eqMax != null && (
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{T("Egenkapitalandel")}</span>
+                    <span className="text-foreground font-medium">
+                      {companyEqRatio != null ? fmtPct(companyEqRatio) : "–"}
+                    </span>
+                  </div>
+                  <BenchmarkBar
+                    value={companyEqRatio}
+                    rangeMin={eqMin}
+                    rangeMax={eqMax}
+                    format={fmtPct}
+                  />
+                </div>
+              )}
+              {marginMin != null && marginMax != null && (
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{T("Driftsmargin")}</span>
+                    <span className="text-foreground font-medium">
+                      {companyMargin != null ? fmtPct(companyMargin) : "–"}
+                    </span>
+                  </div>
+                  <BenchmarkBar
+                    value={companyMargin}
+                    rangeMin={marginMin}
+                    rangeMax={marginMax}
+                    format={fmtPct}
+                  />
+                </div>
+              )}
             </Section>
           );
         })()}
@@ -187,24 +226,34 @@ export default function OverviewTab({
               <BarChart3 className="w-3.5 h-3.5" />
               <span>NACE {peerData.nace_section || "–"} · {peerData.peer_count} {T("peers")} · {peerData.source === "db_peers" ? T("database") : "SSB"}</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {(["equity_ratio", "revenue", "risk_score"] as const).map((k) => {
                 const m = peerData.metrics[k];
                 if (!m || (m.company == null && m.peer_avg == null)) return null;
                 const label = k === "equity_ratio" ? T("Egenkapitalandel") : k === "revenue" ? T("Omsetning") : T("Risikoscore");
-                const fmtVal = (v: number | null | undefined) => {
-                  if (v == null) return "–";
+                const fmtVal = (v: number) => {
                   if (k === "equity_ratio") return `${(v * 100).toFixed(1)}%`;
                   if (k === "revenue") return fmtMnok(v);
                   return v.toFixed(1);
                 };
+                const fmtOrDash = (v: number | null | undefined) => (v == null ? "–" : fmtVal(v));
                 return (
-                  <div key={k} className="flex justify-between items-baseline text-xs">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="text-foreground font-medium">
-                      {fmtVal(m.company)} <span className="text-muted-foreground">vs</span> <span className="text-muted-foreground">{fmtVal(m.peer_avg)}</span>
-                      {m.percentile != null && <span className="ml-2 text-[10px] text-primary">P{m.percentile}</span>}
-                    </span>
+                  <div key={k}>
+                    <div className="flex justify-between items-baseline text-xs mb-1">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="text-foreground font-medium">
+                        {fmtOrDash(m.company)} <span className="text-muted-foreground">vs</span>{" "}
+                        <span className="text-muted-foreground">{fmtOrDash(m.peer_avg)}</span>
+                        {m.percentile != null && (
+                          <span className="ml-2 text-[10px] text-primary">P{m.percentile}</span>
+                        )}
+                      </span>
+                    </div>
+                    <BenchmarkBar
+                      value={m.company}
+                      peerAvg={m.peer_avg}
+                      format={fmtVal}
+                    />
                   </div>
                 );
               })}
