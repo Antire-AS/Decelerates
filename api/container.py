@@ -31,7 +31,6 @@ from dataclasses import dataclass, field
 
 import punq
 
-from api.adapters.bing_search_adapter import BingSearchAdapter, BingSearchConfig
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
 from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter
 from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
@@ -40,6 +39,7 @@ from api.adapters.notification_adapter import (
     NotificationConfig,
 )
 from api.adapters.secret_adapter import KeyVaultSecretAdapter, SecretConfig
+from api.adapters.serper_search_adapter import SerperSearchAdapter, SerperSearchConfig
 from api.ports.driven.blob_storage_port import BlobStoragePort
 from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.ports.driven.llm_port import LlmPort
@@ -55,11 +55,7 @@ class AppConfig:
     msgraph: MsGraphConfig = field(default_factory=MsGraphConfig)
     foundry: FoundryConfig = field(default_factory=FoundryConfig)
     secret: SecretConfig = field(default_factory=SecretConfig)
-    bing_search: BingSearchConfig = field(
-        default_factory=lambda: BingSearchConfig(
-            endpoint="https://api.bing.microsoft.com/v7.0/search"
-        )
-    )
+    serper_search: SerperSearchConfig = field(default_factory=SerperSearchConfig)
 
 
 class ContainerFactory:
@@ -82,8 +78,8 @@ class ContainerFactory:
     def _make_secret_adapter(self) -> SecretPort:
         return KeyVaultSecretAdapter(self._config.secret)
 
-    def _make_bing_search_adapter(self) -> WebSearchPort:
-        return BingSearchAdapter(self._config.bing_search)
+    def _make_serper_search_adapter(self) -> WebSearchPort:
+        return SerperSearchAdapter(self._config.serper_search)
 
     def build(self) -> punq.Container:
         self.container.register(
@@ -113,7 +109,7 @@ class ContainerFactory:
         )
         self.container.register(
             WebSearchPort,
-            factory=self._make_bing_search_adapter,
+            factory=self._make_serper_search_adapter,
             scope=punq.Scope.singleton,
         )
         return self.container

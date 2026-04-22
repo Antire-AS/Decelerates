@@ -43,8 +43,8 @@ from slowapi.errors import RateLimitExceeded
 from api.db import init_db
 from api.limiter import limiter
 from api.container import configure, AppConfig
-from api.adapters.bing_search_adapter import BingSearchConfig
 from api.adapters.blob_storage_adapter import BlobStorageConfig
+from api.adapters.serper_search_adapter import SerperSearchConfig
 from api.adapters.foundry_llm_adapter import FoundryConfig
 from api.adapters.msgraph_email_adapter import MsGraphConfig
 from api.adapters.notification_adapter import NotificationConfig
@@ -399,16 +399,17 @@ def on_startup():
             secret=SecretConfig(
                 vault_url=os.getenv("AZURE_KEYVAULT_URL"),
             ),
-            # Bing Web Search — replaces the DDG HTML-scrape fallback that
-            # started returning HTTP 202 anti-bot pages. F1 SKU gives 1K
-            # free queries/month; no key set = adapter is_configured() returns
-            # False and pdf_web falls back to the (still broken) DDG scraper.
-            bing_search=BingSearchConfig(
+            # Serper.dev Web Search — replaces both the broken DDG scrape
+            # and the aborted Bing v7 attempt (Microsoft retired the
+            # Bing.Search.v7 Cognitive Service in 2024). Google-backed
+            # results via Serper's REST API; $5/mo flat covers 50K queries.
+            # No key set = adapter is_configured() returns False and
+            # pdf_web falls back to the (still broken) DDG scraper.
+            serper_search=SerperSearchConfig(
                 endpoint=os.getenv(
-                    "BING_SEARCH_ENDPOINT",
-                    "https://api.bing.microsoft.com/v7.0/search",
+                    "SERPER_API_ENDPOINT", "https://google.serper.dev/search"
                 ),
-                api_key=os.getenv("BING_SEARCH_API_KEY"),
+                api_key=os.getenv("SERPER_API_KEY"),
             ),
         )
     )
