@@ -19,6 +19,22 @@ export interface RiskFactor {
   detail?: string;
 }
 
+// Altman Z''-Score — bankruptcy prediction model (Altman 2000).
+// See api/risk.py:compute_altman_z_score. Returns null for companies where
+// the extraction can't fill working capital (banks + insurers).
+export interface AltmanZScore {
+  z_score: number;                 // the raw Altman Z'' value
+  zone: "safe" | "grey" | "distress";
+  score_20: number;                // Z'' mapped to the broker 0-20 scale
+  components: {
+    working_capital_ratio: number;   // X1: WC / TA  — liquidity
+    retained_earnings_ratio: number; // X2: RE / TA  — profitable history
+    ebit_ratio: number;              // X3: EBIT / TA — current profitability
+    equity_to_liab_ratio: number;    // X4: BE / TL  — solvency / leverage
+  };
+  formula: string;                 // human-readable attribution string
+}
+
 export interface OrgProfile {
   org: Record<string, unknown>;
   regnskap: Record<string, unknown> & { synthetic?: boolean; regnskapsår?: number };
@@ -27,6 +43,7 @@ export interface OrgProfile {
     reasons?: string[];
     factors?: RiskFactor[];
     equity_ratio?: number;
+    altman_z?: AltmanZScore | null;
   };
   pep: Record<string, unknown>;
   risk_summary: Record<string, unknown>;
