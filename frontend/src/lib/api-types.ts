@@ -35,6 +35,21 @@ export interface AltmanZScore {
   formula: string;                 // human-readable attribution string
 }
 
+// One Altman Z''-Score point per historical financial year. The backend
+// silently drops years where the extraction lacks any of the four Altman
+// inputs, so this list can be shorter than the full history.
+export interface AltmanTrendPoint {
+  year: number;
+  z_score: number;
+  zone: "safe" | "grey" | "distress";
+  score_20: number;
+}
+
+export interface AltmanHistoryOut {
+  orgnr: string;
+  points: AltmanTrendPoint[];
+}
+
 export interface OrgProfile {
   org: Record<string, unknown>;
   regnskap: Record<string, unknown> & { synthetic?: boolean; regnskapsår?: number };
