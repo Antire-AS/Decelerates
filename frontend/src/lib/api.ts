@@ -7,6 +7,7 @@
 import type {
   SearchResult,
   OrgProfile,
+  AltmanHistoryOut,
   DashboardData,
   Company,
   SlaAgreement,
@@ -187,6 +188,9 @@ export const getOrgRoles = (orgnr: string) =>
 export const getOrgHistory = (orgnr: string) =>
   apiFetch<HistoryOut>(`/org/${orgnr}/history`)
     .then((r) => (r.years ?? []) as unknown as HistoryRow[]);
+
+export const getOrgAltmanHistory = (orgnr: string) =>
+  apiFetch<AltmanHistoryOut>(`/org/${orgnr}/altman-history`);
 
 export const getOrgBankruptcy = (orgnr: string) =>
   apiFetch<BankruptcyOut>(`/org/${orgnr}/bankruptcy`);

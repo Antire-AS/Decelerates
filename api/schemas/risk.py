@@ -25,3 +25,15 @@ class RiskOfferOut(BaseModel):
 class NarrativeOut(BaseModel):
     orgnr: str
     narrative: str
+
+
+class AltmanTrendPoint(BaseModel):
+    year: int
+    z_score: float
+    zone: str
+    score_20: int
+
+
+class AltmanHistoryOut(BaseModel):
+    orgnr: str
+    points: List[AltmanTrendPoint] = Field(default_factory=list)
