@@ -1,29 +1,18 @@
-# Bing Web Search v7 — replacement for the DuckDuckGo HTML-scrape fallback
-# in api/services/pdf_web.py. DDG started returning HTTP 202 anti-bot pages
-# around 2026-04, which made the agentic IR discovery pipeline's search
-# layer silently broken. Bing's paid API isn't bot-detected and the F1
-# SKU gives 1K queries/month free, comfortably covering our ~100-300
-# discovery calls/month.
+# Web search provider for PDF discovery pipeline.
 #
-# See docs/superpowers/plans/2026-04-22-pdf-discovery-redesign.md Phase 2.
-
-resource "azurerm_cognitive_account" "bing_search" {
-  name                = "cog-${var.env}-bing-search"
-  # Bing Search is a global service, not regional — always "global".
-  location            = "global"
-  resource_group_name = azurerm_resource_group.main.name
-  kind                = "Bing.Search.v7"
-  sku_name            = "F1"
-  tags                = local.tags
-}
-
-output "bing_search_key" {
-  description = "Primary access key for Bing Web Search. Paste into GitHub secret BING_SEARCH_API_KEY."
-  value       = azurerm_cognitive_account.bing_search.primary_access_key
-  sensitive   = true
-}
-
-output "bing_search_endpoint" {
-  description = "Bing Web Search v7 endpoint. Defaults in app config already point here."
-  value       = "https://api.bing.microsoft.com/v7.0/search"
-}
+# NO AZURE RESOURCE. The web search provider is Serper.dev (external SaaS).
+#
+# History:
+# - Prior attempt #1: DDG HTML scrape. Broke ~2026-04 when DuckDuckGo started
+#   returning HTTP 202 anti-bot pages. Measured 0/20 recall in the harness.
+# - Prior attempt #2: Bing Web Search v7 via azurerm_cognitive_account.
+#   Turned out Microsoft retired Bing.Search.v7 in 2024 — the kind no longer
+#   exists in `az cognitiveservices account list-kinds`. Never provisioned.
+# - Current: Serper.dev. Pure HTTP API, no Azure resource to provision.
+#   Sign up at https://serper.dev/, get API key, paste into GitHub secret
+#   `SERPER_API_KEY`. $5/mo flat for 50K queries; free tier 2,500 one-time
+#   credits for local-dev / first-prod-week validation.
+#
+# This .tf file is kept (rather than deleted) as an anchor for the
+# "search provider history" knowledge — future contributors see this
+# comment and understand why there's no Terraform for the search layer.
