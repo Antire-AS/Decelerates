@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import useSWR from "swr";
 import { ExternalLink, AlertTriangle, TrendingUp, BarChart3 } from "lucide-react";
-import type { HistoryRow, RiskFactor } from "@/lib/api-types";
+import type { AltmanZScore, HistoryRow, RiskFactor } from "@/lib/api-types";
 import type {
   BankruptcyOut,
   BoardMembersOut,
@@ -17,6 +17,7 @@ import { getOrgPeerBenchmark } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { Section, KV } from "./overview/shared";
 import RiskScoreSection from "./overview/RiskScoreSection";
+import AltmanZSection from "./overview/AltmanZSection";
 import BoardSection from "./overview/BoardSection";
 import LicensesSection from "./overview/LicensesSection";
 import StrukturSection from "./overview/StrukturSection";
@@ -33,6 +34,7 @@ interface OverviewTabProps {
     reasons?: string[];
     factors?: RiskFactor[];
     equity_ratio?: number;
+    altman_z?: AltmanZScore | null;
   };
   pep: Record<string, unknown>;
   koordinaterData: KoordinaterOut | null | undefined;
@@ -122,6 +124,7 @@ export default function OverviewTab({
 
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
+          {risk.altman_z && <AltmanZSection altman={risk.altman_z} />}
           {finansData && (
             <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")} collapsibleId={`overview-${orgnr}-nokkeltall`}>
               <KV label={T("Omsetning")} value={finansData.sumDriftsinntekter} />

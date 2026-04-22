@@ -310,8 +310,12 @@ def test_orchestrator_falls_back_to_claude_when_foundry_empty():
 def test_orchestrator_returns_empty_when_all_fail():
     from api.services.pdf_agents import _agent_discover_pdfs
 
+    # Foundry v2 has a DDG fallback that otherwise makes real network calls —
+    # mock it to return [] so we're testing the orchestrator's chain of
+    # fallbacks, not DDG's live availability.
     with (
         patch.dict("os.environ", {}, clear=True),
+        patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=[]),
         patch(
             "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
         ),
