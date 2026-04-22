@@ -22,6 +22,7 @@ import BoardSection from "./overview/BoardSection";
 import LicensesSection from "./overview/LicensesSection";
 import StrukturSection from "./overview/StrukturSection";
 import BenchmarkBar from "./overview/BenchmarkBar";
+import RiskNarrativePanel from "./overview/RiskNarrativePanel";
 
 const CompanyMap = dynamic(() => import("@/components/company/CompanyMap"), { ssr: false });
 
@@ -126,6 +127,7 @@ export default function OverviewTab({
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
           {risk.altman_z && <AltmanZSection altman={risk.altman_z} orgnr={orgnr} />}
+          <RiskNarrativePanel orgnr={orgnr} />
           {finansData && (
             <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")} collapsibleId={`overview-${orgnr}-nokkeltall`}>
               <KV label={T("Omsetning")} value={finansData.sumDriftsinntekter} />
