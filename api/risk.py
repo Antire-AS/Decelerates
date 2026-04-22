@@ -362,6 +362,121 @@ def _check_industry_age_exposure(
     _check_pep_exposure(pep, add)
 
 
+# ── Altman Z''-Score (bankruptcy prediction) ─────────────────────────────────
+#
+# Non-manufacturing, non-listed variant (Altman 2000). Validated against
+# thousands of real-world bankruptcies. Returns a probabilistic distress
+# signal — unlike the additive rule-based score above, this one actually
+# predicts bankruptcy within 2 years with measured accuracy.
+#
+#   Z'' = 6.56·(WC/TA) + 3.26·(RE/TA) + 6.72·(EBIT/TA) + 1.05·(BE/TL)
+#
+# Zones (Altman 2000):
+#   Z'' > 2.60           → Safe
+#   1.10 ≤ Z'' ≤ 2.60    → Grey
+#   Z'' < 1.10           → Distress
+#
+# We map Z'' to the broker 0-20 risk scale via piecewise linear interpolation.
+# Anchored so the zone boundaries land on the Lav/Moderat/Høy/Svært høy
+# RISK_BANDS boundaries from above.
+
+Z_SAFE = 3.50
+Z_GREY_TOP = 2.60
+Z_GREY_MID = 1.85
+Z_DISTRESS_TOP = 1.10
+Z_CRITICAL = 0.0
+
+
+def _safe_div(num: Optional[float], den: Optional[float]) -> Optional[float]:
+    """Divide that tolerates None/zero inputs. Returns None if either input
+    is missing or denominator is zero — caller falls back to the rule-based
+    score for partial extractions."""
+    if num is None or den is None or not den:
+        return None
+    return num / den
+
+
+def _map_z_to_risk_score(z: float) -> int:
+    """Piecewise-linear mapping from Altman Z'' to the 0-20 broker risk scale.
+
+    Anchored so:
+      score  0 = Z'' ≥ 3.50 (very safe)
+      score  5 = boundary of Safe zone (Lav → Moderat)
+      score 10 = centre of Grey zone
+      score 15 = boundary of Distress zone (Høy → Svært høy)
+      score 20 = Z'' ≤ 0 (severe distress)
+    """
+    if z >= Z_SAFE:
+        return 0
+    if z >= Z_GREY_TOP:
+        return round(5 * (Z_SAFE - z) / (Z_SAFE - Z_GREY_TOP))
+    if z >= Z_GREY_MID:
+        return round(5 + 5 * (Z_GREY_TOP - z) / (Z_GREY_TOP - Z_GREY_MID))
+    if z >= Z_DISTRESS_TOP:
+        return round(10 + 5 * (Z_GREY_MID - z) / (Z_GREY_MID - Z_DISTRESS_TOP))
+    if z >= Z_CRITICAL:
+        return round(15 + 5 * (Z_DISTRESS_TOP - z) / (Z_DISTRESS_TOP - Z_CRITICAL))
+    return 20
+
+
+def _z_zone(z: float) -> str:
+    """Zone label (safe/grey/distress) matching Altman 2000 thresholds."""
+    if z > Z_GREY_TOP:
+        return "safe"
+    if z >= Z_DISTRESS_TOP:
+        return "grey"
+    return "distress"
+
+
+def _altman_ratios(
+    regn: Dict[str, Any],
+) -> Optional[Dict[str, float]]:
+    """Compute the four Altman Z'' input ratios, or None if any input is
+    missing. Banks + insurers lack the current/non-current split, so their
+    working-capital ratio is undefined and we bail here."""
+    total_assets = regn.get("sum_eiendeler") or regn.get("total_assets")
+    total_liab = regn.get("sum_gjeld")
+    equity = regn.get("sum_egenkapital") or regn.get("equity")
+    current_assets = regn.get("sum_omloepsmidler")
+    short_term_debt = regn.get("short_term_debt")
+    working_capital: Optional[float] = None
+    if current_assets is not None and short_term_debt is not None:
+        working_capital = current_assets - short_term_debt
+    x1 = _safe_div(working_capital, total_assets)
+    x2 = _safe_div(regn.get("sum_opptjent_egenkapital"), total_assets)
+    x3 = _safe_div(regn.get("driftsresultat"), total_assets)
+    x4 = _safe_div(equity, total_liab)
+    if None in (x1, x2, x3, x4):
+        return None
+    return {"x1": x1, "x2": x2, "x3": x3, "x4": x4}
+
+
+def compute_altman_z_score(regn: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Compute Altman Z''-Score + component breakdown from extracted financials.
+
+    Returns None if any required input is missing. The component dict lets
+    the UI explain *why* a score is what it is: a company scoring 12 because
+    of negative EBIT reads differently from one scoring 12 because of leverage.
+    """
+    ratios = _altman_ratios(regn)
+    if ratios is None:
+        return None
+    x1, x2, x3, x4 = ratios["x1"], ratios["x2"], ratios["x3"], ratios["x4"]
+    z = 6.56 * x1 + 3.26 * x2 + 6.72 * x3 + 1.05 * x4
+    return {
+        "z_score": round(z, 2),
+        "zone": _z_zone(z),
+        "score_20": _map_z_to_risk_score(z),
+        "components": {
+            "working_capital_ratio": round(x1, 4),
+            "retained_earnings_ratio": round(x2, 4),
+            "ebit_ratio": round(x3, 4),
+            "equity_to_liab_ratio": round(x4, 4),
+        },
+        "formula": "Altman Z'' (2000) — non-manufacturing private firms",
+    }
+
+
 def derive_simple_risk(
     org: Dict[str, Any],
     regn: Dict[str, Any],
@@ -389,11 +504,17 @@ def derive_simple_risk(
     eq_ratio = _check_financial_health(regn, add)
     _check_industry_age_exposure(org, regn, pep, add)
 
+    # Altman Z'' is an augmentation, not a replacement — returns None for
+    # companies missing the required balance-sheet detail (banks, insurers,
+    # incomplete PDFs) and the caller falls back to the rule-based score.
+    altman = compute_altman_z_score(regn) if regn else None
+
     return {
         "score": score,
         "factors": factors,
         "reasons": [f["label"] for f in factors],  # backwards-compatible
         "equity_ratio": eq_ratio,
+        "altman_z": altman,
     }
 
 
@@ -429,6 +550,7 @@ def build_risk_summary(
         "risk_score": risk.get("score") if risk else None,
         "risk_flags": risk_flags,
         "risk_factors": risk_factors,
+        "altman_z": risk.get("altman_z") if risk else None,
         "pep_hits": pep_hits,
         "konkurs": org.get("konkurs", False),
         "under_konkursbehandling": org.get("under_konkursbehandling", False),
