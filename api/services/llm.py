@@ -7,9 +7,10 @@ Phase 4.5 cleanup removed the legacy fallback chains here:
   - AI Studio API-key Gemini chat (gone — Foundry handles all chat)
 
 Vertex AI is still primary for multimodal PDF analysis (the cost-efficient
-native PDF input), and that path uses GOOGLE_APPLICATION_CREDENTIALS, not
-GEMINI_API_KEY. The agentic IR PDF discovery in api/services/pdf_agents.py
-still depends on Anthropic + Gemini API keys; that's a separate follow-up.
+native PDF input), and that path uses GOOGLE_APPLICATION_CREDENTIALS. The
+agentic IR PDF discovery path in api/services/pdf_agents.py had its
+Gemini AI-Studio branches removed on 2026-04-22 (measured 2/20 recall);
+it now depends only on ANTHROPIC_API_KEY + AZURE_OPENAI_*.
 """
 
 import json

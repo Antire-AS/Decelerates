@@ -86,7 +86,7 @@ api/
     pdf_parse.py   JSON parsing, Gemini extraction, pdfplumber fallback
     pdf_history.py DB upsert, history merge (BRREG + PDF rows)
     pdf_web.py     DuckDuckGo helpers, HTML fetching (Playwright + requests fallback)
-    pdf_agents.py  Claude / Gemini / Azure OpenAI agent loops + orchestration
+    pdf_agents.py  Claude + Azure OpenAI agent loops + orchestration (Gemini removed 2026-04-22)
     pdf_background.py URL validation, parallel extraction, PdfExtractService
     pdf_generate.py PdfGenerateService + module-level helpers
     blob_storage.py   BlobStorageService (legacy wrapper → AzureBlobStorageAdapter)
@@ -128,7 +128,6 @@ frontend/        ← Next.js 15 app (Pages Router on /bapi/* rewrites)
 - **Parallel extraction** — `_extract_pending_sources` uses `ThreadPoolExecutor(max_workers=3)`; each thread gets its own DB session
 - **Testable background tasks** — `_auto_extract_pdf_sources(db_factory=SessionLocal)` accepts injected session factory
 - **Graceful degradation** — Playwright fails → requests fallback; agent fails → DuckDuckGo fallback; BRREG empty → PDF history fallback; no LLM key → silent skip
-- **Multi-key Gemini rotation** — `_gemini_api_keys()` reads `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`; all Gemini calls rotate through keys on 429/quota errors
 
 ---
 
@@ -205,13 +204,13 @@ def get_settings(svc: BrokerService = Depends(_get_broker_service)):
 ### [api/services/pdf_extract.py](api/services/pdf_extract.py) — PDF discovery + extraction
 
 **Agentic IR discovery pipeline:**
-1. `_agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)` — tries Claude first (`ANTHROPIC_API_KEY`), then all Gemini keys in order
+1. `_agent_discover_pdfs(orgnr, navn, hjemmeside, target_years)` — tries Foundry v2, then Claude (if `ANTHROPIC_API_KEY` set), then Azure OpenAI
 2. `_agent_discover_pdfs_claude` — Claude tool-use loop using native `web_search_20250305` + custom `fetch_url` (Playwright-backed)
-3. `_agent_discover_pdfs_gemini` — two-phase Gemini loop:
-   - Phase 1: `gemini-2.5-flash` Google Search grounding → finds IR page URL
-   - Phase 2: `_run_gemini_phase2(chat, navn, phase1_text)` — up to 4 `fetch_url` turns to extract real `pdf_links`
+3. `_agent_discover_pdfs_azure_openai` — Azure OpenAI `gpt-4o` tool-use loop using custom `web_search` (DDG-backed, currently broken → Phase 2 swaps for Bing) + `fetch_url`
 4. `_validate_pdf_urls(discovered)` — HTTP HEAD check; filters out 404/unreachable URLs before storing
 5. `_fetch_html(url)` — Playwright (headless Chromium) → requests fallback
+
+> The Gemini AI-Studio branches (`_agent_discover_pdfs_gemini`, `_gemini_web_search`, `_run_gemini_phase2`) were deleted on 2026-04-22 — measured 2/20 recall on a 20-company corpus, not worth the free-tier RPM quota pain. See docs/decisions/2026-04-22-pdf-agents-recall.md.
 
 **Extraction pipeline:**
 - `_parse_financials_from_pdf(pdf_url, orgnr, year)` — Gemini native PDF (inline ≤18MB, Files API >18MB); pdfplumber fallback
@@ -421,7 +420,7 @@ discovery feature in `pdf_agents.py` — a separate cleanup pending.
 | **Chat / NL→SQL / narrative** (`_llm_answer*`, `_compare_offers_with_llm`) | Antire Azure AI Foundry | `gpt-5.4-mini` | `AZURE_FOUNDRY_BASE_URL` + `AZURE_FOUNDRY_API_KEY` |
 | **Embeddings** (`_embed` → pgvector dim=512) | Antire Azure AI Foundry | `text-embedding-3-small` (512-dim mode) | same |
 | **PDF / multimodal extraction** (`_parse_financials_from_pdf`, `_analyze_document_with_gemini`, `_compare_documents_with_gemini`) | Google Vertex AI | `gemini-2.5-flash` | `GCP_VERTEX_AI_PROJECT` + `GCP_VERTEX_AI_LOCATION` + `GOOGLE_APPLICATION_CREDENTIALS` (or `GCP_VERTEX_AI_SA_JSON_B64` in Container Apps) |
-| **Agentic IR PDF discovery** (`_agent_discover_pdfs`) | Anthropic Claude → Azure OpenAI → Gemini AI Studio → DuckDuckGo | `claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.5-flash` | `ANTHROPIC_API_KEY`, `AZURE_OPENAI_*`, `GEMINI_API_KEY[_2/_3]` (legacy, slated for migration) |
+| **Agentic IR PDF discovery** (`_agent_discover_pdfs`) | Foundry → Claude → Azure OpenAI → DDG fallback (broken, Phase 2 replaces with Bing) | `claude-haiku-4-5`, `gpt-4o-mini` | `AZURE_FOUNDRY_*`, `ANTHROPIC_API_KEY`, `AZURE_OPENAI_*` |
 
 The chat + embedding + extraction paths each have **no fallback**: if the
 primary fails, the call returns `None` / empty / raises `LlmUnavailableError`.
@@ -429,12 +428,14 @@ This is intentional — fallback chains hide bugs (e.g. yesterday's Foundry
 SA-JSON encoding break) and the new failure mode shows up immediately in
 the deploy health-check gate or the Playwright e2e tests.
 
-The agentic IR discovery flow is a deliberate exception — its multi-provider
-fallback is expensive but the cost-of-failure is low (broker just doesn't
-get a candidate PDF) so reliability beats simplicity there. Until the
-agent is migrated to Foundry tool-use or deleted, the legacy keys stay.
+The agentic IR discovery flow keeps a fallback chain because discovery has
+low cost-of-failure (broker just doesn't get a candidate PDF). Phase 1 of
+the 2026-04-22 redesign deleted the Gemini AI-Studio branch (measured 2/20
+recall). Phase 2 will replace the DDG fallback with Bing Web Search; Phase 3
+will re-enable Claude's native web_search_20250305 tool. See
+docs/superpowers/plans/2026-04-22-pdf-discovery-redesign.md.
 
-Phase 4.5 removed:
+Phase 4.5 (2026-04-09) removed:
 - Voyage AI embeddings (replaced by Foundry text-embedding-3-small)
 - Anthropic Claude direct chat in `_llm_answer*` (replaced by Foundry chat)
 - AI-Studio API-key Gemini in `_embed` and `_llm_answer*` (replaced by Foundry)
@@ -443,6 +444,14 @@ Phase 4.5 removed:
 - The `_gemini_files_api` path (Vertex AI accepts inline PDFs of any size,
   so the >18 MB Files API workaround is no longer needed)
 - The `_gemini_raw_with_fallback` helper (no callers after the cleanup)
+
+2026-04-22 PDF-discovery redesign Phase 1 removed:
+- `_agent_discover_pdfs_gemini` + `_gemini_web_search` + `_run_gemini_phase2`
+  + `_search_pdf_url_for_year` + `_discover_pdfs_per_year_search` (2/20
+  measured recall; AI-Studio free-tier RPM quota made it unreliable)
+- `_gemini_api_keys` helper in `pdf_parse.py` (orphaned after above)
+- 3 env vars: `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`
+- 22 Gemini-specific unit tests
 
 ---
 
