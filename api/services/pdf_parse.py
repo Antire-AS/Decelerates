@@ -4,11 +4,9 @@ Phase 3 removed the pdfplumber-based text fallback (rarely exercised; Gemini
 handles scanned PDFs better than text-extract-then-LLM). Phase 4.5 removed
 the legacy AI-Studio API-key Gemini clients and the Files API path that
 went with them — Vertex AI accepts inline PDFs of any practical size, and
-has been serving 100% of extraction in prod since 2026-04-08.
-
-Note: `_gemini_api_keys()` is kept here as a re-exported helper because
-the agentic IR PDF discovery in api/services/pdf_agents.py still uses the
-legacy API-key Gemini for its tool-use loop (separate cleanup pending).
+has been serving 100% of extraction in prod since 2026-04-08. The orphan
+`_gemini_api_keys()` helper was removed on 2026-04-22 when the agentic IR
+discovery path that referenced it was deleted.
 """
 
 import json
@@ -72,20 +70,6 @@ def _gemini_inline(
     # fails the extraction on telemetry errors.
     record_vertex_token_usage(resp, model_name)
     return resp.text
-
-
-def _gemini_api_keys() -> List[str]:
-    """Return all configured legacy Gemini API keys (primary + fallbacks), deduped.
-
-    Legacy AI-Studio API-key path. Used as fallback when Vertex AI is not
-    configured. Will be removed once Vertex AI is stable in prod.
-    """
-    keys = []
-    for var in ("GEMINI_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"):
-        k = os.getenv(var)
-        if k and k != "your_key_here" and k not in keys:
-            keys.append(k)
-    return keys
 
 
 def _build_gemini_clients() -> List[Any]:
