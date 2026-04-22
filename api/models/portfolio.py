@@ -1,6 +1,6 @@
 """Portfolio domain models — named company lists for cross-portfolio risk analysis."""
 
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 
 from api.models._base import Base
 
@@ -28,3 +28,24 @@ class PortfolioCompany(Base):
     )
     orgnr = Column(String(9), primary_key=True)
     added_at = Column(String, nullable=False)
+
+
+class PortfolioRiskSnapshot(Base):
+    """Per-company Altman Z'' snapshot scoped to a portfolio.
+
+    One row per (portfolio_id, orgnr, snapshot_at). The risk-summary endpoint
+    reads the two most recent distinct snapshot_at values to compute zone
+    distribution + transitions.
+    """
+
+    __tablename__ = "portfolio_risk_snapshot"
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(
+        Integer, ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False
+    )
+    orgnr = Column(String(9), nullable=False)
+    z_score = Column(Float, nullable=True)
+    zone = Column(String(16), nullable=True)
+    score_20 = Column(Integer, nullable=True)
+    snapshot_at = Column(DateTime(timezone=True), nullable=False)

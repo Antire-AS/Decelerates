@@ -2706,6 +2706,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/portfolio/{portfolio_id}/altman-risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Portfolio Risk
+         * @description Return the latest snapshot summary. If no snapshot exists the response
+         *     has empty zones / transitions — caller should POST /refresh first.
+         */
+        get: operations["read_portfolio_risk_portfolio__portfolio_id__altman_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/portfolio/{portfolio_id}/altman-risk/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Portfolio Risk
+         * @description Compute Altman Z'' for every company in the portfolio and store
+         *     a new snapshot batch. Returns the new snapshot timestamp.
+         */
+        post: operations["refresh_portfolio_risk_portfolio__portfolio_id__altman_risk_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/portfolio/{portfolio_id}/analytics": {
         parameters: {
             query?: never;
@@ -4927,6 +4969,65 @@ export interface components {
             description: string | null;
             /** Name */
             name: string;
+        };
+        /** PortfolioRiskCompanyRow */
+        PortfolioRiskCompanyRow: {
+            /** Navn */
+            navn?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Score 20 */
+            score_20?: number | null;
+            /** Z Score */
+            z_score?: number | null;
+            /** Zone */
+            zone?: string | null;
+        };
+        /** PortfolioRiskRefreshOut */
+        PortfolioRiskRefreshOut: {
+            /** Portfolio Id */
+            portfolio_id: number;
+            /** Snapshot At */
+            snapshot_at: string;
+        };
+        /** PortfolioRiskSummaryOut */
+        PortfolioRiskSummaryOut: {
+            /** Companies */
+            companies?: components["schemas"]["PortfolioRiskCompanyRow"][];
+            /** Portfolio Id */
+            portfolio_id: number;
+            /**
+             * Premium At Risk Nok
+             * @default 0
+             */
+            premium_at_risk_nok: number;
+            /** Prev Snapshot At */
+            prev_snapshot_at?: string | null;
+            /** Snapshot At */
+            snapshot_at?: string | null;
+            /** Transitions */
+            transitions?: components["schemas"]["PortfolioRiskTransition"][];
+            /** Zones */
+            zones?: {
+                [key: string]: number;
+            };
+        };
+        /** PortfolioRiskTransition */
+        PortfolioRiskTransition: {
+            /** Curr Z */
+            curr_z?: number | null;
+            /** Curr Zone */
+            curr_zone?: string | null;
+            /** Delta Z */
+            delta_z?: number | null;
+            /** Navn */
+            navn?: string | null;
+            /** Orgnr */
+            orgnr: string;
+            /** Prev Z */
+            prev_z?: number | null;
+            /** Prev Zone */
+            prev_zone?: string | null;
         };
         /** QuoteResponse */
         QuoteResponse: {
@@ -10699,6 +10800,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_portfolio_risk_portfolio__portfolio_id__altman_risk_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portfolio_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioRiskSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_portfolio_risk_portfolio__portfolio_id__altman_risk_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portfolio_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioRiskRefreshOut"];
                 };
             };
             /** @description Validation Error */

@@ -112,6 +112,7 @@ from api.routers import (
     utils,
     admin_router,
     portfolio_router,
+    portfolio_risk,
     users,
     contacts,
     policies,
@@ -430,6 +431,7 @@ app.include_router(sla.router)
 app.include_router(utils.router)
 app.include_router(admin_router.router)
 app.include_router(portfolio_router.router)
+app.include_router(portfolio_risk.router)
 app.include_router(users.router)
 app.include_router(contacts.router)
 app.include_router(policies.router)
