@@ -16,6 +16,7 @@ from api.models.tender import *  # noqa: F401,F403
 from api.models.coverage import *  # noqa: F401,F403
 from api.models.compliance import *  # noqa: F401,F403
 from api.models.system import *  # noqa: F401,F403
+from api.models.news import *  # noqa: F401,F403
 
 
 def init_db():
