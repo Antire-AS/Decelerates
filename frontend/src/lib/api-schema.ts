@@ -2053,6 +2053,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Company News
+         * @description Return stored news articles for this company, newest first.
+         *     `only_material=true` filters to underwriter-relevant events.
+         */
+        get: operations["read_company_news_org__orgnr__news_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/org/{orgnr}/news/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Company News Endpoint
+         * @description Query Serper /news for the company, classify each new hit via
+         *     Foundry, upsert into company_news. Returns the count of newly
+         *     stored articles (dedupe by URL).
+         */
+        post: operations["refresh_company_news_endpoint_org__orgnr__news_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org/{orgnr}/offers": {
         parameters: {
             query?: never;
@@ -4046,6 +4089,48 @@ export interface components {
             total_commission_ytd: number;
             /** Total Premium Managed */
             total_premium_managed: number;
+        };
+        /** CompanyNewsItem */
+        CompanyNewsItem: {
+            /** Event Type */
+            event_type?: string | null;
+            /** Fetched At */
+            fetched_at?: string | null;
+            /** Headline */
+            headline: string;
+            /** Id */
+            id: number;
+            /**
+             * Material
+             * @default false
+             */
+            material: boolean;
+            /** Orgnr */
+            orgnr: string;
+            /** Published At */
+            published_at?: string | null;
+            /** Snippet */
+            snippet?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Url */
+            url: string;
+        };
+        /** CompanyNewsOut */
+        CompanyNewsOut: {
+            /** Items */
+            items?: components["schemas"]["CompanyNewsItem"][];
+            /** Orgnr */
+            orgnr: string;
+        };
+        /** CompanyNewsRefreshOut */
+        CompanyNewsRefreshOut: {
+            /** Added */
+            added: number;
+            /** Orgnr */
+            orgnr: string;
         };
         /** ConsentIn */
         ConsentIn: {
@@ -9345,6 +9430,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NarrativeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_company_news_org__orgnr__news_get: {
+        parameters: {
+            query?: {
+                only_material?: boolean;
+            };
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyNewsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_company_news_endpoint_org__orgnr__news_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyNewsRefreshOut"];
                 };
             };
             /** @description Validation Error */
