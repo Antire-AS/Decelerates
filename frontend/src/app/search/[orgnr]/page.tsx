@@ -29,6 +29,7 @@ import PremiumBenchmark from "@/components/company/PremiumBenchmark";
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
 import WhiteboardTab from "@/components/company/WhiteboardTab";
+import NewsTab from "@/components/company/tabs/NewsTab";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -43,7 +44,7 @@ export default function OrgProfilePage({
   const { orgnr } = use(params);
   const T = useT();
 
-  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat" | "fokus">(
+  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat" | "fokus" | "nyheter">(
     "oversikt",
   );
 
@@ -216,6 +217,7 @@ export default function OrgProfilePage({
           <TabsTrigger value="notater"    className={triggerCls}>{T("Notater")}</TabsTrigger>
           <TabsTrigger value="chat"       className={triggerCls}>{T("Chat")}</TabsTrigger>
           <TabsTrigger value="fokus"      className={triggerCls}>{T("Fokus")}</TabsTrigger>
+          <TabsTrigger value="nyheter"    className={triggerCls}>{T("Nyheter")}</TabsTrigger>
         </TabsList>
 
         {/* ── Oversikt ─────────────────────────────────────────────────── */}
@@ -323,6 +325,11 @@ export default function OrgProfilePage({
         {/* ── Chat ─────────────────────────────────────────────────────── */}
         <TabsContent value="chat" className="mt-0 focus-visible:ring-0">
           <OrgChatSection orgnr={orgnr} orgName={String(org.navn ?? orgnr)} />
+        </TabsContent>
+
+        {/* ── Nyheter ──────────────────────────────────────────────────── */}
+        <TabsContent value="nyheter" className="mt-0 focus-visible:ring-0">
+          <NewsTab orgnr={orgnr} />
         </TabsContent>
 
         {/* ── Fokus-whiteboard ─────────────────────────────────────────── */}

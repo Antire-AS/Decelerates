@@ -192,6 +192,18 @@ export const getOrgHistory = (orgnr: string) =>
 export const getOrgAltmanHistory = (orgnr: string) =>
   apiFetch<AltmanHistoryOut>(`/org/${orgnr}/altman-history`);
 
+export type CompanyNewsOut = Schema["CompanyNewsOut"];
+export type CompanyNewsItem = Schema["CompanyNewsItem"];
+export type CompanyNewsRefreshOut = Schema["CompanyNewsRefreshOut"];
+
+export const getOrgNews = (orgnr: string, onlyMaterial = false) => {
+  const qs = onlyMaterial ? "?only_material=true" : "";
+  return apiFetch<CompanyNewsOut>(`/org/${orgnr}/news${qs}`);
+};
+
+export const refreshOrgNews = (orgnr: string) =>
+  apiFetch<CompanyNewsRefreshOut>(`/org/${orgnr}/news/refresh`, { method: "POST" });
+
 export const getOrgBankruptcy = (orgnr: string) =>
   apiFetch<BankruptcyOut>(`/org/${orgnr}/bankruptcy`);
 
