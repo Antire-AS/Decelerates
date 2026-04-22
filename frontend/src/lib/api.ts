@@ -498,6 +498,17 @@ export const getPremiumAnalytics = () =>
 export const getPortfolioRisk = (id: number) =>
   apiFetch<PortfolioRiskRow[]>(`/portfolio/${id}/risk`);
 
+export type PortfolioAltmanRiskOut = Schema["PortfolioRiskSummaryOut"];
+export type PortfolioAltmanRefreshOut = Schema["PortfolioRiskRefreshOut"];
+
+export const getPortfolioAltmanRisk = (id: number) =>
+  apiFetch<PortfolioAltmanRiskOut>(`/portfolio/${id}/altman-risk`);
+
+export const refreshPortfolioAltmanRisk = (id: number) =>
+  apiFetch<PortfolioAltmanRefreshOut>(`/portfolio/${id}/altman-risk/refresh`, {
+    method: "POST",
+  });
+
 // ── Renewal stage ─────────────────────────────────────────────────────────────
 
 export const advanceRenewalStage = (policyId: number, stage: string, notifyEmail?: string) =>
