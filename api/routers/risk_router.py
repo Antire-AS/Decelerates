@@ -24,7 +24,7 @@ from api.services.audit import log_audit
 from api.services.client_token_service import get_or_create_active_token
 from api.services.llm import _llm_answer_raw, _parse_json_from_llm_response
 from api.services.rag import _save_to_rag
-from api.services.company import _generate_risk_narrative
+from api.services.company import _generate_risk_narrative, compute_peer_benchmark
 from api.services.external_apis import fetch_ssb_benchmark, fetch_board_members
 from api.services.pdf_generate import (
     _extract_offer_summary,
@@ -460,6 +460,28 @@ def email_forsikringstilbud(
     return {"sent": sent, "recipient": recipient_email, "share_url": share_url}
 
 
+def _load_narrative_inputs(db_obj: Company) -> Dict[str, Any]:
+    """Build the org/regn/risk/pep dicts and fetch board members — the
+    narrative endpoint's mechanical data-gathering, pulled out of the route
+    handler so the route stays readable."""
+    org = {
+        "navn": db_obj.navn,
+        "organisasjonsform": db_obj.organisasjonsform_kode,
+        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
+        "naeringskode1": db_obj.naeringskode1,
+        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
+        "kommune": db_obj.kommune,
+    }
+    regn: Dict[str, Any] = dict(db_obj.regnskap_raw) if db_obj.regnskap_raw else {}
+    risk_data = derive_simple_risk(org, regn) if regn else None
+    pep: Dict[str, Any] = dict(db_obj.pep_raw) if db_obj.pep_raw else {}
+    try:
+        members = fetch_board_members(db_obj.orgnr)
+    except Exception:
+        members = []
+    return {"org": org, "regn": regn, "risk": risk_data, "pep": pep, "members": members}
+
+
 @router.post("/org/{orgnr}/narrative", response_model=NarrativeOut)
 def generate_narrative(
     orgnr: str, lang: str = Query("no"), db: Session = Depends(get_db)
@@ -470,33 +492,21 @@ def generate_narrative(
             status_code=404,
             detail="Company not in database — call /org/{orgnr} first",
         )
-    org = {
-        "navn": db_obj.navn,
-        "organisasjonsform": db_obj.organisasjonsform_kode,
-        "organisasjonsform_kode": db_obj.organisasjonsform_kode,
-        "naeringskode1": db_obj.naeringskode1,
-        "naeringskode1_beskrivelse": db_obj.naeringskode1_beskrivelse,
-        "kommune": db_obj.kommune,
-    }
-    regn: Dict[str, Any] = dict(db_obj.regnskap_raw) if db_obj.regnskap_raw else {}
-    risk_data = None
-    if regn:
-        risk_data = derive_simple_risk(org, regn)
-    pep: Dict[str, Any] = dict(db_obj.pep_raw) if db_obj.pep_raw else {}
-
-    try:
-        members = fetch_board_members(orgnr)
-    except Exception:
-        members = []
-
-    narrative = _generate_risk_narrative(org, regn, risk_data, pep, members, lang=lang)
+    data = _load_narrative_inputs(db_obj)
+    peer_summary = compute_peer_benchmark(orgnr, db)
+    narrative = _generate_risk_narrative(
+        data["org"],
+        data["regn"],
+        data["risk"],
+        data["pep"],
+        data["members"],
+        lang=lang,
+        peer_summary=peer_summary,
+    )
     if narrative is None:
         raise HTTPException(
             status_code=503,
             detail="No LLM provider configured (set AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY)",
         )
-
-    # Save to RAG so the analyst chat can reference this narrative
     _save_to_rag(orgnr, "AI Risikoanalyse", narrative, db)
-
     return {"orgnr": orgnr, "narrative": narrative}

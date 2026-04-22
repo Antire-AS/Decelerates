@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from api.constants import PDF_SEED_DATA
 from api.db import Company, CompanyHistory, CompanyPdfSource
-from api.risk import derive_simple_risk, build_risk_summary
+from api.risk import build_risk_summary, compute_altman_z_score, derive_simple_risk
 from api.services.external_apis import (
     fetch_regnskap_keyfigures,
     pep_screen_name,
@@ -182,6 +182,167 @@ def fetch_org_profile(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
     }
 
 
+def _resolve_nace_section(nace: str) -> str:
+    """Map a full NACE code like '62.010' to its A-S section letter."""
+    from api.constants import _NACE_SECTION_MAP
+
+    try:
+        code = int(str(nace).split(".")[0])
+    except (ValueError, AttributeError):
+        return ""
+    for rng, section in _NACE_SECTION_MAP:
+        if code in rng:
+            return section
+    return ""
+
+
+def _fetch_peer_companies(orgnr: str, nace: str, db: Session) -> List[Company]:
+    if len(nace) < 2:
+        return []
+    return (
+        db.query(Company)
+        .filter(Company.orgnr != orgnr, Company.naeringskode1.like(f"{nace[:2]}%"))
+        .filter(Company.sum_driftsinntekter.isnot(None))
+        .all()
+    )
+
+
+def _percentile_of(val: Optional[float], values: List[float]) -> Optional[int]:
+    if val is None or not values:
+        return None
+    below = sum(1 for v in values if v < val)
+    return round(below / len(values) * 100)
+
+
+def _db_peer_metrics(db_obj: Company, peers: List[Company]) -> Dict[str, Any]:
+    import statistics
+
+    peer_revenues = [p.sum_driftsinntekter for p in peers if p.sum_driftsinntekter]
+    peer_eq = [p.equity_ratio for p in peers if p.equity_ratio is not None]
+    peer_risk = [p.risk_score for p in peers if p.risk_score is not None]
+    return {
+        "equity_ratio": {
+            "company": db_obj.equity_ratio,
+            "peer_avg": round(statistics.mean(peer_eq), 3) if peer_eq else None,
+            "percentile": _percentile_of(db_obj.equity_ratio, peer_eq),
+        },
+        "revenue": {
+            "company": db_obj.sum_driftsinntekter,
+            "peer_avg": round(statistics.mean(peer_revenues))
+            if peer_revenues
+            else None,
+            "percentile": _percentile_of(db_obj.sum_driftsinntekter, peer_revenues),
+        },
+        "risk_score": {
+            "company": db_obj.risk_score,
+            "peer_avg": round(statistics.mean(peer_risk), 1) if peer_risk else None,
+            "percentile": _percentile_of(db_obj.risk_score, peer_risk),
+        },
+    }
+
+
+def _ssb_fallback_metrics(db_obj: Company, section: str) -> Dict[str, Any]:
+    from api.constants import NACE_BENCHMARKS
+
+    bench = NACE_BENCHMARKS.get(section, {})
+    eq_mid = (
+        (bench.get("eq_ratio_min", 0) + bench.get("eq_ratio_max", 0)) / 2
+        if bench
+        else None
+    )
+    return {
+        "equity_ratio": {
+            "company": db_obj.equity_ratio,
+            "peer_avg": round(eq_mid, 3) if eq_mid else None,
+            "percentile": None,
+        },
+        "revenue": {
+            "company": db_obj.sum_driftsinntekter,
+            "peer_avg": None,
+            "percentile": None,
+        },
+        "risk_score": {
+            "company": db_obj.risk_score,
+            "peer_avg": None,
+            "percentile": None,
+        },
+    }
+
+
+def compute_peer_benchmark(orgnr: str, db: Session) -> Optional[Dict[str, Any]]:
+    """Build a peer-comparison summary by NACE section.
+
+    Returns the same shape the GET /org/{orgnr}/peer-benchmark router returns
+    so UI + narrative prompt share a single source of truth. Returns None if
+    the company row is missing — callers decide whether that's a 404 or a
+    silent skip.
+    """
+    db_obj = db.query(Company).filter(Company.orgnr == orgnr).first()
+    if not db_obj:
+        return None
+    nace = db_obj.naeringskode1 or ""
+    section = _resolve_nace_section(nace)
+    peers = _fetch_peer_companies(orgnr, nace, db)
+    if len(peers) >= 3:
+        metrics = _db_peer_metrics(db_obj, peers)
+        source = "db_peers"
+    else:
+        metrics = _ssb_fallback_metrics(db_obj, section)
+        source = "ssb_ranges"
+    return {
+        "orgnr": orgnr,
+        "nace_section": section,
+        "peer_count": len(peers),
+        "metrics": metrics,
+        "source": source,
+    }
+
+
+def _format_altman_block(regn: Dict[str, Any]) -> str:
+    """Altman Z'' section — included only when enough financial fields are
+    extracted to compute the four ratios. Banks/insurers hit the None branch
+    because they lack the current/non-current split."""
+    altman = compute_altman_z_score(regn)
+    if altman is None:
+        return ""
+    c = altman["components"]
+    return f"""
+Altman Z'' distress model: {altman["z_score"]:.2f} ({altman["zone"]} zone)
+  - Working capital / total assets (liquidity): {c["working_capital_ratio"]:.3f}
+  - Retained earnings / total assets (history): {c["retained_earnings_ratio"]:.3f}
+  - EBIT / total assets (profitability):        {c["ebit_ratio"]:.3f}
+  - Equity / total liabilities (solvency):      {c["equity_to_liab_ratio"]:.3f}"""
+
+
+def _format_peer_block(peer_summary: Optional[Dict[str, Any]]) -> str:
+    """Peer benchmark delta — included when the caller supplies summary data
+    from /peer-benchmark. Kept terse so the LLM weighs direction > precision."""
+    if not peer_summary:
+        return ""
+    metrics = peer_summary.get("metrics") or {}
+    eq = metrics.get("equity_ratio") or {}
+    rev = metrics.get("revenue") or {}
+    lines: List[str] = []
+    if eq.get("company") is not None and eq.get("peer_avg") is not None:
+        pct = eq.get("percentile")
+        suffix = f" (P{pct})" if pct is not None else ""
+        lines.append(
+            f"  - Equity ratio: {eq['company'] * 100:.1f}% vs peer avg {eq['peer_avg'] * 100:.1f}%{suffix}"
+        )
+    if rev.get("company") is not None and rev.get("peer_avg") is not None:
+        pct = rev.get("percentile")
+        suffix = f" (P{pct})" if pct is not None else ""
+        lines.append(
+            f"  - Revenue: {_fmt_nok(rev['company'])} vs peer avg {_fmt_nok(rev['peer_avg'])}{suffix}"
+        )
+    if not lines:
+        return ""
+    section = peer_summary.get("nace_section") or "?"
+    count = peer_summary.get("peer_count") or 0
+    header = f"\nPeer comparison (NACE {section}, {count} peers):"
+    return header + "\n" + "\n".join(lines)
+
+
 def _build_narrative_prompt(
     org: Dict[str, Any],
     regn: Dict[str, Any],
@@ -189,6 +350,7 @@ def _build_narrative_prompt(
     pep: Optional[Dict[str, Any]],
     members: List[Dict[str, Any]],
     lang: str = "no",
+    peer_summary: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Build the LLM prompt for a risk narrative."""
     eq_pct = (
@@ -207,6 +369,8 @@ def _build_narrative_prompt(
         else ""
     )
     lang_instruction = "Write in English." if lang == "en" else "Svar på norsk."
+    altman_block = _format_altman_block(regn)
+    peer_block = _format_peer_block(peer_summary)
     return f"""Write a concise 3-paragraph risk assessment for an insurance underwriter considering this Norwegian company as a client.{synthetic_note} {lang_instruction}
 
 Company: {org.get("navn")} ({org.get("organisasjonsform")}, {org.get("organisasjonsform_kode")})
@@ -221,12 +385,14 @@ Financials ({regn.get("regnskapsår", "estimated")}):
 - Total assets: {_fmt_nok(regn.get("sum_eiendeler"))}
 - Equity ratio: {eq_pct}
 - Employees: {regn.get("antall_ansatte", "N/A")}
+{altman_block}
+{peer_block}
 
 Risk score: {risk.get("score", "N/A") if risk else "N/A"} | Flags: {flags_str}
 PEP/sanctions hits: {pep.get("hit_count", 0) if pep else 0}
 
 Paragraph 1 – Business profile: Summarise what this company does, its scale, and financial position.
-Paragraph 2 – Underwriting concerns: Identify the main risk factors (financial stability, governance quality, PEP exposure, industry risk).
+Paragraph 2 – Underwriting concerns: Identify the main risk factors. If Altman Z'' is in the grey or distress zone, cite the specific component(s) (liquidity vs solvency vs profitability) that are dragging the score down. If peer comparison shows the company in the bottom quartile on equity or revenue, flag it.
 Paragraph 3 – Recommendation: Overall risk stance and 2–3 specific questions to ask before binding coverage.
 
 Be specific, professional, and concise. Do not make up data beyond what is provided."""
@@ -239,8 +405,11 @@ def _generate_risk_narrative(
     pep: Optional[Dict[str, Any]],
     members: List[Dict[str, Any]],
     lang: str = "no",
+    peer_summary: Optional[Dict[str, Any]] = None,
 ) -> Optional[str]:
-    prompt = _build_narrative_prompt(org, regn, risk, pep, members, lang)
+    prompt = _build_narrative_prompt(
+        org, regn, risk, pep, members, lang, peer_summary=peer_summary
+    )
     return _llm_answer_raw(prompt)
 
 
