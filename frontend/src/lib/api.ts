@@ -38,6 +38,7 @@ export type {
   SearchResult,
   OrgProfile,
   RiskFactor,
+  AltmanZScore,
   DashboardData,
   Activity,
   Company,
