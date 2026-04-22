@@ -5,7 +5,6 @@ _parse_json_financials basics are already in test_pdf_extract.py; this file
 covers the remaining functions and edge cases.
 """
 
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,7 +12,6 @@ import requests
 
 from api.services.pdf_parse import (
     _download_pdf_bytes,
-    _gemini_api_keys,
     _parse_financials_from_pdf,
     _parse_json_financials,
     _sanity_check_financials,
@@ -116,49 +114,6 @@ def test_sanity_check_missing_revenue_skips_net_check():
     # No revenue → net_result check is skipped
     data = {"net_result": 999_000, "equity": 100_000, "total_assets": 500_000}
     assert _sanity_check_financials(data) is True
-
-
-# ── _gemini_api_keys ──────────────────────────────────────────────────────────
-
-
-def test_gemini_api_keys_returns_configured_keys():
-    with patch.dict(
-        os.environ, {"GEMINI_API_KEY": "key1", "GEMINI_API_KEY_2": "key2"}, clear=False
-    ):
-        keys = _gemini_api_keys()
-    assert "key1" in keys
-    assert "key2" in keys
-
-
-def test_gemini_api_keys_skips_placeholder_value():
-    with patch.dict(os.environ, {"GEMINI_API_KEY": "your_key_here"}, clear=False):
-        keys = _gemini_api_keys()
-    assert "your_key_here" not in keys
-
-
-def test_gemini_api_keys_deduplicates():
-    with patch.dict(
-        os.environ,
-        {
-            "GEMINI_API_KEY": "same_key",
-            "GEMINI_API_KEY_2": "same_key",
-            "GEMINI_API_KEY_3": "other_key",
-        },
-        clear=False,
-    ):
-        keys = _gemini_api_keys()
-    assert keys.count("same_key") == 1
-
-
-def test_gemini_api_keys_returns_empty_when_none_set():
-    env_without_keys = {
-        k: v
-        for k, v in os.environ.items()
-        if k not in ("GEMINI_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3")
-    }
-    with patch.dict(os.environ, env_without_keys, clear=True):
-        keys = _gemini_api_keys()
-    assert keys == []
 
 
 # ── _download_pdf_bytes ───────────────────────────────────────────────────────

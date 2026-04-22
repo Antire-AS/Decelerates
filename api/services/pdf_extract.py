@@ -15,7 +15,6 @@ re-exports that aren't directly used inside this file.
 
 from api.services.pdf_parse import (
     _parse_json_financials,
-    _gemini_api_keys,
     _parse_financials_from_pdf,
     _sanity_check_financials,
     _download_pdf_bytes,
@@ -39,11 +38,8 @@ from api.services.pdf_web import (
 from api.services.pdf_agents import (
     _agent_discover_pdfs,
     _agent_discover_pdfs_claude,
-    _agent_discover_pdfs_gemini,
     _agent_discover_pdfs_azure_openai,
     _discover_ir_pdfs,
-    _discover_pdfs_per_year_search,
-    _gemini_web_search,
     _run_tool,
 )
 from api.services.pdf_background import (
@@ -61,7 +57,6 @@ logger = logging.getLogger(__name__)
 __all__ = [
     # pdf_parse
     "_parse_json_financials",
-    "_gemini_api_keys",
     "_parse_financials_from_pdf",
     # pdf_history
     "fetch_history_from_pdf",
