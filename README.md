@@ -33,7 +33,7 @@ cd Decelerates
 
 # 2. Copy the environment file and fill in your API keys
 cp .env.example .env
-# Edit .env — at minimum add GEMINI_API_KEY
+# Edit .env — at minimum add AZURE_FOUNDRY_API_KEY and AZURE_FOUNDRY_BASE_URL
 
 # 3. Start everything (API + UI + Postgres)
 docker compose up --build
@@ -65,20 +65,23 @@ cd frontend && npm run dev             # Next.js on http://localhost:3000
 
 | Key | Required | Used for |
 |-----|----------|---------|
-| `GEMINI_API_KEY` | **Recommended** | PDF extraction, AI narrative, embeddings, IR discovery |
-| `ANTHROPIC_API_KEY` | Optional | Preferred LLM for text generation and agentic PDF discovery |
-| `VOYAGE_API_KEY` | Optional | Higher-quality RAG embeddings (falls back to Gemini) |
+| `AZURE_FOUNDRY_BASE_URL` + `AZURE_FOUNDRY_API_KEY` | **Required** | All LLM chat + embeddings (gpt-5.4-mini, text-embedding-3-small) |
+| `GCP_VERTEX_AI_PROJECT` + `GCP_VERTEX_AI_LOCATION` + ADC (`gcloud auth application-default login`) | **Required** | Multimodal PDF extraction via Vertex AI Gemini |
+| `ANTHROPIC_API_KEY` | Optional | Claude agent for IR PDF discovery (falls through to Azure OpenAI if absent) |
+| `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` | Optional | Azure OpenAI agent for IR PDF discovery |
 
 Set these in your `.env` file:
 
 ```
-GEMINI_API_KEY=your_key_here
+AZURE_FOUNDRY_BASE_URL=https://...
+AZURE_FOUNDRY_API_KEY=your_key_here
+GCP_VERTEX_AI_PROJECT=antire-decelerates-prod
+GCP_VERTEX_AI_LOCATION=europe-west4
 ANTHROPIC_API_KEY=your_key_here
-VOYAGE_API_KEY=your_key_here
 DATABASE_URL=postgresql://user@localhost:5432/brokerdb
 ```
 
-You can add up to three Gemini keys (`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`) for automatic key rotation when free-tier quota is exhausted.
+The legacy AI-Studio `GEMINI_API_KEY` agent path was removed on 2026-04-22 after measuring 2/20 recall on the 20-company Norwegian corpus. Vertex AI (different auth: ADC + service account) remains the extraction path and works without any API key.
 
 ---
 
@@ -234,7 +237,8 @@ az containerapp create \
   --min-replicas 1 \
   --env-vars \
     DATABASE_URL="postgresql://brokeruser:<password>@broker-postgres.postgres.database.azure.com:5432/brokerdb?sslmode=require" \
-    GEMINI_API_KEY=secretref:gemini-key \
+    AZURE_FOUNDRY_BASE_URL=secretref:foundry-base-url \
+    AZURE_FOUNDRY_API_KEY=secretref:foundry-api-key \
     ANTHROPIC_API_KEY=secretref:anthropic-key
 ```
 
