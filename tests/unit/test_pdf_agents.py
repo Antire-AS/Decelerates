@@ -11,7 +11,6 @@ import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 

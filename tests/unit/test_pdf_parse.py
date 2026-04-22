@@ -5,7 +5,6 @@ _parse_json_financials basics are already in test_pdf_extract.py; this file
 covers the remaining functions and edge cases.
 """
 
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -115,7 +114,6 @@ def test_sanity_check_missing_revenue_skips_net_check():
     # No revenue → net_result check is skipped
     data = {"net_result": 999_000, "equity": 100_000, "total_assets": 500_000}
     assert _sanity_check_financials(data) is True
-
 
 
 # ── _download_pdf_bytes ───────────────────────────────────────────────────────
