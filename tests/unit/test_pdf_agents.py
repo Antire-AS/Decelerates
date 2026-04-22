@@ -1,8 +1,9 @@
 """Unit tests for api/services/pdf_agents.py — agentic IR discovery loops.
 
-All external calls (Anthropic, Google genai, Azure OpenAI, DDG) are mocked.
-Tests cover the orchestrator, Claude agent, Gemini agent, per-year search,
-Azure OpenAI agent, and the DDG fallback path.
+All external calls (Anthropic, Azure OpenAI, DDG) are mocked.
+Tests cover the orchestrator, Claude agent, Azure OpenAI agent, and
+the DDG fallback path. Gemini AI-Studio paths were deleted 2026-04-22
+after measured 2/20 recall; see docs/decisions/2026-04-22-pdf-agents-recall.md.
 """
 
 import json
@@ -10,7 +11,6 @@ import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 sys.modules.setdefault("api.services.pdf_background", MagicMock())
 
@@ -45,29 +45,17 @@ def _make_response(stop_reason: str, content: list):
 # ── _run_tool ────────────────────────────────────────────────────────────────
 
 
-def test_run_tool_web_search_uses_gemini_then_ddg_fallback():
+def test_run_tool_web_search_delegates_to_ddg():
+    """After the 2026-04-22 Gemini removal, web_search uses DDG only.
+    Phase 2 of the redesign will swap DDG → Bing."""
     from api.services.pdf_agents import _run_tool
 
-    with (
-        patch("api.services.pdf_agents._gemini_web_search", return_value=[]),
-        patch(
-            "api.services.pdf_agents._ddg_search_results",
-            return_value=[{"url": "http://x"}],
-        ),
-    ):
-        result = _run_tool("web_search", {"query": "test"})
-    assert result == [{"url": "http://x"}]
-
-
-def test_run_tool_web_search_returns_gemini_results_first():
-    from api.services.pdf_agents import _run_tool
-
-    gemini_results = [{"url": "http://g.com", "title": "G"}]
     with patch(
-        "api.services.pdf_agents._gemini_web_search", return_value=gemini_results
+        "api.services.pdf_agents._ddg_search_results",
+        return_value=[{"url": "http://x", "title": "X"}],
     ):
         result = _run_tool("web_search", {"query": "test"})
-    assert result == gemini_results
+    assert result == [{"url": "http://x", "title": "X"}]
 
 
 def test_run_tool_fetch_url_delegates():
@@ -205,253 +193,7 @@ def test_claude_agent_parses_markdown_wrapped_json(monkeypatch):
     assert result[0]["pdf_url"] == pdf_url
 
 
-# ── _gemini_web_search ───────────────────────────────────────────────────────
-
-
-def test_gemini_web_search_returns_results():
-    from api.services.pdf_agents import _gemini_web_search
-
-    web_chunk = SimpleNamespace(
-        web=SimpleNamespace(uri="https://x.com/ir", title="IR Page")
-    )
-    meta = SimpleNamespace(grounding_chunks=[web_chunk])
-    candidate = SimpleNamespace(grounding_metadata=meta)
-    response = SimpleNamespace(candidates=[candidate])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-
-    with (
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["fake-key"]),
-        patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client),
-    ):
-        results = _gemini_web_search("test query")
-    assert len(results) == 1
-    assert results[0]["url"] == "https://x.com/ir"
-
-
-def test_gemini_web_search_returns_empty_on_no_keys():
-    from api.services.pdf_agents import _gemini_web_search
-
-    with patch("api.services.pdf_agents._gemini_api_keys", return_value=[]):
-        assert _gemini_web_search("q") == []
-
-
-def test_gemini_web_search_handles_quota_error():
-    from api.services.pdf_agents import _gemini_web_search
-
-    mock_client = MagicMock()
-    mock_client.models.generate_content.side_effect = Exception(
-        "429 RESOURCE_EXHAUSTED"
-    )
-
-    with (
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["key1"]),
-        patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client),
-    ):
-        assert _gemini_web_search("q") == []
-
-
-def test_gemini_web_search_handles_non_quota_error():
-    from api.services.pdf_agents import _gemini_web_search
-
-    mock_client = MagicMock()
-    mock_client.models.generate_content.side_effect = Exception("some other error")
-
-    with (
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["key1"]),
-        patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client),
-    ):
-        assert _gemini_web_search("q") == []
-
-
-def test_gemini_web_search_returns_empty_when_no_candidates():
-    from api.services.pdf_agents import _gemini_web_search
-
-    response = SimpleNamespace(candidates=[])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-
-    with (
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["k"]),
-        patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client),
-    ):
-        assert _gemini_web_search("q") == []
-
-
-# ── _run_gemini_phase2 ───────────────────────────────────────────────────────
-
-
-def test_run_gemini_phase2_returns_text_when_no_tool_calls():
-    from api.services.pdf_agents import _run_gemini_phase2
-
-    part = SimpleNamespace(
-        text='[{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]',
-        function_call=None,
-    )
-    candidate = SimpleNamespace(content=SimpleNamespace(parts=[part]))
-    response = SimpleNamespace(candidates=[candidate])
-    mock_chat = MagicMock()
-    mock_chat.send_message.return_value = response
-
-    result = _run_gemini_phase2(mock_chat, "TestCo", "https://testco.no/ir")
-    assert "2023" in result
-    assert mock_chat.send_message.call_count == 1
-
-
-def test_run_gemini_phase2_handles_tool_call_loop():
-    from api.services.pdf_agents import _run_gemini_phase2
-
-    fc = SimpleNamespace(name="fetch_url", args={"url": "https://testco.no/ir"})
-    part1 = SimpleNamespace(text="", function_call=fc)
-    resp1 = SimpleNamespace(
-        candidates=[SimpleNamespace(content=SimpleNamespace(parts=[part1]))]
-    )
-
-    part2 = SimpleNamespace(
-        text='[{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]',
-        function_call=None,
-    )
-    resp2 = SimpleNamespace(
-        candidates=[SimpleNamespace(content=SimpleNamespace(parts=[part2]))]
-    )
-
-    mock_chat = MagicMock()
-    mock_chat.send_message.side_effect = [resp1, resp2]
-
-    with patch(
-        "api.services.pdf_agents._run_tool",
-        return_value={"text": "page content", "pdf_links": []},
-    ):
-        result = _run_gemini_phase2(mock_chat, "TestCo", "phase1 text")
-    assert "2023" in result
-    assert mock_chat.send_message.call_count == 2
-
-
-# ── _agent_discover_pdfs_gemini ──────────────────────────────────────────────
-
-
-def test_gemini_agent_returns_results():
-    from api.services.pdf_agents import _agent_discover_pdfs_gemini
-
-    search_response = SimpleNamespace(text="https://testco.no/ir")
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = search_response
-
-    part = SimpleNamespace(
-        text='[{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]',
-        function_call=None,
-    )
-    chat_resp = SimpleNamespace(
-        candidates=[SimpleNamespace(content=SimpleNamespace(parts=[part]))]
-    )
-    mock_chat = MagicMock()
-    mock_chat.send_message.return_value = chat_resp
-    mock_client.chats.create.return_value = mock_chat
-
-    with patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client):
-        result = _agent_discover_pdfs_gemini("123", "TestCo", None, [2023], "key")
-    assert len(result) == 1
-
-
-def test_gemini_agent_retries_on_quota_and_returns_empty():
-    from api.services.pdf_agents import _agent_discover_pdfs_gemini
-
-    mock_client = MagicMock()
-    mock_client.models.generate_content.side_effect = Exception(
-        "429 RESOURCE_EXHAUSTED"
-    )
-
-    with patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client):
-        result = _agent_discover_pdfs_gemini("123", "Co", None, [2023], "key")
-    assert result == []
-
-
-def test_gemini_agent_raises_non_quota_error():
-    from api.services.pdf_agents import _agent_discover_pdfs_gemini
-
-    mock_client = MagicMock()
-    mock_client.models.generate_content.side_effect = ValueError("unexpected")
-
-    with patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client):
-        with pytest.raises(ValueError, match="unexpected"):
-            _agent_discover_pdfs_gemini("123", "Co", None, [2023], "key")
-
-
-def test_gemini_agent_uses_homepage_fallback_when_phase1_empty():
-    from api.services.pdf_agents import _agent_discover_pdfs_gemini
-
-    search_response = SimpleNamespace(text="")
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = search_response
-
-    part = SimpleNamespace(text="[]", function_call=None)
-    chat_resp = SimpleNamespace(
-        candidates=[SimpleNamespace(content=SimpleNamespace(parts=[part]))]
-    )
-    mock_chat = MagicMock()
-    mock_chat.send_message.return_value = chat_resp
-    mock_client.chats.create.return_value = mock_chat
-
-    with patch("api.services.pdf_agents.google_genai.Client", return_value=mock_client):
-        result = _agent_discover_pdfs_gemini(
-            "123", "Co", "https://co.no", [2023], "key"
-        )
-    assert result == []
-    # phase1 empty => fallback text injected into phase2
-    call_arg = mock_chat.send_message.call_args[0][0]
-    assert "co.no" in call_arg
-
-
-# ── _search_pdf_url_for_year ─────────────────────────────────────────────────
-
-
-def test_search_pdf_url_for_year_returns_url_from_text():
-    from api.services.pdf_agents import _search_pdf_url_for_year
-
-    response = SimpleNamespace(text="https://example.com/ar2023.pdf", candidates=[])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-    result = _search_pdf_url_for_year(mock_client, "TestCo", None, 2023)
-    assert result == "https://example.com/ar2023.pdf"
-
-
-def test_search_pdf_url_for_year_falls_back_to_ddg():
-    from api.services.pdf_agents import _search_pdf_url_for_year
-
-    response = SimpleNamespace(text="No PDF found", candidates=[])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-    with patch(
-        "api.services.pdf_agents._ddg_query", return_value=["https://ddg.com/ar.pdf"]
-    ):
-        result = _search_pdf_url_for_year(mock_client, "TestCo", None, 2023)
-    assert result == "https://ddg.com/ar.pdf"
-
-
-def test_search_pdf_url_for_year_returns_none_when_nothing_found():
-    from api.services.pdf_agents import _search_pdf_url_for_year
-
-    response = SimpleNamespace(text="Nothing", candidates=[])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-    with patch("api.services.pdf_agents._ddg_query", return_value=[]):
-        assert _search_pdf_url_for_year(mock_client, "TestCo", None, 2023) is None
-
-
-def test_search_pdf_url_for_year_extracts_from_grounding_metadata():
-    from api.services.pdf_agents import _search_pdf_url_for_year
-
-    web_chunk = SimpleNamespace(web=SimpleNamespace(uri="https://ir.co/report.pdf"))
-    meta = SimpleNamespace(grounding_chunks=[web_chunk])
-    candidate = SimpleNamespace(grounding_metadata=meta)
-    response = SimpleNamespace(text="check the link", candidates=[candidate])
-    mock_client = MagicMock()
-    mock_client.models.generate_content.return_value = response
-    result = _search_pdf_url_for_year(mock_client, "TestCo", None, 2023)
-    assert result == "https://ir.co/report.pdf"
-
-
-# ── _agent_discover_pdfs_azure_openai ────────────────────────────────────────
+# ── Azure OpenAI agent ───────────────────────────────────────────────────────
 
 
 def test_azure_openai_agent_returns_empty_without_keys():
@@ -565,47 +307,6 @@ def test_orchestrator_falls_back_to_claude_when_foundry_empty():
     assert result == expected
 
 
-def test_orchestrator_falls_through_to_gemini_per_year():
-    from api.services.pdf_agents import _agent_discover_pdfs
-
-    expected = [{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]
-    with (
-        patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=[]),
-        patch.dict("os.environ", {}, clear=True),
-        patch(
-            "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
-        ),
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["gkey"]),
-        patch(
-            "api.services.pdf_agents._discover_pdfs_per_year_search",
-            return_value=expected,
-        ),
-    ):
-        result = _agent_discover_pdfs("123", "TestCo", None, [2023])
-    assert result == expected
-
-
-def test_orchestrator_tries_gemini_agent_after_per_year_empty():
-    from api.services.pdf_agents import _agent_discover_pdfs
-
-    expected = [{"year": 2023, "pdf_url": "https://x.com/a.pdf", "label": "AR"}]
-    with (
-        patch.dict("os.environ", {}, clear=True),
-        patch(
-            "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
-        ),
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=["gkey"]),
-        patch(
-            "api.services.pdf_agents._discover_pdfs_per_year_search", return_value=[]
-        ),
-        patch(
-            "api.services.pdf_agents._agent_discover_pdfs_gemini", return_value=expected
-        ),
-    ):
-        result = _agent_discover_pdfs("123", "TestCo", None, [2023])
-    assert result == expected
-
-
 def test_orchestrator_returns_empty_when_all_fail():
     from api.services.pdf_agents import _agent_discover_pdfs
 
@@ -614,7 +315,6 @@ def test_orchestrator_returns_empty_when_all_fail():
         patch(
             "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
         ),
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=[]),
     ):
         result = _agent_discover_pdfs("123", "TestCo", None, [2023])
     assert result == []
@@ -628,7 +328,6 @@ def test_orchestrator_skips_claude_when_key_is_placeholder():
         patch(
             "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
         ) as m_az,
-        patch("api.services.pdf_agents._gemini_api_keys", return_value=[]),
     ):
         result = _agent_discover_pdfs("123", "Co", None, [2023])
     assert result == []

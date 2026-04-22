@@ -83,7 +83,6 @@ _JUSTIFIED = {
     "_to_detail",
     # Agentic tool-use loops — multi-step state machine, can't be split
     "_agent_discover_pdfs_claude",
-    "_agent_discover_pdfs_gemini",
     "_agent_discover_pdfs_azure_openai",
     "_agent_discover_pdfs",
     "_run_phase2_discovery",
@@ -113,8 +112,6 @@ _JUSTIFIED = {
     # External API response field-mapping — long but not decomposable
     "_fetch_ssb_live",
     "fetch_company_struktur",
-    "_gemini_web_search",
-    "_search_pdf_url_for_year",
     # Risk scoring rule lists
     "_check_financial_health",
     "_check_industry_age_exposure",
