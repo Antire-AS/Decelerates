@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 
 import punq
 
+from api.adapters.bing_search_adapter import BingSearchAdapter, BingSearchConfig
 from api.adapters.blob_storage_adapter import AzureBlobStorageAdapter, BlobStorageConfig
 from api.adapters.foundry_llm_adapter import FoundryConfig, FoundryLlmAdapter
 from api.adapters.msgraph_email_adapter import MsGraphConfig, MsGraphEmailAdapter
@@ -44,6 +45,7 @@ from api.ports.driven.email_outbound_port import EmailOutboundPort
 from api.ports.driven.llm_port import LlmPort
 from api.ports.driven.notification_port import NotificationPort
 from api.ports.driven.secret_port import SecretPort
+from api.ports.driven.web_search_port import WebSearchPort
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,11 @@ class AppConfig:
     msgraph: MsGraphConfig = field(default_factory=MsGraphConfig)
     foundry: FoundryConfig = field(default_factory=FoundryConfig)
     secret: SecretConfig = field(default_factory=SecretConfig)
+    bing_search: BingSearchConfig = field(
+        default_factory=lambda: BingSearchConfig(
+            endpoint="https://api.bing.microsoft.com/v7.0/search"
+        )
+    )
 
 
 class ContainerFactory:
@@ -74,6 +81,9 @@ class ContainerFactory:
 
     def _make_secret_adapter(self) -> SecretPort:
         return KeyVaultSecretAdapter(self._config.secret)
+
+    def _make_bing_search_adapter(self) -> WebSearchPort:
+        return BingSearchAdapter(self._config.bing_search)
 
     def build(self) -> punq.Container:
         self.container.register(
@@ -99,6 +109,11 @@ class ContainerFactory:
         self.container.register(
             SecretPort,
             factory=self._make_secret_adapter,
+            scope=punq.Scope.singleton,
+        )
+        self.container.register(
+            WebSearchPort,
+            factory=self._make_bing_search_adapter,
             scope=punq.Scope.singleton,
         )
         return self.container
