@@ -3,9 +3,11 @@
 import type { AltmanZScore } from "@/lib/api-types";
 import { Section } from "./shared";
 import { useT } from "@/lib/i18n";
+import AltmanTrendChart from "./AltmanTrendChart";
 
 interface Props {
   altman: AltmanZScore;
+  orgnr: string;
 }
 
 // Zone colour palette matching the broker RISK_BANDS — safe/grey/distress
@@ -39,7 +41,7 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
-export default function AltmanZSection({ altman }: Props) {
+export default function AltmanZSection({ altman, orgnr }: Props) {
   const T = useT();
   const style = ZONE_STYLE[altman.zone];
   const barPercent = clamp(((altman.z_score - Z_MIN) / (Z_MAX - Z_MIN)) * 100, 0, 100);
@@ -97,6 +99,8 @@ export default function AltmanZSection({ altman }: Props) {
         {T("Altman Z'' kombinerer 4 finansielle forhold til en bankruptcy-sannsynlighet validert mot tusenvis av konkurser.")}{" "}
         <span className="opacity-60">{altman.formula}</span>
       </p>
+
+      <AltmanTrendChart orgnr={orgnr} />
     </Section>
   );
 }

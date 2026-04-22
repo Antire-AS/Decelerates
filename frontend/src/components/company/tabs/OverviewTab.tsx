@@ -124,7 +124,7 @@ export default function OverviewTab({
 
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
-          {risk.altman_z && <AltmanZSection altman={risk.altman_z} />}
+          {risk.altman_z && <AltmanZSection altman={risk.altman_z} orgnr={orgnr} />}
           {finansData && (
             <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")} collapsibleId={`overview-${orgnr}-nokkeltall`}>
               <KV label={T("Omsetning")} value={finansData.sumDriftsinntekter} />

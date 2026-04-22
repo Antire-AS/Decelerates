@@ -102,6 +102,7 @@ from api.routers import (
     company,
     financials,
     risk_router,
+    risk_history,
     offers,
     documents,
     videos,
@@ -419,6 +420,7 @@ def on_startup():
 app.include_router(company.router)
 app.include_router(financials.router)
 app.include_router(risk_router.router)
+app.include_router(risk_history.router)
 app.include_router(offers.router)
 app.include_router(documents.router)
 app.include_router(videos.router)
