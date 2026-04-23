@@ -113,6 +113,71 @@ def test_parse_email_with_no_attachments():
     assert "Kort svar" in parsed["text_body"]
 
 
+def test_parse_email_extracts_message_id_header():
+    """MIME Message-ID header is plumbed through as the dedup key."""
+    msg = MIMEText("hi", "plain")
+    msg["Subject"] = "test"
+    msg["From"] = "x@y.no"
+    msg["Message-ID"] = "<abc-123@example.com>"
+    parsed = svc.parse_email_mime(msg.as_bytes())
+    assert parsed["message_id"] == "<abc-123@example.com>"
+
+
+# ── Dedup via message_id ────────────────────────────────────────────────────
+
+
+def test_match_and_ingest_dedups_replayed_message_id():
+    """Second call with the same message_id returns status=dedup and does
+    NOT call TenderService.upload_offer."""
+    parsed = {
+        "subject": "Re: Anbud [ref: TENDER-5-42]",
+        "sender": "insurer@x.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "",
+        "attachments": [],
+        "message_id": "<replayed-msg@example.com>",
+    }
+    db = MagicMock()
+    existing = MagicMock()
+    existing.id = 999
+    existing.offer_id = 777
+    db.query.return_value.filter.return_value.first.return_value = existing
+
+    with patch.object(svc, "_resolve_tender") as mock_resolve:
+        result = svc.match_and_ingest(parsed, db)
+
+    assert result["status"] == "dedup"
+    assert result["existing_log_id"] == 999
+    assert result["offer_id"] == 777
+    mock_resolve.assert_not_called()  # short-circuit before tender lookup
+
+
+def test_match_and_ingest_no_dedup_when_message_id_missing():
+    """Without a message_id the dedup check is skipped and downstream
+    resolution proceeds (here it orphans because the DB is mocked empty)."""
+    parsed = {
+        "subject": "Re: Anbud [ref: TENDER-5-42]",
+        "sender": "insurer@x.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "",
+        "attachments": [],
+        # no message_id at all
+    }
+    db = MagicMock()
+    db.query.return_value.get.return_value = None  # tender not found
+
+    result = svc.match_and_ingest(parsed, db)
+    assert result["status"] == "orphaned"
+
+
+def test_find_existing_by_message_id_returns_none_when_unset():
+    """Missing message_id short-circuits to None without hitting the DB."""
+    db = MagicMock()
+    assert svc._find_existing_by_message_id(db, None) is None
+    assert svc._find_existing_by_message_id(db, "") is None
+    db.query.assert_not_called()
+
+
 # ── Main dispatcher ─────────────────────────────────────────────────────────
 
 
