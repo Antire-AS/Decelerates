@@ -325,9 +325,13 @@ def _resolve_tender(
     return tender, recipient, ref_raw, None
 
 
-def _match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
+def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """Steps 4-6: resolve tender from subject → ingest attachments →
-    notify + log. Returns the final status dict."""
+    notify + log. Returns the final status dict.
+
+    Public because other provider paths (Microsoft Graph inbound) also
+    funnel into it once they've normalised their payload to the shared
+    `parsed` shape."""
     tender, recipient, ref_raw, error = _resolve_tender(parsed, db)
     if error is not None:
         return error
@@ -368,4 +372,4 @@ def process_email_received_event(event: Dict[str, Any], db: Session) -> Dict[str
     if error is not None:
         return error
     assert parsed is not None
-    return _match_and_ingest(parsed, db)
+    return match_and_ingest(parsed, db)
