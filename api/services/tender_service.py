@@ -244,6 +244,7 @@ class TenderService:
                     tender=tender,
                     company_name=company_name,
                     insurer_name=r.insurer_name,
+                    recipient_id=r.id,
                 )
                 if success:
                     r.status = TenderRecipientStatus.sent
@@ -364,11 +365,21 @@ class TenderService:
         return result
 
 
-def _send_tender_email(to: str, tender, company_name: str, insurer_name: str) -> bool:
-    """Send tender invitation email to an insurer."""
+def _send_tender_email(
+    to: str, tender, company_name: str, insurer_name: str, recipient_id: int = 0
+) -> bool:
+    """Send tender invitation email to an insurer.
+
+    `recipient_id` is embedded (along with tender.id) as a
+    `[ref: TENDER-<tid>-<rid>]` token in the subject so the inbound
+    webhook can route insurer replies back to the right tender. Replies
+    preserve the subject (possibly prefixed `Re:`), so the regex parser
+    on the inbound side finds the ref regardless of client quoting.
+    """
     try:
         from api.container import resolve
         from api.ports.driven.notification_port import NotificationPort
+        from api.services.inbound_email_service import format_tender_ref
 
         notification: NotificationPort = resolve(NotificationPort)  # type: ignore[assignment]
 
@@ -399,9 +410,11 @@ def _send_tender_email(to: str, tender, company_name: str, insurer_name: str) ->
         <p style='color:#888;font-size:12px'>Sendt via Broker Accelerator — meglerai.no</p>
         </body></html>
         """
-        return notification.send_email(
-            to, f"Anbudsforespørsel: {company_name} — {products}", body_html
+        ref_token = (
+            f"  {format_tender_ref(tender.id, recipient_id)}" if recipient_id else ""
         )
+        subject = f"Anbudsforespørsel: {company_name} — {products}{ref_token}"
+        return notification.send_email(to, subject, body_html)
     except Exception as exc:
         logger.warning("Failed to send tender email to %s: %s", to, exc)
         return False

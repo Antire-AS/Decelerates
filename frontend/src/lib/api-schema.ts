@@ -3740,6 +3740,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/acs/email-received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Acs Email Received
+         * @description Event Grid push endpoint for ACS EmailReceived events.
+         *
+         *     Two response modes:
+         *
+         *     1. First call after an Event Grid subscription is created: the
+         *        payload is a SubscriptionValidationEvent with data.validationCode.
+         *        We MUST echo it back as {"validationResponse": code} or the
+         *        subscription never activates.
+         *     2. Subsequent calls: array of events. We always return 200 even if
+         *        individual events failed and log errors to incoming_email_log —
+         *        non-2xx makes Event Grid retry for ~24h, which is not what we
+         *        want for malformed MIME.
+         */
+        post: operations["acs_email_received_webhooks_acs_email_received_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhooks/docuseal": {
         parameters: {
             query?: never;
@@ -12793,6 +12824,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acs_email_received_webhooks_acs_email_received_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
