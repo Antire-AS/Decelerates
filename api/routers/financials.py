@@ -112,6 +112,44 @@ def reset_history(orgnr: str, db: Session = Depends(get_db)) -> dict:
     return {"orgnr": orgnr, "deleted_rows": deleted}
 
 
+def _fmt_nok(v: float | int | None) -> str:
+    """Format NOK amounts with thousands spacing, "N/A" when missing."""
+    if v is None:
+        return "N/A"
+    return f"{v:,.0f} NOK".replace(",", " ")
+
+
+def _history_row_fields(h: dict) -> tuple:
+    """Return (revenue, equity, total_assets) from a history row, merging
+    BRREG-shaped keys (`sum_driftsinntekter`, `sum_egenkapital`, `sum_eiendeler`)
+    with PDF-extracted ones (`revenue`, `equity`, `total_assets`). Without
+    this fallback the LLM reports "no data" for any PDF-only company — the
+    chart beside the commentary renders fine but the prompt sees only `N/A`."""
+    rev = h.get("sum_driftsinntekter") or h.get("revenue")
+    eq = h.get("sum_egenkapital") or h.get("equity")
+    ta = h.get("sum_eiendeler") or h.get("total_assets")
+    return rev, eq, ta
+
+
+def _build_commentary_prompt(navn: str, orgnr: str, sorted_history: list) -> str:
+    """Build the Foundry prompt for the multi-year AI financial commentary."""
+    lines = []
+    for h in sorted_history:
+        rev, eq, ta = _history_row_fields(h)
+        lines.append(
+            f"- {h['year']}: omsetning {_fmt_nok(rev)}, "
+            f"egenkapital {_fmt_nok(eq)}, eiendeler {_fmt_nok(ta)}"
+        )
+    years_summary = "\n".join(lines)
+    return (
+        f"Du er en norsk finansanalytiker. Gi en kortfattet kommentar (3–5 setninger, norsk) "
+        f"om det finansielle trendbildet for {navn} (orgnr {orgnr}) basert på disse tallene:\n\n"
+        f"{years_summary}\n\n"
+        "Fokuser på utvikling i omsetning, egenkapital og balanse. "
+        "Vær objektiv og profesjonell. Avslutt med ett konkret risikonivå: Lav / Moderat / Høy."
+    )
+
+
 @router.get("/org/{orgnr}/financial-commentary", response_model=FinancialCommentaryOut)
 @limiter.limit("10/minute")
 def get_financial_commentary(
@@ -130,28 +168,13 @@ def get_financial_commentary(
 
     navn = company.navn if company else orgnr
     sorted_history = sorted(history, key=lambda x: x.get("year", 0))
-    years_summary = "\n".join(
-        f"- {h['year']}: omsetning {h.get('sum_driftsinntekter') or 'N/A'} NOK, "
-        f"egenkapital {h.get('sum_egenkapital') or 'N/A'} NOK, "
-        f"eiendeler {h.get('sum_eiendeler') or 'N/A'} NOK"
-        for h in sorted_history
-    )
-    prompt = (
-        f"Du er en norsk finansanalytiker. Gi en kortfattet kommentar (3–5 setninger, norsk) "
-        f"om det finansielle trendbildet for {navn} (orgnr {orgnr}) basert på disse tallene:\n\n"
-        f"{years_summary}\n\n"
-        "Fokuser på utvikling i omsetning, egenkapital og balanse. "
-        "Vær objektiv og profesjonell. Avslutt med ett konkret risikonivå: Lav / Moderat / Høy."
-    )
+    prompt = _build_commentary_prompt(navn, orgnr, sorted_history)
     commentary = _llm_answer_raw(prompt)
     if not commentary:
         raise HTTPException(
             status_code=503,
             detail="LLM not available — check AZURE_FOUNDRY_BASE_URL + AZURE_FOUNDRY_API_KEY",
         )
-    # Schema shape locked to FinancialCommentaryOut (api/schemas.py): orgnr, commentary, years.
-    # Previously returned an extra `years_analyzed: int` and `navn` that FastAPI silently
-    # stripped — caught during the api.ts type-cleanup audit.
     return {
         "orgnr": orgnr,
         "commentary": commentary,
