@@ -118,6 +118,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/email-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Email Log
+         * @description Page through the inbound-email audit log, newest first.
+         */
+        get: operations["list_email_log_admin_email_log_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/msgraph-inbound/create-subscription": {
         parameters: {
             query?: never;
@@ -4843,6 +4863,51 @@ export interface components {
             /** Suitability Basis */
             suitability_basis?: string | null;
         };
+        /** IncomingEmailLogEntryOut */
+        IncomingEmailLogEntryOut: {
+            /** Attachment Count */
+            attachment_count: number;
+            /** Error Message */
+            error_message?: string | null;
+            /** Id */
+            id: number;
+            /** Message Id */
+            message_id?: string | null;
+            /** Offer Id */
+            offer_id?: number | null;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Recipient */
+            recipient?: string | null;
+            /** Recipient Id */
+            recipient_id?: number | null;
+            /** Sender */
+            sender?: string | null;
+            /** Status */
+            status: string;
+            /** Subject */
+            subject?: string | null;
+            /** Tender Id */
+            tender_id?: number | null;
+            /** Tender Ref */
+            tender_ref?: string | null;
+        };
+        /** IncomingEmailLogPageOut */
+        IncomingEmailLogPageOut: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["IncomingEmailLogEntryOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** IngestKnowledgeOut */
         IngestKnowledgeOut: {
             /** Chunks Stored */
@@ -5933,6 +5998,40 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    list_email_log_admin_email_log_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by status: matched / orphaned / error / dedup */
+                status?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncomingEmailLogPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

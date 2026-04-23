@@ -23,3 +23,4 @@ from api.schemas.saved_search import *  # noqa: F401,F403
 from api.schemas.email import *  # noqa: F401,F403
 from api.schemas.consent import *  # noqa: F401,F403
 from api.schemas.news import *  # noqa: F401,F403
+from api.schemas.inbound_email import *  # noqa: F401,F403
