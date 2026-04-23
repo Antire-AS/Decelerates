@@ -10,6 +10,7 @@ import {
   Building,
   AlertTriangle,
   Loader2,
+  Download,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
@@ -177,6 +178,26 @@ export default function AnbudPortalPage() {
             </p>
           </div>
         )}
+
+        {/* Risikounderlag — 7-section anbudspakke PDF. Generated fresh per
+            request so insurers always get the latest numbers without the
+            broker manually re-attaching. */}
+        <div className="pt-2 border-t border-muted">
+          <a
+            href={`/bapi/tenders/portal/${token}/anbudspakke.pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10"
+          >
+            <Download className="w-4 h-4" />
+            {T("Last ned risikounderlag (PDF)")}
+          </a>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            {T(
+              "Samlet rapport med selskapsinformasjon, økonomisk utvikling, Altman-risikoprofil, peer-sammenligning, meglers notater og materielle hendelser siste 30 dager.",
+            )}
+          </p>
+        </div>
       </section>
 
       {/* Upload */}
