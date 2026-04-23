@@ -161,6 +161,35 @@ def test_fetch_and_parse_message_happy(monkeypatch: pytest.MonkeyPatch):
     assert parsed["attachments"][0]["content"] == b"%PDF-1.4 pretend"
 
 
+def test_fetch_and_parse_message_includes_internet_message_id(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """internetMessageId is plumbed through as the dedup key."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "internetMessageId" in str(request.url)
+        return httpx.Response(
+            200,
+            json={
+                "subject": "hi",
+                "from": {"emailAddress": {"address": "a@b.no"}},
+                "toRecipients": [],
+                "body": {"contentType": "text", "content": ""},
+                "hasAttachments": False,
+                "internetMessageId": "<graph-msg@example.com>",
+            },
+        )
+
+    real_client = httpx.Client
+
+    def fake_client(*args: Any, **kwargs: Any) -> httpx.Client:
+        return real_client(transport=httpx.MockTransport(handler), **kwargs)
+
+    monkeypatch.setattr(httpx, "Client", fake_client)
+    parsed = svc.fetch_and_parse_message("Users/u/Messages/m", "tok")
+    assert parsed["message_id"] == "<graph-msg@example.com>"
+
+
 def test_fetch_and_parse_message_no_attachments(monkeypatch: pytest.MonkeyPatch):
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path.endswith("/Messages/m")

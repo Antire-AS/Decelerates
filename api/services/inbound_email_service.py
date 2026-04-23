@@ -148,6 +148,8 @@ def parse_email_mime(raw: bytes) -> Dict[str, Any]:
         "recipient": to,
         "text_body": text_body,
         "attachments": attachments,
+        # RFC822 Message-ID header — dedup key shared with the Graph path.
+        "message_id": msg.get("Message-ID") or None,
     }
 
 
@@ -245,10 +247,27 @@ def _log_row(
         offer_id=offer_id,
         error_message=error,
         attachment_count=len(parsed.get("attachments") or []),
+        message_id=parsed.get("message_id") or None,
     )
     db.add(row)
     db.commit()
     return row
+
+
+def _find_existing_by_message_id(
+    db: Session, message_id: Optional[str]
+) -> Optional[IncomingEmailLog]:
+    """Look up a prior log row with the same RFC822 Message-ID. Used by
+    `match_and_ingest` to short-circuit replayed webhook deliveries so
+    we don't create duplicate TenderOffer rows. Returns None when the
+    message_id is missing (can't dedup) or no prior row exists."""
+    if not message_id:
+        return None
+    return (
+        db.query(IncomingEmailLog)
+        .filter(IncomingEmailLog.message_id == message_id)
+        .first()
+    )
 
 
 # ── Main entry point ────────────────────────────────────────────────────────
@@ -325,17 +344,16 @@ def _resolve_tender(
     return tender, recipient, ref_raw, None
 
 
-def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
-    """Steps 4-6: resolve tender from subject → ingest attachments →
-    notify + log. Returns the final status dict.
-
-    Public because other provider paths (Microsoft Graph inbound) also
-    funnel into it once they've normalised their payload to the shared
-    `parsed` shape."""
-    tender, recipient, ref_raw, error = _resolve_tender(parsed, db)
-    if error is not None:
-        return error
-    assert tender is not None and recipient is not None and ref_raw is not None
+def _ingest_and_notify(
+    parsed: Dict[str, Any],
+    tender: Tender,
+    recipient: TenderRecipient,
+    ref_raw: str,
+    db: Session,
+) -> Dict[str, Any]:
+    """Upload attachments → notify firm → log matched row. Handles the
+    ingest failure branch with its own error log so the outer function
+    stays short."""
     try:
         offer_id = _ingest_attachments(tender, recipient, parsed["attachments"], db)
     except Exception as exc:
@@ -363,6 +381,29 @@ def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
             if "pdf" in (a.get("content_type") or "").lower()
         ),
     }
+
+
+def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
+    """Resolve tender from subject → dedup-check → ingest + notify.
+    Returns the final status dict.
+
+    Public because other provider paths (Microsoft Graph inbound) also
+    funnel into it once they've normalised their payload to the shared
+    `parsed` shape. Dedup by RFC822 Message-ID makes the whole pipeline
+    idempotent against webhook replay storms."""
+    existing = _find_existing_by_message_id(db, parsed.get("message_id"))
+    if existing is not None:
+        return {
+            "status": "dedup",
+            "reason": "already_processed",
+            "existing_log_id": existing.id,
+            "offer_id": existing.offer_id,
+        }
+    tender, recipient, ref_raw, error = _resolve_tender(parsed, db)
+    if error is not None:
+        return error
+    assert tender is not None and recipient is not None and ref_raw is not None
+    return _ingest_and_notify(parsed, tender, recipient, ref_raw, db)
 
 
 def process_email_received_event(event: Dict[str, Any], db: Session) -> Dict[str, Any]:
