@@ -39,6 +39,27 @@ logger = logging.getLogger(__name__)
 
 SERPER_NEWS_ENDPOINT = "https://google.serper.dev/news"
 
+# Bias the Serper query toward underwriter-relevant events. Without this
+# the top hits for big companies are marketing coverage, analyst notes,
+# and macro commentary — all correctly flagged non-material by the LLM
+# but pure noise in the UI. Adding these keywords to the query lets
+# Google's relevance ranking do half the filtering for us BEFORE we
+# spend a Foundry call per article classifying them.
+MATERIAL_KEYWORDS_QUERY = (
+    '("konkurs" OR "restrukturering" OR "rettssak" OR "søksmål" OR '
+    '"ledelsesbytte" OR "CEO slutter" OR "styreleder" OR '
+    '"nedskrivning" OR "tap" OR "oppkjøp" OR "fusjon" OR '
+    '"granskning" OR "pålegg" OR "erstatning")'
+)
+
+
+def _build_news_query(navn: str) -> str:
+    """Company name + Norway locator + materiality keywords. Exposed for
+    unit testing — Serper's own query parser isn't something we want to
+    run live in tests."""
+    return f"{navn} Norge {MATERIAL_KEYWORDS_QUERY}"
+
+
 MATERIALITY_PROMPT = """Du er en erfaren risikoanalytiker for en norsk forsikringsmegler.
 Analyser denne nyhetsoverskriften om selskapet "{navn}":
 
@@ -115,7 +136,12 @@ def _fetch_serper_news(navn: str, max_results: int = 10) -> List[Dict[str, Any]]
     try:
         resp = requests.post(
             SERPER_NEWS_ENDPOINT,
-            json={"q": f"{navn} Norge", "num": max_results, "gl": "no", "hl": "no"},
+            json={
+                "q": _build_news_query(navn),
+                "num": max_results,
+                "gl": "no",
+                "hl": "no",
+            },
             headers={"X-API-KEY": key, "Content-Type": "application/json"},
             timeout=15,
         )
