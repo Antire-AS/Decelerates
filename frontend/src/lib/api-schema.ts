@@ -135,6 +135,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/refresh-all-news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh All News Endpoint
+         * @description Refresh Serper news + Foundry materiality classification for every
+         *     company that sits in at least one portfolio.
+         *
+         *     Wired to a nightly GitHub Actions cron at 03:30 UTC. A second invocation
+         *     the same day is harmless — URLs are deduped at the (orgnr, url) UNIQUE
+         *     constraint level so we never double-store.
+         */
+        post: operations["refresh_all_news_endpoint_admin_refresh_all_news_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/refresh-altman-snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Altman Snapshots Endpoint
+         * @description Take a fresh Altman-zone snapshot for every portfolio and post
+         *     notifications when a company moves to a worse zone (safe→grey,
+         *     safe→distress, grey→distress).
+         *
+         *     Wired to a nightly GitHub Actions cron at 04:30 UTC, right after the
+         *     news refresh so any fresh material events are already classified.
+         */
+        post: operations["refresh_altman_snapshots_endpoint_admin_refresh_altman_snapshots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/refresh-portfolio-risk": {
         parameters: {
             query?: never;
@@ -5716,6 +5766,50 @@ export interface operations {
         };
     };
     send_portfolio_digest_admin_portfolio_digest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    refresh_all_news_endpoint_admin_refresh_all_news_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    refresh_altman_snapshots_endpoint_admin_refresh_altman_snapshots_post: {
         parameters: {
             query?: never;
             header?: never;
