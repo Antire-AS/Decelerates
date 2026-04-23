@@ -1548,6 +1548,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/anbudspakke/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email Anbudspakke
+         * @description Generate the anbudspakke PDF and email it as an attachment to the
+         *     insurer. `to` is the insurer email, `subject` and `message` are
+         *     optional overrides. Returns {sent, to, subject}.
+         */
+        post: operations["email_anbudspakke_org__orgnr__anbudspakke_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org/{orgnr}/bankruptcy": {
         parameters: {
             query?: never;
@@ -3860,6 +3882,34 @@ export interface components {
             z_score: number;
             /** Zone */
             zone: string;
+        };
+        /** AnbudspakkeEmailOut */
+        AnbudspakkeEmailOut: {
+            /** Sent */
+            sent: boolean;
+            /** Subject */
+            subject: string;
+            /** To */
+            to: string;
+        };
+        /**
+         * AnbudspakkeEmailRequest
+         * @description Body for POST /org/{orgnr}/anbudspakke/email.
+         *
+         *     `subject` is optional — a sensible default is derived from the
+         *     company name if omitted. `message` is optional free-text the broker
+         *     wants prefixed to the standard email body. `cc` lets the broker
+         *     loop in colleagues or the client.
+         */
+        AnbudspakkeEmailRequest: {
+            /** Cc */
+            cc?: string[];
+            /** Message */
+            message?: string | null;
+            /** Subject */
+            subject?: string | null;
+            /** To */
+            to: string;
         };
         /** AuditLogEntryOut */
         AuditLogEntryOut: {
@@ -8236,6 +8286,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    email_anbudspakke_org__orgnr__anbudspakke_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnbudspakkeEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnbudspakkeEmailOut"];
                 };
             };
             /** @description Validation Error */
