@@ -140,6 +140,7 @@ from api.routers import (
     whiteboard,
     news as news_router,
     anbud_package,
+    inbound_email,
 )
 
 app = FastAPI(title="Broker Accelerator API")
@@ -461,5 +462,6 @@ app.include_router(chat_history.router)
 app.include_router(whiteboard.router)
 app.include_router(news_router.router)
 app.include_router(anbud_package.router)
+app.include_router(inbound_email.router)
 
 __all__ = ["app", "limiter"]
