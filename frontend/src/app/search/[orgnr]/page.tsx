@@ -363,7 +363,14 @@ function buildSuggestedFacts({
 }: {
   org: Record<string, unknown>;
   regn: Record<string, unknown>;
-  risk: { score?: number };
+  risk: {
+    score?: number;
+    altman_z?: {
+      z_score: number;
+      zone: "safe" | "grey" | "distress";
+      score_20: number;
+    } | null;
+  };
   benchmark: Record<string, unknown> | null | undefined;
 }): { label: string; value: string; source_tab: string }[] {
   const facts: { label: string; value: string; source_tab: string }[] = [];
@@ -377,6 +384,22 @@ function buildSuggestedFacts({
   }
   if (typeof risk?.score === "number") {
     facts.push({ label: "Risikoscore", value: `${risk.score}/20`, source_tab: "Oversikt" });
+  }
+  // Altman Z″ chip — only surfaces when the model could compute it
+  // (non-financial companies). Banks/insurers get risk.altman_z === null
+  // and we skip the chip rather than flashing "N/A" in the broker's face.
+  if (risk?.altman_z) {
+    const zoneLabel =
+      risk.altman_z.zone === "safe"
+        ? "trygg sone"
+        : risk.altman_z.zone === "grey"
+          ? "gråsone"
+          : "nødsone";
+    facts.push({
+      label: "Altman Z″",
+      value: `${risk.altman_z.z_score.toFixed(2)} (${zoneLabel})`,
+      source_tab: "Oversikt",
+    });
   }
   const rev = regn?.sumDriftsinntekter ?? regn?.sum_driftsinntekter;
   if (typeof rev === "number") {
