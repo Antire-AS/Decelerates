@@ -120,6 +120,10 @@ export type NotificationMarkReadOut = Schema["NotificationMarkReadOut"];
 export type AuditLogEntryOut = Schema["AuditLogEntryOut"];
 export type AuditLogPageOut  = Schema["AuditLogPageOut"];
 
+// Inbound-email audit log (msgraph activation Task 11).
+export type IncomingEmailLogEntryOut = Schema["IncomingEmailLogEntryOut"];
+export type IncomingEmailLogPageOut  = Schema["IncomingEmailLogPageOut"];
+
 // Commission projections (plan §🟢 #12).
 export type CommissionProjectionBucket = Schema["CommissionProjectionBucket"];
 export type CommissionProjectionsOut   = Schema["CommissionProjectionsOut"];
@@ -588,6 +592,18 @@ export const getAuditLog = (params?: {
 
 export const getCommissionProjections = (months: number = 12) =>
   apiFetch<CommissionProjectionsOut>(`/commission/projections?months=${months}`);
+
+export const getInboundEmailLog = (params?: {
+  status?: "matched" | "orphaned" | "error" | "dedup";
+  limit?: number;
+  offset?: number;
+}) => {
+  const q = new URLSearchParams();
+  if (params?.status) q.set("status", params.status);
+  q.set("limit", String(params?.limit ?? 50));
+  q.set("offset", String(params?.offset ?? 0));
+  return apiFetch<IncomingEmailLogPageOut>(`/admin/email-log?${q.toString()}`);
+};
 
 export const addCompaniesBulk = (portfolioId: number, orgnrs: string[]) =>
   apiFetch<PortfolioBulkAddOut>(`/portfolio/${portfolioId}/companies/bulk`, {
