@@ -1,10 +1,11 @@
 """Azure Communication Services email adapter — implements NotificationPort."""
 
+import base64
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
-from api.ports.driven.notification_port import NotificationPort
+from api.ports.driven.notification_port import EmailAttachment, NotificationPort
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,43 @@ class AzureEmailNotificationAdapter(NotificationPort):
             return True
         except Exception as exc:
             logger.warning("ACS send_email failed — %s", exc)
+            return False
+
+    def send_email_with_attachments(
+        self,
+        to: str,
+        subject: str,
+        body_html: str,
+        attachments: List[EmailAttachment],
+        cc: Optional[List[str]] = None,
+    ) -> bool:
+        """ACS attachments: base64 content in the `attachments` array.
+        The SDK passes that through to the REST API untouched."""
+        if not self.is_configured():
+            return False
+        try:
+            recipients: dict = {"to": [{"address": to}]}
+            if cc:
+                recipients["cc"] = [{"address": addr} for addr in cc]
+            encoded_attachments = [
+                {
+                    "name": a.filename,
+                    "contentType": a.content_type,
+                    "contentInBase64": base64.b64encode(a.content).decode("ascii"),
+                }
+                for a in attachments
+            ]
+            message = {
+                "senderAddress": self._config.sender,
+                "recipients": recipients,
+                "content": {"subject": subject, "html": body_html},
+                "attachments": encoded_attachments,
+            }
+            poller = self._email_client().begin_send(message)
+            poller.result()
+            return True
+        except Exception as exc:
+            logger.warning("ACS send_email_with_attachments failed — %s", exc)
             return False
 
     def send_sla_generated(self, to: str, client_navn: str) -> bool:
