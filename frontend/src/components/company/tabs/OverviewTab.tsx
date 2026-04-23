@@ -126,7 +126,7 @@ export default function OverviewTab({
 
         <div className="space-y-4">
           <RiskScoreSection score={risk.score} factors={factors} />
-          {risk.altman_z && <AltmanZSection altman={risk.altman_z} orgnr={orgnr} />}
+          <AltmanZSection altman={risk.altman_z ?? null} orgnr={orgnr} />
           <RiskNarrativePanel orgnr={orgnr} />
           {finansData && (
             <Section title={finansData._year ? `${T("Nøkkeltall")} (${finansData._year})` : T("Nøkkeltall")} collapsibleId={`overview-${orgnr}-nokkeltall`}>

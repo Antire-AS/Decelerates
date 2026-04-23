@@ -1,5 +1,6 @@
 "use client";
 
+import { Info } from "lucide-react";
 import type { AltmanZScore } from "@/lib/api-types";
 import { Section } from "./shared";
 import { useT } from "@/lib/i18n";
@@ -7,7 +8,7 @@ import AltmanTrendChart from "./AltmanTrendChart";
 import ScenarioSlider from "./ScenarioSlider";
 
 interface Props {
-  altman: AltmanZScore;
+  altman: AltmanZScore | null;
   orgnr: string;
 }
 
@@ -44,6 +45,28 @@ function clamp(n: number, lo: number, hi: number): number {
 
 export default function AltmanZSection({ altman, orgnr }: Props) {
   const T = useT();
+
+  // Altman 2000 is calibrated against non-financial firms — it needs the
+  // working-capital / short-term-debt split, which banks and insurers don't
+  // report on that axis. Rather than hide the whole panel (and with it the
+  // trend chart + scenario slider we just built), render an explicit N/A
+  // state so brokers see the same UX slot on every profile.
+  if (!altman) {
+    return (
+      <Section title={T("Bankruptcy-prediksjon (Altman Z″)")}>
+        <div className="flex items-start gap-2 text-xs text-muted-foreground mb-3 p-2 rounded-md bg-muted/40">
+          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          <span>
+            {T(
+              "Altman Z″ er ikke tilgjengelig for dette selskapet. Modellen er kalibrert for ikke-finansielle foretak og trenger likviditetsdata (arbeidskapital, kortsiktig gjeld) som banker og forsikringsselskaper ikke rapporterer i den formen. Den regelbaserte risikoscoren og peer-sammenligningen under gir tilsvarende signal.",
+            )}
+          </span>
+        </div>
+        <AltmanTrendChart orgnr={orgnr} />
+      </Section>
+    );
+  }
+
   const style = ZONE_STYLE[altman.zone];
   const barPercent = clamp(((altman.z_score - Z_MIN) / (Z_MAX - Z_MIN)) * 100, 0, 100);
 
