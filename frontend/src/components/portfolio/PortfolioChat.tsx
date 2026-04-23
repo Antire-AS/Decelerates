@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Loader2, MessageSquare } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import ChatMarkdown from "@/components/common/ChatMarkdown";
 
 interface Props {
   chatQuestion: string;
@@ -49,7 +50,7 @@ export function PortfolioChat({
       {chatErr && <p className="text-xs text-red-600">{chatErr}</p>}
       {chatAnswer && (
         <div className="bg-muted rounded-lg p-3 space-y-2">
-          <p className="text-xs text-foreground whitespace-pre-wrap">{chatAnswer}</p>
+          <ChatMarkdown text={chatAnswer} />
           {chatSources.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {chatSources.map((s) => (
