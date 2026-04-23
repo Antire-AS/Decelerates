@@ -132,10 +132,14 @@ def _fetch_attachments(
 
 def fetch_and_parse_message(resource_path: str, token: str) -> Dict[str, Any]:
     """Given a Graph resource path, fetch the full message + attachments
-    and build the `parsed` dict consumed by the inbound pipeline."""
+    and build the `parsed` dict consumed by the inbound pipeline.
+
+    `internetMessageId` is the RFC822 Message-ID — used downstream as the
+    dedup key so replayed Graph notifications don't create duplicate
+    TenderOffer rows."""
     msg_url = (
         f"{_GRAPH_BASE}/{resource_path}"
-        "?$select=subject,from,toRecipients,body,hasAttachments"
+        "?$select=subject,from,toRecipients,body,hasAttachments,internetMessageId"
     )
     with httpx.Client(timeout=30.0) as client:
         msg_resp = client.get(msg_url, headers={"Authorization": f"Bearer {token}"})
@@ -150,6 +154,7 @@ def fetch_and_parse_message(resource_path: str, token: str) -> Dict[str, Any]:
         "recipient": _extract_recipients(msg),
         "text_body": _extract_body_text(msg),
         "attachments": attachments,
+        "message_id": msg.get("internetMessageId") or None,
     }
 
 
