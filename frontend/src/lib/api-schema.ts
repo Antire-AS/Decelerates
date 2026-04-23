@@ -118,6 +118,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/msgraph-inbound/create-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Create Subscription
+         * @description Bootstrap: create the initial subscription pointing at this app's
+         *     webhook. Idempotent caller responsibility — if a subscription already
+         *     exists on the same mailbox, Graph happily creates a second one. Check
+         *     `list-subscriptions` first if unsure.
+         */
+        post: operations["admin_create_subscription_admin_msgraph_inbound_create_subscription_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/msgraph-inbound/renew-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Renew Subscriptions
+         * @description Renew every mail subscription owned by the app. Called daily by
+         *     GH workflow `msgraph-subscription-renew.yml`. Returns per-id status
+         *     so the workflow log shows what happened.
+         */
+        post: operations["admin_renew_subscriptions_admin_msgraph_inbound_renew_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/msgraph-inbound/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin List Subscriptions
+         * @description List active Graph subscriptions on this tenant. Read-only.
+         */
+        get: operations["admin_list_subscriptions_admin_msgraph_inbound_subscriptions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/portfolio-digest": {
         parameters: {
             query?: never;
@@ -5851,6 +5916,72 @@ export interface operations {
         };
     };
     admin_demo_admin_demo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    admin_create_subscription_admin_msgraph_inbound_create_subscription_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    admin_renew_subscriptions_admin_msgraph_inbound_renew_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    admin_list_subscriptions_admin_msgraph_inbound_subscriptions_get: {
         parameters: {
             query?: never;
             header?: never;
