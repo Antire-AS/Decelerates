@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { chatWithOrg, getChatHistory, clearChatHistory } from "@/lib/api";
 import { Loader2, Send, Bot, User, Trash2, Wrench, Sparkles } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import ChatMarkdown from "@/components/common/ChatMarkdown";
 
 interface ToolCall { tool: string; args: string; result: string }
 
@@ -157,7 +158,11 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
                     : "bg-background text-foreground"
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                {m.role === "assistant" ? (
+                  <ChatMarkdown text={m.text} />
+                ) : (
+                  <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                )}
                 {m.toolCalls && m.toolCalls.length > 0 && (
                   <div className="mt-2 border-t border-border pt-2 space-y-1">
                     {m.toolCalls.map((tc, j) => (
