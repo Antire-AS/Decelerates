@@ -12,6 +12,7 @@ import {
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
+import AnbudPackageButton from "@/components/company/AnbudPackageButton";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
 import dynamic from "next/dynamic";
 import { useT } from "@/lib/i18n";
@@ -196,7 +197,10 @@ export default function OrgProfilePage({
               {!!org.naeringskode1_beskrivelse && ` · ${String(org.naeringskode1_beskrivelse)}`}
             </p>
           </div>
-          <RiskBadge score={risk.score as number | undefined} className="self-start text-sm px-3 py-1" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <RiskBadge score={risk.score as number | undefined} className="self-start text-sm px-3 py-1" />
+            <AnbudPackageButton orgnr={orgnr} />
+          </div>
         </div>
       </div>
 
