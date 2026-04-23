@@ -345,30 +345,42 @@ jobs:
         #
         # Two modes:
         #   Canary enabled: the watchdog above already set weights (either
-        #     NEW=100 on promote or PREV=100 on rollback). This step just
-        #     deactivates every other active revision so their replicas
-        #     stop holding DB connections.
-        #   Canary disabled: nothing has touched weights yet. This step
-        #     promotes NEW_REV to 100% and deactivates the rest.
+        #     NEW=100 on promote or PREV=100 on rollback). We trust those
+        #     weights and deactivate everything else.
+        #   Canary disabled: the atomic PATCH created NEW_REV but did not
+        #     reroute traffic. We MUST promote NEW_REV to 100% ourselves,
+        #     then deactivate the rest. The earlier version of this step
+        #     instead read "whatever is currently at 100%" and treated
+        #     that as the target — which caused the 2026-04-23 outage
+        #     when it picked the old revision as "serving" and deactivated
+        #     the new one.
         if: always() && steps.deploy_api.outputs.new_revision != ''
+        env:
+          CANARY_ENABLED: ${{ secrets.CANARY_ENABLED }}
         run: |
           APP=${{ steps.config.outputs.api_app }}
           RG=${{ env.RG }}
           NEW_REV="${{ steps.deploy_api.outputs.new_revision }}"
 
-          # Figure out which revision actually holds 100% traffic. If no
-          # single revision does (e.g. canary rolled back with mixed
-          # weights), we keep everything at its current weight — don't
-          # paper over a rollback.
-          HUNDRED_REV=$(az containerapp revision list --name "$APP" \
-            --resource-group "$RG" \
-            --query "[?properties.active && properties.trafficWeight == \`100\`] | [0].name" \
-            -o tsv 2>/dev/null || true)
-
-          if [ -z "$HUNDRED_REV" ]; then
-            # No revision at 100% — either canary rolled back or weights
-            # are split. Promote the new revision explicitly.
-            echo "No revision at 100% traffic; promoting $NEW_REV."
+          if [ -n "$CANARY_ENABLED" ]; then
+            # Canary mode: trust whatever the watchdog set. Only used to
+            # preserve rollbacks — if watchdog already shifted to 100%
+            # old on rollback, we must not override back to new.
+            HUNDRED_REV=$(az containerapp revision list --name "$APP" \
+              --resource-group "$RG" \
+              --query "[?properties.active && properties.trafficWeight == \`100\`] | [0].name" \
+              -o tsv 2>/dev/null || true)
+            if [ -z "$HUNDRED_REV" ]; then
+              echo "Canary enabled but no revision at 100% — promoting $NEW_REV explicitly."
+              az containerapp ingress traffic set \
+                --name "$APP" --resource-group "$RG" \
+                --revision-weight "$NEW_REV=100"
+              HUNDRED_REV="$NEW_REV"
+            fi
+          else
+            # No canary: NEW_REV just passed its healthcheck, so it's the
+            # target of this deploy. Promote unconditionally.
+            echo "Canary disabled; promoting $NEW_REV to 100% traffic."
             az containerapp ingress traffic set \
               --name "$APP" --resource-group "$RG" \
               --revision-weight "$NEW_REV=100"
