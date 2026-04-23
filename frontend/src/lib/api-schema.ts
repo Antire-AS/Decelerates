@@ -1476,6 +1476,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/anbudspakke.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Anbudspakke
+         * @description Return a PDF bundling all underwriting-relevant data about the
+         *     company — one document the broker attaches when soliciting offers
+         *     from insurers. No auth wall beyond what /org/{orgnr} already has.
+         */
+        get: operations["download_anbudspakke_org__orgnr__anbudspakke_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org/{orgnr}/bankruptcy": {
         parameters: {
             query?: never;
@@ -8063,6 +8085,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AltmanHistoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_anbudspakke_org__orgnr__anbudspakke_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
