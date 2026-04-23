@@ -1,0 +1,22 @@
+name: MS Graph Inbound Subscription Renew
+
+on:
+  schedule:
+    # 03:00 UTC daily — Graph mail subscriptions cap at ~70h (we set 60h
+    # expiry in api/services/msgraph_inbound_service.py), so renewing
+    # every 24h keeps us safely ahead of every expiry window.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Renew active subscriptions
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/msgraph-inbound/renew-subscriptions" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_CRON_TOKEN }}" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
