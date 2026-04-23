@@ -196,6 +196,46 @@ async def add_recipient(
 # ── Insurer portal (token-based, no auth required) ───────────────────────────
 
 
+@router.get("/tenders/portal/{access_token}/anbudspakke.pdf")
+def portal_download_anbudspakke(
+    access_token: str, svc: TenderService = Depends(_svc), db: Session = Depends(get_db)
+):
+    """Insurer-portal download of the risikounderlag PDF.
+
+    Gives the invited insurer the same 7-section anbudspakke the broker sees
+    (selskap + økonomi + Altman + peer + behov + notater + materielle
+    nyheter + poliser) without requiring a login. Auth is the unique
+    access_token issued when the tender recipient was added — same bearer
+    as the rest of the portal endpoints."""
+    from fastapi.responses import Response
+
+    from api.services.pdf_anbud import build_anbudspakke_data, generate_anbudspakke_pdf
+
+    recipient = svc.get_recipient_by_token(access_token)
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Ugyldig lenke")
+    tender = svc.db.query(
+        __import__("api.models.tender", fromlist=["Tender"]).Tender
+    ).get(recipient.tender_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    try:
+        data = build_anbudspakke_data(tender.orgnr, db)
+    except Exception as exc:
+        logger.warning("portal anbudspakke build failed for %s: %s", tender.orgnr, exc)
+        raise HTTPException(status_code=500, detail="Kunne ikke generere anbudspakke")
+    pdf_bytes = generate_anbudspakke_pdf(data)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="anbudspakke-{tender.orgnr}.pdf"'
+            ),
+        },
+    )
+
+
 @router.get("/tenders/portal/{access_token}")
 def portal_get_tender(
     access_token: str, svc: TenderService = Depends(_svc), db: Session = Depends(get_db)

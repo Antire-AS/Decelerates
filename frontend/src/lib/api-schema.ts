@@ -3379,6 +3379,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/portal/{access_token}/anbudspakke.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Portal Download Anbudspakke
+         * @description Insurer-portal download of the risikounderlag PDF.
+         *
+         *     Gives the invited insurer the same 7-section anbudspakke the broker sees
+         *     (selskap + økonomi + Altman + peer + behov + notater + materielle
+         *     nyheter + poliser) without requiring a login. Auth is the unique
+         *     access_token issued when the tender recipient was added — same bearer
+         *     as the rest of the portal endpoints.
+         */
+        get: operations["portal_download_anbudspakke_tenders_portal__access_token__anbudspakke_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/portal/{access_token}/upload": {
         parameters: {
             query?: never;
@@ -12112,6 +12138,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    portal_download_anbudspakke_tenders_portal__access_token__anbudspakke_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                access_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
