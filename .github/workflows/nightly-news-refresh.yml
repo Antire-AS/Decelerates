@@ -1,0 +1,21 @@
+name: Nightly News Refresh
+
+on:
+  schedule:
+    # 03:30 UTC (05:30 Norwegian summer time) — before the Altman
+    # snapshot cron so any fresh material events are in the DB when
+    # the snapshot diff runs.
+    - cron: "30 3 * * *"
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  refresh-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh news + classify materiality for all portfolio companies
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/refresh-all-news" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}

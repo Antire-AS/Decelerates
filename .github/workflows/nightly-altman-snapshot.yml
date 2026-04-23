@@ -1,0 +1,21 @@
+name: Nightly Altman Snapshot
+
+on:
+  schedule:
+    # 04:30 UTC (06:30 Norwegian summer time) — one hour after the news
+    # refresh so any fresh material events already influence the
+    # underlying Company rows before we snapshot zones.
+    - cron: "30 4 * * *"
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  refresh-altman:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapshot Altman zones for every portfolio + notify on transitions
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ vars.API_BASE_URL }}/admin/refresh-altman-snapshots" \
+            -H "Content-Type: application/json"
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
