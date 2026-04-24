@@ -1,19 +1,41 @@
 # Demo-data for anbud-flyten
 
-Seks ferdige PDF-er du kan laste ned og bruke til å demonstrere hele
+Ferdige PDF-er du kan laste ned og bruke til å demonstrere hele
 anbud-flyten end-to-end (risikoprofil ut → tilbud inn → AI-analyse).
+
+14 risikoprofiler (3 fiktive + 11 reelle norske toppselskap) og 3
+forsikringstilbud til å pare med.
 
 ## Last ned direkte fra GitHub
 
 Høyreklikk → "Save link as" (eller klikk først, deretter Raw → høyreklikk):
 
-### Risikoprofiler (utgående anbudspakker)
+### Risikoprofiler — fiktive SMBs
 
-| Selskap | Risikoscore | Last ned |
-|---|---|---|
-| Bergmann Industri AS | 6 (moderat) | [risk_bergmann_industri.pdf](risk_bergmann_industri.pdf) |
-| Nordlys Restaurantgruppe AS | 11 (høy) | [risk_nordlys_restaurant.pdf](risk_nordlys_restaurant.pdf) |
-| Arcticom Consulting AS | 3 (lav) | [risk_arcticom_consulting.pdf](risk_arcticom_consulting.pdf) |
+| Selskap | Bransje | Score | Last ned |
+|---|---|---|---|
+| Bergmann Industri AS | Metallproduksjon | 6 (moderat) | [risk_bergmann_industri.pdf](risk_bergmann_industri.pdf) |
+| Nordlys Restaurantgruppe AS | Restaurant, 3 lokasjoner | 11 (høy) | [risk_nordlys_restaurant.pdf](risk_nordlys_restaurant.pdf) |
+| Arcticom Consulting AS | Rådgivning | 3 (lav) | [risk_arcticom_consulting.pdf](risk_arcticom_consulting.pdf) |
+
+### Risikoprofiler — norske toppselskap (fiktive tall, reelle navn)
+
+| Selskap | Bransje | Score | Last ned |
+|---|---|---|---|
+| DNB Bank ASA | Bank | 4 (lav) | [risk_dnb.pdf](risk_dnb.pdf) |
+| Telenor ASA | Telekom | 5 (lav/moderat) | [risk_telenor.pdf](risk_telenor.pdf) |
+| NorgesGruppen ASA | Dagligvare | 5 (lav/moderat) | [risk_norgesgruppen.pdf](risk_norgesgruppen.pdf) |
+| Kongsberg Gruppen ASA | Forsvar/luftfart | 7 (moderat) | [risk_kongsberg.pdf](risk_kongsberg.pdf) |
+| Strawberry Hospitality AS | Hotel (Nordic) | 10 (moderat/høy) | [risk_strawberry.pdf](risk_strawberry.pdf) |
+| SATS Group AS | Treningssenter | 8 (moderat) | [risk_sats.pdf](risk_sats.pdf) |
+| Thon Hotels AS | Hotel Norge | 6 (moderat) | [risk_thon_hotels.pdf](risk_thon_hotels.pdf) |
+| XXL ASA | Sportsbutikk | 13 (høy) | [risk_xxl.pdf](risk_xxl.pdf) |
+| Norwegian Air Shuttle ASA | Flyselskap | 14 (høy) | [risk_norwegian_air.pdf](risk_norwegian_air.pdf) |
+| Orkla ASA | Konsumprodukter | 4 (lav) | [risk_orkla.pdf](risk_orkla.pdf) |
+| AS Vinmonopolet | Drikkevarer | 3 (lav) | [risk_vinmonopolet.pdf](risk_vinmonopolet.pdf) |
+
+> **NB:** tallene i de norske profilene er omtrentlige og kun for demo-formål.
+> Ingen av beløpene er verifisert mot faktiske årsregnskap.
 
 ### Forsikringstilbud (innkommende svar)
 
