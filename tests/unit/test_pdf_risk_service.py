@@ -48,7 +48,9 @@ def test_score_label_svaert_hoy():
 
 
 def test_fmt_mnok_none():
-    assert _fmt_mnok(None) == "–"
+    # Plain hyphen (latin-1 safe) instead of en-dash — fpdf2 Helvetica
+    # rejects U+2013 at render time.
+    assert _fmt_mnok(None) == "-"
 
 
 def test_fmt_mnok_value():
