@@ -253,7 +253,7 @@ def test_process_event_ingests_pdf_and_notifies_on_match():
     with (
         patch.object(svc, "download_mime", return_value=raw),
         patch.object(svc, "TenderService", return_value=mock_svc),
-        patch.object(svc, "_notify_firm_of_offer") as mock_notify,
+        patch.object(svc, "_notify_firm_of_reply") as mock_notify,
     ):
         result = svc.process_email_received_event(
             {"data": {"contentUrl": "https://fake/download"}}, db
@@ -265,3 +265,43 @@ def test_process_event_ingests_pdf_and_notifies_on_match():
     assert result["pdf_attachments"] == 1
     mock_svc.upload_offer.assert_called_once()
     mock_notify.assert_called_once()
+    # Reply has a PDF → notify with has_pdf=True.
+    assert mock_notify.call_args.kwargs.get("has_pdf") is True
+
+
+def test_process_event_notifies_without_pdf_when_reply_has_no_attachment():
+    """Insurer replies with no PDF — broker still gets a notification,
+    flagged so they know no offer landed."""
+    msg = MIMEText("Kommer tilbake med tilbud i morgen.", "plain")
+    msg["Subject"] = "Re: Anbud [ref: TENDER-5-42]"
+    msg["From"] = "insurer@gjensidige.no"
+    msg["To"] = "anbud@meglerai.no"
+    raw = msg.as_bytes()
+    db = MagicMock()
+
+    def _get_router(model):
+        m = MagicMock()
+        if model.__name__ == "Tender":
+            m.get.return_value = _FakeTender(5, 42, "123456789", "Equinor anbud")
+        elif model.__name__ == "TenderRecipient":
+            m.get.return_value = _FakeRecipient(42, 5, "Gjensidige")
+        elif model.__name__ == "IncomingEmailLog":
+            # No prior log row with this message_id → no dedup short-circuit.
+            m.filter.return_value.first.return_value = None
+        return m
+
+    db.query.side_effect = _get_router
+
+    with (
+        patch.object(svc, "download_mime", return_value=raw),
+        patch.object(svc, "_notify_firm_of_reply") as mock_notify,
+    ):
+        result = svc.process_email_received_event(
+            {"data": {"contentUrl": "https://fake/download"}}, db
+        )
+    assert result["status"] == "matched"
+    assert result["offer_id"] is None
+    assert result["pdf_attachments"] == 0
+    mock_notify.assert_called_once()
+    # No PDF in the reply → notify with has_pdf=False so title/message differ.
+    assert mock_notify.call_args.kwargs.get("has_pdf") is False

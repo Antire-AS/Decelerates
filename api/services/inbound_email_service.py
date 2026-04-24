@@ -173,11 +173,34 @@ def _load_tender_and_recipient(
     return t, r
 
 
-def _notify_firm_of_offer(
-    tender: Tender, recipient: TenderRecipient, db: Session
+def _reply_notification_copy(
+    tender: Tender, recipient: TenderRecipient, has_pdf: bool
+) -> Tuple[str, str]:
+    """(title, message) for the in-app notification. Branch on has_pdf so
+    the broker can tell at a glance whether there's an offer to review
+    or a follow-up needed."""
+    if has_pdf:
+        return (
+            f"Nytt tilbud fra {recipient.insurer_name}",
+            f'{recipient.insurer_name} har svart på anbudet "{tender.title}". '
+            "Åpne anbudet for å se vilkårene.",
+        )
+    return (
+        f"Svar fra {recipient.insurer_name} — uten vedlegg",
+        f'{recipient.insurer_name} har svart på anbudet "{tender.title}", '
+        "men uten PDF-vedlegg. Åpne anbudet og sjekk mailboksen.",
+    )
+
+
+def _notify_firm_of_reply(
+    tender: Tender,
+    recipient: TenderRecipient,
+    has_pdf: bool,
+    db: Session,
 ) -> None:
-    """One notification per user in the tender's firm. Links straight to
-    the tender detail page so the broker lands on the offer comparison."""
+    """One notification per user in the tender's firm on any insurer
+    reply. Both PDF and no-PDF replies fire so the broker never misses
+    engagement — copy varies so the inbox surfaces what happened."""
     if tender.firm_id is None:
         return
     user_ids = [
@@ -185,16 +208,14 @@ def _notify_firm_of_offer(
     ]
     if not user_ids:
         return
+    title, message = _reply_notification_copy(tender, recipient, has_pdf)
     create_notification_for_users_safe(
         db,
         user_ids=user_ids,
         firm_id=tender.firm_id,
         kind=NotificationKind.deal_won,
-        title=f"Nytt tilbud fra {recipient.insurer_name}",
-        message=(
-            f'{recipient.insurer_name} har svart på anbudet "{tender.title}". '
-            "Åpne anbudet for å se vilkårene."
-        ),
+        title=title,
+        message=message,
         orgnr=tender.orgnr,
         link=f"/tenders/{tender.id}",
     )
@@ -367,8 +388,10 @@ def _ingest_and_notify(
             error=f"ingest: {exc}",
         )
         return {"status": "error", "reason": str(exc)}
-    if offer_id:
-        _notify_firm_of_offer(tender, recipient, db)
+    # Always notify on a matched reply — broker needs to know the insurer
+    # engaged even when the mail has no PDF (common when the insurer says
+    # "we'll come back with an offer" or asks a clarifying question).
+    _notify_firm_of_reply(tender, recipient, has_pdf=bool(offer_id), db=db)
     _log_row(db, parsed, ref_raw, tender.id, recipient.id, "matched", offer_id=offer_id)
     return {
         "status": "matched",
