@@ -12,6 +12,7 @@ import { UsersSection } from "@/components/admin/UsersSection";
 import { ExportsSection } from "@/components/admin/ExportsSection";
 import { AuditLogSection } from "@/components/admin/AuditLogSection";
 import { InboundEmailSection } from "@/components/admin/InboundEmailSection";
+import { DemoDataSection } from "@/components/admin/DemoDataSection";
 import { useT } from "@/lib/i18n";
 
 const STAT_KEYS: Record<string, string> = {
@@ -230,6 +231,7 @@ export default function AdminPage() {
       <UsersSection />
       <ExportsSection />
       <DataControlsSection />
+      <DemoDataSection />
       <InboundEmailSection />
       <AuditLogSection />
     </div>
