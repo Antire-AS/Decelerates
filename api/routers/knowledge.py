@@ -414,16 +414,40 @@ def _retrieve_knowledge_chunks(question: str, db: Session, limit: int = 8) -> li
     return [{"text": r.chunk_text, "source": r.source} for r in results[: limit + 4]]
 
 
-def _build_knowledge_prompt(question: str, context: str, history_block: str) -> str:
+def _build_knowledge_prompt(
+    question: str,
+    context: str,
+    history_block: str,
+    extra_context: str | None = None,
+) -> str:
     """Compose the final knowledge-chat prompt.
 
     History block goes BEFORE the retrieved context so the LLM treats past
     turns as conversational priors and current context as authoritative.
+    extra_context is caller-supplied data (e.g. the current tenders list) that
+    is injected before the RAG chunks so the LLM can reason about it directly.
     """
-    parts = [f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}"]
-    if history_block:
-        parts.append(history_block)
-    parts.append(f"Kontekst:\n{context}")
+    if extra_context:
+        # When live app data is present (e.g. tenders), it is the authoritative
+        # source. RAG chunks provide supplementary general insurance knowledge.
+        parts = [
+            "[SYSTEM]: Du er en anbudsassistent for et norsk forsikringsmeglerfirma. "
+            "Du har tilgang til meglerens LIVE-DATA (anbud, status, produkter, frister) "
+            "og en kunnskapsbase med kursvideoer og forsikringsdokumenter. "
+            "Svar ALLTID primært basert på LIVE-DATA når spørsmålet gjelder spesifikke anbud, "
+            "selskaper eller statusen i applikasjonen. "
+            "Bruk kunnskapsbasen kun for generell forsikringskunnskap og faglige råd.",
+        ]
+        if history_block:
+            parts.append(history_block)
+        parts.append(f"[LIVE-DATA — AUTORITATIV PRIMÆRKILDE]:\n{extra_context}")
+        parts.append(f"[Kunnskapsbase — generell forsikringskunnskap]:\n{context}")
+    else:
+        parts = [f"[SYSTEM]: {KNOWLEDGE_CHAT_SYSTEM_PROMPT}"]
+        if history_block:
+            parts.append(history_block)
+        parts.append(f"Kontekst:\n{context}")
+
     parts.append(f"[SPØRSMÅL]: {question}")
     return "\n\n".join(parts)
 
@@ -523,11 +547,18 @@ def chat_knowledge(
 ):
     """RAG chat over indexed knowledge (video transcripts + insurance documents)."""
     chunks = _retrieve_knowledge_chunks(body.question, db)
-    if not chunks:
+
+    # If no RAG chunks but the caller supplied extra_context (e.g. current tenders),
+    # answer from that context alone instead of taking the no-chunks early return.
+    if not chunks and not body.context:
         return _handle_no_chunks(db, user.oid, body.question)
 
-    context = "\n\n---\n\n".join(
-        f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks
+    rag_context = (
+        "\n\n---\n\n".join(
+            f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in chunks
+        )
+        if chunks
+        else "Ingen relevante dokumenter funnet i kunnskapsbasen for dette spørsmålet."
     )
     sources = list(dict.fromkeys(c["source"] for c in chunks))
     source_snippets = {c["source"]: _chunk_snippet(c["text"]) for c in chunks}
@@ -535,7 +566,8 @@ def chat_knowledge(
     history_svc = ChatHistoryService(db)
     history = history_svc.load_history(user.oid, orgnr=None, limit_turns=20)
     prompt = _build_knowledge_prompt(
-        body.question, context, format_history_for_prompt(history)
+        body.question, rag_context, format_history_for_prompt(history),
+        extra_context=body.context,
     )
 
     try:

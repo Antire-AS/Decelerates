@@ -1,11 +1,12 @@
 """Common request schemas used across multiple routers."""
 
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
 class ChatRequest(BaseModel):
     question: str
+    context: Optional[str] = None  # optional extra context injected by the caller
 
 
 class IngestKnowledgeRequest(BaseModel):

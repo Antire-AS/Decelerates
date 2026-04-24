@@ -364,10 +364,10 @@ export async function downloadInsuranceDocumentPdf(id: number, filename: string)
 
 // ── Knowledge ────────────────────────────────────────────────────────────────
 
-export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSignal) =>
+export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSignal, context?: string) =>
   apiFetch<KnowledgeChatOut>("/knowledge/chat", {
     method: "POST",
-    body: JSON.stringify({ question, orgnr }),
+    body: JSON.stringify({ question, orgnr, context }),
     signal,
   });
 
