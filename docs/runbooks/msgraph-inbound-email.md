@@ -179,6 +179,22 @@ curl https://meglerai.no/bapi/admin/msgraph-inbound/subscriptions -H "Authorizat
 To disable inbound entirely at the DNS level: remove the MX record. Mail
 to `anbud@meglerai.no` will bounce at the sending server.
 
+## Uptime monitoring
+
+`GET /health/msgraph-inbound` is unauthenticated and returns:
+
+- `200 {status: "ok", expires_in_minutes: N}` — active subscription with >4h
+  runway.
+- `503 {status: "degraded", reason: <string>, ...}` — any failure mode:
+  `graph_not_configured`, `graph_unreachable`, `no_active_subscription`,
+  `expiring_soon`, `unparseable_expiry`.
+
+Wire it to whatever uptime monitor you use (Azure Monitor availability test,
+UptimeRobot, Grafana synthetic, etc.). Poll ≥ every 15 min so the renewal
+cron (03:00 UTC daily) has a chance to act between alerts. A sustained
+`expiring_soon` means the renewal cron isn't running — check
+`.github/workflows/msgraph-subscription-renew.yml` last run status.
+
 ## Related code
 
 - `api/services/msgraph_inbound_service.py` — Graph token, fetch,
