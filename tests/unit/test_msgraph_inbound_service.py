@@ -365,3 +365,148 @@ def test_happy_path_end_to_end(client: TestClient, monkeypatch: pytest.MonkeyPat
     body = resp.json()
     assert body["processed"] == 1
     assert body["results"][0]["status"] == "matched"
+
+
+# ── /health/msgraph-inbound ─────────────────────────────────────────────────
+
+
+def test_health_degraded_when_config_missing(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """With no env vars set, the health probe must 503 with
+    graph_not_configured — never silently report healthy."""
+    monkeypatch.delenv("AZURE_AD_TENANT_ID", raising=False)
+    monkeypatch.delenv("AZURE_AD_CLIENT_ID", raising=False)
+    monkeypatch.delenv("AZURE_AD_CLIENT_SECRET", raising=False)
+    monkeypatch.delenv("MS_GRAPH_SERVICE_MAILBOX", raising=False)
+    from api.routers import msgraph_inbound as router_mod
+
+    app = FastAPI()
+    app.include_router(router_mod.router)
+    client = TestClient(app)
+
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 503
+    assert resp.json()["reason"] == "graph_not_configured"
+
+
+def _configured_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    monkeypatch.setenv("AZURE_AD_TENANT_ID", "t")
+    monkeypatch.setenv("AZURE_AD_CLIENT_ID", "c")
+    monkeypatch.setenv("AZURE_AD_CLIENT_SECRET", "s")
+    monkeypatch.setenv("MS_GRAPH_SERVICE_MAILBOX", "anbud@meglerai.no")
+    from api.routers import msgraph_inbound as router_mod
+
+    monkeypatch.setattr(router_mod, "fetch_graph_token", lambda config: "tok")
+    app = FastAPI()
+    app.include_router(router_mod.router)
+    return TestClient(app)
+
+
+def test_health_ok_when_subscription_has_plenty_of_runway(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from datetime import datetime, timedelta, timezone
+
+    from api.routers import msgraph_inbound as router_mod
+
+    client = _configured_client(monkeypatch)
+    expiry = datetime.now(timezone.utc) + timedelta(hours=60)
+    monkeypatch.setattr(
+        router_mod,
+        "list_subscriptions",
+        lambda config, token=None: [
+            {
+                "id": "sub-1",
+                "resource": "users/anbud@meglerai.no/mailFolders('Inbox')/messages",
+                "expirationDateTime": expiry.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+        ],
+    )
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert body["expires_in_minutes"] > 3000
+
+
+def test_health_degraded_when_no_active_subscription(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from api.routers import msgraph_inbound as router_mod
+
+    client = _configured_client(monkeypatch)
+    monkeypatch.setattr(router_mod, "list_subscriptions", lambda config, token=None: [])
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 503
+    assert resp.json()["reason"] == "no_active_subscription"
+
+
+def test_health_degraded_when_subscription_expiring_soon(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """<4h to expiry trips the alert so we get paged before silence."""
+    from datetime import datetime, timedelta, timezone
+
+    from api.routers import msgraph_inbound as router_mod
+
+    client = _configured_client(monkeypatch)
+    expiry = datetime.now(timezone.utc) + timedelta(hours=2)
+    monkeypatch.setattr(
+        router_mod,
+        "list_subscriptions",
+        lambda config, token=None: [
+            {
+                "id": "sub-1",
+                "resource": "users/anbud@meglerai.no/mailFolders('Inbox')/messages",
+                "expirationDateTime": expiry.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+        ],
+    )
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 503
+    body = resp.json()
+    assert body["reason"] == "expiring_soon"
+    assert body["expires_in_minutes"] < 240
+
+
+def test_health_ignores_subscriptions_for_other_mailboxes(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """A subscription on a different mailbox must not be counted as ours."""
+    from datetime import datetime, timedelta, timezone
+
+    from api.routers import msgraph_inbound as router_mod
+
+    client = _configured_client(monkeypatch)
+    other_expiry = datetime.now(timezone.utc) + timedelta(hours=60)
+    monkeypatch.setattr(
+        router_mod,
+        "list_subscriptions",
+        lambda config, token=None: [
+            {
+                "id": "sub-other",
+                "resource": "users/someone-else@meglerai.no/mailFolders('Inbox')/messages",
+                "expirationDateTime": other_expiry.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+        ],
+    )
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 503
+    assert resp.json()["reason"] == "no_active_subscription"
+
+
+def test_health_degraded_when_graph_unreachable(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from api.routers import msgraph_inbound as router_mod
+
+    client = _configured_client(monkeypatch)
+
+    def _boom(config, token=None):
+        raise RuntimeError("connection refused")
+
+    monkeypatch.setattr(router_mod, "list_subscriptions", _boom)
+    resp = client.get("/health/msgraph-inbound")
+    assert resp.status_code == 503
+    assert resp.json()["reason"].startswith("graph_unreachable")
