@@ -24,7 +24,7 @@ def _score_label(s: int) -> str:
 
 def _fmt_mnok(v: Any) -> str:
     if v is None:
-        return "–"
+        return "-"
     return f"{v / 1e6:,.1f} MNOK"
 
 
@@ -87,10 +87,10 @@ def _add_risk_company_profile(
     _risk_section_title(pdf, "Selskapsprofil")
     _risk_row(pdf, "Navn", navn)
     _risk_row(pdf, "Orgnr", orgnr)
-    _risk_row(pdf, "Organisasjonsform", org_form or "–")
-    _risk_row(pdf, "Bransje", f"{nace_desc or '–'} ({nace or '–'})")
-    _risk_row(pdf, "Kommune", kommune or "–")
-    _risk_row(pdf, "Stiftelsesdato", stiftelsesdato or "–")
+    _risk_row(pdf, "Organisasjonsform", org_form or "-")
+    _risk_row(pdf, "Bransje", f"{nace_desc or '-'} ({nace or '-'})")
+    _risk_row(pdf, "Kommune", kommune or "-")
+    _risk_row(pdf, "Stiftelsesdato", stiftelsesdato or "-")
     pdf.ln(6)
 
 
@@ -109,8 +109,8 @@ def _add_risk_financials(
     _risk_row(pdf, "Sum eiendeler", _fmt_mnok(sum_eiendeler))
     _risk_row(pdf, "Sum gjeld", _fmt_mnok(regn.get("sum_gjeld")))
     eq = risk.get("equity_ratio")
-    _risk_row(pdf, "Egenkapitalandel", f"{eq * 100:.1f}%" if eq is not None else "–")
-    _risk_row(pdf, "Antall ansatte", str(regn.get("antall_ansatte") or "–"))
+    _risk_row(pdf, "Egenkapitalandel", f"{eq * 100:.1f}%" if eq is not None else "-")
+    _risk_row(pdf, "Antall ansatte", str(regn.get("antall_ansatte") or "-"))
     pdf.ln(6)
 
 
@@ -141,7 +141,7 @@ class _RiskPDF(FPDF):
     def header(self) -> None:
         self.set_font("Helvetica", "B", 9)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 8, f"Risikovurdering — {self.navn}", align="L")
+        self.cell(0, 8, f"Risikovurdering - {self.navn}", align="L")
         self.ln(0)
 
     def footer(self) -> None:
@@ -215,7 +215,7 @@ def generate_risk_report_pdf(
     """Build and return PDF bytes for a risk assessment report.
 
     Optionally appends a "Meglerens fokuspunkter" section with the broker's
-    whiteboard items + notes + AI summary — passed in by the caller when
+    whiteboard items + notes + AI summary - passed in by the caller when
     the PDF is generated from a route that has access to a user_oid.
     """
     today = date.today().strftime("%d.%m.%Y")
