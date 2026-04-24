@@ -132,7 +132,7 @@ def _build_forward_envelope(
 ) -> Dict[str, Any]:
     """Assemble the SendGrid Mail Send payload for a forwarded copy."""
     body_text = (
-        f"Forwarded from anbud@<your-domain>\n"
+        f"Forwarded from {parsed.get('recipient') or config.forward_from}\n"
         f"From: {parsed.get('sender')}\n"
         f"To: {parsed.get('recipient')}\n"
         f"Subject: {parsed.get('subject')}\n\n"
