@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 .pytest_cache/
 sample_offers/
+sample_risk_profiles/
 .idea/
 .venv/
 cf-proxy/.wrangler/
