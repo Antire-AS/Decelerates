@@ -355,6 +355,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/seed-demo-tender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seed Demo Tender
+         * @description Seed Bergmann Industri AS + a fresh Tender with 3 pre-populated
+         *     insurer recipients. Returns the tender URL so the frontend can
+         *     redirect the broker straight to it.
+         */
+        post: operations["seed_demo_tender_admin_seed_demo_tender_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/seed-full-demo": {
         parameters: {
             query?: never;
@@ -5532,6 +5554,19 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** SeededTenderOut */
+        SeededTenderOut: {
+            /** Orgnr */
+            orgnr: string;
+            /** Recipients */
+            recipients: {
+                [key: string]: unknown;
+            }[];
+            /** Tender Id */
+            tender_id: number;
+            /** Url */
+            url: string;
+        };
         /** SignicatWebhookAck */
         SignicatWebhookAck: {
             /** Received */
@@ -6274,6 +6309,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    seed_demo_tender_admin_seed_demo_tender_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeededTenderOut"];
                 };
             };
         };
