@@ -1,52 +1,19 @@
-"""Unit tests for the ACS inbound-email pipeline.
+"""Unit tests for the shared inbound-email ingest pipeline.
 
-Four tight layers — each small enough that one broken assertion points
-straight at what changed:
-
-  1. Event Grid handshake detection
-  2. Tender-ref regex (parser ↔ builder symmetry)
-  3. MIME parsing (plain text, PDF attachment)
-  4. Main dispatcher (orphan, matched happy-path) with mocked DB
+The pipeline is provider-agnostic — both SendGrid and Graph funnel into
+`match_and_ingest` with a normalised `parsed` dict. Tests here cover
+the shared layer; provider-specific normalisation is tested in
+`test_sendgrid_inbound_service.py` and `test_msgraph_inbound_service.py`.
 """
 
 from __future__ import annotations
 
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from unittest.mock import MagicMock, patch
 
 from api.services import inbound_email_service as svc
 
 
-# ── Event Grid handshake ────────────────────────────────────────────────────
-
-
-def test_validation_response_returned_for_subscription_event():
-    payload = [
-        {
-            "eventType": "Microsoft.EventGrid.SubscriptionValidationEvent",
-            "data": {"validationCode": "abc123"},
-        }
-    ]
-    assert svc.build_validation_response(payload) == {"validationResponse": "abc123"}
-
-
-def test_validation_response_none_for_regular_events():
-    payload = [
-        {
-            "eventType": "Microsoft.Communication.EmailReceived",
-            "data": {"from": "a@b.com"},
-        }
-    ]
-    assert svc.build_validation_response(payload) is None
-
-
-def test_validation_response_none_for_empty_payload():
-    assert svc.build_validation_response([]) is None
-
-
-# ── Tender-ref regex ────────────────────────────────────────────────────────
+# ── Tender-ref regex (parser ↔ builder symmetry) ────────────────────────────
 
 
 def test_format_and_parse_tender_ref_roundtrip():
@@ -72,55 +39,6 @@ def test_tender_ref_none_when_absent():
 
 def test_tender_ref_none_when_subject_none():
     assert svc.extract_tender_ref(None) is None
-
-
-# ── MIME parsing ────────────────────────────────────────────────────────────
-
-
-def _build_mime_with_pdf(subject: str, pdf_bytes: bytes = b"%PDF-fake") -> bytes:
-    msg = MIMEMultipart()
-    msg["Subject"] = subject
-    msg["From"] = "insurer@gjensidige.no"
-    msg["To"] = "anbud@meglerai.no"
-    msg.attach(MIMEText("Takk for tilbudet, se vedlegg.", "plain"))
-    part = MIMEApplication(pdf_bytes, _subtype="pdf")
-    part.add_header("Content-Disposition", "attachment", filename="tilbud.pdf")
-    msg.attach(part)
-    return msg.as_bytes()
-
-
-def test_parse_email_extracts_subject_sender_and_pdf_attachment():
-    raw = _build_mime_with_pdf("Re: Anbud [ref: TENDER-1-2]")
-    parsed = svc.parse_email_mime(raw)
-    assert parsed["subject"] == "Re: Anbud [ref: TENDER-1-2]"
-    assert parsed["sender"] == "insurer@gjensidige.no"
-    assert parsed["recipient"] == "anbud@meglerai.no"
-    assert "Takk for tilbudet" in parsed["text_body"]
-    assert len(parsed["attachments"]) == 1
-    att = parsed["attachments"][0]
-    assert att["filename"] == "tilbud.pdf"
-    assert att["content_type"] == "application/pdf"
-    assert att["content"].startswith(b"%PDF")
-
-
-def test_parse_email_with_no_attachments():
-    msg = MIMEText("Kort svar uten vedlegg.", "plain")
-    msg["Subject"] = "Re: Anbud"
-    msg["From"] = "x@y.no"
-    raw = msg.as_bytes()
-    parsed = svc.parse_email_mime(raw)
-    assert parsed["attachments"] == []
-    assert "Kort svar" in parsed["text_body"]
-
-
-def test_parse_email_extracts_message_id_header():
-    """MIME Message-ID header is plumbed through as the dedup key."""
-    msg = MIMEText("hi", "plain")
-    msg["Subject"] = "test"
-    msg["From"] = "x@y.no"
-    msg["Message-ID"] = "<abc-123@example.com>"
-    parsed = svc.parse_email_mime(msg.as_bytes())
-    assert parsed["message_id"] == "<abc-123@example.com>"
 
 
 # ── Dedup via message_id ────────────────────────────────────────────────────
@@ -178,40 +96,47 @@ def test_find_existing_by_message_id_returns_none_when_unset():
     db.query.assert_not_called()
 
 
-# ── Main dispatcher ─────────────────────────────────────────────────────────
+# ── match_and_ingest orphan paths ───────────────────────────────────────────
 
 
-def test_process_event_marks_orphan_when_no_content_url():
+def test_match_and_ingest_orphans_when_subject_missing_ref():
+    """No `[ref: TENDER-...]` in subject → status=orphaned, log written."""
+    parsed = {
+        "subject": "Re: Hei — spørsmål om vilkår",  # no ref token
+        "sender": "insurer@x.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "",
+        "attachments": [],
+        "message_id": None,
+    }
     db = MagicMock()
-    result = svc.process_email_received_event({"data": {}}, db)
-    assert result["status"] == "error"
-    assert result["reason"] == "missing_content_url"
-    db.add.assert_called_once()  # log row written
+    db.query.return_value.filter.return_value.first.return_value = None  # no dedup hit
 
-
-def test_process_event_marks_orphan_when_subject_missing_ref():
-    """Email that arrives without our tender ref gets logged but not ingested."""
-    raw = _build_mime_with_pdf("Re: Hei — spørsmål om vilkår")  # no ref
-    db = MagicMock()
-    with (
-        patch.object(svc, "download_mime", return_value=raw),
-    ):
-        result = svc.process_email_received_event(
-            {"data": {"contentUrl": "https://fake/download"}}, db
-        )
+    result = svc.match_and_ingest(parsed, db)
     assert result["status"] == "orphaned"
     assert "no_tender_ref" in result["reason"]
 
 
-def test_process_event_orphans_when_tender_not_in_db():
-    raw = _build_mime_with_pdf("Re: Anbud [ref: TENDER-999-999]")
+def test_match_and_ingest_orphans_when_tender_not_in_db():
+    """Ref token present but tender/recipient don't exist → status=orphaned."""
+    parsed = {
+        "subject": "Re: Anbud [ref: TENDER-999-999]",
+        "sender": "insurer@x.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "",
+        "attachments": [],
+        "message_id": None,
+    }
     db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
     db.query.return_value.get.return_value = None  # tender not found
-    with patch.object(svc, "download_mime", return_value=raw):
-        result = svc.process_email_received_event(
-            {"data": {"contentUrl": "https://fake/download"}}, db
-        )
+
+    result = svc.match_and_ingest(parsed, db)
     assert result["status"] == "orphaned"
+    assert result["reason"] == "unknown_tender"
+
+
+# ── match_and_ingest matched paths ──────────────────────────────────────────
 
 
 class _FakeRecipient:
@@ -229,79 +154,76 @@ class _FakeTender:
         self.title = title
 
 
-def test_process_event_ingests_pdf_and_notifies_on_match():
-    """Happy path — subject has ref, tender + recipient exist, PDF attached."""
-    raw = _build_mime_with_pdf("Re: Anbud [ref: TENDER-5-42]")
+def _matched_db_mock() -> MagicMock:
     db = MagicMock()
 
-    # db.query(Tender).get(5) → tender; db.query(TenderRecipient).get(42) → recipient
-    def _get_router(model):
-        m = MagicMock()
-        if model.__name__ == "Tender":
-            m.get.return_value = _FakeTender(5, 42, "123456789", "Equinor anbud")
-        elif model.__name__ == "TenderRecipient":
-            m.get.return_value = _FakeRecipient(42, 5, "Gjensidige")
-        return m
-
-    db.query.side_effect = _get_router
-
-    mock_svc = MagicMock()
-    mock_offer = MagicMock()
-    mock_offer.id = 777
-    mock_svc.upload_offer.return_value = mock_offer
-
-    with (
-        patch.object(svc, "download_mime", return_value=raw),
-        patch.object(svc, "TenderService", return_value=mock_svc),
-        patch.object(svc, "_notify_firm_of_reply") as mock_notify,
-    ):
-        result = svc.process_email_received_event(
-            {"data": {"contentUrl": "https://fake/download"}}, db
-        )
-    assert result["status"] == "matched"
-    assert result["tender_id"] == 5
-    assert result["recipient_id"] == 42
-    assert result["offer_id"] == 777
-    assert result["pdf_attachments"] == 1
-    mock_svc.upload_offer.assert_called_once()
-    mock_notify.assert_called_once()
-    # Reply has a PDF → notify with has_pdf=True.
-    assert mock_notify.call_args.kwargs.get("has_pdf") is True
-
-
-def test_process_event_notifies_without_pdf_when_reply_has_no_attachment():
-    """Insurer replies with no PDF — broker still gets a notification,
-    flagged so they know no offer landed."""
-    msg = MIMEText("Kommer tilbake med tilbud i morgen.", "plain")
-    msg["Subject"] = "Re: Anbud [ref: TENDER-5-42]"
-    msg["From"] = "insurer@gjensidige.no"
-    msg["To"] = "anbud@meglerai.no"
-    raw = msg.as_bytes()
-    db = MagicMock()
-
-    def _get_router(model):
+    def _query_router(model):
         m = MagicMock()
         if model.__name__ == "Tender":
             m.get.return_value = _FakeTender(5, 42, "123456789", "Equinor anbud")
         elif model.__name__ == "TenderRecipient":
             m.get.return_value = _FakeRecipient(42, 5, "Gjensidige")
         elif model.__name__ == "IncomingEmailLog":
-            # No prior log row with this message_id → no dedup short-circuit.
-            m.filter.return_value.first.return_value = None
+            m.filter.return_value.first.return_value = None  # no dedup hit
         return m
 
-    db.query.side_effect = _get_router
+    db.query.side_effect = _query_router
+    return db
+
+
+def test_match_and_ingest_with_pdf_uploads_offer_and_notifies():
+    """Happy path — ref matches tender, PDF attachment, offer uploaded."""
+    parsed = {
+        "subject": "Re: Anbud [ref: TENDER-5-42]",
+        "sender": "insurer@gjensidige.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "Her er tilbudet vårt",
+        "attachments": [
+            {
+                "filename": "tilbud.pdf",
+                "content_type": "application/pdf",
+                "content": b"%PDF-fake",
+            }
+        ],
+        "message_id": "<matched@example.com>",
+    }
+    db = _matched_db_mock()
+    mock_svc = MagicMock()
+    mock_offer = MagicMock()
+    mock_offer.id = 777
+    mock_svc.upload_offer.return_value = mock_offer
 
     with (
-        patch.object(svc, "download_mime", return_value=raw),
+        patch.object(svc, "TenderService", return_value=mock_svc),
         patch.object(svc, "_notify_firm_of_reply") as mock_notify,
     ):
-        result = svc.process_email_received_event(
-            {"data": {"contentUrl": "https://fake/download"}}, db
-        )
+        result = svc.match_and_ingest(parsed, db)
+
+    assert result["status"] == "matched"
+    assert result["offer_id"] == 777
+    assert result["pdf_attachments"] == 1
+    mock_svc.upload_offer.assert_called_once()
+    mock_notify.assert_called_once()
+    assert mock_notify.call_args.kwargs.get("has_pdf") is True
+
+
+def test_match_and_ingest_without_pdf_still_notifies():
+    """Reply with no PDF — broker still notified, has_pdf=False flag."""
+    parsed = {
+        "subject": "Re: Anbud [ref: TENDER-5-42]",
+        "sender": "insurer@gjensidige.no",
+        "recipient": "anbud@meglerai.no",
+        "text_body": "Kommer tilbake med tilbud i morgen.",
+        "attachments": [],
+        "message_id": "<no-pdf@example.com>",
+    }
+    db = _matched_db_mock()
+
+    with patch.object(svc, "_notify_firm_of_reply") as mock_notify:
+        result = svc.match_and_ingest(parsed, db)
+
     assert result["status"] == "matched"
     assert result["offer_id"] is None
     assert result["pdf_attachments"] == 0
     mock_notify.assert_called_once()
-    # No PDF in the reply → notify with has_pdf=False so title/message differ.
     assert mock_notify.call_args.kwargs.get("has_pdf") is False
