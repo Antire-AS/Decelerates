@@ -12,6 +12,7 @@ from sqlalchemy import (
     JSON,
     LargeBinary,
     String,
+    Text,
 )
 
 from api.models._base import Base
@@ -62,6 +63,17 @@ class TenderRecipientStatus(enum.Enum):
     declined = "declined"
 
 
+class TenderDeclineReason(enum.Enum):
+    """Why an insurer declined to quote on a tender. Free-string-backed
+    so we can grow the vocabulary without an enum migration; the Python
+    enum constrains the writeable values."""
+
+    capacity = "capacity"
+    bad_match = "bad_match"
+    high_risk = "high_risk"
+    other = "other"
+
+
 class TenderRecipient(Base):
     __tablename__ = "tender_recipients"
 
@@ -86,6 +98,8 @@ class TenderRecipient(Base):
     )
     sent_at = Column(DateTime(timezone=True), nullable=True)
     response_at = Column(DateTime(timezone=True), nullable=True)
+    decline_reason = Column(String(32), nullable=True)
+    decline_note = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 

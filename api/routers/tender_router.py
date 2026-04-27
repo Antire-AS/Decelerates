@@ -18,6 +18,8 @@ from api.schemas import (
     TenderListOut,
     TenderAnalysisOut,
     TenderOfferOut,
+    TenderRecipientOut,
+    TenderDeclineIn,
 )
 from api.services.tender_service import TenderService
 
@@ -191,6 +193,37 @@ async def add_recipient(
         "insurer_email": r.insurer_email,
         "status": r.status.value if hasattr(r.status, "value") else r.status,
     }
+
+
+@router.post(
+    "/tenders/{tender_id}/recipients/{recipient_id}/decline",
+    response_model=TenderRecipientOut,
+)
+@limiter.limit("20/minute")
+async def decline_recipient(
+    request: Request,
+    tender_id: int,
+    recipient_id: int,
+    body: TenderDeclineIn,
+    svc: TenderService = Depends(_svc),
+    user: User = Depends(get_current_user),
+):
+    """Mark a recipient as declined with a reason."""
+    try:
+        r = svc.mark_declined(tender_id, recipient_id, body.reason, body.note)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    return TenderRecipientOut(
+        id=r.id,
+        tender_id=r.tender_id,
+        insurer_name=r.insurer_name,
+        insurer_email=r.insurer_email,
+        status=r.status.value if hasattr(r.status, "value") else r.status,
+        sent_at=r.sent_at,
+        response_at=r.response_at,
+        decline_reason=r.decline_reason,
+        decline_note=r.decline_note,
+    )
 
 
 # ── Insurer portal (token-based, no auth required) ───────────────────────────
