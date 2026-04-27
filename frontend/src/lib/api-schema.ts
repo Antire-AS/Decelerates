@@ -3560,6 +3560,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/{tender_id}/comparison.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Comparison Xlsx
+         * @description Stream the AI comparison as a styled Excel workbook for the broker
+         *     to attach to a customer-facing tilbudsfremstilling. Requires that
+         *     `analyse_offers` has been run first; otherwise returns 409.
+         */
+        get: operations["export_comparison_xlsx_tenders__tender_id__comparison_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}/contract/send-for-signature": {
         parameters: {
             query?: never;
@@ -12613,6 +12635,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenderAnalysisOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_comparison_xlsx_tenders__tender_id__comparison_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -11,6 +11,7 @@ import {
   analyseTender,
   updateTender,
   downloadTenderPresentationPdf,
+  downloadTenderComparisonXlsx,
   declineTenderRecipient,
   type Tender,
 } from "@/lib/api";
@@ -237,6 +238,21 @@ export default function TenderDetailPage() {
             >
               <FileDown className="w-4 h-4" />
               {T("Tilbudsfremstilling")}
+            </button>
+          )}
+          {tender.analysis_result && (
+            <button
+              onClick={() =>
+                downloadTenderComparisonXlsx(
+                  Number(id),
+                  `sammenligning_${tender.orgnr}.xlsx`,
+                )
+              }
+              className="flex items-center gap-1.5 px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted"
+              title={T("Last ned AI-sammenligning som Excel")}
+            >
+              <FileDown className="w-4 h-4" />
+              {T("Eksporter Excel")}
             </button>
           )}
         </div>

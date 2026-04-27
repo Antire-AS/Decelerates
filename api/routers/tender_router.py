@@ -404,6 +404,40 @@ async def analyse_tender(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/tenders/{tender_id}/comparison.xlsx")
+@limiter.limit("10/minute")
+async def export_comparison_xlsx(
+    request: Request,
+    tender_id: int,
+    svc: TenderService = Depends(_svc),
+    user: User = Depends(get_current_user),
+):
+    """Stream the AI comparison as a styled Excel workbook for the broker
+    to attach to a customer-facing tilbudsfremstilling. Requires that
+    `analyse_offers` has been run first; otherwise returns 409."""
+    from fastapi.responses import Response
+
+    from api.services.tender_excel import build_comparison_xlsx
+
+    tender = svc.get(tender_id, user.firm_id)
+    if tender is None:
+        raise HTTPException(status_code=404, detail="Anbud ikke funnet")
+    if not tender.analysis_result:
+        raise HTTPException(
+            status_code=409,
+            detail="Kjør AI-analysen før du eksporterer (Analyser tilbud).",
+        )
+    xlsx = build_comparison_xlsx(tender.analysis_result, str(tender.title))
+    safe = "".join(c if c.isalnum() else "_" for c in str(tender.title))[:60]
+    return Response(
+        content=xlsx,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="sammenligning_{safe}.xlsx"',
+        },
+    )
+
+
 class TenderContractRequest(BaseModel):
     client_email: str
     client_name: str
