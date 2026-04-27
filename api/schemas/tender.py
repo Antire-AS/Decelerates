@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 TenderStatusLiteral = Literal["draft", "sent", "closed", "analysed"]
 TenderRecipientStatusLiteral = Literal["pending", "sent", "received", "declined"]
+TenderDeclineReasonLiteral = Literal["capacity", "bad_match", "high_risk", "other"]
 
 
 class TenderRecipientIn(BaseModel):
@@ -38,6 +39,13 @@ class TenderRecipientOut(BaseModel):
     status: TenderRecipientStatusLiteral
     sent_at: Optional[datetime] = None
     response_at: Optional[datetime] = None
+    decline_reason: Optional[TenderDeclineReasonLiteral] = None
+    decline_note: Optional[str] = None
+
+
+class TenderDeclineIn(BaseModel):
+    reason: TenderDeclineReasonLiteral
+    note: Optional[str] = None
 
 
 class TenderOfferOut(BaseModel):
