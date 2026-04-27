@@ -152,16 +152,17 @@
   }
 }
 
-/* A11y preferences — font scale */
+/* A11y preferences — font scale.
+   Anchored to <html> with an absolute base so every Tailwind `rem`
+   utility (text-xs, text-sm, …) cascades through. Body-only scaling
+   was a no-op because Tailwind text utilities resolve `rem` against
+   the root element, not the body. */
 html {
   --font-scale: 1;
+  font-size: calc(16px * var(--font-scale));
 }
 html[data-font-scale="large"]   { --font-scale: 1.125; }
 html[data-font-scale="xlarge"]  { --font-scale: 1.25; }
-
-body {
-  font-size: calc(1rem * var(--font-scale));
-}
 
 /* A11y preferences — reduced motion override */
 html[data-reduced-motion="true"] *,
