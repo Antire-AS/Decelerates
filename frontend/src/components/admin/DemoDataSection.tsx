@@ -1,7 +1,9 @@
 "use client";
 
-import { Download, FileText, Briefcase } from "lucide-react";
+import { useState } from "react";
+import { Download, FileText, Briefcase, Rocket, Loader2 } from "lucide-react";
 import { SectionHeader } from "./shared";
+import { seedDemoTender } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -112,6 +114,21 @@ function OfferRow({ o }: { o: Offer }) {
 
 export function DemoDataSection() {
   const T = useT();
+  const [seeding, setSeeding] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
+
+  async function handleSeed() {
+    setSeeding(true);
+    setSeedError(null);
+    try {
+      const res = await seedDemoTender();
+      window.location.assign(res.url);
+    } catch (e) {
+      setSeedError(String(e));
+      setSeeding(false);
+    }
+  }
+
   return (
     <div className="broker-card space-y-5">
       <SectionHeader
@@ -120,6 +137,33 @@ export function DemoDataSection() {
           "Ferdige PDF-er for demo av hele anbud-flyten. Last ned risikoprofiler for å sende som anbudspakke, og forsikringstilbud for å simulere svar.",
         )}
       />
+
+      {/* One-click demo-tender */}
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center justify-between gap-3">
+        <div className="flex-1">
+          <p className="text-sm font-medium">{T("Start ny demo-tender")}</p>
+          <p className="text-xs text-muted-foreground">
+            {T(
+              "Oppretter Bergmann Industri AS + anbud med 3 forsikringsselskap-mottakere (Gjensidige/If/Tryg) routet til Gmail-aliaser. Send invitasjoner og svar fra Gmail med en tilbud_*.pdf for en komplett e2e-demo.",
+            )}
+          </p>
+          {seedError && (
+            <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400">{seedError}</p>
+          )}
+        </div>
+        <button
+          onClick={handleSeed}
+          disabled={seeding}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 disabled:opacity-50"
+        >
+          {seeding ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Rocket className="w-3.5 h-3.5" />
+          )}
+          {T("Start demo")}
+        </button>
+      </div>
 
       {/* Risikoprofiler - fiktive */}
       <div>

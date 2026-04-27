@@ -605,6 +605,16 @@ export const getInboundEmailLog = (params?: {
   return apiFetch<IncomingEmailLogPageOut>(`/admin/email-log?${q.toString()}`);
 };
 
+export type SeededTenderOut = {
+  tender_id: number;
+  url: string;
+  orgnr: string;
+  recipients: { insurer_name: string; insurer_email: string }[];
+};
+
+export const seedDemoTender = () =>
+  apiFetch<SeededTenderOut>("/admin/seed-demo-tender", { method: "POST" });
+
 export const addCompaniesBulk = (portfolioId: number, orgnrs: string[]) =>
   apiFetch<PortfolioBulkAddOut>(`/portfolio/${portfolioId}/companies/bulk`, {
     method: "POST",
