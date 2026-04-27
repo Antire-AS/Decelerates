@@ -327,7 +327,13 @@ def test_orchestrator_returns_empty_when_all_fail():
 def test_orchestrator_skips_claude_when_key_is_placeholder():
     from api.services.pdf_agents import _agent_discover_pdfs
 
+    # Pin every prior step in the orchestrator chain so the assertion on
+    # `m_az.assert_called_once()` is deterministic. Flakiness root cause:
+    # the Foundry primary wasn't stubbed, so if an earlier test left
+    # AZURE_FOUNDRY_API_KEY in the env, Foundry would actually run and
+    # short-circuit the chain before Azure OpenAI was reached.
     with (
+        patch("api.services.pdf_agents_v2.agent_discover_pdfs", return_value=[]),
         patch.dict("os.environ", {"ANTHROPIC_API_KEY": "your_key_here"}),
         patch(
             "api.services.pdf_agents._agent_discover_pdfs_azure_openai", return_value=[]
