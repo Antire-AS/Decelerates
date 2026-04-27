@@ -1108,6 +1108,8 @@ export interface TenderRecipient {
   status: string;
   sent_at?: string;
   response_at?: string;
+  decline_reason?: "capacity" | "bad_match" | "high_risk" | "other" | null;
+  decline_note?: string | null;
 }
 
 export interface TenderOffer {
@@ -1177,6 +1179,20 @@ export const remindTender = (id: number) =>
   apiFetch<{ reminders_sent: number; reminders_failed: number }>(
     `/tenders/${id}/remind`,
     { method: "POST" },
+  );
+
+export const declineTenderRecipient = (
+  tenderId: number,
+  recipientId: number,
+  body: { reason: "capacity" | "bad_match" | "high_risk" | "other"; note?: string },
+) =>
+  apiFetch<TenderRecipient>(
+    `/tenders/${tenderId}/recipients/${recipientId}/decline`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
   );
 
 export async function downloadTenderPresentationPdf(

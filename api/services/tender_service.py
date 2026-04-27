@@ -200,6 +200,34 @@ class TenderService:
             .first()
         )
 
+    def mark_declined(
+        self,
+        tender_id: int,
+        recipient_id: int,
+        reason: str,
+        note: Optional[str] = None,
+    ) -> TenderRecipient:
+        """Flip a recipient to `declined` and persist why."""
+        r = (
+            self.db.query(TenderRecipient)
+            .filter(
+                TenderRecipient.id == recipient_id,
+                TenderRecipient.tender_id == tender_id,
+            )
+            .first()
+        )
+        if r is None:
+            raise ValueError(
+                f"Recipient {recipient_id} not found on tender {tender_id}"
+            )
+        r.status = TenderRecipientStatus.declined
+        r.decline_reason = reason
+        r.decline_note = note
+        r.response_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(r)
+        return r
+
     def upload_offer_by_token(
         self,
         access_token: str,
