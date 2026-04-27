@@ -1,47 +1,46 @@
-"""Inbound email pipeline — ACS Event Grid webhook → tender offer ingest.
+"""Shared inbound-email ingest pipeline (provider-agnostic).
 
-Flow per event:
+Both the SendGrid Inbound Parse webhook (`api/routers/sendgrid_inbound.py`)
+and the Microsoft Graph change-notification webhook
+(`api/routers/msgraph_inbound.py`) normalise their provider-specific
+payloads into a common `parsed` dict:
 
-  1. Event Grid posts a `Microsoft.Communication.EmailReceived` event
-     to POST /webhooks/acs/email-received. Event payload carries sender,
-     recipient, subject, and a short-lived URL to download the MIME body.
-  2. We download the MIME, parse to sender/subject/text/attachments.
-  3. Regex on subject extracts the tender ref token the outgoing
-     anbudspakke email carries: `[ref: TENDER-<tender_id>-<recipient_id>]`.
-     This is what links insurer replies back to a specific tender.
-  4. For every PDF attachment, call `TenderService.upload_offer` which
-     stores the bytes in tender_offers and flips the recipient status
-     to `received`. Creates one IncomingEmailLog row per event with
-     status = matched / orphaned / error.
-  5. Push a Notification to every user in the tender's firm so someone
-     sees "new offer from X" next login.
+    {
+        "subject": str,
+        "sender": str,
+        "recipient": str,
+        "text_body": str,
+        "attachments": [{"filename", "content_type", "content": bytes}, ...],
+        "message_id": Optional[str],  # RFC822 Message-ID, for dedup
+    }
 
-Design notes
-------------
-- Event Grid handshake: first event from a new subscription is
-  `Microsoft.EventGrid.SubscriptionValidationEvent`. We must return
-  `{"validationResponse": <code>}` or the subscription never activates.
-- Every webhook call must return 200 quickly (Event Grid retries on
-  non-2xx and times out at 30s). So we log + upload sequentially per
-  event but return early on partial failure — one bad attachment
-  shouldn't hold up the 200 ack.
-- Attachment fetching is a separate step from event receipt because
-  ACS gives us a URL, not the bytes. The URL has an expiry (~24h).
-- ACS deduplication: same Event Grid message can arrive twice. The
-  `eventId` is logged so duplicate processing is visible; we don't
-  hard-dedupe because TenderOffer rows don't have a natural key.
+…and funnel it into `match_and_ingest`, which:
+
+  1. Dedupes by `message_id` (short-circuits replayed webhook deliveries).
+  2. Extracts `[ref: TENDER-<tid>-<rid>]` from the subject to match the
+     insurer's reply back to the tender we sent out.
+  3. Uploads every PDF attachment as a `TenderOffer` via
+     `TenderService.upload_offer`.
+  4. Notifies every user in the tender's firm (different copy for
+     PDF vs. no-PDF replies so the inbox surfaces which happened).
+  5. Writes one audit row into `incoming_email_log` per call.
+
+Every branch lands in `incoming_email_log` (matched / orphaned / error /
+dedup) so operator debugging never requires reprocessing MIME.
+
+Historical note: a third webhook for ACS Event Grid was shipped in v5
+then discovered to be architecturally impossible (ACS email is
+outbound-only — no `EmailReceived` event exists). Removed on 2026-04-24;
+the shared helpers below were always the real product.
 """
 
 from __future__ import annotations
 
-import email
 import logging
 import re
 from datetime import datetime, timezone
-from email.message import Message
 from typing import Any, Dict, List, Optional, Tuple
 
-import requests
 from sqlalchemy.orm import Session
 
 from api.db import IncomingEmailLog, NotificationKind, Tender, TenderRecipient, User
@@ -53,32 +52,6 @@ _log = logging.getLogger(__name__)
 # Tender ref format embedded in outbound anbudspakke subject so replies
 # can be matched back to the original invitation.
 _TENDER_REF_RE = re.compile(r"\[ref:\s*TENDER-(\d+)-(\d+)\s*\]", re.IGNORECASE)
-
-
-# ── Event Grid plumbing ──────────────────────────────────────────────────────
-
-
-def build_validation_response(
-    payload: List[Dict[str, Any]],
-) -> Optional[Dict[str, str]]:
-    """If the payload is a SubscriptionValidationEvent, return the
-    required `{"validationResponse": <code>}` handshake reply. Returns
-    None when the payload is regular events and needs normal processing."""
-    if not payload:
-        return None
-    first = payload[0] if isinstance(payload, list) else payload
-    event_type = first.get("eventType") or first.get("type")
-    if event_type != "Microsoft.EventGrid.SubscriptionValidationEvent":
-        return None
-    code = (first.get("data") or {}).get("validationCode")
-    if not code:
-        return None
-    return {"validationResponse": code}
-
-
-def _is_email_received_event(event: Dict[str, Any]) -> bool:
-    t = event.get("eventType") or event.get("type")
-    return t == "Microsoft.Communication.EmailReceived"
 
 
 # ── Subject-line matching ────────────────────────────────────────────────────
@@ -99,58 +72,6 @@ def format_tender_ref(tender_id: int, recipient_id: int) -> str:
     """Produce the exact token the outbound flow embeds in subjects.
     Keeping both builder + parser here pins the invariant in one place."""
     return f"[ref: TENDER-{tender_id}-{recipient_id}]"
-
-
-# ── MIME download + parse ───────────────────────────────────────────────────
-
-
-def download_mime(content_url: str, timeout: int = 30) -> bytes:
-    """Fetch the full MIME body from the URL ACS included in the event.
-    Raises on non-200 so the caller can log it as `status=error`."""
-    resp = requests.get(content_url, timeout=timeout)
-    resp.raise_for_status()
-    return resp.content
-
-
-def parse_email_mime(raw: bytes) -> Dict[str, Any]:
-    """Parse MIME bytes into a flat dict of headers + plain text body +
-    a list of attachments. Attachments come through as (filename,
-    content_type, bytes) tuples; we keep only the ones that look like
-    broker-relevant documents (PDFs)."""
-    msg: Message = email.message_from_bytes(raw)
-    subject = msg.get("Subject") or ""
-    sender = msg.get("From") or ""
-    to = msg.get("To") or ""
-    text_body = ""
-    attachments: List[Dict[str, Any]] = []
-    for part in msg.walk():
-        ctype = part.get_content_type() or ""
-        disposition = (part.get("Content-Disposition") or "").lower()
-        if "attachment" in disposition or (ctype == "application/pdf"):
-            payload = part.get_payload(decode=True)
-            if payload:
-                attachments.append(
-                    {
-                        "filename": part.get_filename() or "untitled.bin",
-                        "content_type": ctype,
-                        "content": payload,
-                    }
-                )
-        elif ctype == "text/plain" and not text_body:
-            payload = part.get_payload(decode=True)
-            if payload:
-                text_body = payload.decode(
-                    part.get_content_charset() or "utf-8", errors="replace"
-                )
-    return {
-        "subject": subject,
-        "sender": sender,
-        "recipient": to,
-        "text_body": text_body,
-        "attachments": attachments,
-        # RFC822 Message-ID header — dedup key shared with the Graph path.
-        "message_id": msg.get("Message-ID") or None,
-    }
 
 
 # ── Tender match + offer ingest ─────────────────────────────────────────────
@@ -291,45 +212,7 @@ def _find_existing_by_message_id(
     )
 
 
-# ── Main entry point ────────────────────────────────────────────────────────
-
-
-def _shallow_parsed(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Best-effort envelope snapshot used when MIME download/parse fails,
-    so we can still log sender/recipient/subject from the Event Grid payload."""
-    return {
-        "sender": data.get("from"),
-        "recipient": data.get("to"),
-        "subject": data.get("subject"),
-        "attachments": [],
-    }
-
-
-def _download_and_parse(
-    event: Dict[str, Any], db: Session
-) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-    """Steps 1-3: resolve content URL → download MIME → parse. Logs +
-    returns (None, error_result) on failure, or (parsed, None) on success."""
-    data = event.get("data") or {}
-    parsed_shallow = _shallow_parsed(data)
-    content_url = data.get("contentUrl") or data.get("content_url")
-    if not content_url:
-        _log_row(
-            db, parsed_shallow, None, None, None, "error", error="missing_content_url"
-        )
-        return None, {"status": "error", "reason": "missing_content_url"}
-    try:
-        raw = download_mime(content_url)
-    except Exception as exc:
-        _log_row(
-            db, parsed_shallow, None, None, None, "error", error=f"download: {exc}"
-        )
-        return None, {"status": "error", "reason": str(exc)}
-    try:
-        return parse_email_mime(raw), None
-    except Exception as exc:
-        _log_row(db, parsed_shallow, None, None, None, "error", error=f"parse: {exc}")
-        return None, {"status": "error", "reason": str(exc)}
+# ── Main entry point (provider-agnostic) ────────────────────────────────────
 
 
 def _resolve_tender(
@@ -410,10 +293,10 @@ def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """Resolve tender from subject → dedup-check → ingest + notify.
     Returns the final status dict.
 
-    Public because other provider paths (Microsoft Graph inbound) also
-    funnel into it once they've normalised their payload to the shared
-    `parsed` shape. Dedup by RFC822 Message-ID makes the whole pipeline
-    idempotent against webhook replay storms."""
+    Public because the SendGrid + Graph inbound paths both funnel into it
+    once they've normalised their payload to the shared `parsed` shape.
+    Dedup by RFC822 Message-ID makes the whole pipeline idempotent
+    against webhook replay storms."""
     existing = _find_existing_by_message_id(db, parsed.get("message_id"))
     if existing is not None:
         return {
@@ -427,13 +310,3 @@ def match_and_ingest(parsed: Dict[str, Any], db: Session) -> Dict[str, Any]:
         return error
     assert tender is not None and recipient is not None and ref_raw is not None
     return _ingest_and_notify(parsed, tender, recipient, ref_raw, db)
-
-
-def process_email_received_event(event: Dict[str, Any], db: Session) -> Dict[str, Any]:
-    """Handle one EmailReceived event. Thin dispatcher: download + parse,
-    then match + ingest. Every branch lands in IncomingEmailLog."""
-    parsed, error = _download_and_parse(event, db)
-    if error is not None:
-        return error
-    assert parsed is not None
-    return match_and_ingest(parsed, db)
