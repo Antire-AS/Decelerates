@@ -150,6 +150,39 @@ class TestDelete:
         db.commit.assert_called_once()
 
 
+class TestMarkDeclined:
+    def test_unknown_recipient_raises(self, svc, db):
+        q = MagicMock()
+        q.filter.return_value.first.return_value = None
+        db.query.return_value = q
+        with pytest.raises(ValueError):
+            svc.mark_declined(tender_id=1, recipient_id=999, reason="capacity")
+
+    def test_flips_status_and_persists_reason(self, svc, db):
+        recipient = MagicMock()
+        recipient.id = 5
+        recipient.tender_id = 1
+        q = MagicMock()
+        q.filter.return_value.first.return_value = recipient
+        db.query.return_value = q
+        db.commit = MagicMock()
+        db.refresh = MagicMock()
+
+        result = svc.mark_declined(
+            tender_id=1,
+            recipient_id=5,
+            reason="high_risk",
+            note="not in our risk appetite",
+        )
+
+        assert result is recipient
+        assert recipient.status == TenderRecipientStatus.declined
+        assert recipient.decline_reason == "high_risk"
+        assert recipient.decline_note == "not in our risk appetite"
+        assert recipient.response_at is not None
+        db.commit.assert_called_once()
+
+
 class TestMarkContractSignedBySession:
     def test_empty_session_id_returns_none_without_query(self, svc, db):
         assert svc.mark_contract_signed_by_session("") is None

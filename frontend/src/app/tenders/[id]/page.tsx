@@ -11,6 +11,8 @@ import {
   analyseTender,
   updateTender,
   downloadTenderPresentationPdf,
+  downloadTenderComparisonXlsx,
+  declineTenderRecipient,
   type Tender,
 } from "@/lib/api";
 import {
@@ -41,6 +43,13 @@ const RECIPIENT_STATUS: Record<string, { labelKey: string; cls: string }> = {
   sent: { labelKey: "Sendt", cls: "text-blue-600" },
   received: { labelKey: "Svar mottatt", cls: "text-green-600" },
   declined: { labelKey: "Avslått", cls: "text-red-500" },
+};
+
+const DECLINE_REASON_LABEL: Record<string, string> = {
+  capacity: "Kapasitet",
+  bad_match: "Dårlig anbud",
+  high_risk: "Høy risiko",
+  other: "Annet",
 };
 
 export default function TenderDetailPage() {
@@ -231,6 +240,21 @@ export default function TenderDetailPage() {
               {T("Tilbudsfremstilling")}
             </button>
           )}
+          {tender.analysis_result && (
+            <button
+              onClick={() =>
+                downloadTenderComparisonXlsx(
+                  Number(id),
+                  `sammenligning_${tender.orgnr}.xlsx`,
+                )
+              }
+              className="flex items-center gap-1.5 px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted"
+              title={T("Last ned AI-sammenligning som Excel")}
+            >
+              <FileDown className="w-4 h-4" />
+              {T("Eksporter Excel")}
+            </button>
+          )}
         </div>
       </div>
 
@@ -254,6 +278,8 @@ export default function TenderDetailPage() {
             <div className="space-y-2">
               {tender.recipients.map((r) => {
                 const rs = RECIPIENT_STATUS[r.status] || RECIPIENT_STATUS.pending;
+                const declineLabel = r.decline_reason ? DECLINE_REASON_LABEL[r.decline_reason] : null;
+                const canDecline = r.status === "pending" || r.status === "sent";
                 return (
                   <div key={r.id} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
                     <div>
@@ -261,8 +287,42 @@ export default function TenderDetailPage() {
                       {r.insurer_email && (
                         <span className="text-xs text-muted-foreground ml-2">{r.insurer_email}</span>
                       )}
+                      {r.status === "declined" && declineLabel && (
+                        <span
+                          className="ml-2 inline-block px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-[10px] font-medium"
+                          title={r.decline_note ?? undefined}
+                        >
+                          {T(declineLabel)}
+                        </span>
+                      )}
                     </div>
-                    <span className={`text-xs font-medium ${rs.cls}`}>{T(rs.labelKey)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium ${rs.cls}`}>{T(rs.labelKey)}</span>
+                      {canDecline && (
+                        <select
+                          aria-label={T("Marker som avslått")}
+                          defaultValue=""
+                          className="text-[10px] px-1 py-0.5 rounded border border-border bg-background text-muted-foreground hover:text-foreground"
+                          onChange={async (e) => {
+                            const reason = e.target.value as
+                              | "capacity"
+                              | "bad_match"
+                              | "high_risk"
+                              | "other"
+                              | "";
+                            if (!reason) return;
+                            await declineTenderRecipient(tender.id, r.id, { reason });
+                            await mutate();
+                          }}
+                        >
+                          <option value="">{T("Avslå…")}</option>
+                          <option value="capacity">{T("Kapasitet")}</option>
+                          <option value="bad_match">{T("Dårlig anbud")}</option>
+                          <option value="high_risk">{T("Høy risiko")}</option>
+                          <option value="other">{T("Annet")}</option>
+                        </select>
+                      )}
+                    </div>
                   </div>
                 );
               })}

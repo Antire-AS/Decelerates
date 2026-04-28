@@ -3602,6 +3602,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/{tender_id}/comparison.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Comparison Xlsx
+         * @description Stream the AI comparison as a styled Excel workbook for the broker
+         *     to attach to a customer-facing tilbudsfremstilling. Requires that
+         *     `analyse_offers` has been run first; otherwise returns 409.
+         */
+        get: operations["export_comparison_xlsx_tenders__tender_id__comparison_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/{tender_id}/contract/send-for-signature": {
         parameters: {
             query?: never;
@@ -3678,6 +3700,26 @@ export interface paths {
          * @description Add a recipient to a tender.
          */
         post: operations["add_recipient_tenders__tender_id__recipients_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}/recipients/{recipient_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Recipient
+         * @description Mark a recipient as declined with a reason.
+         */
+        post: operations["decline_recipient_tenders__tender_id__recipients__recipient_id__decline_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5688,6 +5730,16 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** TenderDeclineIn */
+        TenderDeclineIn: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "capacity" | "bad_match" | "high_risk" | "other";
+        };
         /** TenderListOut */
         TenderListOut: {
             /**
@@ -5787,6 +5839,10 @@ export interface components {
         };
         /** TenderRecipientOut */
         TenderRecipientOut: {
+            /** Decline Note */
+            decline_note?: string | null;
+            /** Decline Reason */
+            decline_reason?: ("capacity" | "bad_match" | "high_risk" | "other") | null;
             /** Id */
             id: number;
             /** Insurer Email */
@@ -12715,6 +12771,37 @@ export interface operations {
             };
         };
     };
+    export_comparison_xlsx_tenders__tender_id__comparison_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     tender_contract_send_for_signature_tenders__tender_id__contract_send_for_signature_post: {
         parameters: {
             query?: never;
@@ -12840,6 +12927,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_recipient_tenders__tender_id__recipients__recipient_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+                recipient_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderDeclineIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderRecipientOut"];
                 };
             };
             /** @description Validation Error */
