@@ -3191,6 +3191,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Products
+         * @description List insurance products in the catalog, optionally filtered by category.
+         */
+        get: operations["list_products_products_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Product Categories
+         * @description List the catalog categories with product counts.
+         */
+        get: operations["list_product_categories_products_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/renewals": {
         parameters: {
             query?: never;
@@ -4882,6 +4922,28 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** InsuranceProductOut */
+        InsuranceProductOut: {
+            /** Category */
+            category: string;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+            /** Sub Category */
+            sub_category?: string | null;
+            /** Typical Coverage Limits */
+            typical_coverage_limits?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** InsurerIn */
         InsurerIn: {
             /** Appetite */
@@ -5377,6 +5439,13 @@ export interface components {
             prev_z?: number | null;
             /** Prev Zone */
             prev_zone?: string | null;
+        };
+        /** ProductCategoryOut */
+        ProductCategoryOut: {
+            /** Category */
+            category: string;
+            /** Product Count */
+            product_count: number;
         };
         /** QuoteResponse */
         QuoteResponse: {
@@ -11875,6 +11944,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_products_products_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsuranceProductOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_product_categories_products_categories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductCategoryOut"][];
                 };
             };
         };

@@ -10,6 +10,7 @@ from api.models.crm import *  # noqa: F401,F403
 from api.models.portfolio import *  # noqa: F401,F403
 from api.models.pipeline import *  # noqa: F401,F403
 from api.models.insurance import *  # noqa: F401,F403
+from api.models.insurance_product import *  # noqa: F401,F403
 from api.models.tender import *  # noqa: F401,F403
 from api.models.coverage import *  # noqa: F401,F403
 from api.models.compliance import *  # noqa: F401,F403
