@@ -136,6 +136,7 @@ from api.routers import (
     insurer_api,
     coverage_router,
     tender_router,
+    insurance_product_router,
     chat_history,
     whiteboard,
     news as news_router,
@@ -255,6 +256,9 @@ def on_startup():
     db = next(get_db())
     try:
         _seed_pdf_sources(db)
+        from api.services.insurance_product_seed import seed_insurance_products
+
+        seed_insurance_products(db)
     finally:
         db.close()
 
@@ -459,6 +463,7 @@ app.include_router(accounting.router)
 app.include_router(insurer_api.router)
 app.include_router(coverage_router.router)
 app.include_router(tender_router.router)
+app.include_router(insurance_product_router.router)
 app.include_router(chat_history.router)
 app.include_router(whiteboard.router)
 app.include_router(news_router.router)
