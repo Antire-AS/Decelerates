@@ -544,3 +544,30 @@ class CompanyService:
 
     def seed_pdf_sources(self):
         _seed_pdf_sources(self.db)
+
+    def get_property_metadata(self, orgnr: str) -> dict:
+        from api.models.company import Company
+
+        c = self.db.query(Company).filter(Company.orgnr == orgnr).first()
+        if c is None:
+            raise ValueError(f"Company {orgnr} not found")
+        return dict(c.property_metadata or {})
+
+    def update_property_metadata(self, orgnr: str, patch: dict) -> dict:
+        """Merge `patch` into the JSONB blob; returns the new full state.
+        A key with `None` value is removed."""
+        from api.models.company import Company
+
+        c = self.db.query(Company).filter(Company.orgnr == orgnr).first()
+        if c is None:
+            raise ValueError(f"Company {orgnr} not found")
+        merged: dict = dict(c.property_metadata or {})
+        for k, v in patch.items():
+            if v is None:
+                merged.pop(k, None)
+            else:
+                merged[k] = v
+        c.property_metadata = merged
+        self.db.commit()
+        self.db.refresh(c)
+        return merged

@@ -2511,6 +2511,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/org/{orgnr}/property": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Org Property Metadata
+         * @description Building year, fire alarm, flammable materials etc. — manual entry.
+         */
+        get: operations["get_org_property_metadata_org__orgnr__property_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Org Property Metadata
+         * @description Merge a partial property-metadata patch. Keys with `None` are deleted.
+         */
+        patch: operations["patch_org_property_metadata_org__orgnr__property_patch"];
+        trace?: never;
+    };
     "/org/{orgnr}/recommend-insurers": {
         parameters: {
             query?: never;
@@ -5524,6 +5548,50 @@ export interface components {
             category: string;
             /** Product Count */
             product_count: number;
+        };
+        /**
+         * PropertyMetadataOut
+         * @description Loose JSONB blob — frontend renders whatever keys are set.
+         */
+        PropertyMetadataOut: {
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Orgnr */
+            orgnr: string;
+        };
+        /**
+         * PropertyMetadataPatch
+         * @description Partial update — keys with `None` value are removed.
+         *
+         *     Recognised fields (informational; the backend stores any keys):
+         */
+        PropertyMetadataPatch: {
+            /** Address */
+            address?: string | null;
+            /** Building Year */
+            building_year?: number | null;
+            /** Construction */
+            construction?: string | null;
+            /** Fire Alarm */
+            fire_alarm?: string | null;
+            /** Fire Resistance Rating */
+            fire_resistance_rating?: string | null;
+            /** Flammable Materials */
+            flammable_materials?: string | null;
+            /** Gnr Bnr */
+            gnr_bnr?: string | null;
+            /** Ground Area M2 */
+            ground_area_m2?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Primary Use */
+            primary_use?: string | null;
+            /** Roof Type */
+            roof_type?: string | null;
+            /** Sprinkler */
+            sprinkler?: boolean | null;
         };
         /** QuoteResponse */
         QuoteResponse: {
@@ -10641,6 +10709,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_org_property_metadata_org__orgnr__property_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyMetadataOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_org_property_metadata_org__orgnr__property_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgnr: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyMetadataPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyMetadataOut"];
+                };
             };
             /** @description Validation Error */
             422: {
