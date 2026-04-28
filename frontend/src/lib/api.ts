@@ -1239,6 +1239,37 @@ export const patchOrgPropertyMetadata = (
     body: JSON.stringify(patch),
   });
 
+// ── Customer offer portal (P4) ──────────────────────────────────────────────
+
+export type TenderCustomerTokenIn = Schema["TenderCustomerTokenIn"];
+export type TenderCustomerTokenOut = Schema["TenderCustomerTokenOut"];
+export type TenderCustomerView = Schema["TenderCustomerView"];
+export type TenderCustomerDecisionIn = Schema["TenderCustomerDecisionIn"];
+
+export const generateTenderCustomerPortal = (
+  tenderId: number,
+  body: TenderCustomerTokenIn,
+) =>
+  apiFetch<TenderCustomerTokenOut>(`/tenders/${tenderId}/customer-portal`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const getTenderCustomerView = (token: string) =>
+  apiFetch<TenderCustomerView>(`/tenders/customer-portal/${token}`);
+
+export const recordTenderCustomerDecision = (
+  token: string,
+  body: TenderCustomerDecisionIn,
+) =>
+  apiFetch<TenderCustomerView>(
+    `/tenders/customer-portal/${token}/decision`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,
