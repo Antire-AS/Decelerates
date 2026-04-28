@@ -86,10 +86,16 @@ def test_migrations_run_with_lock_acquired():
     assert mock_conn.execute.call_count == 2
 
 
-def test_migrations_run_without_lock_when_lock_unavailable():
+def test_migrations_skip_when_lock_held_throughout_wait():
+    """Lock held by another worker for the full wait window — migration
+    must be SKIPPED (not run unprotected). This is the core fix for the
+    2026-04-28 outage; the previous behaviour ran upgrade unprotected,
+    causing N workers to race for the table-level ACCESS EXCLUSIVE lock.
+    """
     from api.main import _run_migrations_with_lock
 
     mock_conn = MagicMock()
+    # Every try_advisory_lock returns False (lock perpetually held)
     mock_conn.execute.return_value.scalar.return_value = False
     mock_engine = MagicMock()
     mock_engine.connect.return_value.__enter__ = MagicMock(return_value=mock_conn)
@@ -99,10 +105,34 @@ def test_migrations_run_without_lock_when_lock_unavailable():
     with (
         patch("api.db.engine", mock_engine),
         patch("api.main.alembic_command") as mock_cmd,
+        patch("api.main.time.sleep"),  # skip the polling sleeps
+    ):
+        _run_migrations_with_lock(cfg)
+    mock_cmd.upgrade.assert_not_called()
+
+
+def test_migrations_run_after_lock_released_during_wait():
+    """Lock initially held but released during the polling window — migration
+    must run (no-op, since the holder finished it) and then release the lock."""
+    from api.main import _run_migrations_with_lock
+
+    mock_conn = MagicMock()
+    # First try fails, second succeeds (holder released between polls)
+    scalar_mock = MagicMock()
+    scalar_mock.side_effect = [False, True]
+    mock_conn.execute.return_value.scalar = scalar_mock
+    mock_engine = MagicMock()
+    mock_engine.connect.return_value.__enter__ = MagicMock(return_value=mock_conn)
+    mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+
+    cfg = MagicMock()
+    with (
+        patch("api.db.engine", mock_engine),
+        patch("api.main.alembic_command") as mock_cmd,
+        patch("api.main.time.sleep"),
     ):
         _run_migrations_with_lock(cfg)
     mock_cmd.upgrade.assert_called_once_with(cfg, "head")
-    assert mock_conn.execute.call_count == 1
 
 
 def test_migrations_release_lock_even_on_failure():
