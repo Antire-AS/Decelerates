@@ -28,7 +28,6 @@ class Company(Base):
 
     regnskap_raw = Column(JSON)
     pep_raw = Column(JSON)
-    property_metadata = Column(JSON, nullable=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
     last_refreshed_at = Column(DateTime(timezone=True), nullable=True)
 

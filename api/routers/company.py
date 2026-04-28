@@ -19,12 +19,7 @@ from api.services.job_queue_service import JobQueueService
 from api.auth import get_optional_user, CurrentUser
 from api.dependencies import get_db
 from api.limiter import limiter
-from api.schemas import (
-    LicensesOut,
-    PeerBenchmarkOut,
-    PropertyMetadataOut,
-    PropertyMetadataPatch,
-)
+from api.schemas import LicensesOut, PeerBenchmarkOut
 
 router = APIRouter()
 
@@ -184,39 +179,6 @@ def get_peer_benchmark(orgnr: str, db: Session = Depends(get_db)) -> dict:
     if result is None:
         raise HTTPException(status_code=404, detail="Company not in database")
     return result
-
-
-@router.get("/org/{orgnr}/property", response_model=PropertyMetadataOut)
-def get_org_property_metadata(orgnr: str, db: Session = Depends(get_db)) -> dict:
-    """Building year, fire alarm, flammable materials etc. — manual entry today."""
-    from api.services.company import CompanyService
-
-    try:
-        meta = CompanyService(db).get_property_metadata(orgnr)
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return {"orgnr": orgnr, "metadata": meta}
-
-
-@router.patch("/org/{orgnr}/property", response_model=PropertyMetadataOut)
-def patch_org_property_metadata(
-    orgnr: str,
-    body: PropertyMetadataPatch,
-    db: Session = Depends(get_db),
-    user: CurrentUser = Depends(get_optional_user),
-) -> dict:
-    """Merge a partial property-metadata patch. Keys with `None` are deleted."""
-    from api.services.company import CompanyService
-
-    if user is None:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    try:
-        merged = CompanyService(db).update_property_metadata(
-            orgnr, body.model_dump(exclude_unset=True)
-        )
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return {"orgnr": orgnr, "metadata": merged}
 
 
 @router.get("/org-by-name")
