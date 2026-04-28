@@ -26,9 +26,6 @@ const ClientPortalSection = dynamic(() => import("@/components/crm/ClientPortalS
 const SubmissionsSection = dynamic(() => import("@/components/crm/SubmissionsSection"));
 const RecommendationsSection = dynamic(() => import("@/components/crm/RecommendationsSection"));
 const CoverageSection = dynamic(() => import("@/components/company/CoverageSection"));
-const PropertySection = dynamic(() =>
-  import("@/components/company/PropertySection").then((m) => m.PropertySection),
-);
 import PremiumBenchmark from "@/components/company/PremiumBenchmark";
 import NotaterSection from "@/components/company/NotaterSection";
 import OrgChatSection from "@/components/company/OrgChatSection";
@@ -283,7 +280,6 @@ export default function OrgProfilePage({
               naceSection={(prof?.org?.naeringskode1 as string | undefined) ?? undefined}
             />
             <CoverageSection orgnr={orgnr} />
-            <PropertySection orgnr={orgnr} />
             <ForsikringSection orgnr={orgnr} />
           </div>
         </TabsContent>

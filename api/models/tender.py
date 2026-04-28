@@ -53,15 +53,6 @@ class Tender(Base):
     # (WHERE NOT NULL) is created by the Alembic migration, not here — the
     # model field stays simple so it doesn't clash with the partial index.
     contract_session_id = Column(String(128), nullable=True)
-    # Customer-facing portal — broker generates the token after running the
-    # AI analysis. Customer opens /portal/tender/<token>, reviews, approves
-    # or rejects. Approval kicks off the existing DocuSeal flow via
-    # `contract_session_id` above. See migration `p4q5r6s7t8u9` for the
-    # partial unique index on customer_access_token.
-    customer_access_token = Column(String(64), nullable=True)
-    customer_email = Column(String, nullable=True)
-    customer_approval_status = Column(String(16), nullable=True)
-    customer_approval_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 

@@ -20,10 +20,6 @@ from api.schemas import (
     TenderOfferOut,
     TenderRecipientOut,
     TenderDeclineIn,
-    TenderCustomerTokenIn,
-    TenderCustomerTokenOut,
-    TenderCustomerView,
-    TenderCustomerDecisionIn,
 )
 from api.services.tender_service import TenderService
 
@@ -308,88 +304,6 @@ def portal_get_tender(
             "notes": tender.notes,
         },
     }
-
-
-@router.post(
-    "/tenders/{tender_id}/customer-portal",
-    response_model=TenderCustomerTokenOut,
-)
-@limiter.limit("10/minute")
-async def generate_customer_portal_token(
-    request: Request,
-    tender_id: int,
-    body: TenderCustomerTokenIn,
-    svc: TenderService = Depends(_svc),
-    user: User = Depends(get_current_user),
-):
-    """Mint a customer-facing portal token. Idempotent — re-runs return
-    the existing token. Broker shares the resulting URL with the customer."""
-    try:
-        tender = svc.generate_customer_token(
-            tender_id, user.firm_id, body.customer_email
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-    return TenderCustomerTokenOut(
-        tender_id=tender.id,
-        customer_access_token=str(tender.customer_access_token),
-        customer_email=str(tender.customer_email),
-        portal_url_path=f"/portal/tender/{tender.customer_access_token}",
-    )
-
-
-@router.get(
-    "/tenders/customer-portal/{token}",
-    response_model=TenderCustomerView,
-)
-@limiter.limit("60/minute")
-async def get_customer_portal_view(
-    request: Request,
-    token: str,
-    svc: TenderService = Depends(_svc),
-):
-    """Public read-only view of the tender for the customer."""
-    tender = svc.get_tender_by_customer_token(token)
-    if tender is None:
-        raise HTTPException(status_code=404, detail="Ugyldig lenke")
-    from api.db import Company
-
-    company = svc.db.query(Company).filter(Company.orgnr == tender.orgnr).first()
-    return TenderCustomerView(
-        tender_id=int(tender.id),  # type: ignore[arg-type]
-        title=str(tender.title),
-        company_name=str(company.navn) if company is not None else None,
-        product_types=list(tender.product_types or []),
-        deadline=tender.deadline,  # type: ignore[arg-type]
-        notes=str(tender.notes) if tender.notes else None,
-        analysis=dict(tender.analysis_result) if tender.analysis_result else None,
-        customer_approval_status=str(tender.customer_approval_status)
-        if tender.customer_approval_status
-        else None,
-        customer_approval_at=tender.customer_approval_at,  # type: ignore[arg-type]
-    )
-
-
-@router.post(
-    "/tenders/customer-portal/{token}/decision",
-    response_model=TenderCustomerView,
-)
-@limiter.limit("10/minute")
-async def record_customer_portal_decision(
-    request: Request,
-    token: str,
-    body: TenderCustomerDecisionIn,
-    svc: TenderService = Depends(_svc),
-):
-    """Customer approves or rejects the tender. No auth — token is the bearer.
-    Approve does not auto-trigger DocuSeal here; the broker still controls
-    the contract send. The frontend can render an Approve→signing handoff
-    later as a follow-up."""
-    try:
-        svc.record_customer_decision(token, body.status)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    return await get_customer_portal_view(request=request, token=token, svc=svc)
 
 
 @router.post("/tenders/portal/{access_token}/upload", response_model=TenderOfferOut)

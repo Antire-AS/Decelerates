@@ -228,64 +228,6 @@ class TenderService:
         self.db.refresh(r)
         return r
 
-    # ── Customer portal ─────────────────────────────────────────────────────
-    #
-    # Distinct from the insurer-facing `access_token` flow. The broker mints
-    # a customer token AFTER running the AI analysis, then shares the URL
-    # with the end client. Client opens it, reviews, and either approves
-    # (kicks off the existing DocuSeal contract flow) or rejects.
-
-    def generate_customer_token(
-        self, tender_id: int, firm_id: int, customer_email: str
-    ) -> Tender:
-        """Mint a customer access token + persist email. Idempotent —
-        re-runs return the existing token rather than rotating it."""
-        import secrets as _secrets
-
-        tender = self.get(tender_id, firm_id)
-        if tender is None:
-            raise ValueError(f"Tender {tender_id} not found")
-        if tender.customer_access_token:
-            tender.customer_email = customer_email  # broker can update target
-        else:
-            tender.customer_access_token = _secrets.token_urlsafe(32)
-            tender.customer_email = customer_email
-            tender.customer_approval_status = "pending"
-        self.db.commit()
-        self.db.refresh(tender)
-        return tender
-
-    def get_tender_by_customer_token(
-        self, customer_access_token: str
-    ) -> Optional[Tender]:
-        # FIRM_ID_AUDIT: token-based public lookup; the unique unguessable
-        # token IS the auth boundary, no firm_id available in this context.
-        """Public lookup — used by the customer portal page."""
-        return (
-            self.db.query(Tender)
-            .filter(Tender.customer_access_token == customer_access_token)
-            .first()
-        )
-
-    def record_customer_decision(
-        self, customer_access_token: str, status: str
-    ) -> Tender:
-        # FIRM_ID_AUDIT: token-based public mutation; the unique unguessable
-        # token IS the auth boundary, no firm_id available in this context.
-        """Flip approval state. `status` must be 'approved' or 'rejected'.
-        Approve does NOT itself kick off DocuSeal — the router does that
-        so this method stays free of provider-specific I/O."""
-        if status not in ("approved", "rejected"):
-            raise ValueError(f"Invalid status: {status}")
-        tender = self.get_tender_by_customer_token(customer_access_token)
-        if tender is None:
-            raise ValueError("Invalid token")
-        tender.customer_approval_status = status
-        tender.customer_approval_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(tender)
-        return tender
-
     def upload_offer_by_token(
         self,
         access_token: str,
