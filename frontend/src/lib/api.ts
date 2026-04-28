@@ -1135,6 +1135,10 @@ export interface Tender {
   offers: TenderOffer[];
   created_by_email?: string;
   created_at: string;
+  customer_access_token?: string | null;
+  customer_email?: string | null;
+  customer_approval_status?: "pending" | "approved" | "rejected" | null;
+  customer_approval_at?: string | null;
 }
 
 export interface TenderListItem {
