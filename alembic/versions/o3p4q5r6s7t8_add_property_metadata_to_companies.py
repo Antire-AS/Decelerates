@@ -36,12 +36,30 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.execute("SET LOCAL lock_timeout = '5s'")
-    op.execute("SET LOCAL statement_timeout = '15s'")
-    op.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS property_metadata JSONB")
+    # Use information_schema check + conditional ALTER instead of bare
+    # ADD COLUMN IF NOT EXISTS. PG's IF NOT EXISTS still acquires
+    # ACCESS EXCLUSIVE briefly to check; if a parallel revision is
+    # serving SELECT traffic on `companies` (which holds ACCESS SHARE)
+    # the ADD COLUMN waits behind it, hits lock_timeout, worker crashes.
+    # Diagnosed in 2026-04-28 multi-revision deploy outage. The
+    # information_schema lookup does NOT take ACCESS EXCLUSIVE; if the
+    # column is already present (the prod state after one of the earlier
+    # successful runs) the ALTER is skipped entirely.
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'companies'
+                  AND column_name = 'property_metadata'
+            ) THEN
+                SET LOCAL lock_timeout = '5s';
+                SET LOCAL statement_timeout = '15s';
+                ALTER TABLE companies ADD COLUMN property_metadata JSONB;
+            END IF;
+        END $$;
+    """)
 
 
 def downgrade() -> None:
-    op.execute("SET LOCAL lock_timeout = '5s'")
-    op.execute("SET LOCAL statement_timeout = '15s'")
     op.execute("ALTER TABLE companies DROP COLUMN IF EXISTS property_metadata")
