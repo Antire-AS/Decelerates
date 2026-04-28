@@ -1202,6 +1202,13 @@ export async function downloadTenderPresentationPdf(
   await downloadFile(`/bapi/tenders/${id}/presentation/pdf`, filename);
 }
 
+export async function downloadTenderComparisonXlsx(
+  id: number,
+  filename: string,
+): Promise<void> {
+  await downloadFile(`/bapi/tenders/${id}/comparison.xlsx`, filename);
+}
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,
