@@ -11,6 +11,7 @@ from api.schemas.company import *  # noqa: F401,F403
 from api.schemas.crm import *  # noqa: F401,F403
 from api.schemas.portfolio import *  # noqa: F401,F403
 from api.schemas.insurance import *  # noqa: F401,F403
+from api.schemas.insurance_product import *  # noqa: F401,F403
 from api.schemas.commission import *  # noqa: F401,F403
 from api.schemas.documents import *  # noqa: F401,F403
 from api.schemas.pipeline import *  # noqa: F401,F403
