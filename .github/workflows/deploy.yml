@@ -502,7 +502,23 @@ jobs:
       # causing the revision to fail health checks during migrations.
 
       - name: Smoke test — API /ping
-        run: curl --fail --retry 5 --retry-delay 5 "${{ steps.api.outputs.url }}/ping"
+        # Container Apps' direct-FQDN ingress takes 30-60s to bind to a
+        # freshly-promoted revision after Finalize. Without a longer
+        # warmup the curl returns 404 even when the new revision is
+        # healthy — the deploy is marked failed and downstream Finalize
+        # behaviour leaves prod with no active revision (2026-04-28
+        # cycle, runs 25045975218 + 25046339196 + 25046870xxx).
+        #
+        # 30s upfront + 12 retries × 10s + retry-all-errors (covers 4xx
+        # too, default --retry only retries 5xx + connection failures).
+        # Total budget ~2.5 min — well over the observed 30-90s window.
+        run: |
+          sleep 30
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
+            "${{ steps.api.outputs.url }}/ping"
 
       - name: Smoke test — frontend
-        run: curl --fail --retry 5 --retry-delay 5 "${{ steps.frontend.outputs.url }}/"
+        run: |
+          sleep 30
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
+            "${{ steps.frontend.outputs.url }}/"
