@@ -3548,6 +3548,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenders/customer-portal/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Customer Portal View
+         * @description Public read-only view of the tender for the customer.
+         */
+        get: operations["get_customer_portal_view_tenders_customer_portal__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/customer-portal/{token}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Customer Portal Decision
+         * @description Customer approves or rejects the tender. No auth — token is the bearer.
+         *     Approve does not auto-trigger DocuSeal here; the broker still controls
+         *     the contract send. The frontend can render an Approve→signing handoff
+         *     later as a follow-up.
+         */
+        post: operations["record_customer_portal_decision_tenders_customer_portal__token__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenders/portal/{access_token}": {
         parameters: {
             query?: never;
@@ -3704,6 +3747,27 @@ export interface paths {
          *     signing URL the broker can embed or forward to the client.
          */
         post: operations["tender_contract_send_for_signature_tenders__tender_id__contract_send_for_signature_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenders/{tender_id}/customer-portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Customer Portal Token
+         * @description Mint a customer-facing portal token. Idempotent — re-runs return
+         *     the existing token. Broker shares the resulting URL with the customer.
+         */
+        post: operations["generate_customer_portal_token_tenders__tender_id__customer_portal_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5876,6 +5940,59 @@ export interface components {
             product_types: string[];
             /** Recipients */
             recipients?: components["schemas"]["TenderRecipientIn"][];
+            /** Title */
+            title: string;
+        };
+        /** TenderCustomerDecisionIn */
+        TenderCustomerDecisionIn: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "approved" | "rejected";
+        };
+        /** TenderCustomerTokenIn */
+        TenderCustomerTokenIn: {
+            /** Customer Email */
+            customer_email: string;
+        };
+        /** TenderCustomerTokenOut */
+        TenderCustomerTokenOut: {
+            /** Customer Access Token */
+            customer_access_token: string;
+            /** Customer Email */
+            customer_email: string;
+            /** Portal Url Path */
+            portal_url_path: string;
+            /** Tender Id */
+            tender_id: number;
+        };
+        /**
+         * TenderCustomerView
+         * @description Public, no-auth payload for the customer portal page.
+         */
+        TenderCustomerView: {
+            /** Analysis */
+            analysis?: {
+                [key: string]: unknown;
+            } | null;
+            /** Company Name */
+            company_name?: string | null;
+            /** Customer Approval At */
+            customer_approval_at?: string | null;
+            /** Customer Approval Status */
+            customer_approval_status?: string | null;
+            /** Deadline */
+            deadline?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Product Types
+             * @default []
+             */
+            product_types: string[];
+            /** Tender Id */
+            tender_id: number;
             /** Title */
             title: string;
         };
@@ -12810,6 +12927,72 @@ export interface operations {
             };
         };
     };
+    get_customer_portal_view_tenders_customer_portal__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderCustomerView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_customer_portal_decision_tenders_customer_portal__token__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderCustomerDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderCustomerView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     portal_get_tender_tenders_portal__access_token__get: {
         parameters: {
             query?: never;
@@ -13092,6 +13275,41 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_customer_portal_token_tenders__tender_id__customer_portal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tender_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenderCustomerTokenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenderCustomerTokenOut"];
                 };
             };
             /** @description Validation Error */
