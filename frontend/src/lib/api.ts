@@ -1209,6 +1209,19 @@ export async function downloadTenderComparisonXlsx(
   await downloadFile(`/bapi/tenders/${id}/comparison.xlsx`, filename);
 }
 
+// ── Insurance product catalog ────────────────────────────────────────────────
+
+export type InsuranceProductOut = Schema["InsuranceProductOut"];
+export type ProductCategoryOut = Schema["ProductCategoryOut"];
+
+export const getInsuranceProducts = (category?: string) => {
+  const qs = category ? `?category=${encodeURIComponent(category)}` : "";
+  return apiFetch<InsuranceProductOut[]>(`/products${qs}`);
+};
+
+export const getProductCategories = () =>
+  apiFetch<ProductCategoryOut[]>("/products/categories");
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,
