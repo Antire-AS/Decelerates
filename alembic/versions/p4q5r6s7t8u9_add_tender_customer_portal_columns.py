@@ -32,14 +32,27 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.execute("SET LOCAL lock_timeout = '5s'")
-    op.execute("SET LOCAL statement_timeout = '15s'")
-    op.execute("ALTER TABLE tenders ADD COLUMN IF NOT EXISTS customer_access_token VARCHAR(64)")
-    op.execute("ALTER TABLE tenders ADD COLUMN IF NOT EXISTS customer_email VARCHAR")
-    op.execute("ALTER TABLE tenders ADD COLUMN IF NOT EXISTS customer_approval_status VARCHAR(16)")
-    op.execute(
-        "ALTER TABLE tenders ADD COLUMN IF NOT EXISTS customer_approval_at TIMESTAMPTZ"
-    )
+    # Same lock-avoidance pattern as o3p4q5r6s7t8: skip ALTER if columns
+    # are already there. Avoids ACCESS EXCLUSIVE contention when a
+    # parallel revision is serving SELECTs on `tenders` mid-deploy.
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'tenders'
+                  AND column_name = 'customer_access_token'
+            ) THEN
+                SET LOCAL lock_timeout = '5s';
+                SET LOCAL statement_timeout = '15s';
+                ALTER TABLE tenders
+                    ADD COLUMN customer_access_token VARCHAR(64),
+                    ADD COLUMN customer_email VARCHAR,
+                    ADD COLUMN customer_approval_status VARCHAR(16),
+                    ADD COLUMN customer_approval_at TIMESTAMPTZ;
+            END IF;
+        END $$;
+    """)
     op.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_tenders_customer_access_token_unique "
         "ON tenders (customer_access_token) WHERE customer_access_token IS NOT NULL"
