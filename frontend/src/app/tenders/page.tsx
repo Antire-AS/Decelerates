@@ -7,8 +7,10 @@ import {
   createTender,
   deleteTender,
   getInsurers,
+  getInsuranceProducts,
   type TenderListItem,
   type Insurer,
+  type InsuranceProductOut,
 } from "@/lib/api";
 import {
   Plus,
@@ -30,7 +32,11 @@ const STATUS_KEYS: Record<string, { labelKey: string; color: string }> = {
   analysed: { labelKey: "Analysert", color: "bg-green-50 text-green-700" },
 };
 
-const PRODUCT_OPTIONS = [
+// Fallback product list — used when the catalog API returns nothing
+// (e.g. fresh DB before the seed has run, or API offline). Once the
+// catalog is populated, the picker shows ~45 products grouped by
+// category instead of these 10 flat tags.
+const FALLBACK_PRODUCTS = [
   "Personalforsikring",
   "Yrkesskade",
   "Motorvogn",
@@ -42,6 +48,16 @@ const PRODUCT_OPTIONS = [
   "Styreansvar (D&O)",
   "Kriminalitetsforsikring",
 ];
+
+const CATEGORY_LABEL: Record<string, string> = {
+  personell: "Personell",
+  bygning: "Bygning og innhold",
+  ansvar: "Ansvar",
+  drift: "Drift / driftsavbrudd",
+  transport: "Transport og kjøretøy",
+  marine: "Marine",
+  annet: "Annet",
+};
 
 export default function TendersPage() {
   const T = useT();
@@ -169,6 +185,10 @@ function NewTenderModal({
   const [products, setProducts] = useState<string[]>([]);
   const [deadline, setDeadline] = useState("");
   const [notes, setNotes] = useState("");
+  const { data: catalog } = useSWR<InsuranceProductOut[]>(
+    "insurance-products",
+    () => getInsuranceProducts(),
+  );
   const [recipients, setRecipients] = useState<{ insurer_name: string; insurer_email?: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -244,25 +264,14 @@ function NewTenderModal({
             />
           </div>
 
-          {/* Products */}
-          <div>
-            <p className="label-xs">{T("Produkttyper")}</p>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {PRODUCT_OPTIONS.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => toggleProduct(p)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    products.includes(p)
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-muted-foreground border-border hover:border-primary"
-                  }`}
-                >
-                  {T(p)}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Products — grouped by category from the seeded catalog;
+              falls back to a flat list if the catalog API returns nothing. */}
+          <ProductPicker
+            catalog={catalog}
+            selected={products}
+            onToggle={toggleProduct}
+            T={T}
+          />
 
           {/* Deadline */}
           <div>
@@ -334,6 +343,79 @@ function NewTenderModal({
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductPicker({
+  catalog,
+  selected,
+  onToggle,
+  T,
+}: {
+  catalog: InsuranceProductOut[] | undefined;
+  selected: string[];
+  onToggle: (name: string) => void;
+  T: (s: string) => string;
+}) {
+  // Empty / loading: show the flat fallback list.
+  if (!catalog || catalog.length === 0) {
+    return (
+      <div>
+        <p className="label-xs">{T("Produkttyper")}</p>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {FALLBACK_PRODUCTS.map((p) => (
+            <button
+              key={p}
+              onClick={() => onToggle(p)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                selected.includes(p)
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:border-primary"
+              }`}
+            >
+              {T(p)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Group products by category, preserving the catalog's stable sort order.
+  const groups: Record<string, InsuranceProductOut[]> = {};
+  for (const p of catalog) {
+    (groups[p.category] ||= []).push(p);
+  }
+
+  return (
+    <div>
+      <p className="label-xs">{T("Produkttyper")}</p>
+      <div className="space-y-3 mt-1">
+        {Object.keys(groups).map((cat) => (
+          <div key={cat}>
+            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1">
+              {T(CATEGORY_LABEL[cat] ?? cat)}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {groups[cat].map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => onToggle(p.name)}
+                  title={p.description ?? undefined}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                    selected.includes(p.name)
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:border-primary"
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
