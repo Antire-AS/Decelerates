@@ -88,3 +88,35 @@ class TenderListOut(BaseModel):
 class TenderAnalysisOut(BaseModel):
     tender_id: int
     analysis: Dict[str, Any]
+
+
+class TenderCustomerTokenIn(BaseModel):
+    customer_email: str
+
+
+class TenderCustomerTokenOut(BaseModel):
+    tender_id: int
+    customer_access_token: str
+    customer_email: str
+    portal_url_path: str
+
+
+class TenderCustomerView(BaseModel):
+    """Public, no-auth payload for the customer portal page."""
+
+    tender_id: int
+    title: str
+    company_name: Optional[str] = None
+    product_types: List[str] = []
+    deadline: Optional[date] = None
+    notes: Optional[str] = None
+    analysis: Optional[Dict[str, Any]] = None
+    customer_approval_status: Optional[str] = None
+    customer_approval_at: Optional[datetime] = None
+
+
+TenderCustomerDecisionLiteral = Literal["approved", "rejected"]
+
+
+class TenderCustomerDecisionIn(BaseModel):
+    status: TenderCustomerDecisionLiteral
