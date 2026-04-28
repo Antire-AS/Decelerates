@@ -9,6 +9,7 @@ See CLAUDE.md for architecture reference; live API docs at /docs.
 
 import logging
 import os
+import time
 
 # ── Vertex AI service-account bootstrap ───────────────────────────────────────
 # In Container Apps the SA key arrives base64-encoded
@@ -179,43 +180,69 @@ app.add_middleware(
 )
 
 
+_LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
+_LOCK_MAX_WAIT_S = 30
+_LOCK_POLL_INTERVAL_S = 0.5
+
+
+def _try_acquire_lock(lock_conn) -> bool:
+    from sqlalchemy import text
+
+    return bool(
+        lock_conn.execute(text(f"SELECT pg_try_advisory_lock({_LOCK_ID})")).scalar()
+    )
+
+
+def _wait_for_lock(lock_conn) -> bool:
+    """Poll for the advisory lock up to the budget. Returns True if acquired."""
+    elapsed = 0.0
+    while elapsed < _LOCK_MAX_WAIT_S:
+        time.sleep(_LOCK_POLL_INTERVAL_S)
+        elapsed += _LOCK_POLL_INTERVAL_S
+        if _try_acquire_lock(lock_conn):
+            return True
+    return False
+
+
 def _run_migrations_with_lock(alembic_cfg) -> None:
     """Run Alembic migrations under a Postgres advisory lock.
 
-    Uses pg_try_advisory_lock (non-blocking) instead of pg_advisory_lock.
-    If the lock is already held (by another container that's mid-migration,
-    or by a stale connection from a crashed container), we skip and let
-    Alembic run without the lock. This is safe because:
+    Container Apps boots N Uvicorn workers in parallel. The advisory lock
+    serialises them: the first worker runs the migration, the rest WAIT
+    for it to finish, then their own upgrade call becomes a no-op (schema
+    already at head).
 
-    1. If another container is actively running migrations, Alembic's own
-       DDL will either succeed (idempotent) or fail on conflict (DDL is
-       transactional in Postgres — no partial state).
-    2. If a stale connection holds the lock, the migration still runs — the
-       lock_timeout in alembic/env.py will catch any DDL-level conflict.
-
-    The old pg_advisory_lock (blocking) caused every deploy to hang
-    indefinitely when a crashed container left an orphaned session-level
-    lock in the connection pool.
+    See `feedback_migration_runner_concurrent_workers.md` — the previous
+    version "ran migrations without lock" when held, causing N workers to
+    race for the table-level ACCESS EXCLUSIVE lock and crashing all but
+    one with "column already exists" (2026-04-28 prod outage, PR #261).
     """
     from sqlalchemy import text
     from api.db import engine
 
-    _LOCK_ID = 4_242_424_242  # arbitrary stable integer; unique to this app
-
+    log = logging.getLogger(__name__)
     with engine.connect() as lock_conn:
-        got_lock = lock_conn.execute(
-            text(f"SELECT pg_try_advisory_lock({_LOCK_ID})")
-        ).scalar()
+        got_lock = _try_acquire_lock(lock_conn)
         if not got_lock:
-            logging.getLogger(__name__).warning(
-                "Advisory lock %d held by another session — running migrations without lock",
+            log.info(
+                "Advisory lock %d held — waiting up to %ds",
                 _LOCK_ID,
+                _LOCK_MAX_WAIT_S,
             )
+            got_lock = _wait_for_lock(lock_conn)
+        if not got_lock:
+            log.error(
+                "Migrations skipped — advisory lock %d still held after %ds. "
+                "Investigate orphaned sessions in pg_stat_activity if endpoints "
+                "fail with schema errors.",
+                _LOCK_ID,
+                _LOCK_MAX_WAIT_S,
+            )
+            return
         try:
             alembic_command.upgrade(alembic_cfg, "head")
         finally:
-            if got_lock:
-                lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
+            lock_conn.execute(text(f"SELECT pg_advisory_unlock({_LOCK_ID})"))
 
 
 def _stamp_existing_db_if_needed(alembic_cfg) -> None:
