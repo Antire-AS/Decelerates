@@ -502,23 +502,33 @@ jobs:
       # causing the revision to fail health checks during migrations.
 
       - name: Smoke test — API /ping
-        # Container Apps' direct-FQDN ingress takes 30-60s to bind to a
-        # freshly-promoted revision after Finalize. Without a longer
-        # warmup the curl returns 404 even when the new revision is
-        # healthy — the deploy is marked failed and downstream Finalize
-        # behaviour leaves prod with no active revision (2026-04-28
-        # cycle, runs 25045975218 + 25046339196 + 25046870xxx).
-        #
-        # 30s upfront + 12 retries × 10s + retry-all-errors (covers 4xx
-        # too, default --retry only retries 5xx + connection failures).
-        # Total budget ~2.5 min — well over the observed 30-90s window.
+        # In prod, hit the public URL (meglerai.no/bapi/ping) instead of
+        # the direct Container Apps FQDN. The CA direct FQDN can stay
+        # completely unreachable (curl 000 timeout) for 5-10+ minutes
+        # after a deploy in prod — even though the new revision is
+        # genuinely healthy and serving via the custom domain. The 2.5-
+        # minute budget added in #268 wasn't enough; runs 25048832827
+        # and 25049141406 both failed on this exact pattern.
+        # The customer-facing URL is what matters and is more resilient
+        # through revision swaps (Cloudflare proxies). Staging keeps
+        # the direct FQDN — no public URL in front of it.
         run: |
           sleep 30
-          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
-            "${{ steps.api.outputs.url }}/ping"
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            URL="https://meglerai.no/bapi/ping"
+          else
+            URL="${{ steps.api.outputs.url }}/ping"
+          fi
+          echo "Smoke target: $URL"
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$URL"
 
       - name: Smoke test — frontend
         run: |
           sleep 30
-          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
-            "${{ steps.frontend.outputs.url }}/"
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            URL="https://meglerai.no/"
+          else
+            URL="${{ steps.frontend.outputs.url }}/"
+          fi
+          echo "Smoke target: $URL"
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$URL"
