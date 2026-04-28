@@ -1222,6 +1222,23 @@ export const getInsuranceProducts = (category?: string) => {
 export const getProductCategories = () =>
   apiFetch<ProductCategoryOut[]>("/products/categories");
 
+// ── Company property metadata (building year, fire alarm, materials) ────────
+
+export type PropertyMetadataOut = Schema["PropertyMetadataOut"];
+export type PropertyMetadataPatch = Schema["PropertyMetadataPatch"];
+
+export const getOrgPropertyMetadata = (orgnr: string) =>
+  apiFetch<PropertyMetadataOut>(`/org/${orgnr}/property`);
+
+export const patchOrgPropertyMetadata = (
+  orgnr: string,
+  patch: PropertyMetadataPatch,
+) =>
+  apiFetch<PropertyMetadataOut>(`/org/${orgnr}/property`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
 export async function uploadTenderOffer(
   tenderId: number,
   file: File,
