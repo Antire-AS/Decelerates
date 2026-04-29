@@ -120,9 +120,44 @@ def test_serialize_submission_accepts_none_insurer_name():
 def test_list_insurers_serializes_rows():
     svc = MagicMock()
     svc.list_insurers.return_value = [_insurer_row(id=1), _insurer_row(id=2)]
-    result = list_insurers(user=_user(firm_id=42), svc=svc)
+    # `db` is consumed by two aggregate queries (last_contact + avg_response).
+    # Both `.all()` calls need to return empty lists for the dict-comprehension
+    # joins to produce empty mappings — insurer metrics fall back to None,
+    # which is the right default for a fresh insurer with no tender history.
+    db = MagicMock()
+    db.query.return_value.join.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = []
+    result = list_insurers(user=_user(firm_id=42), svc=svc, db=db)
     assert len(result) == 2
+    assert result[0]["last_contact_at"] is None
+    assert result[0]["avg_response_days"] is None
     svc.list_insurers.assert_called_once_with(42)
+
+
+def test_list_insurers_attaches_metrics_when_history_exists():
+    """When TenderRecipient rows exist, the computed last_contact_at +
+    avg_response_days are attached to the matching insurer row by
+    case-insensitive name match."""
+    from datetime import datetime, timezone
+
+    svc = MagicMock()
+    svc.list_insurers.return_value = [_insurer_row(id=1, name="If Skadeforsikring")]
+    db = MagicMock()
+    last_at = datetime(2026, 4, 28, 12, 0, tzinfo=timezone.utc)
+
+    # First db.query() call returns last-contact rows; second returns avg-response.
+    last_contact_q = MagicMock()
+    last_contact_q.join.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = [
+        ("if skadeforsikring", last_at),
+    ]
+    avg_response_q = MagicMock()
+    avg_response_q.join.return_value.filter.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = [
+        ("if skadeforsikring", 86400.0 * 3.5),  # 3.5 days in seconds
+    ]
+    db.query.side_effect = [last_contact_q, avg_response_q]
+
+    result = list_insurers(user=_user(firm_id=42), svc=svc, db=db)
+    assert result[0]["last_contact_at"] == last_at.isoformat()
+    assert result[0]["avg_response_days"] == 3.5
 
 
 def test_create_insurer_returns_serialized_row():
