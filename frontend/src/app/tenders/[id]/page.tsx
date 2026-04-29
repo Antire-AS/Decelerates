@@ -37,6 +37,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
+import TenderChatPanel from "@/components/tenders/TenderChatPanel";
 
 // Mockup §7 from 2026-04-25 polish plan: 5-step horizontal indicator at the
 // top of /tenders/[id]. Per CLAUDE.md UX rule (F07/F19 audit): use ✓ for
@@ -621,6 +622,18 @@ export default function TenderDetailPage() {
 
       {/* AI Analysis result */}
       {analysis && <AnalysisSection analysis={analysis} />}
+
+      <TenderChatPanel
+        tender={{
+          title: tender.title,
+          orgnr: tender.orgnr,
+          product_types: tender.product_types,
+          deadline: tender.deadline,
+          recipient_count: tender.recipients.length,
+          offer_count: tender.offers.length,
+          status: tender.status,
+        }}
+      />
     </div>
   );
 }
