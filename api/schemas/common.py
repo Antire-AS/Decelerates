@@ -38,5 +38,12 @@ class BrokerNoteBody(BaseModel):
     text: str
 
 
+class TenderChatRequest(BaseModel):
+    question: str
+    tender_context: Optional[str] = None
+    session_id: Optional[int] = None
+    pre_thinking: Optional[str] = None  # thinking from pass 1, skip re-generation
+
+
 # Backward compat alias
 _BrokerNoteBody = BrokerNoteBody

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import useSWR from "swr";
+import { listTenderSessions, deleteTenderSession, type TenderChatSession } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useI18n, useT } from "@/lib/i18n";
 import {
@@ -23,10 +25,15 @@ import {
   Building2,
   Crosshair,
   Menu,
-  Trello,
+  KanbanSquare,
   X,
+  MessageSquare,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
+import GlobalChatButton from "./GlobalChatButton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { A11yPanel } from "@/components/a11y/a11y-panel";
@@ -41,7 +48,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 const NAV_ITEMS = [
   { href: "/dashboard",   label: "Hjem",                 icon: LayoutDashboard },
   { href: "/search",      label: "Selskapsøk",           icon: Search },
-  { href: "/pipeline",    label: "Pipeline",             icon: Trello },
+  { href: "/pipeline",    label: "Pipeline",             icon: KanbanSquare },
   { href: "/portfolio",   label: "Portefølje",           icon: BarChart2 },
   { href: "/prospecting", label: "Prospektering",        icon: Crosshair },
   { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw },
@@ -52,6 +59,101 @@ const NAV_ITEMS = [
   { href: "/knowledge",   label: "Kunnskapsbase",        icon: BookOpen },
   { href: "/admin",       label: "Admin",                icon: Settings },
 ];
+
+function TenderSessionsNav({ onNavClick }: { onNavClick?: () => void }) {
+  const [pinnedId, setPinnedId] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    return Number(new URLSearchParams(window.location.search).get("session")) || null;
+  });
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+
+  const { data: rawSessions, mutate } = useSWR<TenderChatSession[]>(
+    "tender-sessions-nav",
+    listTenderSessions,
+    { refreshInterval: 30000 },
+  );
+
+  const sessions = useMemo(() => {
+    if (!rawSessions) return [];
+    if (!pinnedId) return rawSessions;
+    const pinned = rawSessions.find((s) => s.id === pinnedId);
+    if (!pinned) return rawSessions;
+    return [pinned, ...rawSessions.filter((s) => s.id !== pinnedId)];
+  }, [rawSessions, pinnedId]);
+
+  if (!sessions.length) return null;
+
+  function handleClick(id: number) {
+    setPinnedId(id);
+  }
+
+  function requestDelete(id: number, e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmId(id);
+  }
+
+  async function confirmDelete() {
+    if (!confirmId) return;
+    await deleteTenderSession(confirmId).catch(() => {});
+    setConfirmId(null);
+    mutate();
+  }
+
+  return (
+    <>
+    <div className="px-2 pb-2 border-t border-border pt-2">
+      <div className="flex items-center justify-between px-2 mb-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Samtaler
+        </span>
+        <Link
+          href="/tenders"
+          onClick={onNavClick}
+          className="text-muted-foreground hover:text-primary"
+          title="Ny samtale"
+        >
+          <Plus className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="max-h-36 overflow-y-auto space-y-0.5 sidebar-sessions-scroll">
+        {sessions.map((s) => (
+          <Link
+            key={s.id}
+            href={`/tenders?session=${s.id}`}
+            onClick={() => { handleClick(s.id); onNavClick?.(); }}
+            className={cn(
+              "group flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors",
+              s.id === pinnedId
+                ? "bg-muted text-foreground font-medium"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            )}
+          >
+            <span className="truncate flex-1">{s.title}</span>
+            <button
+              onClick={(e) => requestDelete(s.id, e)}
+              className="opacity-0 group-hover:opacity-100 hover:text-red-500 flex-shrink-0 ml-1"
+              title="Slett samtale"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </Link>
+        ))}
+      </div>
+    </div>
+
+    <ConfirmDialog
+      open={confirmId !== null}
+      onOpenChange={(o: boolean) => { if (!o) setConfirmId(null); }}
+      title="Slett denne samtalen?"
+      description="Handlingen kan ikke angres."
+      confirmLabel="Slett"
+      destructive
+      onConfirm={confirmDelete}
+    />
+    </>
+  );
+}
 
 function SidebarContent({
   pathname,
@@ -81,7 +183,7 @@ function SidebarContent({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <nav className="px-2 py-2 space-y-0.5">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname.startsWith(href);
           return (
@@ -102,8 +204,14 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Language toggle + user */}
-      <div className="px-3 py-3 border-t border-border space-y-1">
+      {/* Tender chat sessions — shown only on /tenders routes */}
+      <TenderSessionsNav onNavClick={onNavClick} />
+
+      {/* Spacer pushes footer to bottom */}
+      <div className="flex-1" />
+
+      {/* Footer */}
+      <div className="px-2 py-2 border-t border-border space-y-0.5">
         <button
           onClick={() => (window as { __openOnboarding?: () => void }).__openOnboarding?.()}
           className="nav-item w-full"
@@ -125,7 +233,6 @@ function SidebarContent({
           <Globe className="w-4 h-4 flex-shrink-0" />
           <span>{lang === "no" ? "🇳🇴 Norsk" : "🇬🇧 English"}</span>
         </button>
-
         {session?.user && (
           <>
             <div className="nav-item pointer-events-none opacity-70">
@@ -191,6 +298,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <OnboardingTour />
+      {!pathname.startsWith("/tenders") && <GlobalChatButton />}
 
       {/* ── Main content ────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">

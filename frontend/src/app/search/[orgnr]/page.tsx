@@ -181,8 +181,10 @@ export default function OrgProfilePage({
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-4 h-4" />
-        {T("Tilbake til søk")}
+        {T("Selskapsøk")}
       </Link>
+      <span className="text-muted-foreground/50 mx-1 text-sm">/</span>
+      <span className="text-sm text-foreground font-medium truncate max-w-xs">{String(org.navn ?? orgnr)}</span>
 
       {/* Company header — header + risk badge stack on mobile, side-by-side on sm+ */}
       <div className="broker-card">

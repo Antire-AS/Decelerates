@@ -58,11 +58,16 @@ def run_migrations_online() -> None:
     exist (IF NOT EXISTS in migration DDL).
     """
     section = config.get_section(config.config_ini_section, {})
+    # Neon's PgBouncer pooler rejects statement_timeout as a startup parameter.
+    _connect_args = (
+        {} if "neon.tech" in _db_url
+        else {"options": "-c statement_timeout=60000 -c lock_timeout=30000"}
+    )
     connectable = engine_from_config(
         section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        connect_args={"options": "-c statement_timeout=60000 -c lock_timeout=30000"},
+        connect_args=_connect_args,
     )
     with connectable.connect() as connection:
         context.configure(

@@ -237,7 +237,7 @@ export default function PipelinePage() {
                       <button
                         onClick={() => setPendingDelete(d)}
                         className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-red-500"
-                        title={T("Slett")}
+                        aria-label={T("Slett deal")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

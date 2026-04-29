@@ -12,7 +12,9 @@ import {
   updateTender,
   downloadTenderPresentationPdf,
   type Tender,
+  type TenderListItem,
 } from "@/lib/api";
+import TenderChatPanel from "@/components/tenders/TenderChatPanel";
 import {
   ArrowLeft,
   Send,
@@ -149,8 +151,21 @@ export default function TenderDetailPage() {
   }
   const analysis = tender.analysis_result as AnalysisResult | undefined;
 
+  const tenderAsListItem: TenderListItem = {
+    id: tender.id,
+    orgnr: tender.orgnr,
+    title: tender.title,
+    product_types: tender.product_types,
+    deadline: tender.deadline,
+    status: tender.status,
+    recipient_count: tender.recipients?.length ?? 0,
+    offer_count: tender.offers?.length ?? 0,
+    created_at: tender.created_at,
+  };
+
   return (
-    <div>
+    <div className="flex gap-6 items-start">
+      <div className="flex-1 min-w-0">
       {/* Header */}
       <Link href="/tenders" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" />
@@ -329,6 +344,11 @@ export default function TenderDetailPage() {
 
       {/* AI Analysis result */}
       {analysis && <AnalysisSection analysis={analysis} />}
+      </div>
+
+      <div className="w-80 xl:w-96 flex-shrink-0 sticky top-6 -mr-4 md:-mr-6 xl:-mr-8">
+        <TenderChatPanel tenders={[tenderAsListItem]} />
+      </div>
     </div>
   );
 }
