@@ -155,8 +155,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { lang, setLang } = useI18n();
   const { data: session } = useSession();
 
-  // Public routes (client portal) — render without the broker shell
-  if (pathname.startsWith("/portal")) {
+  // Public routes — render without the broker shell.
+  // /portal: token-based customer view (no NextAuth session)
+  // /login:  pre-auth screen, must be centered without sidebar offset
+  if (pathname.startsWith("/portal") || pathname === "/login") {
     return <>{children}</>;
   }
 
