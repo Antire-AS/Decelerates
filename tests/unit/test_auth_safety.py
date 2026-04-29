@@ -123,3 +123,61 @@ def test_get_current_user_requires_token_in_dev_without_optin(monkeypatch):
     with pytest.raises(HTTPException) as excinfo:
         get_current_user(creds=None, db=None)
     assert excinfo.value.status_code == 401
+
+
+# ── AUTH allowlist (AUTH_ALLOWED_DOMAINS / AUTH_ALLOWED_EMAILS) ─────────────
+class TestAllowlist:
+    """Domain + email allowlist guards token-validated logins on prod."""
+
+    def test_fail_open_when_both_unset(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.delenv("AUTH_ALLOWED_DOMAINS", raising=False)
+        monkeypatch.delenv("AUTH_ALLOWED_EMAILS", raising=False)
+        assert _is_email_authorized("anyone@anywhere.com")
+
+    def test_domain_match(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.setenv("AUTH_ALLOWED_DOMAINS", "antire.no")
+        monkeypatch.delenv("AUTH_ALLOWED_EMAILS", raising=False)
+        assert _is_email_authorized("user@antire.no")
+        assert not _is_email_authorized("user@gmail.com")
+
+    def test_email_match(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.delenv("AUTH_ALLOWED_DOMAINS", raising=False)
+        monkeypatch.setenv("AUTH_ALLOWED_EMAILS", "tharu281001@gmail.com")
+        assert _is_email_authorized("tharu281001@gmail.com")
+        assert not _is_email_authorized("other@gmail.com")
+
+    def test_combined_domain_or_email(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.setenv("AUTH_ALLOWED_DOMAINS", "antire.no")
+        monkeypatch.setenv("AUTH_ALLOWED_EMAILS", "tharu281001@gmail.com")
+        assert _is_email_authorized("ola@antire.no")
+        assert _is_email_authorized("tharu281001@gmail.com")
+        assert not _is_email_authorized("attacker@gmail.com")
+
+    def test_case_insensitive(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.setenv("AUTH_ALLOWED_DOMAINS", "Antire.NO")
+        assert _is_email_authorized("USER@antire.no")
+        assert _is_email_authorized("user@ANTIRE.NO")
+
+    def test_csv_whitespace_trimmed(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.setenv("AUTH_ALLOWED_EMAILS", " a@x.com , b@y.com ")
+        assert _is_email_authorized("a@x.com")
+        assert _is_email_authorized("b@y.com")
+
+    def test_empty_email_rejected(self, monkeypatch):
+        from api.auth import _is_email_authorized
+
+        monkeypatch.setenv("AUTH_ALLOWED_DOMAINS", "antire.no")
+        assert not _is_email_authorized("")
+        assert not _is_email_authorized(None)  # type: ignore[arg-type]

@@ -99,6 +99,8 @@ export type OrgChatOut          = Schema["OrgChatOut"];
 export type DocumentChatOut     = Schema["DocumentChatOut"];
 export type DocumentCompareOut  = Schema["DocumentCompareOut"];
 export type DocumentKeypointsOut = Schema["DocumentKeypointsOut"];
+export type PremiumTrendOut     = Schema["PremiumTrendOut"];
+export type PremiumTrendPoint   = Schema["PremiumTrendPoint"];
 
 // Deal pipeline (plan §🟢 #9). Every endpoint declares response_model on the
 // backend, so these are exact contract aliases — never an inline shape.
@@ -257,6 +259,7 @@ export const getCompanies = (
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export const getDashboard = () => apiFetch<DashboardData>("/dashboard");
+export const getPremiumTrend = () => apiFetch<PremiumTrendOut>("/dashboard/premium-trend");
 
 // ── CRM ───────────────────────────────────────────────────────────────────────
 

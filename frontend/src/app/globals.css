@@ -174,6 +174,28 @@ html[data-reduced-motion="true"] *::after {
   scroll-behavior: auto !important;
 }
 
+/* Warm sepia palette — easier on the eyes for long reading sessions.
+   Pairs with `next-themes` class="warm" toggled via the Tilgjengelighet panel. */
+html.warm {
+  --background:      36 35% 92%;     /* cream */
+  --foreground:      28 35% 18%;     /* deep brown */
+  --card:            36 35% 95%;
+  --card-foreground: 28 35% 18%;
+  --popover:         36 35% 95%;
+  --popover-foreground: 28 35% 18%;
+  --primary:         28 60% 28%;     /* warm amber-brown */
+  --primary-foreground: 36 35% 96%;
+  --secondary:       36 30% 86%;
+  --secondary-foreground: 28 35% 22%;
+  --muted:           36 25% 88%;
+  --muted-foreground: 28 25% 35%;
+  --accent:          36 30% 84%;
+  --accent-foreground: 28 35% 22%;
+  --border:          28 20% 70%;
+  --input:           28 20% 70%;
+  --ring:            28 60% 35%;
+}
+
 /* A11y preferences — high contrast */
 html[data-high-contrast="true"] {
   --background:      0 0% 100%;

@@ -30,10 +30,90 @@ import {
   FileDown,
   AlertTriangle,
   Loader2,
+  Check,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/cn";
+
+// Mockup §7 from 2026-04-25 polish plan: 5-step horizontal indicator at the
+// top of /tenders/[id]. Per CLAUDE.md UX rule (F07/F19 audit): use ✓ for
+// completed, ● for active, empty circle for upcoming — never numbers.
+type StepStatus = "done" | "active" | "upcoming";
+
+function TenderStepTracker({ tender }: { tender: Tender }) {
+  const T = useT();
+  const recipients = tender.recipients ?? [];
+  const offers = tender.offers ?? [];
+  const hasReceivedOffer =
+    recipients.some((r) => r.status === "received") || offers.length > 0;
+
+  const stepDoneFlags: boolean[] = [
+    true,                                  // Behovsanalyse — implicit on tender creation
+    recipients.length > 0,                 // Anbudspakke — package has recipients
+    tender.status !== "draft",             // Sendt — moved out of draft
+    hasReceivedOffer,                      // Mottatt — at least one offer back
+    tender.status === "analysed",          // Sammenligning — AI analysis done
+  ];
+  const labels = ["Behovsanalyse", "Anbudspakke", "Sendt", "Mottatt", "Sammenligning"];
+
+  const firstIncomplete = stepDoneFlags.findIndex((d) => !d);
+  const stepStatuses: StepStatus[] = stepDoneFlags.map((done, i) => {
+    if (done) return "done";
+    if (i === firstIncomplete) return "active";
+    return "upcoming";
+  });
+
+  return (
+    <ol className="flex items-start w-full mb-6" aria-label={T("Anbudsforløp")}>
+      {labels.map((label, i) => {
+        const status = stepStatuses[i];
+        const isLast = i === labels.length - 1;
+        return (
+          <li key={label} className={cn("flex items-start", !isLast && "flex-1")}>
+            <div className="flex flex-col items-center text-center min-w-0">
+              <div
+                aria-current={status === "active" ? "step" : undefined}
+                className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors",
+                  status === "done" && "bg-primary border-primary text-primary-foreground",
+                  status === "active" && "bg-background border-primary text-primary",
+                  status === "upcoming" && "bg-background border-border text-transparent",
+                )}
+              >
+                {status === "done" && <Check className="w-4 h-4" aria-hidden />}
+                {status === "active" && (
+                  <span className="w-2 h-2 rounded-full bg-primary" aria-hidden />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-[11px] mt-1.5 px-1 max-w-[88px] leading-tight",
+                  status === "done" && "text-foreground font-medium",
+                  status === "active" && "text-foreground font-semibold",
+                  status === "upcoming" && "text-muted-foreground",
+                )}
+              >
+                {T(label)}
+              </span>
+            </div>
+            {!isLast && (
+              <div
+                className={cn(
+                  "flex-1 h-0.5 mt-3 mx-1.5",
+                  stepDoneFlags[i] ? "bg-primary" : "bg-border",
+                )}
+                aria-hidden
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 const STATUS_BADGE: Record<string, { labelKey: string; cls: string; icon: typeof Clock }> = {
   draft: { labelKey: "Utkast", cls: "bg-gray-100 text-gray-700", icon: FileText },
@@ -212,6 +292,8 @@ export default function TenderDetailPage() {
         <ArrowLeft className="w-4 h-4" />
         {T("Tilbake til anbud")}
       </Link>
+
+      <TenderStepTracker tender={tender} />
 
       <div className="flex items-start justify-between mb-6">
         <div>
@@ -562,8 +644,29 @@ interface AnalysisSectionProps {
   };
 }
 
+// Mockup §9 polish helpers. Detects which field-type expects "lower is better"
+// (price-style) vs "higher is better" (coverage-style). Norwegian terms; exact
+// match is fine since the Gemini comparison schema uses canonical field names.
+function fieldDirection(felt: string): "lower" | "higher" | null {
+  const f = felt.toLowerCase();
+  if (/premie|pris|kostnad|egenandel/.test(f)) return "lower";
+  if (/sum|grense|dekning|maks/.test(f)) return "higher";
+  return null;
+}
+
+// Parse a Norwegian-formatted currency or number string. Returns null if the
+// value isn't a clean number (e.g. "Inkludert", "På forespørsel").
+function parseNok(v: string): number | null {
+  const cleaned = v.replace(/[^\d,.\-]/g, "").replace(/\s/g, "").replace(",", ".");
+  if (!cleaned) return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
 function AnalysisSection({ analysis }: AnalysisSectionProps) {
   const T = useT();
+  const recommended = analysis.anbefaling?.forsikringsgiver?.trim();
+
   return (
     <div className="broker-card">
       <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -573,7 +676,10 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
 
       {analysis.anbefaling && (
         <div className="bg-brand-success/10 border border-green-200 rounded-lg p-4 mb-4">
-          <h4 className="text-sm font-semibold text-green-800 mb-1">{T("Anbefaling")}</h4>
+          <h4 className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-1.5">
+            <Star className="w-4 h-4 fill-current" aria-hidden />
+            {T("Anbefaling")}
+          </h4>
           <p className="text-sm text-green-700">
             <strong>{analysis.anbefaling.forsikringsgiver}</strong>
             {" — "}
@@ -614,21 +720,75 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
                   <thead>
                     <tr className="bg-background">
                       <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Felt")}</th>
-                      {columns.map((col) => (
-                        <th key={col} className="text-left p-2 text-xs text-muted-foreground font-medium">{col}</th>
-                      ))}
+                      {columns.map((col) => {
+                        const isRec = recommended === col;
+                        return (
+                          <th
+                            key={col}
+                            className={`text-left p-2 text-xs font-medium ${
+                              isRec
+                                ? "text-green-800 bg-brand-success/10"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              {isRec && <Star className="w-3 h-3 text-green-700 fill-current" aria-hidden />}
+                              {col}
+                            </span>
+                          </th>
+                        );
+                      })}
                       <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Kommentar")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cat.felter?.map((f, fi) => {
                       const isLow = f.konfidens === "lav";
+                      // Best-cell highlight: only on rows where the field name
+                      // implies a clear "lower/higher is better" semantic AND
+                      // we can parse ≥2 numeric values across columns.
+                      const direction = fieldDirection(f.felt);
+                      const numericByCol: Record<string, number> = {};
+                      if (direction && f.verdier) {
+                        for (const [col, v] of Object.entries(f.verdier)) {
+                          const n = parseNok(v);
+                          if (n !== null) numericByCol[col] = n;
+                        }
+                      }
+                      const numericCols = Object.keys(numericByCol);
+                      let bestCol: string | null = null;
+                      if (direction && numericCols.length >= 2) {
+                        bestCol = numericCols.reduce((best, col) =>
+                          (direction === "lower"
+                            ? numericByCol[col] < numericByCol[best]
+                            : numericByCol[col] > numericByCol[best])
+                            ? col
+                            : best,
+                        );
+                      }
                       return (
                         <tr key={fi} className={`border-b border-border ${isLow ? "bg-yellow-50" : ""}`}>
                           <td className="p-2 font-medium text-foreground">{f.felt}</td>
-                          {f.verdier && Object.values(f.verdier).map((v, vi) => (
-                            <td key={vi} className="p-2 text-muted-foreground">{v}</td>
-                          ))}
+                          {f.verdier && columns.map((col) => {
+                            const v = f.verdier?.[col] ?? "";
+                            const isRec = recommended === col;
+                            const isBest = bestCol === col;
+                            return (
+                              <td
+                                key={col}
+                                className={`p-2 ${
+                                  isBest
+                                    ? "text-green-800 font-semibold bg-brand-success/10"
+                                    : isRec
+                                      ? "text-foreground bg-brand-success/5"
+                                      : "text-muted-foreground"
+                                }`}
+                                title={isBest ? T("Beste verdi i denne raden") : undefined}
+                              >
+                                {v}
+                              </td>
+                            );
+                          })}
                           <td className="p-2 text-muted-foreground text-xs">
                             {f.kommentar}
                             {isLow && (

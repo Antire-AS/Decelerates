@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import {
-  Building2, Plus, Trash2, ChevronDown, ChevronUp, Pencil, X,
+  Building2, Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Clock, Timer,
 } from "lucide-react";
 import {
   getInsurers, createInsurer, updateInsurer, deleteInsurer,
@@ -208,21 +208,50 @@ function InsurerCard({
     setEditing(false);
   }
 
+  // Format "X dager siden" (Norwegian relative time) for last_contact_at.
+  // Pulls weight by being explicit about the bucket: today, yesterday, days,
+  // weeks, months. Avoids fragile dependency on date-fns/Intl.RelativeTimeFormat
+  // — Tailwind's text class handles the typography.
+  const relativeDaysSince = (iso?: string | null): string | null => {
+    if (!iso) return null;
+    const ms = Date.now() - new Date(iso).getTime();
+    if (ms < 0) return null;
+    const days = Math.floor(ms / 86_400_000);
+    if (days === 0) return T("i dag");
+    if (days === 1) return T("i går");
+    if (days < 30) return `${days} ${T("dager siden")}`;
+    if (days < 365) return `${Math.floor(days / 30)} ${T("mnd siden")}`;
+    return `${Math.floor(days / 365)} ${T("år siden")}`;
+  };
+  const lastContact = relativeDaysSince(insurer.last_contact_at);
+
   return (
     <div className="broker-card">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
             <Building2 className="w-4 h-4 text-primary" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{insurer.name}</p>
-            {insurer.org_number && (
-              <p className="text-xs text-muted-foreground">{T("Org.nr")} {insurer.org_number}</p>
-            )}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
+              {insurer.org_number && <span>{T("Org.nr")} {insurer.org_number}</span>}
+              {lastContact && (
+                <span className="inline-flex items-center gap-1" title={insurer.last_contact_at ?? undefined}>
+                  <Clock className="w-3 h-3" aria-hidden />
+                  {T("Sist kontaktet")} {lastContact}
+                </span>
+              )}
+              {insurer.avg_response_days != null && insurer.avg_response_days >= 0 && (
+                <span className="inline-flex items-center gap-1" title={T("Snitt fra forespørsel sendt til svar mottatt")}>
+                  <Timer className="w-3 h-3" aria-hidden />
+                  {T("Snittsvar")} {insurer.avg_response_days.toFixed(1)} {T("dager")}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => { setOpen((v) => !v); setEditing(false); }}
             className="text-xs text-primary hover:underline flex items-center gap-1"

@@ -27,9 +27,9 @@ jobs:
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
-            # POC mode: use "staging" so AUTH_DISABLED=1 is honored.
-            # When Azure AD SSO is configured, change back to "production".
-            echo "environment=staging" >> $GITHUB_OUTPUT
+            # Real auth: NextAuth (Google + Azure AD) forwards id_token via
+            # providers.tsx AuthGate; backend validates per api/auth.py.
+            echo "environment=production" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
             echo "frontend_app=ca-frontend" >> $GITHUB_OUTPUT
@@ -130,6 +130,8 @@ jobs:
             "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b"
             "AZURE_TENANT_ID=common"
             "AUTH_AUDIENCE=${{ secrets.FRONTEND_AZURE_AD_CLIENT_ID }}"
+            "AUTH_ALLOWED_DOMAINS=antire.no"
+            "AUTH_ALLOWED_EMAILS=tharu281001@gmail.com"
             "BROKER_FIRM_NAME=${{ secrets.BROKER_FIRM_NAME }}"
             "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
             "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
@@ -200,6 +202,12 @@ jobs:
 
           # Fetch the current container spec, update image + probe in one PATCH
           CURRENT=$(az rest --method GET --url "$API_URL" --query "properties.template.containers[0]" -o json)
+          # revisionSuffix forces a new revision even when the image SHA
+          # matches what's already deployed (eg. workflow re-runs on the
+          # same commit, or recovery deploys after the previous run failed
+          # mid-workflow). Without this, the PATCH is a no-op when the
+          # spec is unchanged and `latestRevisionName` never advances —
+          # caused tonight's recovery to stall (run 25079652656 re-run).
           PATCHED=$(echo "$CURRENT" | python3 -c "
           import sys, json
           c = json.load(sys.stdin)
@@ -212,7 +220,8 @@ jobs:
             'failureThreshold': 30,
             'timeoutSeconds': 10
           }]
-          print(json.dumps({'properties': {'template': {'containers': [c]}}}))
+          tmpl = {'revisionSuffix': 'r${{ github.run_id }}-${{ github.run_attempt }}', 'containers': [c]}
+          print(json.dumps({'properties': {'template': tmpl}}))
           ")
           source /tmp/retry-on-provisioning.sh
           retry_on_provisioning az rest --method PATCH --url "$API_URL" \
@@ -391,16 +400,33 @@ jobs:
           # Deactivate every active revision except the one serving.
           # Errors are logged but don't fail the deploy — a stuck zombie
           # is bad but not bad enough to fail a green canary.
+          #
+          # Concurrent-deploy guard: skip revisions created within the last
+          # 10 min. They almost certainly belong to a sibling deploy.yml run
+          # (typical with two [skip-staging] PRs merging in close succession)
+          # whose canary watchdog hasn't yet promoted them to 100%. If we
+          # deactivate them here, the sibling's Finalize step will then set
+          # 100% traffic on a deactivated revision → "Container App
+          # Unavailable" until a human re-activates it. Triggered prod
+          # outage on 2026-04-29 (#288 deactivated #289's brand-new revision
+          # before #289 finished its canary window).
+          CUTOFF_TS=$(($(date +%s) - 600))
           ZOMBIES=$(az containerapp revision list --name "$APP" \
             --resource-group "$RG" \
-            --query "[?properties.active && name != '$HUNDRED_REV'].name" \
+            --query "[?properties.active && name != '$HUNDRED_REV'].[name, properties.createdTime]" \
             -o tsv)
-          for REV in $ZOMBIES; do
-            echo "  deactivating $REV"
+          while IFS=$'\t' read -r REV CREATED; do
+            [ -z "$REV" ] && continue
+            REV_TS=$(date -d "$CREATED" +%s 2>/dev/null || echo 0)
+            if [ "$REV_TS" -gt "$CUTOFF_TS" ]; then
+              echo "  skipping $REV — created $CREATED (within 10 min, likely concurrent deploy)"
+              continue
+            fi
+            echo "  deactivating $REV (created $CREATED)"
             az containerapp revision deactivate \
               --name "$APP" --resource-group "$RG" \
               --revision "$REV" 2>&1 | tail -1 || true
-          done
+          done <<< "$ZOMBIES"
           echo "Done. Active revisions:"
           az containerapp revision list --name "$APP" --resource-group "$RG" \
             --query "[?properties.active].{name:name, traffic:properties.trafficWeight}" \
@@ -439,6 +465,8 @@ jobs:
             "AZURE_AD_TENANT_ID=common"
             "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
             "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            "AUTH_ALLOWED_DOMAINS=antire.no"
+            "AUTH_ALLOWED_EMAILS=tharu281001@gmail.com"
             "NODE_ENV=production"
           )
 
@@ -462,20 +490,31 @@ jobs:
             --image ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }} \
             --set-env-vars "${ENV_VARS[@]}"
 
-      - name: Patch frontend NEXTAUTH_URL (self-referencing FQDN)
+      - name: Patch frontend NEXTAUTH_URL
         id: frontend
+        # NEXTAUTH_URL must be the URL the user actually hits — it's the base
+        # NextAuth uses to construct OAuth `redirect_uri`. Google/Microsoft
+        # only whitelist the public domain; using the direct CA FQDN yields
+        # `redirect_uri_mismatch` 400s on every login attempt (diagnosed
+        # 2026-04-29). Staging keeps the direct FQDN since it has no
+        # custom domain bound.
         run: |
           FQDN=$(az containerapp show \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
             --query "properties.configuration.ingress.fqdn" -o tsv)
-          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            PUBLIC_URL="https://meglerai.no"
+          else
+            PUBLIC_URL="https://$FQDN"
+          fi
+          echo "url=$PUBLIC_URL" >> $GITHUB_OUTPUT
 
           source /tmp/retry-on-provisioning.sh
           retry_on_provisioning az containerapp update \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
-            --set-env-vars "NEXTAUTH_URL=https://$FQDN"
+            --set-env-vars "NEXTAUTH_URL=$PUBLIC_URL"
 
       - name: Restore custom domains (deploy can drop them)
         if: steps.config.outputs.env == 'prod'
@@ -502,23 +541,33 @@ jobs:
       # causing the revision to fail health checks during migrations.
 
       - name: Smoke test — API /ping
-        # Container Apps' direct-FQDN ingress takes 30-60s to bind to a
-        # freshly-promoted revision after Finalize. Without a longer
-        # warmup the curl returns 404 even when the new revision is
-        # healthy — the deploy is marked failed and downstream Finalize
-        # behaviour leaves prod with no active revision (2026-04-28
-        # cycle, runs 25045975218 + 25046339196 + 25046870xxx).
-        #
-        # 30s upfront + 12 retries × 10s + retry-all-errors (covers 4xx
-        # too, default --retry only retries 5xx + connection failures).
-        # Total budget ~2.5 min — well over the observed 30-90s window.
+        # In prod, hit the public URL (meglerai.no/bapi/ping) instead of
+        # the direct Container Apps FQDN. The CA direct FQDN can stay
+        # completely unreachable (curl 000 timeout) for 5-10+ minutes
+        # after a deploy in prod — even though the new revision is
+        # genuinely healthy and serving via the custom domain. The 2.5-
+        # minute budget added in #268 wasn't enough; runs 25048832827
+        # and 25049141406 both failed on this exact pattern.
+        # The customer-facing URL is what matters and is more resilient
+        # through revision swaps (Cloudflare proxies). Staging keeps
+        # the direct FQDN — no public URL in front of it.
         run: |
           sleep 30
-          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
-            "${{ steps.api.outputs.url }}/ping"
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            URL="https://meglerai.no/bapi/ping"
+          else
+            URL="${{ steps.api.outputs.url }}/ping"
+          fi
+          echo "Smoke target: $URL"
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$URL"
 
       - name: Smoke test — frontend
         run: |
           sleep 30
-          curl --fail --retry 12 --retry-delay 10 --retry-all-errors \
-            "${{ steps.frontend.outputs.url }}/"
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            URL="https://meglerai.no/"
+          else
+            URL="${{ steps.frontend.outputs.url }}/"
+          fi
+          echo "Smoke target: $URL"
+          curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$URL"

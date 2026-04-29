@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import useSWR from "swr";
-import { getDashboard, getCompanies, type DashboardData, type Company } from "@/lib/api";
+import { getDashboard, getCompanies, getRenewals, type DashboardData, type Company, type Renewal } from "@/lib/api";
 import MetricCard from "@/components/dashboard/MetricCard";
+import PremiumTrendCard from "@/components/dashboard/PremiumTrendCard";
 import RiskBadge from "@/components/company/RiskBadge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Search, RotateCcw, BarChart2, FolderOpen, AlertTriangle } from "lucide-react";
+import { Search, BarChart2, AlertTriangle, ClipboardCheck, FilePlus2, Calendar, ChevronRight } from "lucide-react";
 import { fmt } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 
@@ -28,6 +29,16 @@ export default function DashboardPage() {
   );
 
   const hasCrm = Boolean(data && (data.total_active_policies ?? 0) > 0);
+
+  const shouldFetchRenewals = hasCrm && (data?.renewals_30d ?? 0) > 0;
+  const { data: renewals } = useSWR<Renewal[]>(
+    shouldFetchRenewals ? "dashboard-top-renewals" : null,
+    () => getRenewals(30),
+  );
+  const topRenewals = (renewals ?? [])
+    .slice()
+    .sort((a, b) => a.days_until_renewal - b.days_until_renewal)
+    .slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -76,6 +87,8 @@ export default function DashboardPage() {
             <MetricCard label={T("Aktiviteter forfalt")} value={data.activities_due} />
           </div>
 
+          {hasCrm && <PremiumTrendCard />}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Premium book */}
             <div className="broker-card space-y-2">
@@ -114,6 +127,56 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Top 3 upcoming renewals — surfaces the actual policies, so the
+              broker doesn't have to bounce to /renewals just to see what's
+              landing. Only renders when ≥1 renewal is due in 30 days. */}
+          {topRenewals.length > 0 && (
+            <div className="broker-card">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Forfaller først
+                </h2>
+                <Link
+                  href="/renewals"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  Se alle
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {topRenewals.map((r) => {
+                  const days = r.days_until_renewal;
+                  const urgencyClass =
+                    days <= 14 ? "text-red-700 bg-red-100"
+                    : days <= 30 ? "text-amber-700 bg-amber-100"
+                    : "text-muted-foreground bg-muted";
+                  const premium = r.annual_premium_nok ?? r.premium ?? 0;
+                  return (
+                    <Link
+                      key={r.id}
+                      href={`/search/${r.orgnr}`}
+                      className="flex items-center gap-3 px-3 py-2 -mx-3 rounded-md hover:bg-muted transition-colors"
+                    >
+                      <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {r.client_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {r.product_type ?? r.insurance_type} · kr {fmt(premium)}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${urgencyClass}`}>
+                        {days <= 0 ? "I dag" : `${days} d`}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Recent activities */}
           {data.recent_activities?.length > 0 && (
             <div className="broker-card">
@@ -141,25 +204,37 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Quick navigation */}
+      {/* Hurtighandlinger — verb-first quick actions matching mockup 135111
+          (megler-bilder polish §3 partial). Each card answers "what's the
+          next thing I should do?" rather than just listing destinations. */}
       <div className="broker-card">
-        <h2 className="text-sm font-semibold text-foreground mb-3">Hurtignavigering</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-3">{T("Hurtighandlinger")}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: "/search",    label: "Selskapsøk",  icon: Search },
-            { href: "/renewals",  label: "Fornyelser",  icon: RotateCcw },
-            { href: "/portfolio", label: "Portefølje",  icon: BarChart2 },
-            { href: "/knowledge", label: "Kunnskapsbase", icon: FolderOpen },
-          ].map(({ href, label, icon: Icon }) => (
+            { href: "/search",     label: T("Søk selskap"),       icon: Search,         hint: "⌘K" },
+            { href: "/idd",        label: T("Ny behovsanalyse"),  icon: ClipboardCheck, hint: null },
+            { href: "/tenders",    label: T("Generer anbudspakke"), icon: FilePlus2,    hint: null },
+            { href: "/portfolio",  label: T("Vis portefølje"),    icon: BarChart2,      hint: null },
+          ].map(({ href, label, icon: Icon, hint }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg
+              className="group relative flex flex-col items-start gap-1.5 px-4 py-3 rounded-lg
                          bg-primary text-primary-foreground text-sm font-medium
                          hover:bg-primary/90 transition-colors"
             >
-              <Icon className="w-4 h-4" />
-              {label}
+              <div className="flex items-center gap-2 w-full">
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1">{label}</span>
+                {hint && (
+                  <kbd
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground/90"
+                    aria-hidden
+                  >
+                    {hint}
+                  </kbd>
+                )}
+              </div>
             </Link>
           ))}
         </div>
