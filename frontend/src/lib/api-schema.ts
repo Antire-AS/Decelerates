@@ -913,9 +913,14 @@ export interface paths {
          * Get Dashboard Recommendations
          * @description Top-5 actionable recommendations for the broker (mockup 10.55.56).
          *
-         *     v1 ships with empty signals — engine emits nothing until the four
-         *     indices are populated from real DB queries (claims-history-changed,
-         *     last-narrative-at, peer-overage). Tracked as follow-up.
+         *     Signals wired:
+         *       - companies: Company rows for orgnrs the firm has policies on
+         *       - claims_index: most-recent claim date per orgnr (incident_date fallback created_at)
+         *       - last_narrative_at: empty for now — narrative-at column not in schema yet,
+         *         so the stale_narrative rule fires whenever there's a fresh claim
+         *       - peer_overage_orgnrs: empty for now — compute_peer_benchmark is too
+         *         expensive to run per-company on every dashboard load; deferred to a
+         *         nightly cache table
          */
         get: operations["get_dashboard_recommendations_dashboard_recommendations_get"];
         put?: never;

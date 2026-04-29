@@ -162,6 +162,53 @@ def get_premium_trend(
     return PremiumTrendOut(months=points, yoy_delta_pct=yoy)
 
 
+def _firm_company_rows(db: Session, firm_id: int):
+    """Return Company rows for organizations the firm is brokering for.
+
+    Companies aren't directly firm-scoped — they're shared. We use the
+    Policy table to derive which orgnrs this firm cares about.
+    """
+    from api.db import Company
+
+    orgnr_rows = (
+        db.query(Policy.orgnr).filter(Policy.firm_id == firm_id).distinct().all()
+    )
+    orgnrs = [r[0] for r in orgnr_rows if r[0]]
+    if not orgnrs:
+        return []
+    return db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+
+
+def _build_companies_payload(rows) -> list[dict]:
+    out = []
+    for c in rows:
+        pep = c.pep_raw if isinstance(c.pep_raw, dict) else {}
+        out.append(
+            {
+                "orgnr": c.orgnr,
+                "navn": c.navn,
+                "pep_hit_count": int(pep.get("hit_count") or 0),
+            }
+        )
+    return out
+
+
+def _build_claims_index(db: Session, firm_id: int) -> dict:
+    """Most-recent incident_date per orgnr (falls back to created_at)."""
+    rows = (
+        db.query(
+            Claim.orgnr,
+            func.max(func.coalesce(Claim.incident_date, Claim.created_at)).label(
+                "last"
+            ),
+        )
+        .filter(Claim.firm_id == firm_id)
+        .group_by(Claim.orgnr)
+        .all()
+    )
+    return {orgnr: last for orgnr, last in rows if orgnr and last}
+
+
 @router.get(
     "/dashboard/recommendations",
     response_model=DashboardRecommendationsOut,
@@ -172,13 +219,21 @@ def get_dashboard_recommendations(
 ) -> DashboardRecommendationsOut:
     """Top-5 actionable recommendations for the broker (mockup 10.55.56).
 
-    v1 ships with empty signals — engine emits nothing until the four
-    indices are populated from real DB queries (claims-history-changed,
-    last-narrative-at, peer-overage). Tracked as follow-up.
+    Signals wired:
+      - companies: Company rows for orgnrs the firm has policies on
+      - claims_index: most-recent claim date per orgnr (incident_date fallback created_at)
+      - last_narrative_at: empty for now — narrative-at column not in schema yet,
+        so the stale_narrative rule fires whenever there's a fresh claim
+      - peer_overage_orgnrs: empty for now — compute_peer_benchmark is too
+        expensive to run per-company on every dashboard load; deferred to a
+        nightly cache table
     """
+    rows = _firm_company_rows(db, user.firm_id)
+    companies = _build_companies_payload(rows)
+    claims_index = _build_claims_index(db, user.firm_id)
     items = compute_recommendations(
-        companies=[],
-        claims_index={},
+        companies=companies,
+        claims_index=claims_index,
         last_narrative_at={},
         peer_overage_orgnrs=set(),
     )
