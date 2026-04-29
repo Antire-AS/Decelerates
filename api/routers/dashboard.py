@@ -146,7 +146,9 @@ def get_premium_trend(
             )
             .scalar()
         ) or 0.0
-        points.append(PremiumTrendPoint(month=m_end.strftime("%Y-%m"), premium_book=float(total)))
+        points.append(
+            PremiumTrendPoint(month=m_end.strftime("%Y-%m"), premium_book=float(total))
+        )
 
     oldest = points[0].premium_book
     newest = points[-1].premium_book
