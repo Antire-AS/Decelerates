@@ -171,10 +171,7 @@ def _firm_company_rows(db: Session, firm_id: int):
     from api.db import Company
 
     orgnr_rows = (
-        db.query(Policy.orgnr)
-        .filter(Policy.firm_id == firm_id)
-        .distinct()
-        .all()
+        db.query(Policy.orgnr).filter(Policy.firm_id == firm_id).distinct().all()
     )
     orgnrs = [r[0] for r in orgnr_rows if r[0]]
     if not orgnrs:
@@ -201,7 +198,9 @@ def _build_claims_index(db: Session, firm_id: int) -> dict:
     rows = (
         db.query(
             Claim.orgnr,
-            func.max(func.coalesce(Claim.incident_date, Claim.created_at)).label("last"),
+            func.max(func.coalesce(Claim.incident_date, Claim.created_at)).label(
+                "last"
+            ),
         )
         .filter(Claim.firm_id == firm_id)
         .group_by(Claim.orgnr)
