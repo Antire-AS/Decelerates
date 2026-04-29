@@ -264,13 +264,10 @@ export const getCompanies = (
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export const getDashboard = () => apiFetch<DashboardData>("/dashboard");
-<<<<<<< HEAD
 export const getAdminMetrics = () => apiFetch<AdminMetricsOut>("/admin/metrics");
 export const getServicesHealth = () => apiFetch<ServicesHealthOut>("/admin/services-health");
-=======
 export const getDashboardRecommendations = () =>
   apiFetch<DashboardRecommendationsOut>("/dashboard/recommendations");
->>>>>>> ad12f0d (feat(dashboard): AI-anbefalinger panel (mockup 10.55.56))
 export const getPremiumTrend = () => apiFetch<PremiumTrendOut>("/dashboard/premium-trend");
 
 // ── CRM ───────────────────────────────────────────────────────────────────────
