@@ -469,20 +469,31 @@ jobs:
             --image ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }} \
             --set-env-vars "${ENV_VARS[@]}"
 
-      - name: Patch frontend NEXTAUTH_URL (self-referencing FQDN)
+      - name: Patch frontend NEXTAUTH_URL
         id: frontend
+        # NEXTAUTH_URL must be the URL the user actually hits — it's the base
+        # NextAuth uses to construct OAuth `redirect_uri`. Google/Microsoft
+        # only whitelist the public domain; using the direct CA FQDN yields
+        # `redirect_uri_mismatch` 400s on every login attempt (diagnosed
+        # 2026-04-29). Staging keeps the direct FQDN since it has no
+        # custom domain bound.
         run: |
           FQDN=$(az containerapp show \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
             --query "properties.configuration.ingress.fqdn" -o tsv)
-          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+          if [ "${{ steps.config.outputs.env }}" = "prod" ]; then
+            PUBLIC_URL="https://meglerai.no"
+          else
+            PUBLIC_URL="https://$FQDN"
+          fi
+          echo "url=$PUBLIC_URL" >> $GITHUB_OUTPUT
 
           source /tmp/retry-on-provisioning.sh
           retry_on_provisioning az containerapp update \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
-            --set-env-vars "NEXTAUTH_URL=https://$FQDN"
+            --set-env-vars "NEXTAUTH_URL=$PUBLIC_URL"
 
       - name: Restore custom domains (deploy can drop them)
         if: steps.config.outputs.env == 'prod'
