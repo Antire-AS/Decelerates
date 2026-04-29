@@ -5,7 +5,56 @@ Inputs are explicit dicts/sets so the engine has zero I/O and is fully
 testable without a DB."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Iterable
+from typing import Iterable, Optional
+
+
+def _pep_recommendation(orgnr: Optional[str], navn: str) -> dict:
+    return {
+        "kind": "pep",
+        "orgnr": orgnr,
+        "headline": f"{navn}: PEP-treff funnet",
+        "body": "OpenSanctions har 1+ treff. Gjennomgå før neste klientmøte.",
+        "cta_label": "Se PEP-rapport",
+        "cta_href": f"/search/{orgnr}?tab=risiko",
+    }
+
+
+def _stale_narrative_recommendation(orgnr: Optional[str], navn: str) -> dict:
+    return {
+        "kind": "stale_narrative",
+        "orgnr": orgnr,
+        "headline": f"{navn}: oppdater risikoanalyse",
+        "body": "Skadehistorikk har endret seg siden siste vurdering. Generer ny narrativ.",
+        "cta_label": "Generer narrativ",
+        "cta_href": f"/search/{orgnr}?tab=oversikt",
+    }
+
+
+def _peer_overage_recommendation(n: int) -> dict:
+    return {
+        "kind": "peer_overage",
+        "orgnr": None,
+        "headline": f"{n} kunder over forventet risiko",
+        "body": "Disse selskapene har overskredet bransjebenchmark for soliditet.",
+        "cta_label": "Vis liste",
+        "cta_href": "/portfolio?filter=peer_overage",
+    }
+
+
+def _is_stale(
+    orgnr: Optional[str],
+    claims_index: dict[str, datetime],
+    last_narrative_at: dict[str, datetime],
+    fresh_claim_threshold: datetime,
+    stale_threshold: datetime,
+) -> bool:
+    last_claim = claims_index.get(orgnr or "")
+    last_narr = last_narrative_at.get(orgnr or "")
+    return bool(
+        last_claim
+        and last_claim >= fresh_claim_threshold
+        and (not last_narr or last_narr < stale_threshold)
+    )
 
 
 def compute_recommendations(
@@ -24,52 +73,18 @@ def compute_recommendations(
     """
     out: list[dict] = []
     now = datetime.now(tz=timezone.utc)
-    stale_threshold = now - timedelta(days=30)
-    fresh_claim_threshold = now - timedelta(days=30)
+    stale = now - timedelta(days=30)
+    fresh = now - timedelta(days=30)
 
     for c in companies:
         orgnr = c.get("orgnr")
         navn = c.get("navn") or orgnr or ""
         if (c.get("pep_hit_count") or 0) > 0:
-            out.append(
-                {
-                    "kind": "pep",
-                    "orgnr": orgnr,
-                    "headline": f"{navn}: PEP-treff funnet",
-                    "body": "OpenSanctions har 1+ treff. Gjennomgå før neste klientmøte.",
-                    "cta_label": "Se PEP-rapport",
-                    "cta_href": f"/search/{orgnr}?tab=risiko",
-                }
-            )
-        last_claim = claims_index.get(orgnr or "")
-        last_narr = last_narrative_at.get(orgnr or "")
-        if (
-            last_claim
-            and last_claim >= fresh_claim_threshold
-            and (not last_narr or last_narr < stale_threshold)
-        ):
-            out.append(
-                {
-                    "kind": "stale_narrative",
-                    "orgnr": orgnr,
-                    "headline": f"{navn}: oppdater risikoanalyse",
-                    "body": "Skadehistorikk har endret seg siden siste vurdering. Generer ny narrativ.",
-                    "cta_label": "Generer narrativ",
-                    "cta_href": f"/search/{orgnr}?tab=oversikt",
-                }
-            )
+            out.append(_pep_recommendation(orgnr, navn))
+        if _is_stale(orgnr, claims_index, last_narrative_at, fresh, stale):
+            out.append(_stale_narrative_recommendation(orgnr, navn))
 
     if len(peer_overage_orgnrs) >= 3:
-        n = len(peer_overage_orgnrs)
-        out.append(
-            {
-                "kind": "peer_overage",
-                "orgnr": None,
-                "headline": f"{n} kunder over forventet risiko",
-                "body": "Disse selskapene har overskredet bransjebenchmark for soliditet.",
-                "cta_label": "Vis liste",
-                "cta_href": "/portfolio?filter=peer_overage",
-            }
-        )
+        out.append(_peer_overage_recommendation(len(peer_overage_orgnrs)))
 
     return out[:5]
