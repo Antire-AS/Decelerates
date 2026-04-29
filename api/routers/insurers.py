@@ -25,7 +25,11 @@ def _get_svc(db: Session = Depends(get_db)) -> InsurerService:
     return InsurerService(db)
 
 
-def _serialize_insurer(row: Insurer) -> dict:
+def _serialize_insurer(
+    row: Insurer,
+    last_contact_at=None,
+    avg_response_days: float | None = None,
+) -> dict:
     return {
         "id": row.id,
         "firm_id": row.firm_id,
@@ -37,6 +41,12 @@ def _serialize_insurer(row: Insurer) -> dict:
         "appetite": row.appetite or [],
         "notes": row.notes,
         "created_at": row.created_at.isoformat() if row.created_at else None,
+        "last_contact_at": (
+            last_contact_at.isoformat()
+            if last_contact_at is not None and hasattr(last_contact_at, "isoformat")
+            else None
+        ),
+        "avg_response_days": avg_response_days,
     }
 
 
@@ -59,13 +69,72 @@ def _serialize_submission(row: Submission, insurer_name: str | None = None) -> d
 # ── Insurer CRUD ──────────────────────────────────────────────────────────────
 
 
+def _last_contact_by_name(db: Session, firm_id: int) -> dict[str, object]:
+    """max(sent_at) per recipient.insurer_name, scoped to one firm.
+    Lowercased name is the key — TenderRecipient.insurer_name is free text
+    the broker picked, so casing/whitespace drift from the canonical Insurer
+    name is common and we normalise both sides at lookup time."""
+    from sqlalchemy import func
+    from api.models.tender import Tender, TenderRecipient
+
+    rows = (
+        db.query(
+            func.lower(TenderRecipient.insurer_name),
+            func.max(TenderRecipient.sent_at),
+        )
+        .join(Tender, TenderRecipient.tender_id == Tender.id)
+        .filter(Tender.firm_id == firm_id)
+        .filter(TenderRecipient.sent_at.is_not(None))
+        .group_by(func.lower(TenderRecipient.insurer_name))
+        .all()
+    )
+    return {nm: ts for nm, ts in rows}
+
+
+def _avg_response_days_by_name(db: Session, firm_id: int) -> dict[str, float]:
+    """Average days between sent_at and response_at per insurer name."""
+    from sqlalchemy import func
+    from api.models.tender import Tender, TenderRecipient
+
+    rows = (
+        db.query(
+            func.lower(TenderRecipient.insurer_name),
+            func.avg(
+                func.extract(
+                    "epoch",
+                    TenderRecipient.response_at - TenderRecipient.sent_at,
+                )
+            ),
+        )
+        .join(Tender, TenderRecipient.tender_id == Tender.id)
+        .filter(Tender.firm_id == firm_id)
+        .filter(TenderRecipient.response_at.is_not(None))
+        .filter(TenderRecipient.sent_at.is_not(None))
+        .group_by(func.lower(TenderRecipient.insurer_name))
+        .all()
+    )
+    return {nm: float(secs) / 86400.0 for nm, secs in rows if secs is not None}
+
+
 @router.get("/insurers", response_model=list[InsurerOut])
 def list_insurers(
     user: CurrentUser = Depends(get_current_user),
     svc: InsurerService = Depends(_get_svc),
+    db: Session = Depends(get_db),
 ) -> list:
     rows = svc.list_insurers(user.firm_id)
-    return [_serialize_insurer(r) for r in rows]
+    if not rows:
+        return []
+    last_contact = _last_contact_by_name(db, user.firm_id)
+    avg_response = _avg_response_days_by_name(db, user.firm_id)
+    return [
+        _serialize_insurer(
+            r,
+            last_contact_at=last_contact.get(r.name.lower()),
+            avg_response_days=avg_response.get(r.name.lower()),
+        )
+        for r in rows
+    ]
 
 
 @router.post("/insurers", status_code=201)

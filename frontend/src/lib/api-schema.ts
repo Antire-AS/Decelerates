@@ -5137,6 +5137,8 @@ export interface components {
              * @default []
              */
             appetite: string[];
+            /** Avg Response Days */
+            avg_response_days?: number | null;
             /** Contact Email */
             contact_email?: string | null;
             /** Contact Name */
@@ -5149,6 +5151,8 @@ export interface components {
             firm_id: number;
             /** Id */
             id: number;
+            /** Last Contact At */
+            last_contact_at?: string | null;
             /** Name */
             name: string;
             /** Notes */

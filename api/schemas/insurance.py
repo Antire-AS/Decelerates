@@ -79,6 +79,13 @@ class InsurerOut(BaseModel):
     appetite: List[str] = []
     notes: Optional[str] = None
     created_at: Optional[str] = None
+    # Computed: max(tender_recipients.sent_at) for any tender from this firm
+    # whose recipient.insurer_name matches this insurer. None if never contacted.
+    last_contact_at: Optional[str] = None
+    # Computed: average days between sent_at and response_at across all
+    # received responses from this insurer, scoped to this firm. None when
+    # no responses recorded.
+    avg_response_days: Optional[float] = None
 
 
 class SubmissionOut(BaseModel):

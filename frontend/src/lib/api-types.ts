@@ -367,6 +367,10 @@ export interface Insurer {
   appetite?: string[];
   notes?: string;
   created_at: string;
+  // Computed: last `tender_recipients.sent_at` for this insurer (firm-scoped).
+  last_contact_at?: string | null;
+  // Computed: avg days between sent_at and response_at across received offers.
+  avg_response_days?: number | null;
 }
 
 export interface Submission {
