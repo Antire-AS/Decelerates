@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { getDashboard, getCompanies, getRenewals, type DashboardData, type Company, type Renewal } from "@/lib/api";
 import MetricCard from "@/components/dashboard/MetricCard";
 import PremiumTrendCard from "@/components/dashboard/PremiumTrendCard";
+import RecommendationsPanel from "@/components/dashboard/RecommendationsPanel";
 import RiskBadge from "@/components/company/RiskBadge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Search, BarChart2, AlertTriangle, ClipboardCheck, FilePlus2, Calendar, ChevronRight } from "lucide-react";
@@ -88,6 +89,8 @@ export default function DashboardPage() {
           </div>
 
           {hasCrm && <PremiumTrendCard />}
+
+          {hasCrm && <RecommendationsPanel />}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Premium book */}

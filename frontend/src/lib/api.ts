@@ -104,6 +104,8 @@ export type PremiumTrendPoint   = Schema["PremiumTrendPoint"];
 export type AdminMetricsOut    = Schema["AdminMetricsOut"];
 export type ServicesHealthOut  = Schema["ServicesHealthOut"];
 export type ServiceHealthItem  = Schema["ServiceHealthItem"];
+export type DashboardRecommendationsOut = Schema["DashboardRecommendationsOut"];
+export type RecommendationOut   = Schema["RecommendationOut"];
 
 // Deal pipeline (plan §🟢 #9). Every endpoint declares response_model on the
 // backend, so these are exact contract aliases — never an inline shape.
@@ -262,8 +264,13 @@ export const getCompanies = (
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export const getDashboard = () => apiFetch<DashboardData>("/dashboard");
+<<<<<<< HEAD
 export const getAdminMetrics = () => apiFetch<AdminMetricsOut>("/admin/metrics");
 export const getServicesHealth = () => apiFetch<ServicesHealthOut>("/admin/services-health");
+=======
+export const getDashboardRecommendations = () =>
+  apiFetch<DashboardRecommendationsOut>("/dashboard/recommendations");
+>>>>>>> ad12f0d (feat(dashboard): AI-anbefalinger panel (mockup 10.55.56))
 export const getPremiumTrend = () => apiFetch<PremiumTrendOut>("/dashboard/premium-trend");
 
 // ── CRM ───────────────────────────────────────────────────────────────────────
