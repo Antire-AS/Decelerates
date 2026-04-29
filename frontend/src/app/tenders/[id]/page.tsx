@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   Loader2,
   Check,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -493,8 +494,29 @@ interface AnalysisSectionProps {
   };
 }
 
+// Mockup §9 polish helpers. Detects which field-type expects "lower is better"
+// (price-style) vs "higher is better" (coverage-style). Norwegian terms; exact
+// match is fine since the Gemini comparison schema uses canonical field names.
+function fieldDirection(felt: string): "lower" | "higher" | null {
+  const f = felt.toLowerCase();
+  if (/premie|pris|kostnad|egenandel/.test(f)) return "lower";
+  if (/sum|grense|dekning|maks/.test(f)) return "higher";
+  return null;
+}
+
+// Parse a Norwegian-formatted currency or number string. Returns null if the
+// value isn't a clean number (e.g. "Inkludert", "På forespørsel").
+function parseNok(v: string): number | null {
+  const cleaned = v.replace(/[^\d,.\-]/g, "").replace(/\s/g, "").replace(",", ".");
+  if (!cleaned) return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
 function AnalysisSection({ analysis }: AnalysisSectionProps) {
   const T = useT();
+  const recommended = analysis.anbefaling?.forsikringsgiver?.trim();
+
   return (
     <div className="broker-card">
       <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -504,7 +526,10 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
 
       {analysis.anbefaling && (
         <div className="bg-brand-success/10 border border-green-200 rounded-lg p-4 mb-4">
-          <h4 className="text-sm font-semibold text-green-800 mb-1">{T("Anbefaling")}</h4>
+          <h4 className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-1.5">
+            <Star className="w-4 h-4 fill-current" aria-hidden />
+            {T("Anbefaling")}
+          </h4>
           <p className="text-sm text-green-700">
             <strong>{analysis.anbefaling.forsikringsgiver}</strong>
             {" — "}
@@ -545,21 +570,75 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
                   <thead>
                     <tr className="bg-background">
                       <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Felt")}</th>
-                      {columns.map((col) => (
-                        <th key={col} className="text-left p-2 text-xs text-muted-foreground font-medium">{col}</th>
-                      ))}
+                      {columns.map((col) => {
+                        const isRec = recommended === col;
+                        return (
+                          <th
+                            key={col}
+                            className={`text-left p-2 text-xs font-medium ${
+                              isRec
+                                ? "text-green-800 bg-brand-success/10"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              {isRec && <Star className="w-3 h-3 text-green-700 fill-current" aria-hidden />}
+                              {col}
+                            </span>
+                          </th>
+                        );
+                      })}
                       <th className="text-left p-2 text-xs text-muted-foreground font-medium">{T("Kommentar")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cat.felter?.map((f, fi) => {
                       const isLow = f.konfidens === "lav";
+                      // Best-cell highlight: only on rows where the field name
+                      // implies a clear "lower/higher is better" semantic AND
+                      // we can parse ≥2 numeric values across columns.
+                      const direction = fieldDirection(f.felt);
+                      const numericByCol: Record<string, number> = {};
+                      if (direction && f.verdier) {
+                        for (const [col, v] of Object.entries(f.verdier)) {
+                          const n = parseNok(v);
+                          if (n !== null) numericByCol[col] = n;
+                        }
+                      }
+                      const numericCols = Object.keys(numericByCol);
+                      let bestCol: string | null = null;
+                      if (direction && numericCols.length >= 2) {
+                        bestCol = numericCols.reduce((best, col) =>
+                          (direction === "lower"
+                            ? numericByCol[col] < numericByCol[best]
+                            : numericByCol[col] > numericByCol[best])
+                            ? col
+                            : best,
+                        );
+                      }
                       return (
                         <tr key={fi} className={`border-b border-border ${isLow ? "bg-yellow-50" : ""}`}>
                           <td className="p-2 font-medium text-foreground">{f.felt}</td>
-                          {f.verdier && Object.values(f.verdier).map((v, vi) => (
-                            <td key={vi} className="p-2 text-muted-foreground">{v}</td>
-                          ))}
+                          {f.verdier && columns.map((col) => {
+                            const v = f.verdier?.[col] ?? "";
+                            const isRec = recommended === col;
+                            const isBest = bestCol === col;
+                            return (
+                              <td
+                                key={col}
+                                className={`p-2 ${
+                                  isBest
+                                    ? "text-green-800 font-semibold bg-brand-success/10"
+                                    : isRec
+                                      ? "text-foreground bg-brand-success/5"
+                                      : "text-muted-foreground"
+                                }`}
+                                title={isBest ? T("Beste verdi i denne raden") : undefined}
+                              >
+                                {v}
+                              </td>
+                            );
+                          })}
                           <td className="p-2 text-muted-foreground text-xs">
                             {f.kommentar}
                             {isLow && (
