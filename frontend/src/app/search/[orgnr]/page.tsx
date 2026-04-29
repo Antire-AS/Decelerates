@@ -334,6 +334,21 @@ export default function OrgProfilePage({
         {/* ── Forsikring ──────────────────────────────────────────────── */}
         <TabsContent value="forsikring" className="mt-0 focus-visible:ring-0">
           <div className="space-y-6">
+            <div className="broker-card flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">{T("Generer forsikringstilbud")}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {T("Lag et kundevennlig PDF-tilbud med din meglerbranding og live forhåndsvisning")}
+                </p>
+              </div>
+              <Link
+                href={`/forsikringstilbud/${orgnr}`}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                {T("Åpne tilbudsbygger")}
+              </Link>
+            </div>
             <PremiumBenchmark
               revenue={(prof?.regnskap?.revenue as number | undefined) ?? undefined}
               naceSection={(prof?.org?.naeringskode1 as string | undefined) ?? undefined}
