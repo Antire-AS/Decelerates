@@ -28,6 +28,27 @@ import { useT } from "@/lib/i18n";
  *
  * Backend contract unchanged: PATCH /deals/{id}/stage + DELETE /deals/{id}.
  */
+
+// Mockup 135146: per-stage probability used to compute "Vektet verdi" header
+// metric and the per-row progress bar. Derived from stage `kind` enum so the
+// broker doesn't have to enter it per deal. If product wants per-deal override
+// later, add an optional `probability` column to the deals table.
+const STAGE_PROBABILITY: Record<string, number> = {
+  lead: 0.10,
+  qualified: 0.25,
+  quoted: 0.50,
+  bound: 0.75,
+  won: 1.00,
+  lost: 0.00,
+};
+
+function formatNok(n: number): string {
+  if (n === 0) return "0 kr";
+  if (n >= 1_000_000) return `kr ${(n / 1_000_000).toFixed(1)} mill`;
+  if (n >= 1_000) return `kr ${(n / 1_000).toFixed(0)}k`;
+  return `kr ${n.toLocaleString("no-NO")}`;
+}
+
 export default function PipelinePage() {
   const T = useT();
   const { data: stages = [], error: stagesErr, isLoading: stagesLoading } = useSWR<
@@ -102,6 +123,24 @@ export default function PipelinePage() {
     [stages, deals],
   );
 
+  const probabilityFor = (stageId: number): number => {
+    const s = stages.find((st) => st.id === stageId);
+    return s ? (STAGE_PROBABILITY[s.kind] ?? 0) : 0;
+  };
+
+  const { totalValue, weightedValue } = useMemo(() => {
+    let total = 0;
+    let weighted = 0;
+    for (const d of deals) {
+      const stage = stages.find((s) => s.id === d.stage_id);
+      if (!stage || stage.kind === "lost") continue;
+      const v = d.expected_premium_nok ?? 0;
+      total += v;
+      weighted += v * (STAGE_PROBABILITY[stage.kind] ?? 0);
+    }
+    return { totalValue: total, weightedValue: weighted };
+  }, [deals, stages]);
+
   const filteredDeals =
     stageFilter === "all" ? deals : deals.filter((d) => d.stage_id === stageFilter);
 
@@ -138,6 +177,24 @@ export default function PipelinePage() {
           <p className="text-sm text-muted-foreground">
             {T("Ingen pipeline-stages konfigurert for ditt firma. Standard stages opprettes automatisk via Alembic-migrasjonen — kontakt en admin hvis denne meldingen vises i prod.")}
           </p>
+        </div>
+      )}
+
+      {/* Pipeline header metrics — total value + probability-weighted value */}
+      {stages.length > 0 && deals.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="broker-card">
+            <p className="text-xs text-muted-foreground">{T("Samlet verdi")}</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">{formatNok(totalValue)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{T("Sum forventet årlig premie (eksklusiv tapt)")}</p>
+          </div>
+          <div className="broker-card">
+            <p className="text-xs text-muted-foreground">{T("Vektet verdi")}</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">{formatNok(weightedValue)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {T("Sannsynlighetsvektet — etter steg-stadium")}
+            </p>
+          </div>
         </div>
       )}
 
@@ -183,6 +240,9 @@ export default function PipelinePage() {
                 <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
                   {T("Steg")}
                 </th>
+                <th className="text-right py-2 pr-3 text-muted-foreground font-semibold w-32">
+                  {T("Verdi")}
+                </th>
                 <th className="text-left py-2 pr-3 text-muted-foreground font-semibold">
                   {T("Flytt til")}
                 </th>
@@ -192,7 +252,7 @@ export default function PipelinePage() {
             <tbody className="divide-y divide-border">
               {filteredDeals.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-6 text-center text-muted-foreground">
                     {T("Ingen deals i dette steget.")}
                   </td>
                 </tr>
@@ -218,6 +278,24 @@ export default function PipelinePage() {
                       <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {currentStage?.name ?? T("Ukjent")}
                       </span>
+                    </td>
+                    <td className="py-2 pr-3 text-right">
+                      {d.expected_premium_nok != null && d.expected_premium_nok > 0 ? (
+                        <div className="space-y-1">
+                          <span className="text-xs font-semibold text-foreground tabular-nums">
+                            {formatNok(d.expected_premium_nok)}
+                          </span>
+                          {/* Probability bar — derived from stage kind */}
+                          <div className="h-1 bg-muted rounded-full overflow-hidden" title={`${Math.round(probabilityFor(d.stage_id) * 100)}% sannsynlighet`}>
+                            <div
+                              className="h-full bg-primary rounded-full"
+                              style={{ width: `${Math.round(probabilityFor(d.stage_id) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="py-2 pr-3">
                       <div className="flex flex-wrap gap-1">
