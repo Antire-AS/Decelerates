@@ -902,6 +902,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Dashboard Recommendations
+         * @description Top-5 actionable recommendations for the broker (mockup 10.55.56).
+         *
+         *     v1 ships with empty signals — engine emits nothing until the four
+         *     indices are populated from real DB queries (claims-history-changed,
+         *     last-narrative-at, peer-overage). Tracked as follow-up.
+         */
+        get: operations["get_dashboard_recommendations_dashboard_recommendations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/deals": {
         parameters: {
             query?: never;
@@ -4792,6 +4816,11 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** DashboardRecommendationsOut */
+        DashboardRecommendationsOut: {
+            /** Items */
+            items?: components["schemas"]["RecommendationOut"][];
+        };
         /** DealCreate */
         DealCreate: {
             /** Expected Close Date */
@@ -5853,6 +5882,24 @@ export interface components {
             recommended_insurer: string;
             /** Submission Ids */
             submission_ids?: number[] | null;
+        };
+        /** RecommendationOut */
+        RecommendationOut: {
+            /** Body */
+            body: string;
+            /** Cta Href */
+            cta_href: string;
+            /** Cta Label */
+            cta_label: string;
+            /** Headline */
+            headline: string;
+            /**
+             * Kind
+             * @description "pep" | "stale_narrative" | "peer_overage"
+             */
+            kind: string;
+            /** Orgnr */
+            orgnr?: string | null;
         };
         /** RenewalAdvanceIn */
         RenewalAdvanceIn: {
@@ -7600,6 +7647,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PremiumTrendOut"];
+                };
+            };
+        };
+    };
+    get_dashboard_recommendations_dashboard_recommendations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardRecommendationsOut"];
                 };
             };
         };

@@ -11,6 +11,11 @@ from api.auth import CurrentUser, get_current_user
 from api.db import Policy, PolicyStatus, Claim, ClaimStatus, Activity
 from api.dependencies import get_db
 from api.schemas.dashboard import PremiumTrendOut, PremiumTrendPoint
+from api.schemas.recommendations import (
+    DashboardRecommendationsOut,
+    RecommendationOut,
+)
+from api.services.recommendations_engine import compute_recommendations
 
 router = APIRouter()
 
@@ -155,3 +160,26 @@ def get_premium_trend(
     yoy = None if oldest <= 0 else round(((newest - oldest) / oldest) * 100, 1)
 
     return PremiumTrendOut(months=points, yoy_delta_pct=yoy)
+
+
+@router.get(
+    "/dashboard/recommendations",
+    response_model=DashboardRecommendationsOut,
+)
+def get_dashboard_recommendations(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> DashboardRecommendationsOut:
+    """Top-5 actionable recommendations for the broker (mockup 10.55.56).
+
+    v1 ships with empty signals — engine emits nothing until the four
+    indices are populated from real DB queries (claims-history-changed,
+    last-narrative-at, peer-overage). Tracked as follow-up.
+    """
+    items = compute_recommendations(
+        companies=[],
+        claims_index={},
+        last_narrative_at={},
+        peer_overage_orgnrs=set(),
+    )
+    return DashboardRecommendationsOut(items=[RecommendationOut(**i) for i in items])

@@ -26,5 +26,6 @@ from api.schemas.email import *  # noqa: F401,F403
 from api.schemas.consent import *  # noqa: F401,F403
 from api.schemas.admin import *  # noqa: F401,F403
 from api.schemas.dashboard import *  # noqa: F401,F403
+from api.schemas.recommendations import *  # noqa: F401,F403
 from api.schemas.news import *  # noqa: F401,F403
 from api.schemas.inbound_email import *  # noqa: F401,F403
