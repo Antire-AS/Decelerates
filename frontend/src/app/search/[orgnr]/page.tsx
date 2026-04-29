@@ -37,6 +37,7 @@ import WhiteboardTab from "@/components/company/WhiteboardTab";
 import NewsTab from "@/components/company/tabs/NewsTab";
 import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
+import RiskPepTab from "@/components/company/tabs/RiskPepTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Loader2, FileText, Download, AlertTriangle } from "lucide-react";
@@ -50,7 +51,7 @@ export default function OrgProfilePage({
   const T = useT();
   const { bandFor } = useRiskConfig();
 
-  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat" | "fokus" | "nyheter">(
+  const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "risiko" | "forsikring" | "crm" | "notater" | "chat" | "fokus" | "nyheter">(
     "oversikt",
   );
 
@@ -260,6 +261,9 @@ export default function OrgProfilePage({
             {T("Økonomi")}
             {okonomiCount > 0 && <span className={tabBadgeCls}>{okonomiCount}</span>}
           </TabsTrigger>
+          <TabsTrigger value="risiko"     className={triggerCls}>
+            {T("Risiko & PEP")}
+          </TabsTrigger>
           <TabsTrigger value="forsikring" className={triggerCls}>
             {T("Forsikring")}
             {forsikringCount > 0 && <span className={tabBadgeCls}>{forsikringCount}</span>}
@@ -316,6 +320,14 @@ export default function OrgProfilePage({
             pdfOk={pdfOk}
             handleAddPdf={handleAddPdf}
             setPdfOk={setPdfOk}
+          />
+        </TabsContent>
+
+        {/* ── Risiko & PEP ────────────────────────────────────────────── */}
+        <TabsContent value="risiko" className="mt-0 focus-visible:ring-0">
+          <RiskPepTab
+            risk={risk as Parameters<typeof RiskPepTab>[0]["risk"]}
+            pep={pep as Parameters<typeof RiskPepTab>[0]["pep"]}
           />
         </TabsContent>
 
