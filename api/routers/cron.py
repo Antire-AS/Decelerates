@@ -397,14 +397,18 @@ def send_tender_reminders(
 @router.post("/admin/refresh-all-news")
 def refresh_all_news_endpoint(
     db: Session = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Refresh Serper news + Foundry materiality classification for every
     company that sits in at least one portfolio.
 
     Wired to a nightly GitHub Actions cron at 03:30 UTC. A second invocation
     the same day is harmless — URLs are deduped at the (orgnr, url) UNIQUE
-    constraint level so we never double-store."""
+    constraint level so we never double-store.
+
+    Auth note: cron endpoint, called by GitHub Actions without a user session.
+    Matches /admin/activity-reminders pattern. Idempotent + dedupe-safe; the
+    operation is not exposed in any user-facing UI so the cost-of-public-call
+    is bounded to one Serper batch."""
     from api.services.news_refresh_monitor import refresh_all_news
 
     return refresh_all_news(db)
@@ -413,14 +417,17 @@ def refresh_all_news_endpoint(
 @router.post("/admin/refresh-altman-snapshots")
 def refresh_altman_snapshots_endpoint(
     db: Session = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Take a fresh Altman-zone snapshot for every portfolio and post
     notifications when a company moves to a worse zone (safe→grey,
     safe→distress, grey→distress).
 
     Wired to a nightly GitHub Actions cron at 04:30 UTC, right after the
-    news refresh so any fresh material events are already classified."""
+    news refresh so any fresh material events are already classified.
+
+    Auth note: cron endpoint, called by GitHub Actions without a user session.
+    Matches /admin/activity-reminders pattern. Idempotent — re-running the
+    same day produces identical zones from the same Company rows."""
     from api.services.altman_snapshot_monitor import refresh_all_altman_snapshots
 
     return refresh_all_altman_snapshots(db)
