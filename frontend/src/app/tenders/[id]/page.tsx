@@ -26,10 +26,89 @@ import {
   FileDown,
   AlertTriangle,
   Loader2,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/cn";
+
+// Mockup §7 from 2026-04-25 polish plan: 5-step horizontal indicator at the
+// top of /tenders/[id]. Per CLAUDE.md UX rule (F07/F19 audit): use ✓ for
+// completed, ● for active, empty circle for upcoming — never numbers.
+type StepStatus = "done" | "active" | "upcoming";
+
+function TenderStepTracker({ tender }: { tender: Tender }) {
+  const T = useT();
+  const recipients = tender.recipients ?? [];
+  const offers = tender.offers ?? [];
+  const hasReceivedOffer =
+    recipients.some((r) => r.status === "received") || offers.length > 0;
+
+  const stepDoneFlags: boolean[] = [
+    true,                                  // Behovsanalyse — implicit on tender creation
+    recipients.length > 0,                 // Anbudspakke — package has recipients
+    tender.status !== "draft",             // Sendt — moved out of draft
+    hasReceivedOffer,                      // Mottatt — at least one offer back
+    tender.status === "analysed",          // Sammenligning — AI analysis done
+  ];
+  const labels = ["Behovsanalyse", "Anbudspakke", "Sendt", "Mottatt", "Sammenligning"];
+
+  const firstIncomplete = stepDoneFlags.findIndex((d) => !d);
+  const stepStatuses: StepStatus[] = stepDoneFlags.map((done, i) => {
+    if (done) return "done";
+    if (i === firstIncomplete) return "active";
+    return "upcoming";
+  });
+
+  return (
+    <ol className="flex items-start w-full mb-6" aria-label={T("Anbudsforløp")}>
+      {labels.map((label, i) => {
+        const status = stepStatuses[i];
+        const isLast = i === labels.length - 1;
+        return (
+          <li key={label} className={cn("flex items-start", !isLast && "flex-1")}>
+            <div className="flex flex-col items-center text-center min-w-0">
+              <div
+                aria-current={status === "active" ? "step" : undefined}
+                className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors",
+                  status === "done" && "bg-primary border-primary text-primary-foreground",
+                  status === "active" && "bg-background border-primary text-primary",
+                  status === "upcoming" && "bg-background border-border text-transparent",
+                )}
+              >
+                {status === "done" && <Check className="w-4 h-4" aria-hidden />}
+                {status === "active" && (
+                  <span className="w-2 h-2 rounded-full bg-primary" aria-hidden />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-[11px] mt-1.5 px-1 max-w-[88px] leading-tight",
+                  status === "done" && "text-foreground font-medium",
+                  status === "active" && "text-foreground font-semibold",
+                  status === "upcoming" && "text-muted-foreground",
+                )}
+              >
+                {T(label)}
+              </span>
+            </div>
+            {!isLast && (
+              <div
+                className={cn(
+                  "flex-1 h-0.5 mt-3 mx-1.5",
+                  stepDoneFlags[i] ? "bg-primary" : "bg-border",
+                )}
+                aria-hidden
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 const STATUS_BADGE: Record<string, { labelKey: string; cls: string; icon: typeof Clock }> = {
   draft: { labelKey: "Utkast", cls: "bg-gray-100 text-gray-700", icon: FileText },
@@ -165,6 +244,8 @@ export default function TenderDetailPage() {
         <ArrowLeft className="w-4 h-4" />
         {T("Tilbake til anbud")}
       </Link>
+
+      <TenderStepTracker tender={tender} />
 
       <div className="flex items-start justify-between mb-6">
         <div>
