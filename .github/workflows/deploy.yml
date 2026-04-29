@@ -130,6 +130,8 @@ jobs:
             "AZURE_CLIENT_ID=b7cb534e-d7a3-4028-8f72-50bfd7f99f2b"
             "AZURE_TENANT_ID=common"
             "AUTH_AUDIENCE=${{ secrets.FRONTEND_AZURE_AD_CLIENT_ID }}"
+            "AUTH_ALLOWED_DOMAINS=antire.no"
+            "AUTH_ALLOWED_EMAILS=tharu281001@gmail.com"
             "BROKER_FIRM_NAME=${{ secrets.BROKER_FIRM_NAME }}"
             "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
             "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
@@ -446,6 +448,8 @@ jobs:
             "AZURE_AD_TENANT_ID=common"
             "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
             "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            "AUTH_ALLOWED_DOMAINS=antire.no"
+            "AUTH_ALLOWED_EMAILS=tharu281001@gmail.com"
             "NODE_ENV=production"
           )
 

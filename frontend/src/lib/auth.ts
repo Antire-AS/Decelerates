@@ -74,6 +74,24 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    async signIn({ user }) {
+      // Mirror of api/auth.py:_is_email_authorized — keeps rejection at the
+      // OAuth callback so unauthorized users see "Access Denied" from NextAuth
+      // instead of getting a session and seeing inline 403s on every API call.
+      // Empty allowlist envs = fail-open (matches backend).
+      const email = (user.email ?? "").trim().toLowerCase();
+      if (!email) return false;
+      const domains = (process.env.AUTH_ALLOWED_DOMAINS ?? "")
+        .split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+      const emails = (process.env.AUTH_ALLOWED_EMAILS ?? "")
+        .split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (domains.length === 0 && emails.length === 0) return true;
+      if (emails.includes(email)) return true;
+      const at = email.lastIndexOf("@");
+      if (at >= 0 && domains.includes(email.slice(at + 1))) return true;
+      return false;
+    },
+
     async jwt({ token, account }) {
       // First sign-in: persist tokens and expiry
       if (account) {
