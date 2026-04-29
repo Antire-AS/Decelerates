@@ -6,7 +6,7 @@ import { getDashboard, getCompanies, type DashboardData, type Company } from "@/
 import MetricCard from "@/components/dashboard/MetricCard";
 import RiskBadge from "@/components/company/RiskBadge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Search, RotateCcw, BarChart2, FolderOpen, AlertTriangle } from "lucide-react";
+import { Search, BarChart2, AlertTriangle, ClipboardCheck, FilePlus2 } from "lucide-react";
 import { fmt } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 
@@ -141,25 +141,37 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Quick navigation */}
+      {/* Hurtighandlinger — verb-first quick actions matching mockup 135111
+          (megler-bilder polish §3 partial). Each card answers "what's the
+          next thing I should do?" rather than just listing destinations. */}
       <div className="broker-card">
-        <h2 className="text-sm font-semibold text-foreground mb-3">Hurtignavigering</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-3">{T("Hurtighandlinger")}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: "/search",    label: "Selskapsøk",  icon: Search },
-            { href: "/renewals",  label: "Fornyelser",  icon: RotateCcw },
-            { href: "/portfolio", label: "Portefølje",  icon: BarChart2 },
-            { href: "/knowledge", label: "Kunnskapsbase", icon: FolderOpen },
-          ].map(({ href, label, icon: Icon }) => (
+            { href: "/search",     label: T("Søk selskap"),       icon: Search,         hint: "⌘K" },
+            { href: "/idd",        label: T("Ny behovsanalyse"),  icon: ClipboardCheck, hint: null },
+            { href: "/tenders",    label: T("Generer anbudspakke"), icon: FilePlus2,    hint: null },
+            { href: "/portfolio",  label: T("Vis portefølje"),    icon: BarChart2,      hint: null },
+          ].map(({ href, label, icon: Icon, hint }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg
+              className="group relative flex flex-col items-start gap-1.5 px-4 py-3 rounded-lg
                          bg-primary text-primary-foreground text-sm font-medium
                          hover:bg-primary/90 transition-colors"
             >
-              <Icon className="w-4 h-4" />
-              {label}
+              <div className="flex items-center gap-2 w-full">
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1">{label}</span>
+                {hint && (
+                  <kbd
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground/90"
+                    aria-hidden
+                  >
+                    {hint}
+                  </kbd>
+                )}
+              </div>
             </Link>
           ))}
         </div>
