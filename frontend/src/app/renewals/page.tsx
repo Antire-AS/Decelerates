@@ -8,11 +8,18 @@ import { downloadXlsx } from "@/lib/excel-export";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Download, Sparkles, Mail } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { toast } from "sonner";
 
 function urgencyClass(days: number) {
   if (days <= 14) return "bg-red-100 text-red-700";
   if (days <= 30) return "bg-amber-100 text-amber-700";
   return "bg-green-100 text-green-700";
+}
+
+function urgencyLabel(days: number) {
+  if (days <= 14) return "⚠ Kritisk";
+  if (days <= 30) return "◆ Snart";
+  return "✓ OK";
 }
 
 const STAGES = [
@@ -50,8 +57,9 @@ export default function RenewalsPage() {
     try {
       await advanceRenewalStage(renewal.id, newStage, email);
       await mutate();
+      toast.success(T("Stadium oppdatert"));
     } catch {
-      // ignore
+      toast.error(T("Kunne ikke oppdatere stadium"));
     } finally {
       setAdvancing(null);
     }
@@ -192,8 +200,8 @@ export default function RenewalsPage() {
                       </td>
                       <td className="py-2 text-right text-muted-foreground">{fmtDate(r.renewal_date)}</td>
                       <td className="py-2 text-right">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`}>
-                          {r.days_until_renewal}d
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgencyClass(r.days_until_renewal)}`} title={`${r.days_until_renewal} dager igjen`}>
+                          {urgencyLabel(r.days_until_renewal)} {r.days_until_renewal}d
                         </span>
                       </td>
                       <td className="py-2 text-center">

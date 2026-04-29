@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Query, HTTPException, Depends, Request, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from api.auth import CurrentUser, get_current_user
@@ -18,6 +19,7 @@ from api.services import (
     _embed,
     _llm_answer_raw,
 )
+from api.services.llm import _llm_answer_stream
 from api.services.rag import save_qa_note, clear_chat_session as _clear_chat_session
 from api.services.chat_history import ChatHistoryService, format_history_for_prompt
 from api.rag_chain import build_rag_chain
@@ -34,9 +36,23 @@ from api.schemas import (
 from api.dependencies import get_db
 from api.services.audit import log_audit
 from api.limiter import limiter
-from api.prompts import CHAT_SYSTEM_PROMPT, KNOWLEDGE_CHAT_SYSTEM_PROMPT
+from api.prompts import CHAT_SYSTEM_PROMPT, KNOWLEDGE_CHAT_SYSTEM_PROMPT, TENDER_CHAT_SYSTEM_PROMPT, GLOBAL_ASSISTANT_SYSTEM_PROMPT
+from api.constants import MAX_COSINE_DISTANCE, REQUEST_TIMEOUT_SECONDS
+from api.schemas.common import TenderChatRequest
+from api.services.tender_chat_service import TenderChatSessionService
+from api.services.global_context_service import GlobalContextService
 
 router = APIRouter()
+
+
+def _parse_thinking_answer(raw: str) -> tuple[str, str]:
+    """Extract <thinking> and <answer> blocks from a structured LLM response."""
+    import re as _re
+    thinking_match = _re.search(r"<thinking>(.*?)</thinking>", raw, _re.DOTALL)
+    answer_match = _re.search(r"<answer>(.*?)</answer>", raw, _re.DOTALL)
+    thinking = thinking_match.group(1).strip() if thinking_match else ""
+    answer = answer_match.group(1).strip() if answer_match else raw.strip()
+    return thinking, answer
 
 
 def _auto_ingest_company_data(orgnr: str, db: Session) -> None:
@@ -212,11 +228,19 @@ def chat_about_org(
 
 @router.post("/org/{orgnr}/ingest-knowledge", response_model=IngestKnowledgeOut)
 def ingest_knowledge(
-    orgnr: str, body: IngestKnowledgeRequest, db: Session = Depends(get_db)
+    orgnr: str,
+    body: IngestKnowledgeRequest,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Manually chunk and embed text into the company's knowledge base."""
+    import re as _re
     if not body.text.strip():
         raise HTTPException(status_code=422, detail="text must not be empty")
+    if len(body.text) > 100_000:
+        raise HTTPException(status_code=422, detail="text exceeds 100 000 character limit")
+    if not _re.match(r'^[\w\s:/_.-]+$', body.source or ""):
+        raise HTTPException(status_code=422, detail="source contains invalid characters")
     count = _chunk_and_store(orgnr, body.source, body.text, db)
     log_audit(
         db,
@@ -232,6 +256,7 @@ def search_knowledge(
     query: str = Query(..., min_length=1),
     limit: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ) -> list:
     """Full-knowledge search: find the most relevant chunks across ALL companies."""
     q_emb = _embed(query)
@@ -264,6 +289,7 @@ def get_chat_history(
     session_id: str = Query(default=""),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ) -> list:
     q = db.query(CompanyNote).filter(CompanyNote.orgnr == orgnr)
     if session_id.strip():
@@ -286,6 +312,7 @@ def delete_chat_session(
     orgnr: str,
     session_id: str = Query(...),
     db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Delete all Q&A notes for a specific chat session."""
     deleted = _clear_chat_session(orgnr, session_id, db)
@@ -345,7 +372,7 @@ def _readable_source(source: str) -> str:
 # pgvector cosine_distance: 0 = identical, 1 = orthogonal, 2 = opposite.
 # 0.55 keeps borderline-relevant matches (corpus is conversational transcript
 # data so similarity scores run lower than a clean document set).
-_MAX_COSINE_DISTANCE = 0.55
+_MAX_COSINE_DISTANCE = MAX_COSINE_DISTANCE
 
 
 def _vector_matches(question: str, db: Session, limit: int) -> list:
@@ -477,7 +504,7 @@ def _knowledge_general_fallback(question: str, history_block: str) -> str | None
     prompt = "\n\n".join(parts)
     try:
         return _llm_answer_raw(prompt)
-    except Exception:
+    except (LlmUnavailableError, QuotaError):
         return None
 
 
@@ -607,7 +634,13 @@ async def knowledge_quick_upload(
 
 
 @router.post("/knowledge/index", response_model=KnowledgeIndexOut)
-def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) -> dict:
+@limiter.limit("5/hour")
+def trigger_knowledge_index(
+    request: Request,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Trigger (re-)indexing of all video transcripts and insurance documents.
     Set force=true to wipe existing knowledge chunks before re-indexing."""
     from api.services.knowledge_index import index_all, get_stats, clear_knowledge
@@ -628,7 +661,10 @@ def trigger_knowledge_index(force: bool = False, db: Session = Depends(get_db)) 
 
 
 @router.get("/knowledge/index/stats", response_model=KnowledgeStatsOut)
-def knowledge_index_stats(db: Session = Depends(get_db)) -> dict:
+def knowledge_index_stats(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Return current knowledge index statistics."""
     from api.services.knowledge_index import get_stats
 
@@ -667,7 +703,7 @@ def _fetch_regulation_text(url: str) -> str | None:
     import requests as req
 
     try:
-        r = req.get(url, headers=_HEADERS, timeout=15)
+        r = req.get(url, headers=_HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
         r.raise_for_status()
         text = r.text
         # Remove <script> and <style> blocks
@@ -686,7 +722,12 @@ def _fetch_regulation_text(url: str) -> str | None:
 
 
 @router.post("/knowledge/seed-regulations", response_model=SeedRegulationsOut)
-def seed_regulations(db: Session = Depends(get_db)) -> dict:
+@limiter.limit("5/hour")
+def seed_regulations(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> dict:
     """Fetch and index Norwegian insurance regulations into the knowledge base.
 
     Sources: Forsikringsavtaleloven, Forsikringsformidlingsloven,
@@ -726,3 +767,416 @@ def seed_regulations(db: Session = Depends(get_db)) -> dict:
         db, "knowledge.seed", detail={"total_chunks": sum(r["chunks"] for r in results)}
     )
     return {"seeded": results, "total_chunks": sum(r["chunks"] for r in results)}
+
+
+@router.get("/knowledge/tender-sessions")
+@limiter.limit("30/minute")
+def list_tender_sessions(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    svc = TenderChatSessionService(db)
+    sessions = svc.list_sessions(user.oid, limit=20)
+    return [
+        {"id": s.id, "title": s.title,
+         "created_at": s.created_at.isoformat(), "updated_at": s.updated_at.isoformat()}
+        for s in sessions
+    ]
+
+
+@router.get("/knowledge/tender-sessions/{session_id}")
+@limiter.limit("30/minute")
+def get_tender_session(
+    request: Request,
+    session_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    svc = TenderChatSessionService(db)
+    session = svc.get_session(session_id, user.oid)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {
+        "id": session.id,
+        "title": session.title,
+        "created_at": session.created_at.isoformat(),
+        "updated_at": session.updated_at.isoformat(),
+        "messages": [
+            {"role": m.role, "content": m.content, "created_at": m.created_at.isoformat()}
+            for m in session.messages
+        ],
+    }
+
+
+@router.delete("/knowledge/tender-sessions/{session_id}")
+@limiter.limit("30/minute")
+def delete_tender_session(
+    request: Request,
+    session_id: int,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    svc = TenderChatSessionService(db)
+    deleted = svc.delete_session(session_id, user.oid)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"deleted": True}
+
+
+@router.post("/knowledge/tender-stream")
+@limiter.limit("10/minute")
+def stream_tender_chat(
+    request: Request,
+    body: TenderChatRequest,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Stream thinking + answer live via SSE (text/event-stream)."""
+    import json as _json
+
+    svc = TenderChatSessionService(db)
+    if body.session_id:
+        session = svc.get_session(body.session_id, user.oid)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        history_block = svc.load_history_for_prompt(body.session_id, user.oid)
+    else:
+        session = svc.create_session(user.oid, body.question)
+        history_block = ""
+
+    try:
+        global_ctx = GlobalContextService(db, user.firm_id, user.email or "").build()
+    except Exception as _e:
+        logger.warning("GlobalContextService failed: %s", _e)
+        global_ctx = ""
+
+    kb_chunks = _retrieve_knowledge_chunks(body.question, db, limit=5)
+    kb_context = "\n\n".join(
+        f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in kb_chunks
+    ) if kb_chunks else ""
+
+    parts = [f"[SYSTEM]: {GLOBAL_ASSISTANT_SYSTEM_PROMPT}"]
+    if history_block:
+        parts.append(history_block)
+    if global_ctx:
+        parts.append(f"[LIVE PLATTFORMDATA]:\n{global_ctx}")
+    if body.tender_context:
+        parts.append(f"[ANBUD DETALJER]:\n{body.tender_context}")
+    if kb_context:
+        parts.append(f"[KUNNSKAPSBASE]:\n{kb_context}")
+    parts.append(f"[SPØRSMÅL]: {body.question}")
+    prompt = "\n\n".join(parts)
+
+    def _ev(type_: str, **kw) -> str:
+        return f"data: {_json.dumps({'type': type_, **kw})}\n\n"
+
+    def generate():
+        buf = ""
+        state = "pre"
+        thinking_parts: list[str] = []
+        answer_parts: list[str] = []
+        # Lookahead length = longest tag - 1, so a tag split across chunks is
+        # never emitted prematurely. "</thinking>" = 11 chars → keep last 10.
+        LOOK = 11
+
+        def _emit_safe_thinking(text: str):
+            if not text:
+                return
+            thinking_parts.append(text)
+            yield _ev("thinking", text=text)
+
+        def _emit_safe_answer(text: str):
+            if not text:
+                return
+            answer_parts.append(text)
+            yield _ev("answer", text=text)
+
+        try:
+            for chunk in _llm_answer_stream(prompt):
+                buf += chunk
+
+                # Inner loop so a single chunk can cross multiple tag boundaries
+                while True:
+                    if state == "pre":
+                        if "<thinking>" in buf:
+                            buf = buf.split("<thinking>", 1)[1]
+                            state = "thinking"
+                            # fall through to "thinking" in same iteration
+                        else:
+                            # Discard everything except last LOOK chars (might be start of tag)
+                            if len(buf) > LOOK:
+                                buf = buf[-LOOK:]
+                            break
+
+                    if state == "thinking":
+                        if "</thinking>" in buf:
+                            before, buf = buf.split("</thinking>", 1)
+                            yield from _emit_safe_thinking(before)
+                            yield _ev("separator")
+                            state = "inter"
+                            # fall through to "inter"
+                        else:
+                            # Emit everything except last LOOK chars
+                            safe = buf[:-LOOK] if len(buf) > LOOK else ""
+                            yield from _emit_safe_thinking(safe)
+                            buf = buf[len(safe):]
+                            break
+
+                    if state == "inter":
+                        if "<answer>" in buf:
+                            buf = buf.split("<answer>", 1)[1]
+                            state = "answer"
+                            # fall through to "answer"
+                        else:
+                            if len(buf) > LOOK:
+                                buf = buf[-LOOK:]
+                            break
+
+                    if state == "answer":
+                        if "</answer>" in buf:
+                            before, buf = buf.split("</answer>", 1)
+                            yield from _emit_safe_answer(before)
+                            state = "post"
+                            break
+                        else:
+                            safe = buf[:-LOOK] if len(buf) > LOOK else ""
+                            yield from _emit_safe_answer(safe)
+                            buf = buf[len(safe):]
+                            break
+
+                    if state == "post":
+                        break
+
+            # Flush remaining buffer
+            if buf.strip():
+                if state == "thinking":
+                    yield from _emit_safe_thinking(buf)
+                elif state == "answer":
+                    yield from _emit_safe_answer(buf)
+                elif state == "pre":
+                    # Model never used tags — treat whole output as answer
+                    yield from _emit_safe_answer(buf)
+
+        except Exception as exc:
+            logger.error("Stream error: %s", exc)
+            yield _ev("error", message="Strømfeil")
+            return
+
+        thinking_str = "".join(thinking_parts)
+        answer_str = "".join(answer_parts) or "Beklager, fikk ikke svar fra AI-tjenesten."
+        svc.append_turn(session.id, body.question, answer_str)
+        log_audit(db, "tender.chat", detail={"session_id": session.id})
+        yield _ev("done",
+                  session_id=session.id,
+                  session_title=session.title,
+                  thinking=thinking_str)
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/knowledge/tender-think")
+@limiter.limit("10/minute")
+def tender_think(
+    request: Request,
+    body: TenderChatRequest,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Pass 1 — returns only the thinking analysis so frontend can stream it live."""
+    svc = TenderChatSessionService(db)
+    if body.session_id:
+        session = svc.get_session(body.session_id, user.oid)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        history_block = svc.load_history_for_prompt(body.session_id, user.oid)
+    else:
+        session = svc.create_session(user.oid, body.question)
+        history_block = ""
+
+    try:
+        global_ctx = GlobalContextService(db, user.firm_id, user.email or "").build()
+    except Exception as _e:
+        logger.warning("GlobalContextService failed: %s", _e)
+        global_ctx = ""
+
+    kb_chunks = _retrieve_knowledge_chunks(body.question, db, limit=5)
+    kb_context = "\n\n".join(
+        f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in kb_chunks
+    ) if kb_chunks else ""
+
+    parts = [f"[SYSTEM]: {GLOBAL_ASSISTANT_SYSTEM_PROMPT}"]
+    if history_block:
+        parts.append(history_block)
+    if global_ctx:
+        parts.append(f"[LIVE PLATTFORMDATA]:\n{global_ctx}")
+    if body.tender_context:
+        parts.append(f"[ANBUD DETALJER]:\n{body.tender_context}")
+    if kb_context:
+        parts.append(f"[KUNNSKAPSBASE]:\n{kb_context}")
+    parts.append(f"[SPØRSMÅL]: {body.question}")
+    prompt = "\n\n".join(parts)
+
+    try:
+        raw = _llm_answer_raw(prompt) or ""
+        thinking, _ = _parse_thinking_answer(raw)
+    except (LlmUnavailableError, QuotaError):
+        thinking = ""
+
+    return {
+        "session_id": session.id,
+        "session_title": session.title,
+        "thinking": thinking,
+    }
+
+
+@router.post("/knowledge/tender-chat")
+@limiter.limit("10/minute")
+def chat_tender(
+    request: Request,
+    body: TenderChatRequest,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Tender chat — answers from live tender context, stored in named sessions."""
+    svc = TenderChatSessionService(db)
+
+    if body.session_id:
+        session = svc.get_session(body.session_id, user.oid)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        history_block = svc.load_history_for_prompt(body.session_id, user.oid)
+    else:
+        session = svc.create_session(user.oid, body.question)
+        history_block = ""
+
+    # Global live context fra DB (anbud, fornyelser, pipeline, aktiviteter, etc.)
+    try:
+        global_ctx = GlobalContextService(db, user.firm_id, user.email or "").build()
+    except Exception as _ctx_err:
+        logger.warning("GlobalContextService failed: %s", _ctx_err)
+        global_ctx = ""
+
+    # RAG fra kunnskapsbasen
+    kb_chunks = _retrieve_knowledge_chunks(body.question, db, limit=5)
+    kb_context = "\n\n".join(
+        f"[Kilde: {_readable_source(c['source'])}]\n{c['text']}" for c in kb_chunks
+    ) if kb_chunks else ""
+
+    parts = [f"[SYSTEM]: {GLOBAL_ASSISTANT_SYSTEM_PROMPT}"]
+    if history_block:
+        parts.append(history_block)
+    if global_ctx:
+        parts.append(f"[LIVE PLATTFORMDATA]:\n{global_ctx}")
+    if body.tender_context:
+        parts.append(f"[ANBUD DETALJER]:\n{body.tender_context}")
+    if kb_context:
+        parts.append(f"[KUNNSKAPSBASE]:\n{kb_context}")
+    parts.append(f"[SPØRSMÅL]: {body.question}")
+    prompt = "\n\n".join(parts)
+
+    try:
+        if body.pre_thinking:
+            # Pass 2 only — frontend already showed pass 1 thinking live
+            thinking1 = body.pre_thinking
+            refine_prompt = (
+                f"{prompt}\n\n"
+                f"[ANALYSE FRA PASS 1]:\n{thinking1}\n\n"
+                "Basert på analysen over, skriv det endelige polerte svaret. "
+                "Bruk <thinking>...</thinking> <answer>...</answer>-format."
+            )
+            raw2 = _llm_answer_raw(refine_prompt) or ""
+            thinking2, answer_final = _parse_thinking_answer(raw2)
+            thinking = "\n".join(filter(None, [thinking1, thinking2]))
+            answer = answer_final or "Beklager, fikk ikke svar fra AI-tjenesten."
+        else:
+            # Single pass fallback (no pre_thinking)
+            raw = _llm_answer_raw(prompt) or ""
+            thinking, answer = _parse_thinking_answer(raw)
+            if not answer:
+                answer = "Beklager, fikk ikke svar fra AI-tjenesten."
+
+    except LlmUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except QuotaError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    svc.append_turn(session.id, body.question, answer)
+    log_audit(db, "tender.chat", detail={"session_id": session.id})
+    return {
+        "question": body.question,
+        "answer": answer,
+        "thinking": thinking,
+        "session_id": session.id,
+        "session_title": session.title,
+        "sources": [],
+        "source_snippets": {},
+    }
+
+
+@router.get("/knowledge/home-summary")
+@limiter.limit("30/minute")
+def home_summary(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Aggregated summary for the Jarvis home page."""
+    from datetime import datetime, timezone as _tz, timedelta
+    from api.models.tender import Tender, TenderOffer
+    from api.models.system import Notification
+    from api.models.crm import Policy
+
+    since = datetime.now(_tz.utc) - timedelta(hours=24)
+    today = date.today()
+    critical_date = today + timedelta(days=14)
+
+    new_offers = (
+        db.query(func.count(TenderOffer.id))
+        .join(Tender, TenderOffer.tender_id == Tender.id)
+        .filter(Tender.firm_id == user.firm_id, TenderOffer.uploaded_at >= since)
+        .scalar()
+    ) or 0
+
+    unread = (
+        db.query(func.count(Notification.id))
+        .filter(Notification.firm_id == user.firm_id, Notification.read == False)  # noqa: E712
+        .scalar()
+    ) or 0
+
+    critical_renewals = (
+        db.query(Policy)
+        .filter(
+            Policy.firm_id == user.firm_id,
+            Policy.renewal_date >= today,
+            Policy.renewal_date <= critical_date,
+        )
+        .order_by(Policy.renewal_date)
+        .limit(5)
+        .all()
+    )
+
+    from api.db import Company
+    orgnrs = [p.orgnr for p in critical_renewals]
+    companies = {
+        c.orgnr: c for c in db.query(Company).filter(Company.orgnr.in_(orgnrs)).all()
+    } if orgnrs else {}
+
+    return {
+        "new_tender_offers": new_offers,
+        "unread_notifications": unread,
+        "critical_renewals": [
+            {
+                "orgnr": p.orgnr,
+                "client": companies.get(p.orgnr, None) and companies[p.orgnr].navn or p.orgnr,
+                "insurer": p.insurer,
+                "renewal_date": str(p.renewal_date),
+                "days": (p.renewal_date - today).days,
+                "premium_nok": p.annual_premium_nok,
+            }
+            for p in critical_renewals
+        ],
+    }
