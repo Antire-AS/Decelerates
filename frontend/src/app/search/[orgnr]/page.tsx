@@ -12,6 +12,7 @@ import {
   type OrgProfile, type HistoryRow,
 } from "@/lib/api";
 import RiskBadge from "@/components/company/RiskBadge";
+import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
 import AnbudPackageButton from "@/components/company/AnbudPackageButton";
 import WorkflowStepper, { type WorkflowStep } from "@/components/company/WorkflowStepper";
 import dynamic from "next/dynamic";
@@ -38,7 +39,7 @@ import OverviewTab from "@/components/company/tabs/OverviewTab";
 import FinancialsTab from "@/components/company/tabs/FinancialsTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Loader2, FileText, Download } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Download, AlertTriangle } from "lucide-react";
 
 export default function OrgProfilePage({
   params,
@@ -47,6 +48,7 @@ export default function OrgProfilePage({
 }) {
   const { orgnr } = use(params);
   const T = useT();
+  const { bandFor } = useRiskConfig();
 
   const [activeTab, setActiveTab] = useState<"oversikt" | "okonomi" | "forsikring" | "crm" | "notater" | "chat" | "fokus" | "nyheter">(
     "oversikt",
@@ -176,6 +178,20 @@ export default function OrgProfilePage({
   const triggerCls =
     "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none text-muted-foreground hover:bg-muted px-4 py-2 text-sm font-medium rounded-lg";
 
+  // Status chips — quick-glance state matching mockup 10.57.26
+  // (megler-bilder polish §3a). Reads already-loaded data so no extra calls.
+  const pepHits = Number((pep as Record<string, unknown>)?.hit_count ?? 0);
+  const tilbudSendt = submissions.some((s) => s.status === "quoted");
+  const riskScore = typeof risk.score === "number" ? risk.score : null;
+  const riskBand = riskScore != null ? bandFor(riskScore) : null;
+  const riskScoreClass = riskBand ? bandTailwindClass(riskBand.label) : "bg-muted text-muted-foreground";
+
+  const tabBadgeCls = "ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted-foreground/15 text-muted-foreground data-[state=active]:bg-primary-foreground/20 data-[state=active]:text-primary-foreground";
+
+  // Tab counts derived from already-loaded SWR data
+  const okonomiCount = history.length;
+  const forsikringCount = submissions.length;
+
   return (
     <div className="space-y-5">
       {/* Back link */}
@@ -187,8 +203,30 @@ export default function OrgProfilePage({
         {T("Tilbake til søk")}
       </Link>
 
-      {/* Company header — header + risk badge stack on mobile, side-by-side on sm+ */}
+      {/* Company header — status chips first (mockup 10.57.26), then name +
+          industry, then action buttons. Status chips read from already-loaded
+          SWR data so they're free. */}
       <div className="broker-card">
+        {(tilbudSendt || riskScore != null || pepHits > 0) && (
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {tilbudSendt && (
+              <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                {T("Tilbud sendt")}
+              </span>
+            )}
+            {riskScore != null && riskBand && (
+              <span className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${riskScoreClass}`}>
+                {T("Risiko")} {riskScore}/20 · {T(riskBand.label)}
+              </span>
+            )}
+            {pepHits > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                <AlertTriangle className="w-3 h-3" />
+                {pepHits} {T("PEP-treff")}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-bold text-foreground break-words">
@@ -218,8 +256,14 @@ export default function OrgProfilePage({
       >
         <TabsList className="flex-wrap justify-start bg-transparent p-0 h-auto gap-2">
           <TabsTrigger value="oversikt"   className={triggerCls}>{T("Oversikt")}</TabsTrigger>
-          <TabsTrigger value="okonomi"    className={triggerCls}>{T("Økonomi")}</TabsTrigger>
-          <TabsTrigger value="forsikring" className={triggerCls}>{T("Forsikring")}</TabsTrigger>
+          <TabsTrigger value="okonomi"    className={triggerCls}>
+            {T("Økonomi")}
+            {okonomiCount > 0 && <span className={tabBadgeCls}>{okonomiCount}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="forsikring" className={triggerCls}>
+            {T("Forsikring")}
+            {forsikringCount > 0 && <span className={tabBadgeCls}>{forsikringCount}</span>}
+          </TabsTrigger>
           <TabsTrigger value="crm"        className={triggerCls}>{T("CRM")}</TabsTrigger>
           <TabsTrigger value="notater"    className={triggerCls}>{T("Notater")}</TabsTrigger>
           <TabsTrigger value="chat"       className={triggerCls}>{T("Chat")}</TabsTrigger>
