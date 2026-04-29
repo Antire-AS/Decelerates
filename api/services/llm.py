@@ -218,6 +218,20 @@ def _compare_documents_with_gemini(
     return _gemini_generate_with_fallback([pdf_a, pdf_b, prompt], timeout=360)
 
 
+def _llm_answer_stream(prompt: str):
+    """Yield LLM text chunks via streaming. No-op if Foundry not configured."""
+    try:
+        from api.container import resolve
+        from api.ports.driven.llm_port import LlmPort
+        llm = resolve(LlmPort)
+        if not llm.is_configured():
+            return
+        yield from llm.chat_stream(user_prompt=prompt, max_completion_tokens=2048)
+    except Exception as exc:
+        logger.warning("Foundry stream failed: %s", exc)
+        return
+
+
 def _try_foundry_chat(
     user_prompt: str, system_prompt: Optional[str] = None, max_tokens: int = 1024
 ) -> Optional[str]:

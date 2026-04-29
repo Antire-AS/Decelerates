@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
 import { PortfolioAnalytics } from "@/components/portfolio/PortfolioAnalytics";
 import { useT } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export default function PortfolioPage() {
   const T = useT();
@@ -83,6 +84,9 @@ export default function PortfolioPage() {
       await createPortfolio(newPortfolioName.trim());
       setNewPortfolioName("");
       mutatePortfolios();
+      toast.success(T("Portefølje opprettet"));
+    } catch {
+      toast.error(T("Kunne ikke opprette portefølje"));
     } finally { setCreating(false); }
   }
 

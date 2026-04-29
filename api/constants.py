@@ -506,3 +506,12 @@ BROKER_TASKS = [
         "Slikt arbeid prises separat med mindre annet er avtalt.",
     ),
 ]
+
+# ======================
+# Knowledge base tuning
+# ======================
+# Max cosine distance for vector similarity matches (0–1, lower = stricter)
+MAX_COSINE_DISTANCE: float = float(os.getenv("MAX_COSINE_DISTANCE", "0.55"))
+
+# HTTP request timeout for external fetches (Lovdata, etc.)
+REQUEST_TIMEOUT_SECONDS: int = int(os.getenv("REQUEST_TIMEOUT_SECONDS", "15"))

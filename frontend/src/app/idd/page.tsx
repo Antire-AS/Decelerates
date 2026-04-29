@@ -55,7 +55,8 @@ function IddCard({ row, onDelete }: { row: IddBehovsanalyse; onDelete: () => voi
             {open ? T("Skjul") : T("Vis")}
           </button>
           <button onClick={onDelete}
-            className="text-red-400 hover:text-red-600">
+            className="text-red-400 hover:text-red-600"
+            aria-label="Slett behovsanalyse">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -397,8 +398,11 @@ function IddContent() {
           ) : !allRows?.length ? (
             <div className="broker-card text-center py-10">
               <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                {T("Ingen behovsanalyser registrert ennå. Åpne et selskap fra Selskapsøk og lag en behovsanalyse fra CRM-fanen.")}
+              <p className="text-sm text-muted-foreground mb-3">
+                {T("Ingen behovsanalyser ennå.")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {T("Gå til")} <a href="/search" className="text-primary underline">{T("Selskapsøk")}</a>{T(", åpne et selskap og velg CRM-fanen for å opprette en behovsanalyse (IDD).")}
               </p>
             </div>
           ) : (

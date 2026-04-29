@@ -124,6 +124,37 @@ class FoundryLlmAdapter(LlmPort):
             logger.warning("Foundry chat failed: %s", exc)
             return None
 
+    def chat_stream(
+        self,
+        user_prompt: str,
+        system_prompt: Optional[str] = None,
+        model: Optional[str] = None,
+        max_completion_tokens: int = 2048,
+    ):
+        """Yield raw text chunks from the LLM as they arrive (stream=True)."""
+        if not self.is_configured():
+            return
+        messages: list[dict] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": user_prompt})
+        resolved_model = model or self._config.default_text_model
+        try:
+            resp = self._get_chat_client().chat.completions.create(
+                model=resolved_model,
+                messages=messages,
+                max_completion_tokens=max_completion_tokens,
+                stream=True,
+            )
+            for chunk in resp:
+                if chunk.choices:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
+        except Exception as exc:
+            logger.warning("Foundry chat_stream failed: %s", exc)
+            return
+
     def embed(self, text: str) -> Optional[List[float]]:
         if not self.embeddings_configured():
             return None

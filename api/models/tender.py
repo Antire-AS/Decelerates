@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
 )
+from sqlalchemy.orm import relationship
 
 from api.models._base import Base
 
@@ -133,3 +134,35 @@ class TenderOffer(Base):
     extracted_text = Column(String, nullable=True)
     extracted_data = Column(JSON, nullable=True)
     uploaded_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class TenderChatSession(Base):
+    __tablename__ = "tender_chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_oid = Column(String(64), nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    updated_at = Column(DateTime(timezone=True), nullable=False)
+    messages = relationship(
+        "TenderChatMessage",
+        back_populates="session",
+        cascade="all, delete-orphan",
+        order_by="TenderChatMessage.created_at",
+    )
+
+
+class TenderChatMessage(Base):
+    __tablename__ = "tender_chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(
+        Integer,
+        ForeignKey("tender_chat_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    role = Column(String(16), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    session = relationship("TenderChatSession", back_populates="messages")

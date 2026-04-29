@@ -29,6 +29,10 @@ class LlmPort(ABC):
     def embeddings_configured(self) -> bool:
         """Return True if an embeddings deployment is reachable."""
 
+    def chat_stream(self, user_prompt: str, system_prompt=None, model=None, max_completion_tokens: int = 2048):
+        """Yield text chunks via streaming. Default no-op for non-streaming adapters."""
+        return iter([])
+
     @abstractmethod
     def embed(self, text: str) -> Optional[List[float]]:
         """Return an embedding vector for *text*, or None on failure."""

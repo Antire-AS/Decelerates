@@ -400,6 +400,22 @@ export const knowledgeChat = (question: string, orgnr?: string, signal?: AbortSi
     signal,
   });
 
+export type HomeSummary = {
+  new_tender_offers: number;
+  unread_notifications: number;
+  critical_renewals: {
+    orgnr: string;
+    client: string;
+    insurer: string;
+    renewal_date: string;
+    days: number;
+    premium_nok: number | null;
+  }[];
+};
+
+export const getHomeSummary = () =>
+  apiFetch<HomeSummary>("/knowledge/home-summary");
+
 export const knowledgeQuickUpload = async (file: File) => {
   const fd = new FormData();
   fd.append("file", file);
@@ -437,6 +453,100 @@ export const clearChatHistory = (orgnr?: string) => {
   const qs = orgnr ? `?orgnr=${encodeURIComponent(orgnr)}` : "";
   return apiFetch<{ deleted: number }>(`/chat/history${qs}`, { method: "DELETE" });
 };
+
+export type TenderChatSession = {
+  id: number;
+  title: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TenderChatSessionDetail = TenderChatSession & {
+  messages: { role: string; content: string; created_at: string }[];
+};
+
+export type StreamEvent =
+  | { type: "thinking"; text: string }
+  | { type: "separator" }
+  | { type: "answer"; text: string }
+  | { type: "done"; session_id: number; session_title: string; thinking: string }
+  | { type: "error"; message: string };
+
+export async function* streamTenderChat(
+  question: string,
+  session_id?: number,
+  tender_context?: string,
+  signal?: AbortSignal,
+): AsyncGenerator<StreamEvent> {
+  // Use the Route Handler (/api/tender-stream) instead of the Next.js rewrite
+  // (/bapi/...) to avoid the dev-server HTTP proxy buffering the SSE stream.
+  const res = await fetch(`/api/tender-stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(_authToken ? { Authorization: `Bearer ${_authToken}` } : {}),
+    },
+    body: JSON.stringify({ question, session_id, tender_context }),
+    signal,
+  });
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const parts = buf.split("\n\n");
+    buf = parts.pop() ?? "";
+    for (const part of parts) {
+      const line = part.trim();
+      if (line.startsWith("data: ")) {
+        try { yield JSON.parse(line.slice(6)) as StreamEvent; } catch { /* skip */ }
+      }
+    }
+  }
+}
+
+export const tenderThink = (
+  question: string,
+  tender_context?: string,
+  session_id?: number,
+  signal?: AbortSignal,
+) =>
+  apiFetch<{ session_id: number; session_title: string; thinking: string }>(
+    "/knowledge/tender-think",
+    {
+      method: "POST",
+      body: JSON.stringify({ question, tender_context, session_id }),
+      signal,
+    },
+  );
+
+export const tenderChat = (
+  question: string,
+  tender_context?: string,
+  session_id?: number,
+  signal?: AbortSignal,
+  pre_thinking?: string,
+) =>
+  apiFetch<KnowledgeChatOut & { session_id: number; session_title: string }>(
+    "/knowledge/tender-chat",
+    {
+      method: "POST",
+      body: JSON.stringify({ question, tender_context, session_id, pre_thinking }),
+      signal,
+    },
+  );
+
+export const listTenderSessions = () =>
+  apiFetch<TenderChatSession[]>("/knowledge/tender-sessions");
+
+export const getTenderSession = (id: number) =>
+  apiFetch<TenderChatSessionDetail>(`/knowledge/tender-sessions/${id}`);
+
+export const deleteTenderSession = (id: number) =>
+  apiFetch(`/knowledge/tender-sessions/${id}`, { method: "DELETE" });
 
 // ── Whiteboard (per-user focus workspace per company) ────────────────────────
 
