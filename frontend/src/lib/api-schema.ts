@@ -832,6 +832,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/premium-trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Premium Trend
+         * @description 12 monthly snapshots of active-policy premium-book, oldest first.
+         *
+         *     A policy is "active at month-end" when:
+         *       - start_date <= month_end_date, AND
+         *       - renewal_date IS NULL OR renewal_date > month_end_date.
+         *
+         *     Status filter is intentionally omitted so historical snapshots are
+         *     stable even if the policy is later cancelled.
+         */
+        get: operations["get_premium_trend_dashboard_premium_trend_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/deals": {
         parameters: {
             query?: never;
@@ -5613,6 +5640,38 @@ export interface components {
             /** Prev Zone */
             prev_zone?: string | null;
         };
+        /**
+         * PremiumTrendOut
+         * @description 12-month premium-book trend with YoY delta.
+         */
+        PremiumTrendOut: {
+            /**
+             * Months
+             * @description Oldest-first, 12 entries
+             */
+            months?: components["schemas"]["PremiumTrendPoint"][];
+            /**
+             * Yoy Delta Pct
+             * @description Percent change from oldest to newest month; null when oldest is zero
+             */
+            yoy_delta_pct?: number | null;
+        };
+        /**
+         * PremiumTrendPoint
+         * @description One monthly snapshot of the premium book.
+         */
+        PremiumTrendPoint: {
+            /**
+             * Month
+             * @description ISO YYYY-MM, marks the month-end snapshot date
+             */
+            month: string;
+            /**
+             * Premium Book
+             * @description SUM of annual_premium_nok for active policies at month-end
+             */
+            premium_book: number;
+        };
         /** ProductCategoryOut */
         ProductCategoryOut: {
             /** Category */
@@ -7362,6 +7421,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    get_premium_trend_dashboard_premium_trend_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PremiumTrendOut"];
                 };
             };
         };

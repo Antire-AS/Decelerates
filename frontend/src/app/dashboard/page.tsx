@@ -4,6 +4,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { getDashboard, getCompanies, getRenewals, type DashboardData, type Company, type Renewal } from "@/lib/api";
 import MetricCard from "@/components/dashboard/MetricCard";
+import PremiumTrendCard from "@/components/dashboard/PremiumTrendCard";
 import RiskBadge from "@/components/company/RiskBadge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Search, BarChart2, AlertTriangle, ClipboardCheck, FilePlus2, Calendar, ChevronRight } from "lucide-react";
@@ -85,6 +86,8 @@ export default function DashboardPage() {
             <MetricCard label={T("Åpne skader")}        value={data.open_claims} />
             <MetricCard label={T("Aktiviteter forfalt")} value={data.activities_due} />
           </div>
+
+          {hasCrm && <PremiumTrendCard />}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Premium book */}
