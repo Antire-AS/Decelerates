@@ -38,20 +38,27 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 //   - /finans is now /portfolio/analytics
 //   - /recommendations now lives inside the company profile CRM tab
 // The standalone routes still exist as redirects so old bookmarks work.
-const NAV_ITEMS = [
-  { href: "/dashboard",   label: "Hjem",                 icon: LayoutDashboard },
-  { href: "/search",      label: "Selskapsøk",           icon: Search },
-  { href: "/pipeline",    label: "Pipeline",             icon: Trello },
-  { href: "/portfolio",   label: "Portefølje",           icon: BarChart2 },
-  { href: "/prospecting", label: "Prospektering",        icon: Crosshair },
-  { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw },
-  { href: "/tenders",     label: "Anbud",                icon: FileText },
-  { href: "/idd",         label: "IDD / Behov",          icon: Scale },
-  { href: "/insurers",    label: "Forsikringsselskaper", icon: Building2 },
-  { href: "/sla",         label: "Avtaler",              icon: FileText },
-  { href: "/knowledge",   label: "Kunnskapsbase",        icon: BookOpen },
-  { href: "/admin",       label: "Admin",                icon: Settings },
+//
+// Sidebar grouping (2026-04-29 — from megler-bilder mockup 135259):
+// ARBEID = day-to-day broker workflow, SALG = pipeline + prospecting,
+// COMPLIANCE = regulatory + insurer relationships, SYSTEM = reference + admin.
+type NavSection = "ARBEID" | "SALG" | "COMPLIANCE" | "SYSTEM";
+const NAV_ITEMS: { href: string; label: string; icon: React.ComponentType<{className?: string}>; section: NavSection }[] = [
+  { href: "/dashboard",   label: "Hjem",                 icon: LayoutDashboard, section: "ARBEID" },
+  { href: "/search",      label: "Selskapsøk",           icon: Search,          section: "ARBEID" },
+  { href: "/pipeline",    label: "Pipeline",             icon: Trello,          section: "ARBEID" },
+  { href: "/portfolio",   label: "Portefølje",           icon: BarChart2,       section: "ARBEID" },
+  { href: "/prospecting", label: "Prospektering",        icon: Crosshair,       section: "SALG" },
+  { href: "/renewals",    label: "Fornyelser",           icon: RotateCcw,       section: "SALG" },
+  { href: "/tenders",     label: "Anbud",                icon: FileText,        section: "SALG" },
+  { href: "/idd",         label: "IDD / Behov",          icon: Scale,           section: "COMPLIANCE" },
+  { href: "/insurers",    label: "Forsikringsselskaper", icon: Building2,       section: "COMPLIANCE" },
+  { href: "/sla",         label: "Avtaler",              icon: FileText,        section: "COMPLIANCE" },
+  { href: "/knowledge",   label: "Kunnskapsbase",        icon: BookOpen,        section: "SYSTEM" },
+  { href: "/admin",       label: "Admin",                icon: Settings,        section: "SYSTEM" },
 ];
+
+const SECTION_ORDER: NavSection[] = ["ARBEID", "SALG", "COMPLIANCE", "SYSTEM"];
 
 function SidebarContent({
   pathname,
@@ -80,24 +87,37 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname.startsWith(href);
+      {/* Nav — grouped by lifecycle section (ARBEID / SALG / COMPLIANCE / SYSTEM) */}
+      <nav className="flex-1 overflow-y-auto px-2 py-3">
+        {SECTION_ORDER.map((section) => {
+          const items = NAV_ITEMS.filter((it) => it.section === section);
+          if (items.length === 0) return null;
           return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavClick}
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "nav-item",
-                isActive && "nav-item-active",
-              )}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{T(label)}</span>
-            </Link>
+            <div key={section} className="mb-3 last:mb-0">
+              <h3 className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {section}
+              </h3>
+              <div className="space-y-0.5">
+                {items.map(({ href, label, icon: Icon }) => {
+                  const isActive = pathname.startsWith(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={onNavClick}
+                      aria-current={isActive ? "page" : undefined}
+                      className={cn(
+                        "nav-item",
+                        isActive && "nav-item-active",
+                      )}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span>{T(label)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
