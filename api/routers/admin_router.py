@@ -16,6 +16,7 @@ from api.routers.dashboard import router as _dashboard
 from api.routers.cron import router as _cron
 from api.routers.admin_email_log import router as _email_log
 from api.routers.admin_demo import router as _demo
+from api.routers.admin_metrics import router as _metrics
 
 router = APIRouter()
 router.include_router(_seed)
@@ -24,3 +25,4 @@ router.include_router(_dashboard)
 router.include_router(_cron)
 router.include_router(_email_log)
 router.include_router(_demo)
+router.include_router(_metrics)

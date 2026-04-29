@@ -138,6 +138,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Admin Metrics
+         * @description User counts by role + Postgres database size.
+         *
+         *     api_calls_24h and ai_tokens_today are stubbed at 0 until request-log
+         *     and token-log tables land in a follow-up.
+         */
+        get: operations["get_admin_metrics_admin_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/msgraph-inbound/create-subscription": {
         parameters: {
             query?: never;
@@ -405,6 +428,26 @@ export interface paths {
         put?: never;
         /** Admin Seed Norway Top100 */
         post: operations["admin_seed_norway_top100_admin_seed_norway_top100_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/services-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Services Health
+         * @description Probe known external dependencies; cached on the client side via SWR.
+         */
+        get: operations["get_services_health_admin_services_health_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4172,6 +4215,63 @@ export interface components {
             /** Subject */
             subject?: string | null;
         };
+        /**
+         * AdminMetricsOut
+         * @description Metrics for the admin landing page (mockup 11.03.34).
+         */
+        AdminMetricsOut: {
+            /**
+             * Admin Count
+             * @description Subset with role=admin
+             * @default 0
+             */
+            admin_count: number;
+            /**
+             * Ai Tokens Budget
+             * @description Monthly budget cap if set
+             */
+            ai_tokens_budget?: number | null;
+            /**
+             * Ai Tokens Today
+             * @description Foundry tokens consumed today (0 until tracking lands)
+             * @default 0
+             */
+            ai_tokens_today: number;
+            /**
+             * Api Calls 24H
+             * @description HTTP requests served in the last 24h (0 until tracking lands)
+             * @default 0
+             */
+            api_calls_24h: number;
+            /**
+             * Api Success Pct
+             * @description 2xx + 3xx share of api_calls_24h
+             */
+            api_success_pct?: number | null;
+            /**
+             * Broker Count
+             * @description Subset with role=broker
+             * @default 0
+             */
+            broker_count: number;
+            /**
+             * Storage Bytes
+             * @description pg_database_size of the application database
+             * @default 0
+             */
+            storage_bytes: number;
+            /**
+             * Storage Capacity Bytes
+             * @description Provisioned capacity if known
+             */
+            storage_capacity_bytes?: number | null;
+            /**
+             * Total Users
+             * @description Users in the firm
+             * @default 0
+             */
+            total_users: number;
+        };
         /** AltmanHistoryOut */
         AltmanHistoryOut: {
             /** Orgnr */
@@ -5845,6 +5945,25 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** ServiceHealthItem */
+        ServiceHealthItem: {
+            /** Latency Ms */
+            latency_ms?: number | null;
+            /** Name */
+            name: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Status
+             * @description "operational" | "degraded" | "auth_required" | "down"
+             */
+            status: string;
+        };
+        /** ServicesHealthOut */
+        ServicesHealthOut: {
+            /** Services */
+            services?: components["schemas"]["ServiceHealthItem"][];
+        };
         /** SignicatWebhookAck */
         SignicatWebhookAck: {
             /** Received */
@@ -6416,6 +6535,26 @@ export interface operations {
             };
         };
     };
+    get_admin_metrics_admin_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMetricsOut"];
+                };
+            };
+        };
+    };
     admin_create_subscription_admin_msgraph_inbound_create_subscription_post: {
         parameters: {
             query?: never;
@@ -6718,6 +6857,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    get_services_health_admin_services_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServicesHealthOut"];
                 };
             };
         };
