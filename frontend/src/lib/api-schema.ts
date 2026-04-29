@@ -3404,7 +3404,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Orgs */
+        /**
+         * Search Orgs
+         * @description BRREG search results, augmented with `risk_score` for any orgnr that
+         *     already exists in our DB (so the UI can render a coloured risk badge
+         *     and let the user filter by risk bucket without a follow-up round trip).
+         *     Companies the broker has never visited won't have a score — those rows
+         *     show no badge and don't match any of the risk-bucket filter chips.
+         */
         get: operations["search_orgs_search_get"];
         put?: never;
         post?: never;

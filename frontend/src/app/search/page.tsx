@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { searchCompanies, type SearchResult } from "@/lib/api";
 import { Search, ChevronRight, Loader2, Clock } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { useRiskConfig, bandTailwindClass } from "@/lib/useRiskConfig";
+import { cn } from "@/lib/cn";
+
+type RiskFilter = "all" | string;
 
 export default function SearchPage() {
   const T = useT();
+  const { bands, bandFor } = useRiskConfig();
   const [query, setQuery]         = useState("");
   const [size, setSize]           = useState(20);
   const [kommunenr, setKommunenr] = useState("");
@@ -16,6 +21,21 @@ export default function SearchPage() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<{ orgnr: string; navn: string }[]>([]);
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>("all");
+
+  const countsByBand = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const r of results) {
+      if (r.risk_score == null) continue;
+      counts[bandFor(r.risk_score).label] = (counts[bandFor(r.risk_score).label] ?? 0) + 1;
+    }
+    return counts;
+  }, [results, bandFor]);
+
+  const filteredResults = useMemo(() => {
+    if (riskFilter === "all") return results;
+    return results.filter((r) => r.risk_score != null && bandFor(r.risk_score).label === riskFilter);
+  }, [results, riskFilter, bandFor]);
 
   useEffect(() => {
     try {
@@ -27,6 +47,7 @@ export default function SearchPage() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setRiskFilter("all");
     startTransition(async () => {
       try {
         const data = await searchCompanies(query.trim(), size, kommunenr.trim() || undefined);
@@ -135,40 +156,108 @@ export default function SearchPage() {
       {/* Results */}
       {searched && (
         <div className="broker-card">
-          <p className="text-xs text-muted-foreground mb-3">
-            Fant <strong>{results.length}</strong> treff
-          </p>
+          <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <p className="text-xs text-muted-foreground">
+              Fant <strong>{results.length}</strong> treff
+              {riskFilter !== "all" && (
+                <span> · viser <strong>{filteredResults.length}</strong> i {riskFilter}</span>
+              )}
+            </p>
+            {/* Risk-bucket filter chips — only render when at least one result has a score */}
+            {Object.keys(countsByBand).length > 0 && (
+              <div className="flex items-center gap-1.5" role="group" aria-label="Filtrer etter risiko">
+                <button
+                  onClick={() => setRiskFilter("all")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                    riskFilter === "all"
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-card text-muted-foreground border-border hover:border-foreground"
+                  )}
+                  aria-pressed={riskFilter === "all"}
+                >
+                  Alle
+                </button>
+                {bands.map((band) => {
+                  const count = countsByBand[band.label] ?? 0;
+                  if (count === 0) return null;
+                  const active = riskFilter === band.label;
+                  return (
+                    <button
+                      key={band.label}
+                      onClick={() => setRiskFilter(band.label)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                        active
+                          ? bandTailwindClass(band.label) + " border-transparent ring-2 ring-offset-1 ring-offset-background"
+                          : "bg-card text-muted-foreground border-border hover:border-foreground",
+                      )}
+                      style={active ? { boxShadow: `0 0 0 1px ${band.color}` } : undefined}
+                      aria-pressed={active}
+                    >
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                        style={{ backgroundColor: band.color }}
+                        aria-hidden
+                      />
+                      {band.label} <span className="opacity-60">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-          {results.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Ingen selskaper funnet.</p>
+          {filteredResults.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {riskFilter === "all"
+                ? "Ingen selskaper funnet."
+                : `Ingen selskaper i ${riskFilter}-bucket. Prøv et annet filter.`}
+            </p>
           ) : (
             <div className="divide-y divide-border">
-              {results.map((r) => (
-                <Link
-                  key={r.orgnr}
-                  href={`/search/${r.orgnr}`}
-                  className="flex items-center gap-3 py-3 hover:bg-muted -mx-5 px-5
-                             transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground group-hover:text-primary">
-                      {r.navn}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {r.orgnr}
-                      {r.organisasjonsform && ` · ${r.organisasjonsform}`}
-                      {r.kommune && ` · ${r.kommune}`}
-                      {r.postnummer && ` ${r.postnummer}`}
-                    </p>
-                    {r.naeringskode1_beskrivelse && (
+              {filteredResults.map((r) => {
+                const band = r.risk_score != null ? bandFor(r.risk_score) : null;
+                return (
+                  <Link
+                    key={r.orgnr}
+                    href={`/search/${r.orgnr}`}
+                    className="flex items-center gap-3 py-3 hover:bg-muted -mx-5 px-5
+                               transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-primary">
+                          {r.navn}
+                        </p>
+                        {band && r.risk_score != null && (
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0",
+                              bandTailwindClass(band.label),
+                            )}
+                            title={`Risikoscore ${r.risk_score} av 20`}
+                          >
+                            {band.label} · {r.risk_score}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {r.naeringskode1} {r.naeringskode1_beskrivelse}
+                        {r.orgnr}
+                        {r.organisasjonsform && ` · ${r.organisasjonsform}`}
+                        {r.kommune && ` · ${r.kommune}`}
+                        {r.postnummer && ` ${r.postnummer}`}
                       </p>
-                    )}
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
-                </Link>
-              ))}
+                      {r.naeringskode1_beskrivelse && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {r.naeringskode1} {r.naeringskode1_beskrivelse}
+                        </p>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

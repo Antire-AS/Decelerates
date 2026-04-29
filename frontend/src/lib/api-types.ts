@@ -10,6 +10,12 @@ export interface SearchResult {
   postnummer?: string;
   naeringskode1?: string;
   naeringskode1_beskrivelse?: string;
+  /**
+   * Risk score (0–20) when the company exists in our DB. `null` for
+   * fresh BRREG hits the broker has never visited — those rows render
+   * without a risk badge and don't match any risk-bucket filter chip.
+   */
+  risk_score?: number | null;
 }
 
 export interface RiskFactor {

@@ -39,11 +39,37 @@ def search_orgs(
     name: str = Query(..., min_length=2),
     kommunenummer: Optional[str] = None,
     size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
 ) -> list:
+    """BRREG search results, augmented with `risk_score` for any orgnr that
+    already exists in our DB (so the UI can render a coloured risk badge
+    and let the user filter by risk bucket without a follow-up round trip).
+    Companies the broker has never visited won't have a score — those rows
+    show no badge and don't match any of the risk-bucket filter chips.
+    """
     try:
-        return fetch_enhetsregisteret(name=name, kommunenummer=kommunenummer, size=size)
+        results = fetch_enhetsregisteret(
+            name=name, kommunenummer=kommunenummer, size=size
+        )
     except requests.HTTPError as e:
         raise HTTPException(status_code=502, detail=str(e))
+
+    orgnrs = [r["orgnr"] for r in results if r.get("orgnr")]
+    if orgnrs:
+        from api.db import Company
+
+        rows = (
+            db.query(Company.orgnr, Company.risk_score)
+            .filter(Company.orgnr.in_(orgnrs))
+            .all()
+        )
+        scores = {orgnr: rs for orgnr, rs in rows if rs is not None}
+        for r in results:
+            r["risk_score"] = scores.get(r.get("orgnr"))
+    else:
+        for r in results:
+            r["risk_score"] = None
+    return results
 
 
 @router.get("/org/{orgnr}")
