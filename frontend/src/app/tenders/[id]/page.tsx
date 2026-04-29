@@ -622,6 +622,18 @@ export default function TenderDetailPage() {
 
       {/* AI Analysis result */}
       {analysis && <AnalysisSection analysis={analysis} />}
+
+      <TenderChatPanel
+        tender={{
+          title: tender.title,
+          orgnr: tender.orgnr,
+          product_types: tender.product_types,
+          deadline: tender.deadline,
+          recipient_count: tender.recipients.length,
+          offer_count: tender.offers.length,
+          status: tender.status,
+        }}
+      />
     </div>
   );
 }
@@ -806,18 +818,6 @@ function AnalysisSection({ analysis }: AnalysisSectionProps) {
           })}
         </div>
       )}
-
-      <TenderChatPanel
-        tender={{
-          title: tender.title,
-          orgnr: tender.orgnr,
-          product_types: tender.product_types,
-          deadline: tender.deadline,
-          recipient_count: tender.recipients.length,
-          offer_count: tender.offers.length,
-          status: tender.status,
-        }}
-      />
     </div>
   );
 }
