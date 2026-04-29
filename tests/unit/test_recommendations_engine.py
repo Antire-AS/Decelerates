@@ -69,9 +69,7 @@ def test_stale_narrative_triggers_update_recommendation():
         last_narrative_at={"222": old},
         peer_overage_orgnrs=set(),
     )
-    assert any(
-        r["kind"] == "stale_narrative" and r["orgnr"] == "222" for r in result
-    )
+    assert any(r["kind"] == "stale_narrative" and r["orgnr"] == "222" for r in result)
 
 
 def test_capped_at_five():
@@ -79,8 +77,7 @@ def test_capped_at_five():
     from api.services.recommendations_engine import compute_recommendations
 
     companies = [
-        {"orgnr": str(i), "navn": f"Co {i}", "pep_hit_count": 1}
-        for i in range(10)
+        {"orgnr": str(i), "navn": f"Co {i}", "pep_hit_count": 1} for i in range(10)
     ]
     result = compute_recommendations(
         companies=companies,
