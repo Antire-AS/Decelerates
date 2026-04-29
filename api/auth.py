@@ -235,6 +235,11 @@ def get_optional_user(
     oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
     name = claims.get("name", "")
+    if not _is_email_authorized(email):
+        # Same allowlist as get_current_user; non-authorized tokens are
+        # treated as anonymous rather than 403 here so optional-auth
+        # routes degrade gracefully.
+        return None
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
 
@@ -280,6 +285,35 @@ def _resolve_sso_firm(claims: dict, db: Session) -> int | None:
         return None
 
 
+def _parse_csv_env(env_var: str) -> list[str]:
+    """Parse a comma-separated env var into lowercased, trimmed, non-empty values."""
+    return [s.strip().lower() for s in os.getenv(env_var, "").split(",") if s.strip()]
+
+
+def _is_email_authorized(email: str) -> bool:
+    """Check email against AUTH_ALLOWED_DOMAINS / AUTH_ALLOWED_EMAILS allowlists.
+
+    Both env vars are comma-separated and case-insensitive. An email is
+    authorized if its full address is in AUTH_ALLOWED_EMAILS *or* its domain
+    is in AUTH_ALLOWED_DOMAINS. If both env vars are empty, returns True
+    (fail-open — preserves pre-allowlist behavior for dev/staging where
+    AUTH_DISABLED=1 is honored separately).
+    """
+    if not email:
+        return False
+    email = email.strip().lower()
+    domains = _parse_csv_env("AUTH_ALLOWED_DOMAINS")
+    emails = _parse_csv_env("AUTH_ALLOWED_EMAILS")
+    if not domains and not emails:
+        return True
+    if email in emails:
+        return True
+    if "@" in email:
+        if email.rsplit("@", 1)[1] in domains:
+            return True
+    return False
+
+
 def get_current_user(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),
@@ -291,6 +325,12 @@ def get_current_user(
     oid = claims.get("oid", "")
     email = claims.get("preferred_username") or claims.get("email", "")
     name = claims.get("name", "")
+    if not _is_email_authorized(email):
+        _log.info("Login rejected for unauthorized email: %s", email)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ikke autorisert. Kontakt en administrator for tilgang.",
+        )
     firm_id = _resolve_sso_firm(claims, db)
     from api.services.user_service import UserService
 
