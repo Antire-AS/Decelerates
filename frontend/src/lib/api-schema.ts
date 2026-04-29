@@ -260,6 +260,11 @@ export interface paths {
          *     Wired to a nightly GitHub Actions cron at 03:30 UTC. A second invocation
          *     the same day is harmless — URLs are deduped at the (orgnr, url) UNIQUE
          *     constraint level so we never double-store.
+         *
+         *     Auth note: cron endpoint, called by GitHub Actions without a user session.
+         *     Matches /admin/activity-reminders pattern. Idempotent + dedupe-safe; the
+         *     operation is not exposed in any user-facing UI so the cost-of-public-call
+         *     is bounded to one Serper batch.
          */
         post: operations["refresh_all_news_endpoint_admin_refresh_all_news_post"];
         delete?: never;
@@ -285,6 +290,10 @@ export interface paths {
          *
          *     Wired to a nightly GitHub Actions cron at 04:30 UTC, right after the
          *     news refresh so any fresh material events are already classified.
+         *
+         *     Auth note: cron endpoint, called by GitHub Actions without a user session.
+         *     Matches /admin/activity-reminders pattern. Idempotent — re-running the
+         *     same day produces identical zones from the same Company rows.
          */
         post: operations["refresh_altman_snapshots_endpoint_admin_refresh_altman_snapshots_post"];
         delete?: never;

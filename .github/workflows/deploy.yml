@@ -457,6 +457,7 @@ jobs:
 
       - name: Deploy frontend
         run: |
+          source /tmp/retry-on-provisioning.sh
           ENV_VARS=(
             "API_BASE_URL=${{ steps.api.outputs.url }}"
             "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
@@ -470,6 +471,11 @@ jobs:
             "NODE_ENV=production"
           )
 
+          # `create || update` — first run creates, subsequent runs update.
+          # The update arm hits the same ContainerAppOperationInProgress race
+          # that the NEXTAUTH_URL patch step does. Wrap in retry_on_provisioning
+          # so concurrent deploys don't fail this step (caused #305 to fail
+          # when it raced #306 on 2026-04-29).
           az containerapp create \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
@@ -484,7 +490,7 @@ jobs:
             --max-replicas 2 \
             --env-vars "${ENV_VARS[@]}" \
           2>/dev/null \
-          || az containerapp update \
+          || retry_on_provisioning az containerapp update \
             --name ${{ steps.config.outputs.frontend_app }} \
             --resource-group ${{ env.RG }} \
             --image ${{ env.ACR }}.azurecr.io/broker-frontend:${{ github.sha }} \
