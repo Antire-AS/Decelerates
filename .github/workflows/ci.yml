@@ -216,4 +216,5 @@ jobs:
     if: github.base_ref == 'main'
     steps:
       - name: No-op (staging gate retired)
-        run: echo "✓ staging-gate: retired 2026-04-29 — direct-to-main is the default flow."
+        run: |
+          echo "✓ staging-gate retired 2026-04-29 — direct-to-main is the default flow."
