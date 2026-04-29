@@ -13,6 +13,8 @@ import { ExportsSection } from "@/components/admin/ExportsSection";
 import { AuditLogSection } from "@/components/admin/AuditLogSection";
 import { InboundEmailSection } from "@/components/admin/InboundEmailSection";
 import { DemoDataSection } from "@/components/admin/DemoDataSection";
+import MetricsCards from "@/components/admin/MetricsCards";
+import ServicesPanel from "@/components/admin/ServicesPanel";
 import { useT } from "@/lib/i18n";
 
 const STAT_KEYS: Record<string, string> = {
@@ -201,13 +203,20 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{T("Admin")}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{T("Administrasjon")}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {T("Systemstatistikk, brukeradministrasjon og dataverktøy")}
+          {T("Brukere · API-status · revisjonslogg")}
         </p>
       </div>
 
-      {/* Stats grid */}
+      {/* Top metrics row + service health (mockup 11.03.34) */}
+      <MetricsCards />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ServicesPanel />
+        <AuditLogSection />
+      </div>
+
+      {/* Legacy stats grid */}
       {isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
@@ -233,7 +242,6 @@ export default function AdminPage() {
       <DataControlsSection />
       <DemoDataSection />
       <InboundEmailSection />
-      <AuditLogSection />
     </div>
   );
 }
