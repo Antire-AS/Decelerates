@@ -27,9 +27,9 @@ jobs:
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
-            # POC mode: use "staging" so AUTH_DISABLED=1 is honored.
-            # When Azure AD SSO is configured, change back to "production".
-            echo "environment=staging" >> $GITHUB_OUTPUT
+            # Real auth: NextAuth (Google + Azure AD) forwards id_token via
+            # providers.tsx AuthGate; backend validates per api/auth.py.
+            echo "environment=production" >> $GITHUB_OUTPUT
             echo "cae=cae-broker-accelerator-prod" >> $GITHUB_OUTPUT
             echo "api_app=ca-api" >> $GITHUB_OUTPUT
             echo "frontend_app=ca-frontend" >> $GITHUB_OUTPUT
@@ -200,6 +200,12 @@ jobs:
 
           # Fetch the current container spec, update image + probe in one PATCH
           CURRENT=$(az rest --method GET --url "$API_URL" --query "properties.template.containers[0]" -o json)
+          # revisionSuffix forces a new revision even when the image SHA
+          # matches what's already deployed (eg. workflow re-runs on the
+          # same commit, or recovery deploys after the previous run failed
+          # mid-workflow). Without this, the PATCH is a no-op when the
+          # spec is unchanged and `latestRevisionName` never advances —
+          # caused tonight's recovery to stall (run 25079652656 re-run).
           PATCHED=$(echo "$CURRENT" | python3 -c "
           import sys, json
           c = json.load(sys.stdin)
@@ -212,7 +218,8 @@ jobs:
             'failureThreshold': 30,
             'timeoutSeconds': 10
           }]
-          print(json.dumps({'properties': {'template': {'containers': [c]}}}))
+          tmpl = {'revisionSuffix': 'r${{ github.run_id }}-${{ github.run_attempt }}', 'containers': [c]}
+          print(json.dumps({'properties': {'template': tmpl}}))
           ")
           source /tmp/retry-on-provisioning.sh
           retry_on_provisioning az rest --method PATCH --url "$API_URL" \
