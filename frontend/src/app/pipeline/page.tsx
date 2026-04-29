@@ -149,7 +149,20 @@ export default function PipelinePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">{T("Pipeline")}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{T("Pipeline")}</h1>
+          {deals.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {deals.length} {T("saker")} · {T("samlet pipeline-verdi")} {formatNok(totalValue)}
+              {totalValue > 0 && (
+                <>
+                  {" · "}
+                  {T("forventet konverteringsrate")} {Math.round((weightedValue / totalValue) * 100)}%
+                </>
+              )}
+            </p>
+          )}
+        </div>
         <button
           onClick={() => {
             setModalStageId(stages[0]?.id ?? null);
