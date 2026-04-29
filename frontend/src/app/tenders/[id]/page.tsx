@@ -12,6 +12,7 @@ import {
   updateTender,
   downloadTenderPresentationPdf,
   downloadTenderComparisonXlsx,
+  generateTenderCustomerPortal,
   declineTenderRecipient,
   type Tender,
 } from "@/lib/api";
@@ -22,6 +23,9 @@ import {
   Bell,
   Clock,
   CheckCircle,
+  Copy,
+  Mail,
+  X,
   FileText,
   FileDown,
   AlertTriangle,
@@ -142,6 +146,10 @@ export default function TenderDetailPage() {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadInsurer, setUploadInsurer] = useState("");
+  const [showCustomerDialog, setShowCustomerDialog] = useState(false);
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [mintingCustomerLink, setMintingCustomerLink] = useState(false);
+  const [customerLinkPath, setCustomerLinkPath] = useState<string | null>(null);
 
   if (!tender) {
     return (
@@ -217,6 +225,45 @@ export default function TenderDetailPage() {
   async function handleClose() {
     await updateTender(Number(id), { status: "closed" });
     mutate();
+  }
+
+  async function handleMintCustomerLink() {
+    if (!customerEmail) return;
+    setMintingCustomerLink(true);
+    try {
+      const res = await generateTenderCustomerPortal(Number(id), {
+        customer_email: customerEmail,
+      });
+      const fullUrl = `${window.location.origin}${res.portal_url_path}`;
+      setCustomerLinkPath(fullUrl);
+      await mutate();
+    } catch {
+      toast.error(T("Kunne ikke generere kundelenke"));
+    } finally {
+      setMintingCustomerLink(false);
+    }
+  }
+
+  function openCustomerDialog() {
+    setCustomerEmail(tender?.customer_email ?? "");
+    if (tender?.customer_access_token) {
+      setCustomerLinkPath(
+        `${window.location.origin}/portal/tender/${tender.customer_access_token}`,
+      );
+    } else {
+      setCustomerLinkPath(null);
+    }
+    setShowCustomerDialog(true);
+  }
+
+  async function copyCustomerLink() {
+    if (!customerLinkPath) return;
+    try {
+      await navigator.clipboard.writeText(customerLinkPath);
+      toast.success(T("Lenke kopiert"));
+    } catch {
+      toast.error(T("Kunne ikke kopiere"));
+    }
   }
 
   // Type the analysis result for safe rendering
@@ -337,8 +384,111 @@ export default function TenderDetailPage() {
               {T("Eksporter Excel")}
             </button>
           )}
+          {tender.analysis_result && (
+            <button
+              onClick={openCustomerDialog}
+              className="flex items-center gap-1.5 px-4 py-2 border border-primary/30 text-primary bg-primary/5 text-sm rounded-lg hover:bg-primary/10"
+              title={T("Generer en lenke kunden kan åpne for å godkjenne tilbudet")}
+            >
+              <Mail className="w-4 h-4" />
+              {tender.customer_access_token
+                ? T("Vis kundelenke")
+                : T("Send til kunde")}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Customer portal dialog */}
+      {showCustomerDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="bg-primary px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-white font-semibold">{T("Kundelenke")}</h2>
+              <button
+                onClick={() => setShowCustomerDialog(false)}
+                className="text-white/70 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-muted-foreground">
+                {T(
+                  "Generer en privat lenke til kunden. De ser AI-anbefalingen og sammenligningen, og kan godkjenne eller avslå.",
+                )}
+              </p>
+              <div>
+                <label className="label-xs" htmlFor="customer-email">
+                  {T("Kundens e-post")}
+                </label>
+                <input
+                  id="customer-email"
+                  type="email"
+                  className="input-sm w-full"
+                  placeholder="kunde@firma.no"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                />
+              </div>
+              {customerLinkPath && (
+                <div className="rounded-lg border border-border bg-muted px-3 py-2 flex items-center gap-2">
+                  <code className="text-[10px] flex-1 truncate text-foreground">
+                    {customerLinkPath}
+                  </code>
+                  <button
+                    onClick={copyCustomerLink}
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <Copy className="w-3 h-3" />
+                    {T("Kopier")}
+                  </button>
+                </div>
+              )}
+              {tender.customer_approval_status && (
+                <p className="text-xs">
+                  {T("Status")}:{" "}
+                  <strong
+                    className={
+                      tender.customer_approval_status === "approved"
+                        ? "text-emerald-600"
+                        : tender.customer_approval_status === "rejected"
+                          ? "text-rose-600"
+                          : "text-muted-foreground"
+                    }
+                  >
+                    {tender.customer_approval_status === "approved"
+                      ? T("Godkjent")
+                      : tender.customer_approval_status === "rejected"
+                        ? T("Avslått")
+                        : T("Venter")}
+                  </strong>
+                </p>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setShowCustomerDialog(false)}
+                  className="px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted"
+                >
+                  {T("Lukk")}
+                </button>
+                <button
+                  onClick={handleMintCustomerLink}
+                  disabled={mintingCustomerLink || !customerEmail}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {mintingCustomerLink && (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  )}
+                  {tender.customer_access_token
+                    ? T("Oppdater e-post")
+                    : T("Generer lenke")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notes */}
       {tender.notes && (
