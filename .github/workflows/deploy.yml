@@ -400,16 +400,33 @@ jobs:
           # Deactivate every active revision except the one serving.
           # Errors are logged but don't fail the deploy — a stuck zombie
           # is bad but not bad enough to fail a green canary.
+          #
+          # Concurrent-deploy guard: skip revisions created within the last
+          # 10 min. They almost certainly belong to a sibling deploy.yml run
+          # (typical with two [skip-staging] PRs merging in close succession)
+          # whose canary watchdog hasn't yet promoted them to 100%. If we
+          # deactivate them here, the sibling's Finalize step will then set
+          # 100% traffic on a deactivated revision → "Container App
+          # Unavailable" until a human re-activates it. Triggered prod
+          # outage on 2026-04-29 (#288 deactivated #289's brand-new revision
+          # before #289 finished its canary window).
+          CUTOFF_TS=$(($(date +%s) - 600))
           ZOMBIES=$(az containerapp revision list --name "$APP" \
             --resource-group "$RG" \
-            --query "[?properties.active && name != '$HUNDRED_REV'].name" \
+            --query "[?properties.active && name != '$HUNDRED_REV'].[name, properties.createdTime]" \
             -o tsv)
-          for REV in $ZOMBIES; do
-            echo "  deactivating $REV"
+          while IFS=$'\t' read -r REV CREATED; do
+            [ -z "$REV" ] && continue
+            REV_TS=$(date -d "$CREATED" +%s 2>/dev/null || echo 0)
+            if [ "$REV_TS" -gt "$CUTOFF_TS" ]; then
+              echo "  skipping $REV — created $CREATED (within 10 min, likely concurrent deploy)"
+              continue
+            fi
+            echo "  deactivating $REV (created $CREATED)"
             az containerapp revision deactivate \
               --name "$APP" --resource-group "$RG" \
               --revision "$REV" 2>&1 | tail -1 || true
-          done
+          done <<< "$ZOMBIES"
           echo "Done. Active revisions:"
           az containerapp revision list --name "$APP" --resource-group "$RG" \
             --query "[?properties.active].{name:name, traffic:properties.trafficWeight}" \
