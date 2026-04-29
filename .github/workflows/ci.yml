@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, staging]
+    branches: [main]
 
 jobs:
   test:
@@ -208,69 +208,13 @@ jobs:
           echo "OK: api-schema.ts matches the current backend."
 
   staging-gate:
-    # Enforces the team convention that all changes go through staging
-    # before reaching main, EXCEPT for low-risk PRs that explicitly opt out
-    # via "[skip-staging]" in the title or the "skip-staging" label.
-    #
-    # Why opt-out instead of opt-in: full staging hops add ~15 min of CI +
-    # deploy time per PR. For docs, dependency bumps, single-line fixes,
-    # and Dependabot security PRs, that overhead is pure friction. The
-    # default still goes through staging — you only see the gate's teeth
-    # when you (a) target main directly without coming from staging AND
-    # (b) forgot to mark the PR as low-risk.
-    #
-    # When to use [skip-staging]:
-    #   ✓ Docs-only changes (README, CLAUDE.md)
-    #   ✓ Dependency bumps from Dependabot or manual security upgrades
-    #   ✓ Single-line config fixes (deploy.yml env var add/rename)
-    #   ✓ Comment-only edits
-    #   ✓ Hotfixes that need to land on prod within minutes (incident response)
-    #
-    # When NOT to use [skip-staging]:
-    #   ✗ Any change to api/services/, api/routers/, frontend/src/
-    #   ✗ Any change touching DB schema or migrations
-    #   ✗ Any change to LLM provider routing or auth
-    #   ✗ Anything that could cause a 5xx if rolled back wrong
-    #
-    # If you need [skip-staging] often, the change probably wants better
-    # test coverage instead — talk to whoever owns the area.
+    # Retired 2026-04-29. The staging branch has been deprecated — direct-
+    # to-main is now the default workflow. This job kept as a no-op pass so
+    # branch-protection contexts referencing it don't fail; can be removed
+    # entirely once branch protection is updated.
     runs-on: ubuntu-latest
     if: github.base_ref == 'main'
     steps:
-      - name: Check staging gate
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+      - name: No-op (staging gate retired)
         run: |
-          echo "Base: main"
-          echo "Head: $PR_HEAD_REF"
-          echo "Title: $PR_TITLE"
-          echo "Labels: $PR_LABELS"
-
-          # Coming from staging is the canonical path — always allowed.
-          if [[ "$PR_HEAD_REF" == "staging" ]]; then
-            echo "✓ PR comes from staging branch — staging gate satisfied"
-            exit 0
-          fi
-
-          # Otherwise it's a feature/fix/chore branch targeting main directly.
-          # Require an explicit opt-out marker.
-          if [[ "$PR_TITLE" == *"[skip-staging]"* ]]; then
-            echo "✓ PR title contains [skip-staging] — opt-out accepted"
-            echo "::notice::This PR bypasses the staging gate. Make sure the change is genuinely low-risk (see staging-gate job in ci.yml for criteria)."
-            exit 0
-          fi
-
-          if [[ ",$PR_LABELS," == *",skip-staging,"* ]]; then
-            echo "✓ PR has skip-staging label — opt-out accepted"
-            echo "::notice::This PR bypasses the staging gate via label. Make sure the change is genuinely low-risk."
-            exit 0
-          fi
-
-          echo "::error::This PR targets main directly but does not come from staging."
-          echo "::error::Either:"
-          echo "::error::  1. Open a PR from your branch into staging first, merge to staging, then promote staging→main, OR"
-          echo "::error::  2. If this is a low-risk change (docs, deps, single-line fix, hotfix), add [skip-staging] to the PR title or apply the 'skip-staging' label."
-          echo "::error::See the staging-gate job in .github/workflows/ci.yml for the full criteria."
-          exit 1
+          echo "✓ staging-gate retired 2026-04-29 — direct-to-main is the default flow."

@@ -268,72 +268,17 @@ Nine tables: `companies`, `company_history`, `company_pdf_sources`, `company_not
 
 ```
 feature branch
-    → PR to staging  (CI: tests + lint)
-    → merge to staging → staging deploy → smoke test /ping
-    → validate manually on staging URL
-    → PR to main  (CI: tests + lint again)
+    → PR to main  (CI: tests + lint)
     → merge to main → prod deploy → smoke test /ping
 ```
 
-Both `staging` and `main` pushes run the same `deploy.yml` workflow.
-CI (`ci.yml`) now runs on PRs to **both** `staging` and `main`.
+Direct-to-main is the default flow as of 2026-04-29. The legacy `staging`
+branch has been retired — `[skip-staging]` markers on PR titles are no
+longer required (and harmless if present, as the staging-gate CI job is
+now a no-op pass).
 
 **Infra changes** (new Azure resources, OIDC config): run `terraform apply` locally from `infra/terraform/`
 — Terraform is NOT part of CI/CD. See `infra/README.md` for details.
-
-### `[skip-staging]` mode for low-risk PRs
-
-The staging hop adds ~15 minutes per change (CI + deploy + manual verification).
-For low-risk PRs that overhead is pure friction. The `staging-gate` job in
-`ci.yml` enforces the team convention but allows opt-out:
-
-**Default**: PRs to `main` must come from the `staging` branch. The `staging-gate`
-CI job fails if you try to merge a feature/fix branch directly into main.
-
-**Opt-out**: add `[skip-staging]` to the PR title OR apply the `skip-staging`
-label. The job then passes with a notice and the PR can target `main` directly.
-
-```bash
-# Normal flow (high-risk change)
-git checkout -b feat/new-thing
-# ... commit ...
-gh pr create --base staging
-# merge → staging → promote → main
-
-# Skip-staging flow (low-risk change)
-git checkout -b chore/bump-deps
-# ... commit ...
-gh pr create --base main --title "chore: bump foo to 1.2.3 [skip-staging]"
-# merge → main directly
-```
-
-**When `[skip-staging]` is acceptable**:
-- Docs-only changes (README, CLAUDE.md)
-- Dependabot security upgrades and similar dep bumps
-- Single-line config fixes (deploy.yml env var add/rename)
-- Comment-only edits
-- Hotfixes that need to land on prod within minutes (incident response)
-
-**When it is NOT**:
-- Any change to `api/services/`, `api/routers/`, `frontend/src/`
-- Any change touching DB schema or migrations
-- Any change to LLM provider routing or auth
-- Anything that could cause a 5xx if rolled back wrong
-
-If you find yourself reaching for `[skip-staging]` often, the change probably
-wants better test coverage instead — talk to whoever owns the area.
-
-To make `staging-gate` an actual hard gate (instead of advisory), add it to
-the required status checks on `main`:
-
-```bash
-gh api -X PATCH repos/Antire-AS/Decelerates/branches/main/protection/required_status_checks \
-  -F strict=true \
-  -F 'contexts[]=test' -F 'contexts[]=ruff' -F 'contexts[]=pyright' \
-  -F 'contexts[]=frontend' -F 'contexts[]=api-types-fresh' \
-  -F 'contexts[]=duplication / duplication-check' \
-  -F 'contexts[]=staging-gate'
-```
 
 ### Solo-maintainer merge pattern
 
