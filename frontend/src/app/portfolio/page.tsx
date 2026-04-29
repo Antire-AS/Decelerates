@@ -8,8 +8,10 @@ import {
 } from "recharts";
 import {
   getCompanies, getPortfolios, createPortfolio, seedFullDemo,
+  getDashboard, type DashboardData,
   type Company, type PortfolioItem,
 } from "@/lib/api";
+import { fmt } from "@/lib/format";
 import { useRiskConfig, UNKNOWN_BAND } from "@/lib/useRiskConfig";
 import Link from "next/link";
 import { Loader2, Plus, ChevronRight, BarChart2 } from "lucide-react";
@@ -21,6 +23,7 @@ export default function PortfolioPage() {
   const { data: companies, isLoading } = useSWR<Company[]>(
     "companies-portfolio", () => getCompanies(200),
   );
+  const { data: dash } = useSWR<DashboardData>("dashboard", getDashboard);
   const { data: portfolios = [], mutate: mutatePortfolios } = useSWR<PortfolioItem[]>(
     "portfolios", getPortfolios,
   );
@@ -101,7 +104,11 @@ export default function PortfolioPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{T("Portefølje")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Oversikt over alle kunder og risikofordeling</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {companies && companies.length > 0
+              ? `${companies.length} ${T("aktive kunder")}${dash && dash.total_premium_book > 0 ? ` · kr ${fmt(dash.total_premium_book)} ${T("premie under forvaltning")}` : ""}`
+              : T("Oversikt over alle kunder og risikofordeling")}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/portfolio/analytics"

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { chatWithOrg, getChatHistory, clearChatHistory } from "@/lib/api";
+import useSWR from "swr";
+import { chatWithOrg, getChatHistory, clearChatHistory, getKnowledgeStats, type KnowledgeStatsOut } from "@/lib/api";
 import { Loader2, Send, Bot, User, Trash2, Wrench, Sparkles } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import ChatMarkdown from "@/components/common/ChatMarkdown";
@@ -21,6 +22,7 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [agentMode, setAgentMode] = useState(false);
+  const { data: kbStats } = useSWR<KnowledgeStatsOut>("knowledge-stats", getKnowledgeStats);
   const sessionId = useRef<string | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +92,12 @@ export default function OrgChatSection({ orgnr, orgName }: { orgnr: string; orgN
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Bot className="w-4 h-4" />
             {T("AI-chat om")} {orgName ?? orgnr}
+            {kbStats && kbStats.total_chunks > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                <Sparkles className="w-2.5 h-2.5" />
+                {T("RAG")} · {kbStats.total_chunks} {T("kilder indeksert")}
+              </span>
+            )}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             {T("Stilt spørsmål basert på årsrapporter, tilbud og regnskapsdata")}
