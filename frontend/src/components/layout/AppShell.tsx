@@ -27,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import OnboardingTour from "./OnboardingTour";
+import GlobalChatButton from "./GlobalChatButton";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { A11yPanel } from "@/components/a11y/a11y-panel";
@@ -273,6 +274,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <GlobalChatButton />
     </div>
   );
 }
